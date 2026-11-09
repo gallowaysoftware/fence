@@ -1,0 +1,15 @@
+RUN             SESSIONS  DAYS       EVENTS  SNAPSHOTS  CUSTOMERS  DECISIONS  HUMAN  OUTCOMES  LABELS
+run-0001        1         69-70 (2)  8       2          2          1          2      2         4
+run-0002        1         1          2       0          0          0          0      0         0
+session-s-cccc  1         12         1       0          0          0          0      0         0
+
+SESSION  RUNS            START                 RECORDS  MISSED  OUT-OF-ORDER  DROPPED  SILENCES  BAD LINES
+s-aaaa   run-0001        2026-11-09T20:00:00Z  12       2       0             0        1         0
+s-bbbb   run-0002        2026-11-09T20:30:00Z  4        0       1             0        0         0
+s-cccc   session-s-cccc  2026-11-09T20:40:00Z  2        0       0             0        0         1
+
+Gaps:
+  s-aaaa: seq 6-7 missing (2)
+  s-aaaa: nothing logged 2026-11-09T20:05:00Z to 2026-11-09T20:20:00Z (15m0s)
+
+Total: 3 runs, 3 sessions (3 with gaps), 4 run-days; 2 customers, 1 decisions, 2 human actions, 2 outcomes, 2 snapshots, 4 labels; 2 events missed, 0 records dropped, 1 silences

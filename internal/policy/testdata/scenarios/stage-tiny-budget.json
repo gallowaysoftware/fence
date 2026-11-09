@@ -1,0 +1,126 @@
+{
+  "note": "An Upper Levels food buyer with 16 credits left: every candidate sells below what it cost, so let them go.",
+  "expect": [
+    "dismiss",
+    "nothing_fits"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "stage-tiny-budget",
+    "kind": "stage",
+    "game_day": 108,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:stage-tiny-budget",
+    "context": {
+      "store": {
+        "cash": 1400,
+        "day": 108,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 22.0,
+          "status": "Established"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Pensioner",
+        "faction": "upper_levels",
+        "intent": "buy",
+        "budget": 16,
+        "interests": [
+          "food"
+        ],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "attracted_by": null,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": []
+      },
+      "market_events": [],
+      "budget_left": 16,
+      "candidates": [
+        {
+          "uid": 970,
+          "id": "bread",
+          "name": "Bread",
+          "price": 14,
+          "where": "stock",
+          "estimated_value": 12,
+          "bought_at": 20,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 0,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "food"
+          ],
+          "attracted": false,
+          "over_budget": false
+        },
+        {
+          "uid": 954,
+          "id": "ribs",
+          "name": "Ribs",
+          "price": 120,
+          "where": "showcase",
+          "estimated_value": 104,
+          "bought_at": 40,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 0,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "food"
+          ],
+          "attracted": false,
+          "over_budget": true
+        }
+      ]
+    },
+    "options": [
+      {
+        "id": "offer_970",
+        "label": "Bread #970 (stock): ~14, est 12, paid 20; wants food"
+      },
+      {
+        "id": "offer_954",
+        "label": "Ribs #954 (showcase): ~120, est 104, paid 40; wants food; over budget: they pay 16"
+      },
+      {
+        "id": "nothing_fits",
+        "label": "Nothing in the shop fits this customer"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

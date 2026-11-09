@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Manifest>
+  <ID>fence</ID>
+  <Name>fence</Name>
+  <Author>Kyle Galloway</Author>
+  <ModVersion>0.1.0</ModVersion>
+  <Description>Asks a local LLM bridge (127.0.0.1) what to do. Never published to the Workshop.</Description>
+  <GameVersions>
+    <Version>0.46D</Version>
+  </GameVersions>
+  <Prerequisites />
+  <Assemblies>
+    <Assembly>Fence.Core.dll</Assembly>
+    <Assembly>Fence.Mod.dll</Assembly>
+  </Assemblies>
+  <Capabilities>
+    <Capability>network</Capability>
+  </Capabilities>
+</Manifest>

@@ -1,0 +1,305 @@
+{
+ "note": "Stolen meat at heat 0, 10, 35 and 70; the heat-35 and heat-70 cuts sit in the smuggler bay, the heat-10 one is on a shelf (exposed) and a heat-35 one in the showcase. Evidence 64/100 and a THREAT (Security Sweep) on day 84. Sell the heat-0 cut now (clean); move the shelf and showcase pieces into the bay before day 84; sell each piece clean on its day (heat 10 -> day 83, 35 -> day 84, 70 -> day 86) rather than hot.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 82,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 2400,
+    "day": 82,
+    "weekday": "Thursday",
+    "net_worth": 4360,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 800,
+    "arrears": 0,
+    "days_left": 5,
+    "days_left_morning": 5,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12400,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 950,
+     "id": "smuggler_bay",
+     "name": "Smuggler Bay",
+     "types": [],
+     "where": "stock",
+     "estimated_value": 0,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 951,
+     "id": "meat_steak",
+     "name": "Prime Steak",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 120,
+     "features": [],
+     "stolen_heat": 0,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 952,
+     "id": "meat_steak",
+     "name": "Prime Steak",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 120,
+     "features": [],
+     "stolen_heat": 10,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 953,
+     "id": "meat_ribs",
+     "name": "Ribs",
+     "types": [
+      "food"
+     ],
+     "where": "inside:950",
+     "estimated_value": 220,
+     "bought_at": 90,
+     "features": [],
+     "stolen_heat": 35,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 954,
+     "id": "meat_ribs",
+     "name": "Ribs",
+     "types": [
+      "food"
+     ],
+     "where": "showcase",
+     "estimated_value": 220,
+     "bought_at": 90,
+     "features": [],
+     "stolen_heat": 35,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 955,
+     "id": "meat_wagyu",
+     "name": "Wagyu Cut",
+     "types": [
+      "food"
+     ],
+     "where": "inside:950",
+     "estimated_value": 700,
+     "bought_at": 300,
+     "features": [],
+     "stolen_heat": 70,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 956,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "food"
+    ],
+    "display_predictions": []
+   },
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "FENCING",
+      "amount": 480
+     }
+    ],
+    "evidence": "64/100",
+    "evidence_level": 64,
+    "projected_sentence": "Prison",
+    "recommended_action": "Assign a reliable inspector",
+    "trafficking_value": 480
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 84,
+      "events": [
+       {
+        "identifier": "security_sweep",
+        "name": "Security Sweep",
+        "type": "THREAT",
+        "start_day": 84,
+        "duration": 2,
+        "is_duration_visible": true,
+        "negotiation": []
+       },
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 84,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     },
+     {
+      "day": 85,
+      "events": [
+       {
+        "identifier": "security_sweep",
+        "name": "Security Sweep",
+        "type": "THREAT",
+        "start_day": 84,
+        "duration": 2,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": []
+  },
+  "hidden": {
+   "days_to_inspection": 1,
+   "zz_hidden_sentinel": "zz_secret_meat"
+  }
+ }
+}

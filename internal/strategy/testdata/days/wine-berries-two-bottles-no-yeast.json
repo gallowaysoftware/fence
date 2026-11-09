@@ -1,0 +1,562 @@
+{
+ "note": "Berries harvested (3 best, 2 normal, 1 under-ripe, 1 over-ripe, 1 moldy), 2 empty bottles, no yeast, 8 more berries tomorrow morning; rent 600 tomorrow, cash 1500. With bottles scarce, fill each bottle with two good berries tonight (best+best -> Reserve 150, best+normal -> Production 125 without yeast, 4 nights), or buy yeast first (Winemaker upgrade 200: 3 yeast + 3 bottles; with yeast Master 175 / Reserve 150 in 2 nights). Bottles and yeast are the constraint: get more before tomorrow's harvest. Moldy to food; under/over-ripe kept for the next bottles rather than sold as food (a suggestion). Hold the finished Production wine: it ages +3.75 a night and no event touches it. Pay rent.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 41,
+  "hidden": {
+   "days_to_inspection": 9,
+   "zz_hidden_sentinel": "zz_secret_wine-berries-two-bottles-no-yeast",
+   "production": {
+    "health": 777777
+   }
+  },
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 1500,
+    "day": 41,
+    "weekday": "Wednesday",
+    "net_worth": 2592,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 600,
+    "arrears": 0,
+    "days_left": 1,
+    "days_left_morning": 1,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 500,
+     "id": "hydroponic",
+     "name": "Hydroponic Bay",
+     "types": [
+      "machine"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 300,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 501,
+     "id": "bloomberry_seed",
+     "name": "Bloomberry Seed",
+     "types": [
+      "seed"
+     ],
+     "where": "inside:500",
+     "estimated_value": 40,
+     "bought_at": 40,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 502,
+     "id": "energy_credit",
+     "name": "Energy Credit",
+     "types": [
+      "energy_cell"
+     ],
+     "where": "inside:500",
+     "estimated_value": 30,
+     "bought_at": 30,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 510,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 511,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 512,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 513,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 514,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 515,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 516,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 517,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 520,
+     "id": "wine_bottle",
+     "name": "Wine Bottle",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 14,
+     "bought_at": 12,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 521,
+     "id": "wine_bottle",
+     "name": "Wine Bottle",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 14,
+     "bought_at": 12,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 522,
+     "id": "water_ration",
+     "name": "Water Ration",
+     "types": [
+      "water_ration"
+     ],
+     "where": "stock",
+     "estimated_value": 34,
+     "bought_at": 30,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 523,
+     "id": "water_ration",
+     "name": "Water Ration",
+     "types": [
+      "water_ration"
+     ],
+     "where": "stock",
+     "estimated_value": 34,
+     "bought_at": 30,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 530,
+     "id": "wine_bottle",
+     "name": "Wine Bottle",
+     "types": [
+      "substance",
+      "alcohol"
+     ],
+     "where": "stock",
+     "estimated_value": 158,
+     "bought_at": 0,
+     "features": [
+      {
+       "text": "Production",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 540,
+     "id": "canned_beans",
+     "name": "Canned Beans",
+     "types": [
+      "food"
+     ],
+     "where": "showcase",
+     "estimated_value": 40,
+     "bought_at": 20,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 541,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "food"
+    ],
+    "display_predictions": []
+   },
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "projected_sentence": "None",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": [
+     {
+      "id": "WINEMAKER",
+      "name": "Winemaker (3 yeast, 3 bottles, 2 berries)",
+      "cost": 200
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 42,
+      "events": [
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 42,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [],
+   "production": {
+    "machines": [
+     {
+      "uid": 500,
+      "id": "hydroponic",
+      "kind": "hydroponic",
+      "powered": true,
+      "power_per_night": 8,
+      "battery_charge": 30,
+      "state": "working",
+      "progress": 2,
+      "target": 10,
+      "speed": 8,
+      "eta_nights": 1
+     }
+    ],
+    "hydroponics": [
+     {
+      "uid": 500,
+      "seed": {
+       "uid": 501,
+       "plant_id": "bloomberry",
+       "perennial": true,
+       "established": true
+      },
+      "progress": 2,
+      "target": 10,
+      "eta_nights": 1,
+      "harvest_count": 8,
+      "water_ml": 400,
+      "water_use": 100,
+      "status": "growing",
+      "health": 777777
+     }
+    ],
+    "wine": [
+     {
+      "uid": 520,
+      "where": "stock",
+      "state": "empty",
+      "water_ml": 0,
+      "ingredients": []
+     },
+     {
+      "uid": 521,
+      "where": "stock",
+      "state": "empty",
+      "water_ml": 0,
+      "ingredients": []
+     },
+     {
+      "uid": 530,
+      "where": "stock",
+      "state": "finished",
+      "tier": 3,
+      "grade": "Production",
+      "age": 9,
+      "value": 158,
+      "counterfeit": false,
+      "score": 777777
+     }
+    ],
+    "berries": [
+     {
+      "uid": 510,
+      "where": "stock",
+      "grade": "best"
+     },
+     {
+      "uid": 511,
+      "where": "stock",
+      "grade": "best"
+     },
+     {
+      "uid": 512,
+      "where": "stock",
+      "grade": "best"
+     },
+     {
+      "uid": 513,
+      "where": "stock",
+      "grade": "normal"
+     },
+     {
+      "uid": 514,
+      "where": "stock",
+      "grade": "normal"
+     },
+     {
+      "uid": 515,
+      "where": "stock",
+      "grade": "under"
+     },
+     {
+      "uid": 516,
+      "where": "stock",
+      "grade": "over"
+     },
+     {
+      "uid": 517,
+      "where": "stock",
+      "grade": "moldy"
+     }
+    ]
+   }
+  }
+ }
+}

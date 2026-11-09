@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/hello.request.schema.json",
+  "title": "hello request",
+  "description": "POST /v1/hello. Sent once per game launch.",
+  "type": "object",
+  "required": ["protocol", "mod_version", "game", "compat"],
+  "additionalProperties": false,
+  "properties": {
+    "protocol": {"type": "integer", "minimum": 1},
+    "mod_version": {"type": "string", "minLength": 1},
+    "game": {
+      "type": "object",
+      "required": ["version", "unity", "assembly_sha256"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {"type": "string"},
+        "unity": {"type": "string"},
+        "assembly_sha256": {"type": "string", "pattern": "^([0-9a-f]{64})?$", "description": "Empty when the mod could not hash the assembly."},
+        "assembly_mvid": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", "description": "Module version id of Assembly-CSharp; changes with every game build. The mod can read it without the files capability."}
+      }
+    },
+    "compat": {
+      "type": "object",
+      "required": ["ok", "missing", "disabled_features"],
+      "additionalProperties": false,
+      "properties": {
+        "ok": {"type": "boolean"},
+        "missing": {"type": "array", "items": {"type": "string"}},
+        "disabled_features": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

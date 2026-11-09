@@ -1,0 +1,119 @@
+{
+  "note": "Budget 150 for an item bought at 300; even a 50% discount nets 225. Keep it for a richer customer.",
+  "expect": [
+    "dismiss",
+    "defer"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "capped-below-cost",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:capped-below-cost",
+    "context": {
+      "store": {
+        "cash": 1400,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 0.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Student",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "budget": 150,
+        "interests": [
+          "books"
+        ],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": [
+          {
+            "uid": 1301,
+            "id": "ebook",
+            "name": "E-reader",
+            "price": 450,
+            "estimated_value": 400,
+            "bought_at": 300,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ]
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "sell_all",
+        "label": "Sell 1 item for 150 (capped at budget 150)"
+      },
+      {
+        "id": "offer_discount_10",
+        "label": "Offer 10% discount (always accepted; raises their budget 20%)"
+      },
+      {
+        "id": "offer_discount_25",
+        "label": "Offer 25% discount (always accepted; raises their budget 50%)"
+      },
+      {
+        "id": "offer_discount_50",
+        "label": "Offer 50% discount (always accepted; raises their budget 100%)"
+      },
+      {
+        "id": "add_markup_10",
+        "label": "Add markup 10% (accept 82%, else stay 90%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_25",
+        "label": "Add markup 25% (accept 52%, else stay 72%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_50",
+        "label": "Add markup 50% (accept 2%, else stay 42%, else walk out -3 rep)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

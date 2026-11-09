@@ -1,0 +1,305 @@
+{
+ "note": "One window buyer (no referral, no showcase upgrade). The window holds a stolen Antique Clock (heat 35: a 35% inspection roll at opening) and a Board Game, so household_good is the only type drawn. Take both out. Put in Toolkit #903 and Wrench Set #904 (tool 480 -> tier 3, and tool is +25% today); the Med Kit and food would only split value across types that draw no one. Keep the clock in back stock until it cools on day 46.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 44,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 1800,
+    "day": 44,
+    "weekday": "Thursday",
+    "net_worth": 3340,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 700,
+    "arrears": 0,
+    "days_left": 5,
+    "days_left_morning": 5,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 21.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 14.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 8.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 19.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Broker",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor"
+     ]
+    },
+    "revolution": {
+     "value": 3.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 901,
+     "id": "antique_clock",
+     "name": "Antique Clock",
+     "types": [
+      "household_good"
+     ],
+     "where": "showcase",
+     "estimated_value": 600,
+     "bought_at": 340,
+     "features": [],
+     "stolen_heat": 35,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 902,
+     "id": "board_game",
+     "name": "Board Game",
+     "types": [
+      "household_good"
+     ],
+     "where": "showcase",
+     "estimated_value": 120,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 903,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 904,
+     "id": "wrench_set",
+     "name": "Wrench Set",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 180,
+     "bought_at": 90,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 905,
+     "id": "med_kit",
+     "name": "Med Kit",
+     "types": [
+      "medical"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 140,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 906,
+     "id": "canned_beans",
+     "name": "Canned Beans",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 20,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 907,
+     "id": "canned_beans",
+     "name": "Canned Beans",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 20,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "household_good"
+    ],
+    "display_predictions": [],
+    "discerning_shopper": {
+     "chance": 3,
+     "cooldown": 0
+    }
+   },
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "FENCING",
+      "amount": 140
+     }
+    ],
+    "evidence": "21/100",
+    "evidence_level": 21,
+    "projected_sentence": "Fine",
+    "trafficking_value": 140
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": [
+     {
+      "id": "SHOWCASE_I",
+      "name": "Showcase I",
+      "cost": 200
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "repair_boom",
+      "name": "Repair Boom",
+      "type": "NORMALE",
+      "start_day": 43,
+      "duration": 3,
+      "negotiation": [
+       {
+        "item_type": "tool",
+        "value": 25
+       }
+      ]
+     }
+    ],
+    "calendar": [
+     {
+      "day": 49,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": []
+  },
+  "hidden": {
+   "days_to_inspection": 2,
+   "zz_hidden_sentinel": "zz_secret_window1"
+  }
+ }
+}

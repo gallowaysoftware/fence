@@ -1,0 +1,5 @@
+RUN  SESSIONS  DAYS  EVENTS  SNAPSHOTS  CUSTOMERS  DECISIONS  HUMAN  OUTCOMES  LABELS
+
+SESSION  RUNS  START  RECORDS  MISSED  OUT-OF-ORDER  DROPPED  SILENCES  BAD LINES
+
+Total: 0 runs, 0 sessions (0 with gaps), 0 run-days; 0 customers, 0 decisions, 0 human actions, 0 outcomes, 0 snapshots, 0 labels; 0 events missed, 0 records dropped, 0 silences

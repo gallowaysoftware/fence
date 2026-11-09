@@ -1,0 +1,2 @@
+{"decision_id": "d-0001", "choice": {"option": "sell_all"}, "rationale": "Plain sale yields 340 vs 333 expected for the 10% markup; heat 22 is low for a civilian buyer.", "source": "llm",
+ "option_notes": {"sell_all": "you receive 340; you paid 180", "add_markup_10": "expected 333 (vs 340 plain)", "add_markup_25": "expected 289 (vs 340 plain)"}}

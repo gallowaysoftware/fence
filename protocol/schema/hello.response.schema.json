@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/hello.response.schema.json",
+  "title": "hello response",
+  "description": "200 answer to POST /v1/hello. mode is the bridge's choice.",
+  "type": "object",
+  "required": ["session_id", "protocol", "mode"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "protocol": {"type": "integer", "minimum": 1},
+    "mode": {"enum": ["observe", "advise", "act"]}
+  }
+}

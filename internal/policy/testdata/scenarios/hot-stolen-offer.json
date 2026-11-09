@@ -1,0 +1,116 @@
+{
+  "note": "A cheap lot that is stolen at heat 78: it stays hot for days, and the margin does not pay for the risk.",
+  "expect": [
+    "dismiss",
+    "defer"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "hot-stolen-offer",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:hot-stolen-offer",
+    "context": {
+      "store": {
+        "cash": 2200,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 25.0
+        },
+        "upper_levels": {
+          "value": 0.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Nervous kid",
+        "faction": "lower_levels",
+        "intent": "sell",
+        "budget": null,
+        "interests": [],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [
+          {
+            "uid": 401,
+            "id": "watch3",
+            "name": "Wristwatch",
+            "price": 120,
+            "estimated_value": 400,
+            "features": [
+              {
+                "text": "Scratched",
+                "group": "condition"
+              }
+            ],
+            "stolen_heat": 78,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ],
+        "yours_staged": []
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "buy_all",
+        "label": "Buy 1 item for 120"
+      },
+      {
+        "id": "offer_markup_10",
+        "label": "Offer 10% markup (always accepted)"
+      },
+      {
+        "id": "demand_discount_10",
+        "label": "Demand discount 10% (accept 84%, else stay 92%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_25",
+        "label": "Demand discount 25% (accept 54%, else stay 74%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_50",
+        "label": "Demand discount 50% (accept 4%, else stay 44%, else walk out -3 rep)"
+      },
+      {
+        "id": "blackmail",
+        "label": "Blackmail for 20% (success 66%; fail -5 rep; an innocent costs 7-10 rep and may leave)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

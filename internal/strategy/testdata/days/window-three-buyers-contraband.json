@@ -1,0 +1,326 @@
+{
+ "note": "Three window buyers (Buy Referral running + Showcase I). The window holds only a contraband Pistol (guaranteed inspection at opening): take it out. Fill the top 3 types: medical (two Med Kits 520 -> tier 3; medical +20% from day 51 argues for keeping one back), tool (Toolkit 300 -> tier 2), household_good (Silk Scarf 380 -> tier 3, also a luxury item for the 10% discerning shopper). Gold Watch is luxury only and draws no type buyer.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 49,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 3200,
+    "day": 49,
+    "weekday": "Sunday",
+    "net_worth": 5990,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 900,
+    "arrears": 0,
+    "days_left": 7,
+    "days_left_morning": 7,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 33.0,
+     "status": "Recognized",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 45.0,
+     "status": "Dependable",
+     "next_perk": {
+      "id": "Gossip",
+      "threshold": 60
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste",
+      "Tips",
+      "Charity"
+     ]
+    },
+    "security": {
+     "value": 5.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 22.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 15.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 921,
+     "id": "pistol_9mm",
+     "name": "Pistol",
+     "types": [
+      "weapon"
+     ],
+     "where": "showcase",
+     "estimated_value": 700,
+     "bought_at": 380,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 2,
+     "serious_contraband": false
+    },
+    {
+     "uid": 922,
+     "id": "med_kit",
+     "name": "Med Kit",
+     "types": [
+      "medical"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 140,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 923,
+     "id": "med_kit",
+     "name": "Med Kit",
+     "types": [
+      "medical"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 150,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 924,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 925,
+     "id": "silk_scarf",
+     "name": "Silk Scarf",
+     "types": [
+      "household_good",
+      "luxury_item"
+     ],
+     "where": "stock",
+     "estimated_value": 380,
+     "bought_at": 200,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 926,
+     "id": "gold_watch",
+     "name": "Gold Watch",
+     "types": [
+      "luxury_item"
+     ],
+     "where": "stock",
+     "estimated_value": 850,
+     "bought_at": 500,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 927,
+     "id": "noodle_pack",
+     "name": "Noodle Pack",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 6,
+    "display_buyers": [
+     "weapon"
+    ],
+    "display_predictions": [],
+    "discerning_shopper": {
+     "chance": 10,
+     "cooldown": 0
+    }
+   },
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "WEAPON_TRAFFICKING",
+      "amount": 60
+     }
+    ],
+    "evidence": "12/100",
+    "evidence_level": 12,
+    "projected_sentence": "Fine",
+    "trafficking_value": 60
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     },
+     {
+      "id": "SHOWCASE_I",
+      "name": "Showcase I"
+     }
+    ],
+    "available": [
+     {
+      "id": "SHOWCASE_II",
+      "name": "Showcase II",
+      "cost": 500
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    },
+    {
+     "id": "BUY_REFERAL",
+     "name": "Buyer Referral",
+     "cost": 120,
+     "unlocked": true,
+     "using": true,
+     "mandatory": false,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 51,
+      "events": [
+       {
+        "identifier": "clinic_strike",
+        "name": "Clinic Strike",
+        "type": "NORMALE",
+        "start_day": 51,
+        "duration": 4,
+        "negotiation": [
+         {
+          "item_type": "medical",
+          "value": 20
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 56,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": []
+  },
+  "hidden": {
+   "days_to_inspection": 4,
+   "zz_hidden_sentinel": "zz_secret_window2"
+  }
+ }
+}

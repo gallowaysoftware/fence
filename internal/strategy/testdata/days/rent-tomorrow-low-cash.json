@@ -1,0 +1,307 @@
+{
+ "note": "Rent 600 is due tomorrow (day 28), cash 420, no landlord grace, so not paying ends the run. The plan must sell at least 180 of clean stock today (even the Retro Lamp below cost if needed), hold 600 as the floor and buy nothing.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 27,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 420,
+    "day": 27,
+    "weekday": "Saturday",
+    "net_worth": 1980,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 42,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 600,
+    "arrears": 0,
+    "days_left": 1,
+    "days_left_morning": 1,
+    "landlord_grace": false
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 9.5,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Referral",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": []
+    },
+    "upper_levels": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 2.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Broker",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor"
+     ]
+    },
+    "revolution": {
+     "value": 0.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 301,
+     "id": "synth_watch",
+     "name": "Synth Watch",
+     "where": "showcase",
+     "estimated_value": 380,
+     "bought_at": 240,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good",
+      "luxury_item"
+     ]
+    },
+    {
+     "uid": 302,
+     "id": "cassette2",
+     "name": "Cassette",
+     "where": "stock",
+     "estimated_value": 90,
+     "bought_at": 50,
+     "features": [
+      {
+       "text": "Worn (-20%)",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 303,
+     "id": "cassette2",
+     "name": "Cassette",
+     "where": "stock",
+     "estimated_value": 110,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 304,
+     "id": "lamp_retro",
+     "name": "Retro Lamp",
+     "where": "showcase",
+     "estimated_value": 260,
+     "bought_at": 300,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 305,
+     "id": "cyberdeck_old",
+     "name": "Old Cyberdeck",
+     "where": "stock",
+     "estimated_value": 720,
+     "bought_at": 450,
+     "features": [
+      {
+       "text": "Rare (+30%)",
+       "group": "market"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "module"
+     ]
+    }
+   ],
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "evidence_level": 0,
+    "projected_sentence": "None",
+    "case_officer": "Officer Lee",
+    "recommended_action": "",
+    "operation": "investigation",
+    "note": "",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "chip_shortage",
+      "name": "Chip Shortage",
+      "type": "NORMALE",
+      "start_day": 25,
+      "duration": 4,
+      "negotiation": [
+       {
+        "item_type": "module",
+        "value": -10
+       }
+      ]
+     }
+    ],
+    "calendar": [
+     {
+      "day": 28,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     },
+     {
+      "day": 29,
+      "events": [
+       {
+        "identifier": "chip_shortage",
+        "name": "Chip Shortage",
+        "type": "NORMALE",
+        "start_day": 25,
+        "duration": 4,
+        "negotiation": [
+         {
+          "item_type": "module",
+          "value": -10
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "household_good",
+     "module"
+    ],
+    "display_predictions": [
+     {
+      "client": "Office worker",
+      "chance": 55,
+      "item": "synth_watch"
+     }
+    ]
+   }
+  },
+  "hidden": {
+   "days_to_inspection": 9,
+   "zz_hidden_sentinel": "zz_secret_rent",
+   "items": [
+    {
+     "uid": 305,
+     "true_value": 7777771,
+     "real_features": [
+      "zz_fake_rare"
+     ]
+    }
+   ]
+  }
+ }
+}

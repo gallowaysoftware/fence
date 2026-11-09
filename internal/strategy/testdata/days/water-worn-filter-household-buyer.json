@@ -1,0 +1,540 @@
+{
+ "note": "The pitcher's filter is worn (12/400) with 2 L of filtered rust water still labelled Rustwater; 3 spare filters (one in the window, drawing a 60% homemaker), 5 tablets, free rust and gutter taps, a purifier holding 6 L of rust water. Swap filter #602 into the pitcher, keep the other spares (each ~324 of use on free tap water, vs ~29 sale or 45 each from the request), take #603 out of the window and show the lamp and board game for the household buyer instead; filter + 1 tablet a litre then test (strip) before selling; the purifier jug goes to High Quality over a few nights, label stays Rustwater until tested. Never sell filters to the homemaker or the request.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 52,
+  "hidden": {
+   "days_to_inspection": 9,
+   "zz_hidden_sentinel": "zz_secret_water-worn-filter-household-buyer",
+   "production": {
+    "health": 777777
+   }
+  },
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 2100,
+    "day": 52,
+    "weekday": "Saturday",
+    "net_worth": 2945,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 800,
+    "arrears": 0,
+    "days_left": 4,
+    "days_left_morning": 4,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 600,
+     "id": "water_pitcher",
+     "name": "Water Pitcher",
+     "types": [
+      "water"
+     ],
+     "where": "stock",
+     "estimated_value": 45,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 601,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "inside:600",
+     "estimated_value": 2,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 602,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 29,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 603,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "showcase",
+     "estimated_value": 29,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 604,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 29,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 610,
+     "id": "water_tablet",
+     "name": "Purification Tablet",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 7,
+     "bought_at": 6,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 611,
+     "id": "water_tablet",
+     "name": "Purification Tablet",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 7,
+     "bought_at": 6,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 612,
+     "id": "water_tablet",
+     "name": "Purification Tablet",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 7,
+     "bought_at": 6,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 613,
+     "id": "water_tablet",
+     "name": "Purification Tablet",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 7,
+     "bought_at": 6,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 614,
+     "id": "water_tablet",
+     "name": "Purification Tablet",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 7,
+     "bought_at": 6,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 620,
+     "id": "water_purifier",
+     "name": "Water Purifier",
+     "types": [
+      "machine"
+     ],
+     "where": "stock",
+     "estimated_value": 250,
+     "bought_at": 250,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 621,
+     "id": "water_jug",
+     "name": "Water Jug",
+     "types": [
+      "water"
+     ],
+     "where": "inside:620",
+     "estimated_value": 75,
+     "bought_at": 15,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 622,
+     "id": "energy_credit",
+     "name": "Energy Credit",
+     "types": [
+      "energy_cell"
+     ],
+     "where": "inside:620",
+     "estimated_value": 30,
+     "bought_at": 30,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 630,
+     "id": "water_test_strip",
+     "name": "Water Test Strip",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 3,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 631,
+     "id": "water_test_strip",
+     "name": "Water Test Strip",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 3,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 640,
+     "id": "bottled_water",
+     "name": "Bottled Water",
+     "types": [
+      "water"
+     ],
+     "where": "stock",
+     "estimated_value": 35,
+     "bought_at": 20,
+     "features": [
+      {
+       "text": "Basewater",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 650,
+     "id": "desk_lamp",
+     "name": "Desk Lamp",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 160,
+     "bought_at": 70,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 651,
+     "id": "board_game",
+     "name": "Board Game",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 120,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "household_good"
+    ],
+    "display_predictions": [
+     {
+      "client": "Young homemaker",
+      "chance": 60,
+      "item_id": "water_filter",
+      "item": "Water Filter"
+     }
+    ]
+   },
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "projected_sentence": "None",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 56,
+      "events": [
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 56,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [
+    {
+     "id": "req_filters",
+     "title": "Filters for the block",
+     "requester_name": "Mrs Ota",
+     "faction": "lower_levels",
+     "required_item": "water_filter",
+     "required_item_count": 2,
+     "credit_reward": 90,
+     "reputation_reward": 2,
+     "duration": 3
+    }
+   ],
+   "production": {
+    "machines": [
+     {
+      "uid": 620,
+      "id": "water_purifier",
+      "kind": "water_purifier",
+      "name": "Water Purifier",
+      "powered": true,
+      "power_per_night": 4,
+      "battery_charge": 30,
+      "state": "working",
+      "max_purity_bp": 9901
+     }
+    ]
+   },
+   "water": {
+    "containers": [
+     {
+      "uid": 600,
+      "id": "water_pitcher",
+      "parent": null,
+      "capacity_ul": 3000000,
+      "volume_ul": 2000000,
+      "label_grade": "Rustwater",
+      "label_bp": 9050,
+      "exposed": false,
+      "discovered": false,
+      "filter": {
+       "id": "water_filter",
+       "name": "Water Filter",
+       "durability": 12,
+       "max_durability": 400
+      },
+      "purity_bp": 777777,
+      "parts": {
+       "water": 777777
+      }
+     },
+     {
+      "uid": 621,
+      "id": "water_jug",
+      "parent": {
+       "id": "water_purifier",
+       "slot": "container"
+      },
+      "capacity_ul": 6000000,
+      "volume_ul": 6000000,
+      "label_grade": "Rustwater",
+      "label_bp": 9080,
+      "exposed": false,
+      "discovered": false,
+      "true_grade": "Pure",
+      "max_purity_bp": 9901,
+      "purity_bp": 777777
+     },
+     {
+      "uid": 640,
+      "id": "bottled_water",
+      "capacity_ul": 750000,
+      "volume_ul": 750000,
+      "label_grade": "Basewater",
+      "exposed": true,
+      "discovered": true,
+      "true_grade": "Basewater"
+     }
+    ],
+    "taps": {
+     "rust": true,
+     "gutter": true
+    }
+   }
+  }
+ }
+}

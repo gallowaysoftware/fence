@@ -1,0 +1,773 @@
+{
+ "note": "The owner's own setup: a 26 L tank of tested Basewater, a pitcher with a filter, a purifier whose 3 L pitcher scans 99.01% High Quality (label still Basewater), 6 nutrient tablets, and a bloomberry bay drinking tested Basewater: its last harvest was mostly moldy/under-ripe. Water +50 on days 109-111. The plan must catch the Basewater-to-berries mistake: move the purifier's High Quality pitcher (#912) into the bay (Match/test the label first is not needed for the bay, but needed to sell), add nutrient tablets after (target 200 +- 75 bp minerals), check the growth score with the plant analyser; sell the Basewater tank into the water +50 event (labels tested); keep the purifier running on Basewater to make more HQ for the bay and wine; the 1 normal berry + under/over ones go in the bottle with yeast, moldy to food.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 108,
+  "hidden": {
+   "days_to_inspection": 9,
+   "zz_hidden_sentinel": "zz_secret_water-basewater-to-berries",
+   "production": {
+    "health": 777777
+   }
+  },
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 3400,
+    "day": 108,
+    "weekday": "Thursday",
+    "net_worth": 5960,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 800,
+    "arrears": 0,
+    "days_left": 4,
+    "days_left_morning": 4,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 900,
+     "id": "hydroponic",
+     "name": "Hydroponic Bay",
+     "types": [
+      "machine"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 300,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 901,
+     "id": "bloomberry_seed",
+     "name": "Bloomberry Seed",
+     "types": [
+      "seed"
+     ],
+     "where": "inside:900",
+     "estimated_value": 40,
+     "bought_at": 40,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 902,
+     "id": "water_jug",
+     "name": "Water Jug",
+     "types": [
+      "water"
+     ],
+     "where": "inside:900",
+     "estimated_value": 230,
+     "bought_at": 15,
+     "features": [
+      {
+       "text": "Basewater",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 910,
+     "id": "water_tank",
+     "name": "Water Tank",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 1150,
+     "bought_at": 350,
+     "features": [
+      {
+       "text": "Basewater",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 911,
+     "id": "water_purifier",
+     "name": "Water Purifier",
+     "types": [
+      "machine"
+     ],
+     "where": "stock",
+     "estimated_value": 250,
+     "bought_at": 250,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 912,
+     "id": "water_pitcher",
+     "name": "Water Pitcher",
+     "types": [
+      "water"
+     ],
+     "where": "inside:911",
+     "estimated_value": 125,
+     "bought_at": 25,
+     "features": [
+      {
+       "text": "Basewater",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 913,
+     "id": "water_pitcher",
+     "name": "Water Pitcher",
+     "types": [
+      "water"
+     ],
+     "where": "stock",
+     "estimated_value": 25,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 914,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "inside:913",
+     "estimated_value": 22,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 915,
+     "id": "water_filter",
+     "name": "Water Filter",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 29,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 920,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 921,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 922,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 923,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 924,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 925,
+     "id": "nutrient_tablet",
+     "name": "Nutrient Tablet",
+     "types": [
+      "farming_supplies"
+     ],
+     "where": "stock",
+     "estimated_value": 6,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 930,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 931,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 932,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 933,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 934,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 935,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 936,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 937,
+     "id": "wine_berry",
+     "name": "Bloomberry",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 16,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 940,
+     "id": "wine_bottle",
+     "name": "Wine Bottle",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 14,
+     "bought_at": 12,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 941,
+     "id": "wine_yeast",
+     "name": "Wine Yeast",
+     "types": [
+      "household_good"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 10,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 950,
+     "id": "plant_analyser",
+     "name": "Plant Analyser",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 200,
+     "bought_at": 200,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "household_good"
+    ],
+    "display_predictions": []
+   },
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "projected_sentence": "None",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 109,
+      "events": [
+       {
+        "identifier": "water_treatment_breakdown",
+        "name": "Water Treatment Breakdown",
+        "type": "NORMALE",
+        "start_day": 108,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "water",
+          "value": 50
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 110,
+      "events": [
+       {
+        "identifier": "water_treatment_breakdown",
+        "name": "Water Treatment Breakdown",
+        "type": "NORMALE",
+        "start_day": 108,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "water",
+          "value": 50
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 112,
+      "events": [
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 112,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [],
+   "production": {
+    "machines": [
+     {
+      "uid": 911,
+      "id": "water_purifier",
+      "kind": "water_purifier",
+      "name": "Water Purifier",
+      "powered": true,
+      "power_per_night": 4,
+      "battery_charge": 40,
+      "state": "working",
+      "max_purity_bp": 9901
+     },
+     {
+      "uid": 900,
+      "id": "hydroponic",
+      "kind": "hydroponic",
+      "powered": true,
+      "power_per_night": 8,
+      "battery_charge": 50,
+      "state": "working",
+      "eta_nights": 1
+     }
+    ],
+    "hydroponics": [
+     {
+      "uid": 900,
+      "seed": {
+       "uid": 901,
+       "plant_id": "bloomberry",
+       "perennial": true,
+       "established": true
+      },
+      "progress": 2,
+      "target": 10,
+      "eta_nights": 1,
+      "harvest_count": 8,
+      "water_ml": 5200,
+      "water_use": 100,
+      "status": "growing",
+      "health": 777777
+     }
+    ],
+    "wine": [
+     {
+      "uid": 940,
+      "where": "stock",
+      "state": "empty",
+      "water_ml": 0,
+      "ingredients": []
+     }
+    ],
+    "berries": [
+     {
+      "uid": 930,
+      "where": "stock",
+      "grade": "moldy"
+     },
+     {
+      "uid": 931,
+      "where": "stock",
+      "grade": "moldy"
+     },
+     {
+      "uid": 932,
+      "where": "stock",
+      "grade": "moldy"
+     },
+     {
+      "uid": 933,
+      "where": "stock",
+      "grade": "under"
+     },
+     {
+      "uid": 934,
+      "where": "stock",
+      "grade": "under"
+     },
+     {
+      "uid": 935,
+      "where": "stock",
+      "grade": "over"
+     },
+     {
+      "uid": 936,
+      "where": "stock",
+      "grade": "moldy"
+     },
+     {
+      "uid": 937,
+      "where": "stock",
+      "grade": "normal"
+     }
+    ]
+   },
+   "water": {
+    "containers": [
+     {
+      "uid": 902,
+      "id": "water_jug",
+      "parent": {
+       "id": "hydroponic",
+       "slot": "water"
+      },
+      "capacity_ul": 6000000,
+      "volume_ul": 5200000,
+      "label_grade": "Basewater",
+      "exposed": true,
+      "discovered": true,
+      "true_grade": "Basewater",
+      "purity_bp": 777777
+     },
+     {
+      "uid": 910,
+      "id": "water_tank",
+      "capacity_ul": 30000000,
+      "volume_ul": 26000000,
+      "label_grade": "Basewater",
+      "exposed": true,
+      "discovered": true,
+      "true_grade": "Basewater"
+     },
+     {
+      "uid": 912,
+      "id": "water_pitcher",
+      "parent": {
+       "id": "water_purifier",
+       "slot": "container"
+      },
+      "capacity_ul": 3000000,
+      "volume_ul": 3000000,
+      "label_grade": "Basewater",
+      "exposed": false,
+      "discovered": false,
+      "max_purity_bp": 9901,
+      "last_scan": "Last scan: 99.01 % High Quality Water"
+     },
+     {
+      "uid": 913,
+      "id": "water_pitcher",
+      "capacity_ul": 3000000,
+      "volume_ul": 0,
+      "label_grade": "Gutterflow",
+      "filter": {
+       "id": "water_filter",
+       "name": "Water Filter",
+       "durability": 230,
+       "max_durability": 400
+      }
+     }
+    ],
+    "taps": {
+     "rust": true
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,4 @@
+{"type":"hello","ts":"2026-11-09T20:30:00.000000001Z","session_id":"s-bbbb","mode":"observe","policy":"heuristic","hello":{"protocol":1,"mod_version":"0.1.0","game":{"version":"0.46D","unity":"2021.3.45f2","assembly_sha256":"0000000000000000000000000000000000000000000000000000000000000000","assembly_mvid":"911508a6-e0eb-4cc0-91e8-e14b16ea28d7"},"compat":{"ok":false,"missing":["StoreClientManager::HandleSkipClient()"],"disabled_features":["act.barter"]}}}
+{"type":"event","ts":"2026-11-09T20:30:00.000000001Z","session_id":"s-bbbb","event":{"kind":"new_game_started","game_day":1,"data":{"scenario_id":"DRUG_DEALER"},"session_id":"s-bbbb","seq":1}}
+{"type":"event","ts":"2026-11-09T20:31:00.000000001Z","session_id":"s-bbbb","event":{"kind":"shutter_opened","game_day":1,"data":{},"session_id":"s-bbbb","seq":2}}
+{"type":"event","ts":"2026-11-09T20:32:00.000000001Z","session_id":"s-bbbb","event":{"kind":"shutter_opened","game_day":1,"data":{},"session_id":"s-bbbb","seq":2}}

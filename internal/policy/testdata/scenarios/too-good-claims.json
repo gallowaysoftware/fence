@@ -1,0 +1,135 @@
+{
+  "note": "Every value-raising feature is only claimed (Mint, Limited edition, Signed); the estimate leans on them and the price is close to it.",
+  "expect": [
+    "demand_discount_10",
+    "demand_discount_25",
+    "dismiss",
+    "defer"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "too-good-claims",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:too-good-claims",
+    "context": {
+      "store": {
+        "cash": 1600,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Smooth collector",
+        "faction": "upper_levels",
+        "intent": "sell",
+        "budget": null,
+        "interests": [],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [
+          {
+            "uid": 501,
+            "id": "vinyl1",
+            "name": "Vinyl record",
+            "price": 900,
+            "estimated_value": 1100,
+            "features": [
+              {
+                "text": "Mint",
+                "group": "condition"
+              },
+              {
+                "text": "Limited edition",
+                "group": "market"
+              },
+              {
+                "text": "Signed",
+                "group": "market"
+              }
+            ],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ],
+        "yours_staged": []
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "buy_all",
+        "label": "Buy 1 item for 900"
+      },
+      {
+        "id": "offer_markup_10",
+        "label": "Offer 10% markup (always accepted)"
+      },
+      {
+        "id": "demand_discount_10",
+        "label": "Demand discount 10% (accept 81%, else stay 89%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_25",
+        "label": "Demand discount 25% (accept 51%, else stay 71%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_50",
+        "label": "Demand discount 50% (accept 1%, else stay 41%, else walk out -3 rep)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ],
+    "hidden": {
+      "items": [
+        {
+          "uid": 501,
+          "true_value": 240,
+          "real_features": [
+            "Worn",
+            "Reissue"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Fence.Gym</RootNamespace>
+    <AssemblyName>fence-gym</AssemblyName>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <GameDir Condition="'$(GameDir)' == '' and '$(GAME_DIR)' != ''">$(GAME_DIR)</GameDir>
+    <GameDir Condition="'$(GameDir)' == ''">$(HOME)/.local/share/Steam/steamapps/common/Probably Stolen</GameDir>
+    <GameManaged>$(GameDir)/Probably Stolen_Data/Managed</GameManaged>
+    <NoWarn>$(NoWarn);MSB3277;CS1701;CS1702</NoWarn>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <TieredPGO>true</TieredPGO>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../headless/Fence.Headless.csproj" />
+    <PackageReference Include="AssetsTools.NET" Version="3.0.5" />
+    <PackageReference Include="AssetsTools.NET.MonoCecil" Version="3.0.4" />
+    <!-- The live mod's pure logic: the same context builder, option rules, outcome shapes and wire types. -->
+    <ProjectReference Include="../../mod/src/Fence.Core/Fence.Core.csproj" />
+  </ItemGroup>
+  <!-- The live mod's game readers and executor, compiled here against the same game so the gym reads
+       state and presses buttons exactly as the mod does. -->
+  <ItemGroup>
+    <Compile Include="../../mod/src/Fence.Mod/GameBarter.cs" Link="Mod/GameBarter.cs" />
+    <Compile Include="../../mod/src/Fence.Mod/GameDay.cs" Link="Mod/GameDay.cs" />
+    <Compile Include="../../mod/src/Fence.Mod/BarterExecutor.cs" Link="Mod/BarterExecutor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameManaged)/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManaged)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="RNGNeeds"><HintPath>$(GameManaged)/RNGNeeds.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(GameManaged)/Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Fence.Gym.Tests" />
+  </ItemGroup>
+</Project>

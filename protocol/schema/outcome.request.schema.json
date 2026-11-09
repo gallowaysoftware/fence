@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/outcome.request.schema.json",
+  "title": "outcome",
+  "description": "POST /v1/outcome. Sent when the game resolves a decision. Fire-and-forget.",
+  "type": "object",
+  "required": ["session_id", "decision_id", "game_day", "result"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "decision_id": {"type": "string", "minLength": 1},
+    "game_day": {"type": "integer", "minimum": 0},
+    "result": {"type": "object", "description": "Kind-specific; open."}
+  }
+}

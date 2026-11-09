@@ -1,0 +1,123 @@
+{
+  "note": "Upper Levels at +72 makes a 10% markup 92% likely with no walk-out risk: worth asking.",
+  "expect": [
+    "add_markup_10"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "markup-with-good-rep",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:markup-with-good-rep",
+    "context": {
+      "store": {
+        "cash": 2500,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 72.0
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Gallery owner",
+        "faction": "upper_levels",
+        "intent": "buy",
+        "budget": 2000,
+        "interests": [
+          "art"
+        ],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": [
+          {
+            "uid": 1401,
+            "id": "print1",
+            "name": "Art print",
+            "price": 800,
+            "estimated_value": 700,
+            "bought_at": 350,
+            "features": [
+              {
+                "text": "Framed",
+                "group": "condition"
+              }
+            ],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ]
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": [
+        {
+          "item_type": "art",
+          "value_pct": 5
+        }
+      ]
+    },
+    "options": [
+      {
+        "id": "sell_all",
+        "label": "Sell 1 item for 800"
+      },
+      {
+        "id": "offer_discount_10",
+        "label": "Offer 10% discount (always accepted; raises their budget 20%)"
+      },
+      {
+        "id": "offer_discount_25",
+        "label": "Offer 25% discount (always accepted; raises their budget 50%)"
+      },
+      {
+        "id": "add_markup_10",
+        "label": "Add markup 10% (accept 92%, else stay 100%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_25",
+        "label": "Add markup 25% (accept 62%, else stay 82%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_50",
+        "label": "Add markup 50% (accept 12%, else stay 52%, else walk out -3 rep)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

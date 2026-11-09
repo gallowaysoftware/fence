@@ -1,0 +1,24 @@
+# Types whose public surface is dumped into compat/surface/<buildid>.txt in addition to every type
+# named in hooks.json. Includes the P1/P2 barter types from hooks.proposed.json, so a game update
+# that moves them shows up in the diff before the hooks are promoted.
+BargainUIManager
+BarterHelper
+ContrabandHelper
+DialogUIManager
+EmporiumEntry
+GameItem
+GraphUtils
+ItemFeature
+ModHelper
+ModReflect
+NegociationUIManager
+PlayerStore
+PriceHelper
+StolenHelper
+StoreClient
+StoreClientInstance
+StoreClientManager
+StoreClientMono
+StoreReputation
+StoreStation
+StoreUIManager

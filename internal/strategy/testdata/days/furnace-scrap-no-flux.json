@@ -1,0 +1,589 @@
+{
+ "note": "An idle, powered furnace with 7 scrap and 2 ore in stock and no flux; Construction Project (material +30) days 36-38; rent 500 on day 35, cash 900. Load the furnace tonight (one smelt a night: 2 ore -> High 62.5, or 2 scrap -> Low 42.5) so ingots are ready to sell on days 36-38; buy flux_agent (4 each: +1 purity level, +7.5 to +12.5 per ingot); keep scrap and ore (worth ~21 and ~35 melted against 10-17 sold; the request pays 12 a scrap); junk has no use without the junk module, sell it; scavenge tonight with the welder (scrap) and flashlight (halves wounds) in the bag.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 33,
+  "hidden": {
+   "days_to_inspection": 9,
+   "zz_hidden_sentinel": "zz_secret_furnace-scrap-no-flux",
+   "production": {
+    "health": 777777
+   }
+  },
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 900,
+    "day": 33,
+    "weekday": "Monday",
+    "net_worth": 1719,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 500,
+    "arrears": 0,
+    "days_left": 2,
+    "days_left_morning": 2,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 700,
+     "id": "furnace",
+     "name": "Furnace",
+     "types": [
+      "machine"
+     ],
+     "where": "stock",
+     "estimated_value": 200,
+     "bought_at": 200,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 701,
+     "id": "energy_credit",
+     "name": "Energy Credit",
+     "types": [
+      "energy_cell"
+     ],
+     "where": "inside:700",
+     "estimated_value": 40,
+     "bought_at": 40,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 710,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 711,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 712,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 713,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 714,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 715,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 716,
+     "id": "scrap_metal",
+     "name": "Scrap Metal",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 11,
+     "bought_at": 5,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 720,
+     "id": "common_ore",
+     "name": "Common Ore",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 17,
+     "bought_at": 15,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 721,
+     "id": "common_ore",
+     "name": "Common Ore",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 17,
+     "bought_at": 15,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 730,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 731,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 732,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 733,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 734,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 735,
+     "id": "junk",
+     "name": "Junk",
+     "types": [
+      "material"
+     ],
+     "where": "stock",
+     "estimated_value": 3,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 740,
+     "id": "welder",
+     "name": "Welder",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 120,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 741,
+     "id": "flashlight",
+     "name": "Flashlight",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 30,
+     "bought_at": 15,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 742,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "showcase",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "tool"
+    ],
+    "display_predictions": []
+   },
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "projected_sentence": "None",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 36,
+      "events": [
+       {
+        "identifier": "construction_project",
+        "name": "Construction Project",
+        "type": "NORMALE",
+        "start_day": 36,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "material",
+          "value": 30
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 37,
+      "events": [
+       {
+        "identifier": "construction_project",
+        "name": "Construction Project",
+        "type": "NORMALE",
+        "start_day": 36,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "material",
+          "value": 30
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 38,
+      "events": [
+       {
+        "identifier": "construction_project",
+        "name": "Construction Project",
+        "type": "NORMALE",
+        "start_day": 36,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "material",
+          "value": 30
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 35,
+      "events": [
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 35,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [
+    {
+     "id": "req_scrap",
+     "title": "Scrap for the foundry",
+     "requester_name": "Foreman Rudd",
+     "faction": "lower_levels",
+     "required_item": "scrap_metal",
+     "required_item_count": 5,
+     "credit_reward": 60,
+     "reputation_reward": 1,
+     "duration": 2
+    }
+   ],
+   "production": {
+    "machines": [
+     {
+      "uid": 700,
+      "id": "furnace",
+      "kind": "furnace",
+      "name": "Furnace",
+      "powered": true,
+      "power_per_night": 8,
+      "battery_charge": 40,
+      "state": "idle",
+      "modules": []
+     }
+    ],
+    "furnaces": [
+     {
+      "uid": 700,
+      "inputs": {
+       "scrap": 0,
+       "ore": 0,
+       "junk": 0,
+       "flux": 0,
+       "adv_flux": 0
+      },
+      "output_count": 0,
+      "blast": false,
+      "junk_module": false
+     }
+    ],
+    "scavenge": {
+     "attempts_left": 5,
+     "minor_pct": 6,
+     "major_pct": 1.25,
+     "wounded_fresh": false,
+     "scanner_double_pct": 0
+    }
+   },
+   "afterhours": [
+    {
+     "location": "dumping_ground",
+     "name": "Dumping ground",
+     "available": true,
+     "events": []
+    }
+   ]
+  }
+ }
+}

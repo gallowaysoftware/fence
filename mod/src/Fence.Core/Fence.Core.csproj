@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Fence</RootNamespace>
+    <AssemblyName>Fence.Core</AssemblyName>
+    <Version>0.1.0</Version>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The game ships Newtonsoft.Json; shipping a second copy is a scanner hard refusal. -->
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(GameManaged)/Newtonsoft.Json.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(RepoRoot)/compat/hooks.json" LogicalName="Fence.hooks.json" />
+    <EmbeddedResource Include="$(RepoRoot)/compat/versions/*.json" LogicalName="Fence.versions.%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

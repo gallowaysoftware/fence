@@ -1,0 +1,46 @@
+{
+  "session_id": "s-0001", "seq": 3, "kind": "day_snapshot", "game_day": 69,
+  "data": {
+    "phase": "morning",
+    "run_id": "3f1c2a9e-5b7d-4e0a-9c41-2d8e6f0b7a13",
+    "store": {"cash": 2450, "day": 69, "weekday": 6, "wild_favor": 40, "net_worth": 6120,
+      "attractiveness": {"total": 180, "trash_penalty": 10, "projector_bonus": 0},
+      "queue_length": 0, "commissary_tokens": 3, "retail_markup": 15, "business_permit": true, "newspaper_unlocked": true},
+    "rent": {"rent": 600, "arrears": 0, "due": 600, "days_left": 1, "days_left_morning": 1, "landlord_grace": false},
+    "property": {"owned": false, "mortgage": null, "buyout_price": 12950, "buyout_affordable": false, "mortgage_offer": null},
+    "reputation": {
+      "lower_levels": {"value": 12.0, "status": "Known", "next_perk": {"id": "LLREFERAL", "threshold": 20}, "next_negative_perk": {"id": "LLPOORREVIEWS", "threshold": -20}, "unlocked_perks": []},
+      "black_market": {"value": 20.25, "status": "Established", "next_perk": {"id": "BMRELIABLE", "threshold": 40}, "next_negative_perk": {"id": "BMDISTRUSTED", "threshold": -40}, "unlocked_perks": ["BMHONOR", "BMBROKER"]}
+    },
+    "inventory": [
+      {"uid": 2231, "id": "cassette2", "name": "Cassette", "where": "showcase", "estimated_value": 300, "bought_at": 180,
+       "features": [{"text": "Worn (-20%)", "group": "condition"}], "stolen_heat": 22, "contraband_level": 0, "serious_contraband": false},
+      {"uid": 1874, "id": "smuggler_bay_mini", "name": "Small Smuggler Bay", "where": "stock", "smuggler_bay": true, "estimated_value": 450,
+       "features": [], "stolen_heat": null, "contraband_level": 0, "serious_contraband": false},
+      {"uid": 2240, "id": "stim_injector", "name": "Stim Injector", "where": "inside:1874", "root": "stock", "estimated_value": 220, "bought_at": 120,
+       "features": [], "stolen_heat": null, "contraband_level": 2, "serious_contraband": true}
+    ],
+    "clientele": {"normal_customers": 3, "display_buyers": ["electronics"],
+      "display_predictions": [{"client": "Scavenger", "chance": 20, "item_id": "scav_token", "item": "Scav Token"}],
+      "predictions_source": "computed", "predictions_day": 69, "discerning_shopper": {"chance": 0, "cooldown": 0}},
+    "security": {"visible": true, "crimes": [{"id": "FENCING", "amount": 140}], "total": 140, "evidence": 35, "evidence_level": "35/100",
+      "projected_sentence": "Fine", "case_officer": "Officer Jeff", "recommended_action": "", "operation": "Investigation", "note": "", "trafficking_value": 140},
+    "upgrades": {"owned": [{"id": "SHOWCASE_I", "name": "Display Case", "state": 2}], "available": [{"id": "INSPECTION_INFORMANT", "name": "Inside Informant", "cost": 800}]},
+    "services": [{"id": "POWER_SERVICE", "name": "Power", "cost": 60, "unlocked": true, "using": true, "mandatory": true, "cooldown": 0},
+      {"id": "SEC_INFORMANT", "name": "Inspection Early Warning", "cost": 40, "unlocked": true, "using": false, "mandatory": false, "cooldown": 0}],
+    "market_events": {
+      "active": [{"id": "electronic_shortage", "name": "Electronics Shortage", "type": "normale", "start_day": 67, "duration": 5, "modifiers": [{"item_type": "electronics", "value_pct": 10}]}],
+      "calendar": [{"day": 70, "events": [{"id": "rent_day", "name": "Rent Day", "type": "innate"}]}]
+    },
+    "afterhours": [{"location": "dumping_ground", "name": "Dumping Ground", "available": true, "closed_by_event": false, "events": []}],
+    "requests": [{"id": "ll_req_water", "title": "Clean water", "requester": "Mara", "faction": "lower_levels", "required_item": "water_bottle", "count": 2, "credit_reward": 90, "rep_reward": 3, "days_left": 2}],
+    "night_log": ["Your insurance covered 120 of stolen goods."]
+  },
+  "hidden": {
+    "items": [{"uid": 2231, "true_value": 95, "real_features": ["Worn (-20%)", "Counterfeit (-60%)"]}],
+    "display_prediction_clients": ["scavGeneral"],
+    "crime_totals": [{"id": "FENCING", "total": 260}],
+    "unknown_events": [{"id": "sec_crackdown", "name": "Security Crackdown", "type": "threat", "start_day": -1, "duration": 3, "in_days": 4, "modifiers": []}],
+    "days_to_inspection": 3, "inspection_countdown_active": true, "aug_presence": 12, "luck": 0
+  }
+}

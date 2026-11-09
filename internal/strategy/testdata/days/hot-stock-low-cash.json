@@ -1,0 +1,125 @@
+{
+ "note": "Old snapshot shape (store.rent_due, trafficking_crimes, flat lists). Cash 300, rent 500 due day 35; both valuable items are stolen but cool before rent (E-Reader day 33, Smart Glasses day 34). Sell the clean Cassette and Toaster now, hold the stolen items and sell them clean on their cool days, never to security.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 32,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 300,
+    "day": 32,
+    "rent_due": 500,
+    "rent_days_left": 3,
+    "retail_markup": 15,
+    "queue_length": 8
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 15.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Referral",
+      "threshold": 20
+     }
+    },
+    "upper_levels": {
+     "value": -12.0,
+     "status": "Inconsistent",
+     "next_perk": {
+      "id": "DiscerningTaste",
+      "threshold": 0
+     }
+    },
+    "security": {
+     "value": 3.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     }
+    },
+    "black_market": {
+     "value": 24.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     }
+    },
+    "revolution": {
+     "value": 2.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     }
+    }
+   },
+   "inventory": [
+    {
+     "uid": 321,
+     "id": "smart_glasses",
+     "name": "Smart Glasses",
+     "where": "stock",
+     "estimated_value": 650,
+     "bought_at": 380,
+     "features": [],
+     "stolen_heat": 30,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 322,
+     "id": "e_reader",
+     "name": "E-Reader",
+     "where": "stock",
+     "estimated_value": 280,
+     "bought_at": 150,
+     "features": [],
+     "stolen_heat": 10,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 323,
+     "id": "cassette2",
+     "name": "Cassette",
+     "where": "showcase",
+     "estimated_value": 95,
+     "bought_at": 55,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 324,
+     "id": "toaster",
+     "name": "Toaster",
+     "where": "showcase",
+     "estimated_value": 70,
+     "bought_at": 30,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "security": {
+    "trafficking_crimes": 60,
+    "evidence": "Low",
+    "suspected": "Fencing",
+    "projected_sentence": "Fine"
+   },
+   "upgrades": [],
+   "services": [],
+   "market_events": []
+  },
+  "hidden": {
+   "days_to_inspection": 2,
+   "zz_hidden_sentinel": "zz_secret_hotcash"
+  }
+ }
+}

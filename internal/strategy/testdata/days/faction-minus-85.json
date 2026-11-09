@@ -1,0 +1,276 @@
+{
+ "note": "Lower Levels is at -85, 15 from -100 (Lynch), which ends the run. Protecting it is the top goal: generous deals with Lower Levels customers (discounts when selling, markups when buying), no hard bargains or walk-outs, no coercion.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 38,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 1850,
+    "day": 38,
+    "weekday": "Monday",
+    "net_worth": 2650,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 42,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 700,
+    "arrears": 0,
+    "days_left": 4,
+    "days_left_morning": 4,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12000,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": -85.0,
+     "status": "Disreputable",
+     "next_perk": {
+      "id": "Referral",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Lynch",
+      "threshold": -100
+     },
+     "unlocked_perks": [
+      "PoorReviews",
+      "Distrusted",
+      "Target",
+      "Avoided"
+     ]
+    },
+    "upper_levels": {
+     "value": 22.4,
+     "status": "Established",
+     "next_perk": {
+      "id": "Charity",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste",
+      "Tips"
+     ]
+    },
+    "security": {
+     "value": 11.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 31.0,
+     "status": "Recognized",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": -5.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 410,
+     "id": "noodle_pack",
+     "name": "Noodle Pack",
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "food"
+     ]
+    },
+    {
+     "uid": 411,
+     "id": "noodle_pack",
+     "name": "Noodle Pack",
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 25,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "food"
+     ]
+    },
+    {
+     "uid": 412,
+     "id": "noodle_pack",
+     "name": "Noodle Pack",
+     "where": "stock",
+     "estimated_value": 40,
+     "bought_at": 22,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "food"
+     ]
+    },
+    {
+     "uid": 413,
+     "id": "work_boots",
+     "name": "Work Boots",
+     "where": "showcase",
+     "estimated_value": 160,
+     "bought_at": 90,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "armor"
+     ]
+    },
+    {
+     "uid": 414,
+     "id": "silk_scarf",
+     "name": "Silk Scarf",
+     "where": "showcase",
+     "estimated_value": 520,
+     "bought_at": 310,
+     "features": [
+      {
+       "text": "Designer (+25%)",
+       "group": "market"
+      }
+     ],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good",
+      "luxury_item"
+     ]
+    }
+   ],
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "evidence_level": 0,
+    "projected_sentence": "None",
+    "case_officer": "Officer Lee",
+    "recommended_action": "",
+    "operation": "investigation",
+    "note": "",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "food_festival",
+      "name": "Food Festival",
+      "type": "NORMALE",
+      "start_day": 37,
+      "duration": 3,
+      "negotiation": [
+       {
+        "item_type": "food",
+        "value": 15
+       }
+      ]
+     }
+    ],
+    "calendar": []
+   },
+   "night_log": [],
+   "requests": [],
+   "clientele": {
+    "normal_customers": 4,
+    "display_buyers": [
+     "armor"
+    ],
+    "display_predictions": [
+     {
+      "client": "Socialite",
+      "chance": 40,
+      "item": "silk_scarf"
+     },
+     {
+      "client": "Dock worker",
+      "chance": 35,
+      "item": "work_boots"
+     }
+    ]
+   }
+  },
+  "hidden": {
+   "days_to_inspection": 5,
+   "zz_hidden_sentinel": "zz_secret_lynch"
+  }
+ }
+}

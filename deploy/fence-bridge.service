@@ -1,0 +1,22 @@
+# systemd user unit for the fence bridge. `make service-install` replaces @REPO@ with the
+# checkout and installs it to ~/.config/systemd/user; see deploy/README.md.
+[Unit]
+Description=fence bridge (Probably Stolen mod sidecar, records every session)
+
+[Service]
+Type=simple
+WorkingDirectory=@REPO@
+# Recording is always on: observe mode with memory. The env file (optional) overrides these.
+Environment=FENCE_MODE=observe
+Environment=FENCE_MEMORY=true
+Environment=FENCE_LOG_DIR=@REPO@/var/log
+Environment=FENCE_MEMORY_DB=@REPO@/var/memory.db
+EnvironmentFile=-%h/.config/fence/bridge.env
+ExecStart=@REPO@/bin/fence-bridge-svc
+Restart=always
+RestartSec=2
+# Shutdown waits up to 30 s for in-flight decides, then drains memory and the log.
+TimeoutStopSec=45
+
+[Install]
+WantedBy=default.target

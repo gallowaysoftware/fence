@@ -1,0 +1,380 @@
+{
+ "note": "Within 3 days a THREAT (Security Crackdown, days 75-77) overlaps a price event (Weapons Demand, weapon and ammunition +30%, days 74-76), and the cartel visits on day 76. Selling the contraband Combat Knives into the boom collides with the crackdown: sell them on day 74 (or today), never in the window; hold the stolen Holo Camera (heat 50, cools day 76) out of sight through the crackdown; sell the Ammo Box into the boom; keep cash for rent on day 77.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 73,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 2900,
+    "day": 73,
+    "weekday": "Wednesday",
+    "net_worth": 5160,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 250
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 1000,
+    "arrears": 0,
+    "days_left": 4,
+    "days_left_morning": 4,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12400,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 28.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Reliable",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker"
+     ]
+    },
+    "revolution": {
+     "value": 4.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 731,
+     "id": "combat_knife",
+     "name": "Combat Knife",
+     "types": [
+      "weapon"
+     ],
+     "where": "stock",
+     "estimated_value": 240,
+     "bought_at": 120,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 1,
+     "serious_contraband": false
+    },
+    {
+     "uid": 732,
+     "id": "combat_knife",
+     "name": "Combat Knife",
+     "types": [
+      "weapon"
+     ],
+     "where": "stock",
+     "estimated_value": 240,
+     "bought_at": 120,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 1,
+     "serious_contraband": false
+    },
+    {
+     "uid": 733,
+     "id": "holo_camera",
+     "name": "Holo Camera",
+     "types": [
+      "module"
+     ],
+     "where": "stock",
+     "estimated_value": 900,
+     "bought_at": 520,
+     "features": [],
+     "stolen_heat": 50,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 734,
+     "id": "armor_vest",
+     "name": "Armor Vest",
+     "types": [
+      "armor"
+     ],
+     "where": "showcase",
+     "estimated_value": 420,
+     "bought_at": 240,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 735,
+     "id": "ammo_box",
+     "name": "Ammo Box",
+     "types": [
+      "ammunition"
+     ],
+     "where": "stock",
+     "estimated_value": 160,
+     "bought_at": 80,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 736,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "stock",
+     "estimated_value": 300,
+     "bought_at": 170,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "clientele": {
+    "normal_customers": 5,
+    "display_buyers": [
+     "armor"
+    ],
+    "display_predictions": []
+   },
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "WEAPON_TRAFFICKING",
+      "amount": 220
+     }
+    ],
+    "evidence": "34/100",
+    "evidence_level": 34,
+    "projected_sentence": "Fine",
+    "trafficking_value": 220
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true
+    },
+    {
+     "id": "SEC_INFORMANT",
+     "name": "Security Informant",
+     "cost": 60,
+     "unlocked": true,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 74,
+      "events": [
+       {
+        "identifier": "weapons_demand",
+        "name": "Weapons Demand",
+        "type": "NORMALE",
+        "start_day": 74,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "weapon",
+          "value": 30
+         },
+         {
+          "item_type": "ammunition",
+          "value": 30
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 75,
+      "events": [
+       {
+        "identifier": "weapons_demand",
+        "name": "Weapons Demand",
+        "type": "NORMALE",
+        "start_day": 74,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "weapon",
+          "value": 30
+         },
+         {
+          "item_type": "ammunition",
+          "value": 30
+         }
+        ]
+       },
+       {
+        "identifier": "security_crackdown",
+        "name": "Security Crackdown",
+        "type": "THREAT",
+        "start_day": 75,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     },
+     {
+      "day": 76,
+      "events": [
+       {
+        "identifier": "weapons_demand",
+        "name": "Weapons Demand",
+        "type": "NORMALE",
+        "start_day": 74,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": [
+         {
+          "item_type": "weapon",
+          "value": 30
+         },
+         {
+          "item_type": "ammunition",
+          "value": 30
+         }
+        ]
+       },
+       {
+        "identifier": "security_crackdown",
+        "name": "Security Crackdown",
+        "type": "THREAT",
+        "start_day": 75,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": []
+       },
+       {
+        "identifier": "cartel_visit",
+        "name": "Cartel visit",
+        "type": "INNATE",
+        "start_day": 76,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     },
+     {
+      "day": 77,
+      "events": [
+       {
+        "identifier": "security_crackdown",
+        "name": "Security Crackdown",
+        "type": "THREAT",
+        "start_day": 75,
+        "duration": 3,
+        "is_duration_visible": true,
+        "negotiation": []
+       },
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 77,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": []
+  },
+  "hidden": {
+   "days_to_inspection": 3,
+   "zz_hidden_sentinel": "zz_secret_threat"
+  }
+ }
+}

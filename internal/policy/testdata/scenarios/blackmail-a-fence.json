@@ -1,0 +1,129 @@
+{
+  "note": "A wanted seller offers a stolen item (heat 30) near its estimate. Blackmail is legal here (they are a criminal) and likely to work; a discount demand or a plain buy (heat 30 is tolerable) are fine too.",
+  "expect": [
+    "blackmail",
+    "demand_discount_10",
+    "demand_discount_25",
+    "buy_all"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "blackmail-a-fence",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:blackmail-a-fence",
+    "context": {
+      "store": {
+        "cash": 2600,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 0.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 30.0
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Masked courier",
+        "faction": "black_market",
+        "intent": "sell",
+        "budget": null,
+        "interests": [],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": true,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [
+          {
+            "uid": 701,
+            "id": "drone1",
+            "name": "Camera drone",
+            "price": 600,
+            "estimated_value": 650,
+            "features": [
+              {
+                "text": "Good",
+                "group": "condition"
+              }
+            ],
+            "stolen_heat": 30,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ],
+        "yours_staged": []
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "buy_all",
+        "label": "Buy 1 item for 600"
+      },
+      {
+        "id": "offer_markup_10",
+        "label": "Offer 10% markup (always accepted)"
+      },
+      {
+        "id": "demand_discount_10",
+        "label": "Demand discount 10% (accept 85%, else stay 93%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_25",
+        "label": "Demand discount 25% (accept 55%, else stay 75%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_50",
+        "label": "Demand discount 50% (accept 5%, else stay 45%, else walk out -3 rep)"
+      },
+      {
+        "id": "blackmail",
+        "label": "Blackmail for 20% (success 68%; fail -5 rep; an innocent costs 7-10 rep and may leave)"
+      },
+      {
+        "id": "threaten",
+        "label": "Threaten for 20% (works only on augs; otherwise like blackmailing an innocent)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ],
+    "hidden": {
+      "client": {
+        "identifier": "masked_courier",
+        "is_aug": true,
+        "stealth_wanted": false
+      }
+    }
+  }
+}

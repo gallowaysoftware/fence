@@ -1,0 +1,138 @@
+{
+  "note": "A Lower Levels household buyer already has a lamp staged and 257 left: add the kettle (bought at 35), not the toaster that would sell below cost.",
+  "expect": [
+    "offer_980"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "stage-more-budget",
+    "kind": "stage",
+    "game_day": 109,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:stage-more-budget",
+    "context": {
+      "store": {
+        "cash": 900,
+        "day": 109,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 22.0,
+          "status": "Established"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Night-shift worker",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "budget": 311,
+        "interests": [
+          "household_good"
+        ],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "attracted_by": null,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": [
+          {
+            "uid": 975,
+            "id": "lamp",
+            "name": "Lamp",
+            "price": 54,
+            "estimated_value": 47,
+            "bought_at": 20,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ]
+      },
+      "market_events": [],
+      "budget_left": 257,
+      "candidates": [
+        {
+          "uid": 980,
+          "id": "kettle",
+          "name": "Kettle",
+          "price": 95,
+          "where": "stock",
+          "estimated_value": 82,
+          "bought_at": 35,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 0,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "household_good"
+          ],
+          "attracted": false,
+          "over_budget": false
+        },
+        {
+          "uid": 981,
+          "id": "toaster",
+          "name": "Toaster",
+          "price": 140,
+          "where": "stock",
+          "estimated_value": 120,
+          "bought_at": 150,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 0,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "household_good"
+          ],
+          "attracted": false,
+          "over_budget": false
+        }
+      ]
+    },
+    "options": [
+      {
+        "id": "offer_980",
+        "label": "Kettle #980 (stock): ~95, est 82, paid 35; wants household_good"
+      },
+      {
+        "id": "offer_981",
+        "label": "Toaster #981 (stock): ~140, est 120, paid 150; wants household_good"
+      },
+      {
+        "id": "nothing_fits",
+        "label": "Nothing more to offer: sell what is staged"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

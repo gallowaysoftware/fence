@@ -1,0 +1,67 @@
+{
+  "session_id": "s-0001",
+  "decision_id": "d-0002",
+  "kind": "stage",
+  "game_day": 69,
+  "deadline_ms": 20000,
+  "state_signature": "sc41:i:b0000:mb:g900",
+  "context": {
+    "store": {"cash": 2450, "day": 69, "retail_markup": 15, "rent_due": 600, "rent_days_left": 3},
+    "reputation": {
+      "lower_levels": {"value": 12.0, "status": "Known"},
+      "upper_levels": {"value": -4.5, "status": "Neutral"},
+      "security": {"value": 3.0, "status": "Neutral"},
+      "black_market": {"value": 20.25, "status": "Known"},
+      "revolution": {"value": 0.0, "status": "Neutral"}
+    },
+    "client": {
+      "name": "Retired farmer",
+      "faction": "lower_levels",
+      "intent": "buy",
+      "budget": 900,
+      "interests": ["electronics", "music"],
+      "restrictions": [],
+      "no_contraband": false,
+      "requires_variety": false,
+      "is_security": false,
+      "on_wanted_poster": false,
+      "attracted_by": "cassette2",
+      "wholesale": null
+    },
+    "counter": {"theirs": [], "yours_staged": []},
+    "market_events": [{"item_type": "electronics", "value_pct": 10}],
+    "budget_left": 900,
+    "candidates": [
+      {"uid": 2231, "id": "cassette2", "name": "Cassette", "price": 345, "where": "stock", "estimated_value": 300, "bought_at": 180,
+       "features": [{"text": "Worn", "group": "condition"}], "stolen_heat": 22, "contraband_level": 0, "serious_contraband": false,
+       "hidden_from_inspection": false, "matches": ["music"], "attracted": true, "over_budget": false},
+      {"uid": 2240, "id": "radio", "name": "Radio", "price": 598, "where": "showcase", "estimated_value": 520, "bought_at": 300,
+       "features": [], "stolen_heat": null, "contraband_level": 0, "serious_contraband": false,
+       "hidden_from_inspection": false, "matches": ["electronics", "music"], "attracted": false, "over_budget": false},
+      {"uid": 2255, "id": "walkman", "name": "Walkman", "price": 230, "where": "smuggler_bay", "estimated_value": 200, "bought_at": 260,
+       "features": [], "stolen_heat": null, "contraband_level": 0, "serious_contraband": false,
+       "hidden_from_inspection": true, "matches": ["electronics"], "attracted": false, "over_budget": false},
+      {"uid": 2260, "id": "synth", "name": "Synth", "price": 1150, "where": "stock", "estimated_value": 1000, "bought_at": 600,
+       "features": [], "stolen_heat": null, "contraband_level": 0, "serious_contraband": false,
+       "hidden_from_inspection": false, "matches": ["music"], "attracted": false, "over_budget": true}
+    ]
+  },
+  "hidden": {
+    "client": {"identifier": "retired_farmer", "is_aug": false, "stealth_wanted": false},
+    "items": [
+      {"uid": 2231, "true_value": 95, "real_features": ["Worn", "Counterfeit"]},
+      {"uid": 2240, "true_value": 520, "real_features": []},
+      {"uid": 2255, "true_value": 200, "real_features": []},
+      {"uid": 2260, "true_value": 1000, "real_features": []}
+    ],
+    "days_to_inspection": 3
+  },
+  "options": [
+    {"id": "offer_2231", "label": "Cassette #2231 (stock): ~345, est 300, paid 180; they came for it; STOLEN heat 22"},
+    {"id": "offer_2240", "label": "Radio #2240 (showcase): ~598, est 520, paid 300; wants electronics, music"},
+    {"id": "offer_2255", "label": "Walkman #2255 (smuggler bay, hidden from inspection): ~230, est 200, paid 260; wants electronics"},
+    {"id": "offer_2260", "label": "Synth #2260 (stock): ~1150, est 1000, paid 600; wants music; over budget: they pay 900"},
+    {"id": "nothing_fits", "label": "Nothing in the shop fits this customer"},
+    {"id": "dismiss", "label": "Send the customer away"}
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "session_id": "s-0001",
+  "mode": "advise",
+  "policy": "llm",
+  "model": "qwen38fn-mlx",
+  "day": 69,
+  "today": {
+    "decisions": 7,
+    "sales": 3,
+    "purchases": 2,
+    "cash_delta": 415,
+    "walkouts": 1,
+    "rep_delta": {
+      "lower_levels": 0.8,
+      "black_market": -1.5
+    }
+  },
+  "lessons": "Markups above 10% on Lower Levels buyers walk out more often than the odds suggest.\nKeep 600 for rent before buying wholesale.",
+  "lessons_day": 68,
+  "plan": "Keep 600 for rent on day 70.\nHold the cassettes until the electronics event ends.\nPush lower_levels to 20 for Referral; no markups above 10% for them.",
+  "plan_day": 69
+}

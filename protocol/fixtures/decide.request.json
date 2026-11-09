@@ -1,0 +1,53 @@
+{
+  "session_id": "s-0001",
+  "decision_id": "d-0001",
+  "kind": "barter",
+  "game_day": 69,
+  "deadline_ms": 20000,
+  "state_signature": "c41:i2231:b0000",
+  "context": {
+    "store": {"cash": 2450, "day": 69, "retail_markup": 15, "rent_due": 600, "rent_days_left": 3},
+    "reputation": {
+      "lower_levels": {"value": 12.0, "status": "Known"},
+      "upper_levels": {"value": -4.5, "status": "Neutral"},
+      "security": {"value": 3.0, "status": "Neutral"},
+      "black_market": {"value": 20.25, "status": "Known"},
+      "revolution": {"value": 0.0, "status": "Neutral"}
+    },
+    "client": {
+      "name": "Retired farmer",
+      "faction": "lower_levels",
+      "intent": "buy",
+      "budget": 900,
+      "interests": ["electronics", "music"],
+      "restrictions": [],
+      "no_contraband": false,
+      "requires_variety": false,
+      "is_security": false,
+      "on_wanted_poster": false,
+      "attracted_by": "cassette2",
+      "wholesale": null
+    },
+    "counter": {
+      "theirs": [],
+      "yours_staged": [
+        {"uid": 2231, "id": "cassette2", "name": "Cassette", "price": 340, "estimated_value": 300, "bought_at": 180,
+         "features": [{"text": "Worn", "group": "condition"}], "stolen_heat": 22, "contraband_level": 0, "serious_contraband": false}
+      ]
+    },
+    "bargain": {"sell_side_used": false, "buy_side_used": false, "blackmail_used": false, "threaten_used": false},
+    "market_events": [{"item_type": "electronics", "value_pct": 10}]
+  },
+  "hidden": {
+    "client": {"identifier": "retired_farmer", "is_aug": false, "stealth_wanted": false},
+    "items": [{"uid": 2231, "true_value": 95, "real_features": ["Worn", "Counterfeit"]}],
+    "days_to_inspection": 3
+  },
+  "options": [
+    {"id": "sell_all", "label": "Sell 1 item for 340"},
+    {"id": "offer_discount_10", "label": "Offer 10% discount (always accepted; raises their budget 20%)"},
+    {"id": "add_markup_10", "label": "Add 10% markup (accept 82%, refuse 8%, walk out 10% (-3 rep))"},
+    {"id": "add_markup_25", "label": "Add 25% markup (accept 52%, refuse 20%, walk out 28% (-3 rep))"},
+    {"id": "dismiss", "label": "Send the customer away"}
+  ]
+}

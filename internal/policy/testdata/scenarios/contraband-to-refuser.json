@@ -1,0 +1,115 @@
+{
+  "note": "The staged pill bottle is contraband and this tourist refuses contraband.",
+  "expect": [
+    "defer",
+    "dismiss"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "contraband-to-refuser",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:contraband-to-refuser",
+    "context": {
+      "store": {
+        "cash": 1100,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 20.0
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Sunburnt tourist",
+        "faction": "tourist",
+        "intent": "buy",
+        "budget": 800,
+        "interests": [
+          "souvenirs",
+          "medicine"
+        ],
+        "restrictions": [],
+        "no_contraband": true,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": [
+          {
+            "uid": 1201,
+            "id": "pills",
+            "name": "Pill bottle",
+            "price": 260,
+            "estimated_value": 230,
+            "bought_at": 90,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 2,
+            "serious_contraband": false
+          }
+        ]
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "sell_all",
+        "label": "Sell 1 item for 260"
+      },
+      {
+        "id": "offer_discount_10",
+        "label": "Offer 10% discount (always accepted; raises their budget 20%)"
+      },
+      {
+        "id": "offer_discount_25",
+        "label": "Offer 25% discount (always accepted; raises their budget 50%)"
+      },
+      {
+        "id": "add_markup_10",
+        "label": "Add markup 10% (accept 80%, else stay 88%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_25",
+        "label": "Add markup 25% (accept 50%, else stay 70%, else walk out -3 rep)"
+      },
+      {
+        "id": "add_markup_50",
+        "label": "Add markup 50% (accept 0%, else stay 40%, else walk out -3 rep)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

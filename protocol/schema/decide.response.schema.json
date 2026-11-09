@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/decide.response.schema.json",
+  "title": "decide response",
+  "description": "200 answer to POST /v1/decide. choice.option is one of the request's option ids, or \"defer\".",
+  "type": "object",
+  "required": ["decision_id", "choice", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "decision_id": {"type": "string", "minLength": 1},
+    "choice": {
+      "type": "object",
+      "required": ["option"],
+      "additionalProperties": false,
+      "properties": {
+        "option": {"type": "string", "minLength": 1},
+        "params": {"type": "object", "description": "One value per declared param of the chosen option, typed by that param."}
+      }
+    },
+    "rationale": {"type": "string"},
+    "source": {"enum": ["llm", "heuristic", "fallback"]},
+    "option_notes": {
+      "type": "object",
+      "description": "Option id -> short display note for the overlay (e.g. the bridge's expected value). Keys are offered option ids. Never executed.",
+      "additionalProperties": {"type": "string", "maxLength": 120}
+    }
+  }
+}

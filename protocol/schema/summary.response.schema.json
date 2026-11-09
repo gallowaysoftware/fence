@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/summary.response.schema.json",
+  "title": "summary response",
+  "description": "200 answer to GET /v1/summary: the day (meta-turn) view for the overlay. today and lessons are zero/empty when memory is off.",
+  "type": "object",
+  "required": ["session_id", "mode", "policy", "model", "day", "today", "lessons", "lessons_day"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["observe", "advise", "act"]},
+    "policy": {"type": "string", "minLength": 1},
+    "model": {"type": "string", "description": "Empty for the heuristic policy."},
+    "day": {"type": "integer", "minimum": 0},
+    "today": {
+      "type": "object",
+      "required": ["decisions", "sales", "purchases", "cash_delta", "walkouts", "rep_delta"],
+      "additionalProperties": false,
+      "properties": {
+        "decisions": {"type": "integer", "minimum": 0},
+        "sales": {"type": "integer", "minimum": 0},
+        "purchases": {"type": "integer", "minimum": 0},
+        "cash_delta": {"type": "integer"},
+        "walkouts": {"type": "integer", "minimum": 0},
+        "rep_delta": {"type": "object", "description": "Faction id -> reputation change today.", "additionalProperties": {"type": "number"}}
+      }
+    },
+    "lessons": {"type": "string", "maxLength": 2048, "description": "The run's current lessons; empty before the first reflection."},
+    "lessons_day": {"type": "integer", "minimum": 0, "description": "The day that produced lessons; 0 when there are none."},
+    "plan": {"type": "string", "maxLength": 2048, "description": "The strategist's plan for the day; absent when there is none."},
+    "plan_day": {"type": "integer", "minimum": 0, "description": "The day the plan was written for; absent when there is no plan."}
+  }
+}

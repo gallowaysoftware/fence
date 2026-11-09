@@ -1,0 +1,11 @@
+bin/
+obj/
+mod/**/bin/
+mod/**/obj/
+*.dll
+*.pdb
+/var/
+/logs/
+.env
+/bridge
+/local.mk

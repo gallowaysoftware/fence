@@ -1,0 +1,125 @@
+{
+  "note": "A chemist who refuses contraband: the solvent is contraband (the mod should have left it out), so offer the bleach.",
+  "expect": [
+    "offer_991"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "stage-contraband-to-refuser",
+    "kind": "stage",
+    "game_day": 109,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:stage-contraband-to-refuser",
+    "context": {
+      "store": {
+        "cash": 900,
+        "day": 109,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 22.0,
+          "status": "Established"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Chemist",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "budget": 221,
+        "interests": [
+          "chemical_supplies"
+        ],
+        "restrictions": [],
+        "no_contraband": true,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "attracted_by": null,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": []
+      },
+      "market_events": [],
+      "budget_left": 221,
+      "candidates": [
+        {
+          "uid": 990,
+          "id": "solvent",
+          "name": "Solvent",
+          "price": 180,
+          "where": "stock",
+          "estimated_value": 156,
+          "bought_at": 60,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 2,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "chemical_supplies"
+          ],
+          "attracted": false,
+          "over_budget": false
+        },
+        {
+          "uid": 991,
+          "id": "bleach",
+          "name": "Bleach",
+          "price": 70,
+          "where": "stock",
+          "estimated_value": 60,
+          "bought_at": 30,
+          "features": [],
+          "stolen_heat": null,
+          "contraband_level": 0,
+          "serious_contraband": false,
+          "hidden_from_inspection": false,
+          "matches": [
+            "chemical_supplies"
+          ],
+          "attracted": false,
+          "over_budget": false
+        }
+      ]
+    },
+    "options": [
+      {
+        "id": "offer_990",
+        "label": "Solvent #990 (stock): ~180, est 156, paid 60; wants chemical_supplies; CONTRABAND level 2"
+      },
+      {
+        "id": "offer_991",
+        "label": "Bleach #991 (stock): ~70, est 60, paid 30; wants chemical_supplies"
+      },
+      {
+        "id": "nothing_fits",
+        "label": "Nothing in the shop fits this customer"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

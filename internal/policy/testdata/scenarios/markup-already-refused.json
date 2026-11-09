@@ -1,0 +1,99 @@
+{
+  "note": "The sell-side bargain is spent (a markup was refused but they stayed); only selling or dismissing remain.",
+  "expect": [
+    "sell_all"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "markup-already-refused",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:markup-already-refused",
+    "context": {
+      "store": {
+        "cash": 1500,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 4
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 0.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Mechanic",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "budget": 1000,
+        "interests": [
+          "tools"
+        ],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": null
+      },
+      "counter": {
+        "theirs": [],
+        "yours_staged": [
+          {
+            "uid": 1501,
+            "id": "drill",
+            "name": "Power drill",
+            "price": 500,
+            "estimated_value": 450,
+            "bought_at": 240,
+            "features": [
+              {
+                "text": "Good",
+                "group": "condition"
+              }
+            ],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ]
+      },
+      "bargain": {
+        "sell_side_used": true,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "sell_all",
+        "label": "Sell 1 item for 500"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

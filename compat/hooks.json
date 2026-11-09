@@ -1,0 +1,5829 @@
+{
+  "hooks": [
+    {
+      "id": "IMod.Init",
+      "type": "IMod",
+      "member": "Init",
+      "kind": "method",
+      "params": [
+        "ModManifest"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "load"
+      ],
+      "required": true
+    },
+    {
+      "id": "IMod.OnEnable",
+      "type": "IMod",
+      "member": "OnEnable",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "load"
+      ],
+      "required": true
+    },
+    {
+      "id": "IMod.OnDisable",
+      "type": "IMod",
+      "member": "OnDisable",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "load"
+      ],
+      "required": true
+    },
+    {
+      "id": "ModManifest.ID",
+      "type": "ModManifest",
+      "member": "ID",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "load"
+      ],
+      "required": true
+    },
+    {
+      "id": "ModManifest.ModVersion",
+      "type": "ModManifest",
+      "member": "ModVersion",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "hello.mod_version"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModLog.ctor",
+      "type": "ModLog",
+      "member": ".ctor",
+      "kind": "method",
+      "params": [
+        "ModManifest"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "log"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModLog.Log",
+      "type": "ModLog",
+      "member": "Log",
+      "kind": "method",
+      "params": [
+        "System.Object"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "log"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModLog.Warning",
+      "type": "ModLog",
+      "member": "Warning",
+      "kind": "method",
+      "params": [
+        "System.Object"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "log"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModLog.Error",
+      "type": "ModLog",
+      "member": "Error",
+      "kind": "method",
+      "params": [
+        "System.Object"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "log"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHelper.StartCoroutine",
+      "type": "ModHelper",
+      "member": "StartCoroutine",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Collections.IEnumerator"
+      ],
+      "returns": "UnityEngine.Coroutine",
+      "features": [
+        "pump"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHelper.StopAllCoroutines",
+      "type": "ModHelper",
+      "member": "StopAllCoroutines",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "pump"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHelper.GetConfig",
+      "type": "ModHelper",
+      "member": "GetConfig",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "ModConfig",
+      "features": [
+        "config"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModConfig.Define(bool)",
+      "type": "ModConfig",
+      "member": "Define",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Boolean",
+        "System.String",
+        "System.Func<System.String>",
+        "System.Func<System.String>",
+        "System.Boolean"
+      ],
+      "returns": "ConfigEntry<System.Boolean>",
+      "features": [
+        "config"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModConfig.Define(string)",
+      "type": "ModConfig",
+      "member": "Define",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.String",
+        "System.Func<System.String>",
+        "System.String[]",
+        "System.Func<System.String>",
+        "System.Boolean"
+      ],
+      "returns": "ConfigEntry<System.String>",
+      "features": [
+        "config"
+      ],
+      "required": false
+    },
+    {
+      "id": "ConfigEntry.Value",
+      "type": "ConfigEntry`1",
+      "member": "Value",
+      "kind": "property",
+      "returns": "T",
+      "features": [
+        "config"
+      ],
+      "required": false
+    },
+    {
+      "id": "StoreStation.Instance",
+      "type": "StoreStation",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "StoreStation",
+      "features": [
+        "observe.game_day",
+        "record.snapshot.store"
+      ],
+      "required": false
+    },
+    {
+      "id": "StoreStation.dayCounter",
+      "type": "StoreStation",
+      "member": "dayCounter",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "observe.game_day",
+        "record.snapshot.store"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnGameLoadedLate",
+      "type": "ModHook",
+      "member": "OnGameLoadedLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.game_loaded"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnShutterOpenedLate",
+      "type": "ModHook",
+      "member": "OnShutterOpenedLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.shutter_opened"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnShutterClosedLate",
+      "type": "ModHook",
+      "member": "OnShutterClosedLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.shutter_closed"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnGoingSleepLate",
+      "type": "ModHook",
+      "member": "OnGoingSleepLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.going_sleep"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnWakingUpLate",
+      "type": "ModHook",
+      "member": "OnWakingUpLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.waking_up"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnLeavingStoreLate",
+      "type": "ModHook",
+      "member": "OnLeavingStoreLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.leaving_store"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnReturningStoreLate",
+      "type": "ModHook",
+      "member": "OnReturningStoreLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.returning_store"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnHandlingNightlyServicesLate",
+      "type": "ModHook",
+      "member": "OnHandlingNightlyServicesLate",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "event.nightly_services"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnGenerateCustomerVeryLate",
+      "type": "ModHook",
+      "member": "OnGenerateCustomerVeryLate",
+      "kind": "event",
+      "returns": "System.Action<StoreClientManager>",
+      "features": [
+        "event.customer_generated"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnNewGameStarted",
+      "type": "ModHook",
+      "member": "OnNewGameStarted",
+      "kind": "event",
+      "returns": "System.Action<System.String>",
+      "features": [
+        "event.new_game_started"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnDifficultyApplied",
+      "type": "ModHook",
+      "member": "OnDifficultyApplied",
+      "kind": "event",
+      "returns": "System.Action<System.String>",
+      "features": [
+        "event.difficulty_applied"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnNetworkUpgradeUnlocked",
+      "type": "ModHook",
+      "member": "OnNetworkUpgradeUnlocked",
+      "kind": "event",
+      "returns": "System.Action<System.String>",
+      "features": [
+        "event.network_upgrade_unlocked"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnAfterhourArriveLate",
+      "type": "ModHook",
+      "member": "OnAfterhourArriveLate",
+      "kind": "event",
+      "returns": "System.Action<System.String>",
+      "features": [
+        "event.afterhour_arrived"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnAfterhourLeaveLate",
+      "type": "ModHook",
+      "member": "OnAfterhourLeaveLate",
+      "kind": "event",
+      "returns": "System.Action<System.String>",
+      "features": [
+        "event.afterhour_left"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnAfterhourEventStarted",
+      "type": "ModHook",
+      "member": "OnAfterhourEventStarted",
+      "kind": "event",
+      "returns": "System.Action<System.String,System.String>",
+      "features": [
+        "event.afterhour_event_started"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnAfterhourEventEnded",
+      "type": "ModHook",
+      "member": "OnAfterhourEventEnded",
+      "kind": "event",
+      "returns": "System.Action<System.String,System.String>",
+      "features": [
+        "event.afterhour_event_ended"
+      ],
+      "required": false
+    },
+    {
+      "id": "ModHook.OnPaperOpened",
+      "type": "ModHook",
+      "member": "OnPaperOpened",
+      "kind": "event",
+      "returns": "System.Action<System.String,PaperUI>",
+      "features": [
+        "event.paper_opened"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.session_start",
+      "type": "StoreUIManager",
+      "member": "OnNextClientArrived",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.session",
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Postfix: once per customer after arrival; client_arrived event and a fresh advice session."
+    },
+    {
+      "id": "barter.outcome_bought",
+      "type": "PlayerStore",
+      "member": "OnItemBought",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.trade"
+      ],
+      "required": false,
+      "why": "Prefix/postfix: single funnel for regular and wholesale purchases with exact cost."
+    },
+    {
+      "id": "barter.outcome_sold",
+      "type": "StoreClient",
+      "member": "OnItemBought",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.trade"
+      ],
+      "required": false,
+      "why": "Prefix/postfix: called from PlayerStore.SellItem with the budget-capped amount received (client-perspective name)."
+    },
+    {
+      "id": "barter.outcome_left",
+      "type": "PlayerStore",
+      "member": "DismissCurrentClient",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.left"
+      ],
+      "required": false,
+      "why": "Prefix: every customer exit path; currentClientInstance still set."
+    },
+    {
+      "id": "barter.dismiss",
+      "type": "PlayerStore",
+      "member": "TryPlayerDismissCurrentClient",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.left",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to tell a player dismissal from other exits; act will call it to refuse."
+    },
+    {
+      "id": "barter.bargain_offer_discount",
+      "type": "BargainUIManager",
+      "member": "OfferDiscount",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record Offer Discount."
+    },
+    {
+      "id": "barter.bargain_markup",
+      "type": "BargainUIManager",
+      "member": "OfferMarkup",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record the Add Markup roll."
+    },
+    {
+      "id": "barter.bargain_offer_markup",
+      "type": "BargainUIManager",
+      "member": "OfferBuyingMarkup",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record Offer Markup."
+    },
+    {
+      "id": "barter.bargain_demand_discount",
+      "type": "BargainUIManager",
+      "member": "DemandBuyingDiscount",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record the Demand Discount roll."
+    },
+    {
+      "id": "barter.bargain_blackmail",
+      "type": "BargainUIManager",
+      "member": "Blackmail",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record the Blackmail roll."
+    },
+    {
+      "id": "barter.bargain_threaten",
+      "type": "BargainUIManager",
+      "member": "ThreatenAug",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "observe.barter.bargain",
+        "act.barter.threaten",
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Patched (never called in P1) to record Threaten."
+    },
+    {
+      "id": "barter.markup_applied",
+      "type": "BargainUIManager",
+      "member": "markupApplied",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "observe.barter.bargain"
+      ],
+      "required": false,
+      "why": "Private; read via ModReflect after OfferMarkup: did the roll succeed."
+    },
+    {
+      "id": "barter.buying_discount_applied",
+      "type": "BargainUIManager",
+      "member": "buyingDiscountApplied",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "observe.barter.bargain"
+      ],
+      "required": false,
+      "why": "Private; read via ModReflect after DemandBuyingDiscount."
+    },
+    {
+      "id": "barter.blackmail_applied",
+      "type": "BargainUIManager",
+      "member": "blackmailApplied",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "observe.barter.bargain"
+      ],
+      "required": false,
+      "why": "Private; read via ModReflect after Blackmail."
+    },
+    {
+      "id": "barter.threaten_applied",
+      "type": "BargainUIManager",
+      "member": "threatenApplied",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "observe.barter.bargain"
+      ],
+      "required": false,
+      "why": "Private; read via ModReflect after ThreatenAug."
+    },
+    {
+      "id": "modreflect.get",
+      "type": "ModReflect",
+      "member": "Get",
+      "kind": "method",
+      "params": [
+        "System.Object",
+        "System.String"
+      ],
+      "returns": "System.Object",
+      "features": [
+        "observe.barter.bargain"
+      ],
+      "required": false,
+      "why": "The game's sanctioned access to private members."
+    },
+    {
+      "id": "state.store_state",
+      "type": "PlayerStore",
+      "member": "storeState",
+      "kind": "field",
+      "returns": "PlayerStore+StoreState",
+      "features": [
+        "observe.barter.left"
+      ],
+      "required": false,
+      "why": "CLOSED at dismiss time = the shutter closed."
+    },
+    {
+      "id": "display.tooltip",
+      "type": "ModHook",
+      "member": "OnCreateTooltipLate",
+      "kind": "event",
+      "returns": "System.Action<RichTextBuilder,GameItem>",
+      "features": [
+        "advise.display"
+      ],
+      "required": false,
+      "why": "Appends the advice to tooltips of counter items."
+    },
+    {
+      "id": "display.add_line",
+      "type": "RichTextBuilder",
+      "member": "AddLine",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Boolean",
+        "RenderHandler+ColorPalette",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean",
+        "RenderHandler+ColorPalette",
+        "RenderHandler+ColorPalette",
+        "RenderHandler+ColorPalette"
+      ],
+      "returns": "RichTextBuilder",
+      "features": [
+        "advise.display"
+      ],
+      "required": false
+    },
+    {
+      "id": "display.item_parent",
+      "type": "GameItem",
+      "member": "parentInventory",
+      "kind": "property",
+      "returns": "GameInventory",
+      "features": [
+        "advise.display",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "Is the hovered item on a counter."
+    },
+    {
+      "id": "state.back_counter",
+      "type": "EmporiumEntry",
+      "member": "backInvinvElement",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "advise.display",
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.front_counter",
+      "type": "EmporiumEntry",
+      "member": "frontInvinvElement",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "advise.display",
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.player_store",
+      "type": "PlayerStore",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "PlayerStore",
+      "features": [
+        "advise.barter",
+        "observe.barter.session",
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Root of all store state."
+    },
+    {
+      "id": "barter.bargain_instance",
+      "type": "BargainUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "BargainUIManager",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Singleton; its \u2026Offered getters run the same Refresh() the game's own panel and StoreClient.CanReport do."
+    },
+    {
+      "id": "barter.nego_instance",
+      "type": "NegociationUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "NegociationUIManager",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.emporium",
+      "type": "EmporiumEntry",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "EmporiumEntry",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.dialog_instance",
+      "type": "DialogUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "DialogUIManager",
+      "features": [
+        "advise.barter",
+        "record.human.dialogue"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.client_mono",
+      "type": "StoreClientMono",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "StoreClientMono",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.store_ui",
+      "type": "StoreUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "StoreUIManager",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.map_ui",
+      "type": "MapUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "MapUIManager",
+      "features": [
+        "advise.barter",
+        "record.night.travel"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.current_client",
+      "type": "PlayerStore",
+      "member": "currentClientInstance",
+      "kind": "field",
+      "returns": "StoreClientInstance",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.client_blueprint",
+      "type": "StoreClientInstance",
+      "member": "GetClientBlueprint",
+      "kind": "method",
+      "params": [],
+      "returns": "StoreClient",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.cash",
+      "type": "PlayerStore",
+      "member": "playerCash",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.store"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.retail_markup",
+      "type": "PlayerStore",
+      "member": "retailMarkup",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.store"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rent_value",
+      "type": "PlayerStore",
+      "member": "GetRentValue",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rent_days",
+      "type": "PlayerStore",
+      "member": "GetRentDayCounter",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.reputations",
+      "type": "PlayerStore",
+      "member": "storeReputations",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreReputation>",
+      "features": [
+        "advise.barter",
+        "record.snapshot.reputation"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rep_faction",
+      "type": "StoreReputation",
+      "member": "factionId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.reputation"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rep_exact",
+      "type": "StoreReputation",
+      "member": "GetReputationExact",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Double",
+      "features": [
+        "advise.barter",
+        "record.snapshot.reputation"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rep_int",
+      "type": "StoreReputation",
+      "member": "GetReputation",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.reputation"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.rep_status",
+      "type": "StoreReputation",
+      "member": "GetReputationStatus",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.reputation"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.event_manager",
+      "type": "StoreStation",
+      "member": "storeEventManager",
+      "kind": "field",
+      "returns": "StoreEventManager",
+      "features": [
+        "advise.barter",
+        "record.snapshot.market_events"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.active_events",
+      "type": "StoreEventManager",
+      "member": "GetActiveEvents",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<StoreEvent>",
+      "features": [
+        "advise.barter",
+        "record.snapshot.market_events"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.event_data",
+      "type": "StoreEvent",
+      "member": "negociationDatas",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<NegociationData>",
+      "features": [
+        "advise.barter",
+        "record.snapshot.market_events"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.event_type",
+      "type": "NegociationData",
+      "member": "itemType",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.market_events"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.event_value",
+      "type": "NegociationData",
+      "member": "value",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.market_events"
+      ],
+      "required": false
+    },
+    {
+      "id": "hidden.client_manager",
+      "type": "PlayerStore",
+      "member": "storeClientManager",
+      "kind": "field",
+      "returns": "StoreClientManager",
+      "features": [
+        "advise.barter",
+        "record.snapshot.clientele",
+        "record.snapshot.hidden"
+      ],
+      "required": false
+    },
+    {
+      "id": "hidden.days_to_inspection",
+      "type": "StoreClientManager",
+      "member": "dayUntilInspection",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.hidden"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.type_list",
+      "type": "TypeHelper",
+      "member": "ALL_TYPES_LIST",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Tablet shows only known item types as Interests/Restrictions tags."
+    },
+    {
+      "id": "client.intent",
+      "type": "StoreClient",
+      "member": "clientIntent",
+      "kind": "field",
+      "returns": "StoreClient+ClientIntent",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.displayName",
+      "type": "StoreClient",
+      "member": "displayName",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.identifier",
+      "type": "StoreClient",
+      "member": "identifier",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.clientFaction",
+      "type": "StoreClient",
+      "member": "clientFaction",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.useClientBudget",
+      "type": "StoreClient",
+      "member": "useClientBudget",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.noAcceptingContraband",
+      "type": "StoreClient",
+      "member": "noAcceptingContraband",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isRequireVariety",
+      "type": "StoreClient",
+      "member": "isRequireVariety",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isSecurity",
+      "type": "StoreClient",
+      "member": "isSecurity",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isWanted",
+      "type": "StoreClient",
+      "member": "isWanted",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isStealthWanted",
+      "type": "StoreClient",
+      "member": "isStealthWanted",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isAug",
+      "type": "StoreClient",
+      "member": "isAug",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.attractedItemId",
+      "type": "StoreClient",
+      "member": "attractedItemId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.attractedType",
+      "type": "StoreClient",
+      "member": "attractedType",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isOfferWholesale",
+      "type": "StoreClient",
+      "member": "isOfferWholesale",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.wholesaleDiscount",
+      "type": "StoreClient",
+      "member": "wholesaleDiscount",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.dismissable",
+      "type": "StoreClient",
+      "member": "dismissable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isBargainAvailable",
+      "type": "StoreClient",
+      "member": "isBargainAvailable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isMainDialogueStarted",
+      "type": "StoreClient",
+      "member": "isMainDialogueStarted",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isBusinessComplete",
+      "type": "StoreClient",
+      "member": "isBusinessComplete",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isRegularSellDisable",
+      "type": "StoreClient",
+      "member": "isRegularSellDisable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.isMultiBuyDisabled",
+      "type": "StoreClient",
+      "member": "isMultiBuyDisabled",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.clientBuyingTagList",
+      "type": "StoreClient",
+      "member": "clientBuyingTagList",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.clientBlackTagList",
+      "type": "StoreClient",
+      "member": "clientBlackTagList",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.budget",
+      "type": "StoreClient",
+      "member": "GetBudget",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.wants_item",
+      "type": "StoreClient",
+      "member": "IsClientBuyingThisItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.customer",
+        "advise.stage"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.wholesale_price",
+      "type": "PlayerStore",
+      "member": "GetWholesalePrice",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.negotiated_item",
+      "type": "NegociationUIManager",
+      "member": "currentNegociatedItem",
+      "kind": "field",
+      "returns": "GameItem",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Drives the SELLNBUY tablet mode (which trade button exists)."
+    },
+    {
+      "id": "state.back_items",
+      "type": "EmporiumEntry",
+      "member": "GetBackInvItems",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.non_owned_items",
+      "type": "EmporiumEntry",
+      "member": "GetAllNonOwnedItem",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "advise.barter",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_owned",
+      "type": "GeneralHelper",
+      "member": "IsItemOwned",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.identifier",
+      "type": "GameItem",
+      "member": "identifier",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer",
+        "record.snapshot.security"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.unique_id",
+      "type": "GameItem",
+      "member": "uniqueId",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.display_name",
+      "type": "GameItem",
+      "member": "GetDisplayName",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_price",
+      "type": "GameItem",
+      "member": "GetNegociatedValue",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int64",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_est_value",
+      "type": "GameItem",
+      "member": "GetCurrentValue",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Int64"
+      ],
+      "returns": "System.Int64",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer",
+        "advise.stage"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.tag",
+      "type": "GameItem",
+      "member": "GetTagReadonly",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "TagState",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "item.tag_int",
+      "type": "TagState",
+      "member": "GetInt",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_features",
+      "type": "GameItem",
+      "member": "itemFeatures",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<ItemFeature>",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_stolen",
+      "type": "StolenHelper",
+      "member": "IsStolenItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_contraband",
+      "type": "ContrabandHelper",
+      "member": "IsSeriousContraband",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.item_contraband_level",
+      "type": "ContrabandHelper",
+      "member": "GetContrabandLevelInInt",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "hidden.appraisal_value",
+      "type": "AppraisalHelper",
+      "member": "GetCorrectBaseValue",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_exposed",
+      "type": "ItemFeature",
+      "member": "IsExposed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer",
+        "record.human.expose"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_disabled",
+      "type": "ItemFeature",
+      "member": "isDisabled",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_shown",
+      "type": "ItemFeature",
+      "member": "IsInitiallyShown",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_public_hidden",
+      "type": "ItemFeature",
+      "member": "GetPublicHidden",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_stage",
+      "type": "ItemFeature",
+      "member": "GetValueStage",
+      "kind": "method",
+      "params": [],
+      "returns": "ItemFeature+ValueStage",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_mod",
+      "type": "ItemFeature",
+      "member": "GetCurrentValueMod",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "hidden.feature_actual_mod",
+      "type": "ItemFeature",
+      "member": "GetActualValueModifier",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "hidden.feature_real",
+      "type": "ItemFeature",
+      "member": "GetBaseRealDisplay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_public",
+      "type": "ItemFeature",
+      "member": "GetPublicDisplay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.feature_exposed_text",
+      "type": "ItemFeature",
+      "member": "GetExposedString",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "advise.barter",
+        "record.snapshot.inventory",
+        "record.customer"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_DiscountOffered",
+      "type": "BargainUIManager",
+      "member": "DiscountOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_MarkupOffered",
+      "type": "BargainUIManager",
+      "member": "MarkupOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_BuyingMarkupOffered",
+      "type": "BargainUIManager",
+      "member": "BuyingMarkupOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_BuyingDiscountOffered",
+      "type": "BargainUIManager",
+      "member": "BuyingDiscountOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_BlackmailOffered",
+      "type": "BargainUIManager",
+      "member": "BlackmailOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.flag_ThreatenOffered",
+      "type": "BargainUIManager",
+      "member": "ThreatenOffered",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter",
+        "observe.barter.bargain"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.bargain_success_chance",
+      "type": "BargainUIManager",
+      "member": "GetBargainSuccessChance",
+      "kind": "method",
+      "params": [
+        "BargainType",
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Player-visible accept % (button tooltip)."
+    },
+    {
+      "id": "barter.bargain_leave_chance",
+      "type": "BargainUIManager",
+      "member": "GetBargainLeaveChance",
+      "kind": "method",
+      "params": [
+        "BargainType",
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Player-visible walk-out % (button tooltip)."
+    },
+    {
+      "id": "state.client_arrived",
+      "type": "PlayerStore",
+      "member": "isClientArrived",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.dialog_current",
+      "type": "DialogUIManager",
+      "member": "GetCurrentDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.client_moving",
+      "type": "StoreClientMono",
+      "member": "IsMoving",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.about_to_dialog",
+      "type": "StoreUIManager",
+      "member": "isAboutToStartMainDialog",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.trade_locked",
+      "type": "NegociationUIManager",
+      "member": "IsTradeLocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.bargain_introduced",
+      "type": "PlayerStore",
+      "member": "isBargainIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Bargain buttons only exist once introduced (UI-only gate)."
+    },
+    {
+      "id": "state.aug_introduced",
+      "type": "PlayerStore",
+      "member": "isAugIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Threaten group only shown once augs are introduced."
+    },
+    {
+      "id": "state.outside",
+      "type": "MapUIManager",
+      "member": "isOutside",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "state.awful_negotiator",
+      "type": "StartingPerk",
+      "member": "IsAwfulNegotiator",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false
+    },
+    {
+      "id": "barter.lock_bell",
+      "type": "PlayerStore",
+      "member": "lockNextBellFlag",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.barter"
+      ],
+      "required": false,
+      "why": "Dismiss is blocked while > 0."
+    },
+    {
+      "id": "barter.buy_all",
+      "type": "NegociationUIManager",
+      "member": "OnBuyAllClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "act.barter"
+      ],
+      "required": false,
+      "why": "Buy button: buys un-owned items on the back counter (cash-checked)."
+    },
+    {
+      "id": "barter.sell_all",
+      "type": "NegociationUIManager",
+      "member": "OnSellAllClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "act.barter"
+      ],
+      "required": false,
+      "why": "Sell button: sells sellable owned items on the back counter."
+    },
+    {
+      "id": "barter.wholesale",
+      "type": "NegociationUIManager",
+      "member": "OnWholesaleClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "act.barter.wholesale"
+      ],
+      "required": false,
+      "why": "Accept wholesale; called by BarterExecutor only when the shop has the cash (the button's gate)."
+    },
+    {
+      "id": "barter.confirm_over_budget",
+      "type": "NegociationUIManager",
+      "member": "OnConfirmPanelYes",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "act.barter"
+      ],
+      "required": false,
+      "why": "Confirms a sale above client budget (capped payment)."
+    },
+    {
+      "id": "act.client_has_budget",
+      "type": "NegociationUIManager",
+      "member": "IsClientHaveEnoughToBuy",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "act.barter"
+      ],
+      "required": false,
+      "why": "Whether Sell opens the over-budget confirm panel, so the executor confirms it like the player would."
+    },
+    {
+      "id": "act.bargain_refresh_ui",
+      "type": "BargainUIManager",
+      "member": "RefreshUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "act.barter"
+      ],
+      "required": false,
+      "why": "Called after an executed bargain, as BargainUIManager.OnBargainButton does."
+    },
+    {
+      "id": "overlay.manager",
+      "type": "CustomUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "CustomUIManager",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Guard before building the overlay window."
+    },
+    {
+      "id": "overlay.has_layer",
+      "type": "CustomUIManager",
+      "member": "HasLayer",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Build only once the store scene's front layer exists."
+    },
+    {
+      "id": "overlay.window",
+      "type": "CustomUIManager",
+      "member": "Window",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.String"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Creates (or replaces) the fence.overlay window."
+    },
+    {
+      "id": "overlay.builder_setsize",
+      "type": "CustomUIBuilder",
+      "member": "SetSize",
+      "kind": "method",
+      "params": [
+        "System.Single",
+        "System.Single"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_setposition",
+      "type": "CustomUIBuilder",
+      "member": "SetPosition",
+      "kind": "method",
+      "params": [
+        "UnityEngine.Vector2"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_setdraggable",
+      "type": "CustomUIBuilder",
+      "member": "SetDraggable",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_addlabel",
+      "type": "CustomUIBuilder",
+      "member": "AddLabel",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_addheader",
+      "type": "CustomUIBuilder",
+      "member": "AddHeader",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_addbutton",
+      "type": "CustomUIBuilder",
+      "member": "AddButton",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Action",
+        "System.String"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_beginrow",
+      "type": "CustomUIBuilder",
+      "member": "BeginRow",
+      "kind": "method",
+      "params": [
+        "System.Single",
+        "UnityEngine.TextAnchor"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_beginscroll",
+      "type": "CustomUIBuilder",
+      "member": "BeginScroll",
+      "kind": "method",
+      "params": [
+        "System.Single"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_end",
+      "type": "CustomUIBuilder",
+      "member": "End",
+      "kind": "method",
+      "params": [],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.builder_show",
+      "type": "CustomUIBuilder",
+      "member": "Show",
+      "kind": "method",
+      "params": [],
+      "returns": "CustomUIWindow",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Overlay layout."
+    },
+    {
+      "id": "overlay.window_alive",
+      "type": "CustomUIWindow",
+      "member": "IsAlive",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Scene layers die with the scene; rebuild when false."
+    },
+    {
+      "id": "overlay.window_get",
+      "type": "CustomUIWindow",
+      "member": "Get",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "CustomUIElement",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Widgets are updated by id."
+    },
+    {
+      "id": "overlay.window_size",
+      "type": "CustomUIWindow",
+      "member": "SetSize",
+      "kind": "method",
+      "params": [
+        "System.Single",
+        "System.Single"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Hide collapses the window to its one-line bar."
+    },
+    {
+      "id": "overlay.window_close",
+      "type": "CustomUIWindow",
+      "member": "Close",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "OnDisable."
+    },
+    {
+      "id": "overlay.element_settext",
+      "type": "CustomUIElement",
+      "member": "SetText",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "CustomUIElement",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Widget update."
+    },
+    {
+      "id": "overlay.element_setvisible",
+      "type": "CustomUIElement",
+      "member": "SetVisible",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "CustomUIElement",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Widget update."
+    },
+    {
+      "id": "overlay.element_setinteractable",
+      "type": "CustomUIElement",
+      "member": "SetInteractable",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "CustomUIElement",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "Widget update."
+    },
+    {
+      "id": "snap.waking_up_early",
+      "type": "ModHook",
+      "member": "OnWakingUpEarly",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "record.snapshot.morning"
+      ],
+      "required": false,
+      "why": "Morning snapshot point: night logs are cleared between Early and Late."
+    },
+    {
+      "id": "snap.going_sleep_early",
+      "type": "ModHook",
+      "member": "OnGoingSleepEarly",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "record.snapshot.sleep",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Sleep snapshot point: final service selection, before overnight effects."
+    },
+    {
+      "id": "snap.wild_favor",
+      "type": "PlayerStore",
+      "member": "wildFavor",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Upgrade currency (VISIBLE)."
+    },
+    {
+      "id": "snap.net_worth",
+      "type": "PlayerStore",
+      "member": "GetTotalEstimatedValue",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Calendar status total wealth (VISIBLE)."
+    },
+    {
+      "id": "snap.attractiveness",
+      "type": "PlayerStore",
+      "member": "GetCurrentStoreAttractiveness",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Calendar nightly report meter (VISIBLE)."
+    },
+    {
+      "id": "snap.trash_penalty",
+      "type": "PlayerStore",
+      "member": "GetTrashAttPenalty",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Attractiveness meter trash part (VISIBLE)."
+    },
+    {
+      "id": "snap.projector_bonus",
+      "type": "PlayerStore",
+      "member": "projectorAttractivenessBonus",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Attractiveness meter projector part (VISIBLE)."
+    },
+    {
+      "id": "snap.business_permit",
+      "type": "PlayerStore",
+      "member": "hasBusinessPermit",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Vendor permit owned (VISIBLE)."
+    },
+    {
+      "id": "snap.commissary_data",
+      "type": "PlayerStore",
+      "member": "commissaryData",
+      "kind": "field",
+      "returns": "CommissaryData",
+      "features": [
+        "record.snapshot.store",
+        "record.night.commissary"
+      ],
+      "required": false,
+      "why": "Owner of commissary tokens and stock."
+    },
+    {
+      "id": "snap.commissary_tokens",
+      "type": "CommissaryData",
+      "member": "redeemedCredit",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store",
+        "record.night.commissary"
+      ],
+      "required": false,
+      "why": "Commissary tokens (VISIBLE when stamps introduced)."
+    },
+    {
+      "id": "snap.queue_length",
+      "type": "PlayerStore",
+      "member": "GetClientInQueueCount",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Queue length (0 in the morning)."
+    },
+    {
+      "id": "snap.stamp_introduced",
+      "type": "PlayerStore",
+      "member": "isStampIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Commissary tokens are shown once stamps are introduced."
+    },
+    {
+      "id": "snap.newspaper_unlocked",
+      "type": "PlayerStore",
+      "member": "isNewspaperUnlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.store"
+      ],
+      "required": false,
+      "why": "Gates the newspaper."
+    },
+    {
+      "id": "snap.rent_value",
+      "type": "PlayerStore",
+      "member": "rentValue",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.rent"
+      ],
+      "required": false,
+      "why": "Weekly rent (VISIBLE)."
+    },
+    {
+      "id": "snap.rent_arrears",
+      "type": "PlayerStore",
+      "member": "temporaryRent",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.rent"
+      ],
+      "required": false,
+      "why": "Missed rent carried over (VISIBLE)."
+    },
+    {
+      "id": "snap.rent_days",
+      "type": "PlayerStore",
+      "member": "dayUntilRent",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.rent"
+      ],
+      "required": false,
+      "why": "Days to rent as the calendar shows it (VISIBLE)."
+    },
+    {
+      "id": "snap.landlord_grace",
+      "type": "NetworkUpgrade",
+      "member": "IsLandlordGraceUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.rent"
+      ],
+      "required": false,
+      "why": "Static. Whether skipping rent is survivable."
+    },
+    {
+      "id": "snap.property_paid",
+      "type": "PlayerStore",
+      "member": "IsPropertyPaid",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Store owned (buyout done)."
+    },
+    {
+      "id": "snap.paying_mortgage",
+      "type": "PlayerStore",
+      "member": "isPayingMortgage",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage active (VISIBLE)."
+    },
+    {
+      "id": "snap.mortgage_weekly",
+      "type": "PlayerStore",
+      "member": "mortgageWeeklyPayment",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage instalment (VISIBLE)."
+    },
+    {
+      "id": "snap.mortgage_weeks_left",
+      "type": "PlayerStore",
+      "member": "mortgageWeekLeft",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage weeks left."
+    },
+    {
+      "id": "snap.buyout_price",
+      "type": "PlayerStore",
+      "member": "GetStoreBuyPrice",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Property value / buyout goal (VISIBLE); pass false."
+    },
+    {
+      "id": "snap.can_buyout",
+      "type": "PlayerStore",
+      "member": "CanBuyOutStore",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Landlord offers buyout only when true."
+    },
+    {
+      "id": "snap.mortgage_down",
+      "type": "PlayerStore",
+      "member": "GetMortgageDownPayment",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage offer terms (VISIBLE when offered)."
+    },
+    {
+      "id": "snap.mortgage_preview",
+      "type": "PlayerStore",
+      "member": "GetMortgageWeeklyPaymentPreview",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage offer terms (VISIBLE when offered)."
+    },
+    {
+      "id": "snap.mortgage_weeks",
+      "type": "PlayerStore",
+      "member": "GetMortgageWeeks",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "Mortgage offer length (static)."
+    },
+    {
+      "id": "snap.mortgage_offerable",
+      "type": "PlayerStore",
+      "member": "CanBeOfferedMortgage",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.property"
+      ],
+      "required": false,
+      "why": "The loan shark offers a mortgage."
+    },
+    {
+      "id": "snap.rep_perks",
+      "type": "StoreReputation",
+      "member": "perks",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreReputationPerk>",
+      "features": [
+        "record.snapshot.reputation"
+      ],
+      "required": false,
+      "why": "Next positive/negative perk per faction (VISIBLE)."
+    },
+    {
+      "id": "snap.perk_id",
+      "type": "StoreReputationPerk",
+      "member": "perkId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.reputation"
+      ],
+      "required": false,
+      "why": "Perk id."
+    },
+    {
+      "id": "snap.perk_threshold",
+      "type": "StoreReputationPerk",
+      "member": "perkThreshold",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.reputation"
+      ],
+      "required": false,
+      "why": "Perk threshold."
+    },
+    {
+      "id": "snap.perk_unlocked",
+      "type": "StoreReputationPerk",
+      "member": "isUnlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.reputation"
+      ],
+      "required": false,
+      "why": "Perk state."
+    },
+    {
+      "id": "snap.owned_items",
+      "type": "EmporiumEntry",
+      "member": "GetAllOwnedItems",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Boolean"
+      ],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "record.snapshot.inventory",
+        "record.snapshot.security",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "All owned items incl. nested; pass (false, true)."
+    },
+    {
+      "id": "snap.stock",
+      "type": "EmporiumEntry",
+      "member": "invElement",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "where=stock root."
+    },
+    {
+      "id": "snap.showcase",
+      "type": "EmporiumEntry",
+      "member": "showcaseElement",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "where=showcase root."
+    },
+    {
+      "id": "snap.hidden_stash",
+      "type": "EmporiumEntry",
+      "member": "hiddenElement",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "where=hidden root (poster stash)."
+    },
+    {
+      "id": "snap.trash",
+      "type": "EmporiumEntry",
+      "member": "trashInvElement",
+      "kind": "property",
+      "returns": "GameSlotInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "where=trash root."
+    },
+    {
+      "id": "snap.vending",
+      "type": "EmporiumEntry",
+      "member": "vendingMachineElement",
+      "kind": "property",
+      "returns": "GameSlotInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "where=vending_machine root."
+    },
+    {
+      "id": "snap.fountain",
+      "type": "EmporiumEntry",
+      "member": "vendingFountainElement",
+      "kind": "property",
+      "returns": "GameSlotInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "where=vending_fountain root."
+    },
+    {
+      "id": "snap.item_parent",
+      "type": "GameItem",
+      "member": "parentInventory",
+      "kind": "property",
+      "returns": "GameInventory",
+      "features": [
+        "record.snapshot.inventory",
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "Walk up to the root container for where."
+    },
+    {
+      "id": "snap.back_counter2",
+      "type": "EmporiumEntry",
+      "member": "backInvinvElementCounter",
+      "kind": "property",
+      "returns": "GameGridInventory",
+      "features": [
+        "record.snapshot.inventory"
+      ],
+      "required": false,
+      "why": "Second back-counter grid."
+    },
+    {
+      "id": "snap.docs",
+      "type": "EmporiumEntry",
+      "member": "docInvElement",
+      "kind": "property",
+      "returns": "GameSlotInventory",
+      "features": [
+        "record.snapshot.inventory"
+      ],
+      "required": false,
+      "why": "Documents slot (dossier)."
+    },
+    {
+      "id": "snap.afterhour_inv",
+      "type": "EmporiumEntry",
+      "member": "afterhourInventory",
+      "kind": "field",
+      "returns": "GameGridInventory",
+      "features": [
+        "record.snapshot.inventory"
+      ],
+      "required": false,
+      "why": "Bag carried outside."
+    },
+    {
+      "id": "snap.parent_item",
+      "type": "GameInventory",
+      "member": "GetParentItem",
+      "kind": "method",
+      "params": [],
+      "returns": "GameItem",
+      "features": [
+        "record.snapshot.inventory",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "Nested items: the item a container belongs to."
+    },
+    {
+      "id": "snap.smuggler_bay",
+      "type": "ContrabandHelper",
+      "member": "IsSmugglerBay",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.inventory",
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "Smuggler bays block inspection searches of their contents."
+    },
+    {
+      "id": "stage.accepts_markup",
+      "type": "PlayerStore",
+      "member": "IsCurrentClientAcceptMarkup",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "Whether staging adds the retail markup for this client (GameItem.OnAddedToWeightedArea): the expected counter price of a candidate."
+    },
+    {
+      "id": "stage.item_is_tag",
+      "type": "GameItem",
+      "member": "IsTag",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.stage"
+      ],
+      "required": false,
+      "why": "Which of the client's interest tags a candidate carries."
+    },
+    {
+      "id": "snap.display_types",
+      "type": "ShowcaseHelper",
+      "member": "GetDisplayCaseType",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Static. Display-case buyer types (VISIBLE)."
+    },
+    {
+      "id": "snap.discerning_chance",
+      "type": "ShowcaseHelper",
+      "member": "GetDiscerningShopperChance",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Static. Clientele forecast (VISIBLE)."
+    },
+    {
+      "id": "snap.discerning_cooldown",
+      "type": "ShowcaseHelper",
+      "member": "GetDiscerningShopperCooldownOpenings",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Static. Clientele forecast (VISIBLE)."
+    },
+    {
+      "id": "snap.normal_customers",
+      "type": "StoreClientManager",
+      "member": "GetNormalCustomerCount",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Clientele forecast (VISIBLE)."
+    },
+    {
+      "id": "snap.display_prediction",
+      "type": "ShowcaseHelper",
+      "member": "GetDisplayCasePrediction",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<System.ValueTuple<System.String,System.Int32,System.String>>",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Static. Clientele forecast (client, chance, item) (VISIBLE)."
+    },
+    {
+      "id": "record.prediction_capture",
+      "type": "ShowcaseHelper",
+      "member": "GetDisplayCasePrediction",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<System.ValueTuple<System.String,System.Int32,System.String>>",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Postfix: the predictions the game itself computed (queue generation, clientele panel)."
+    },
+    {
+      "id": "snap.supplier_picks",
+      "type": "ShowcaseHelper",
+      "member": "pendingSupplierPicks",
+      "kind": "field",
+      "returns": "System.Collections.Generic.Dictionary<System.String,System.String>",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Private (ModReflect): predictions are computed only when no supplier pick would be rolled."
+    },
+    {
+      "id": "modreflect.get_static",
+      "type": "ModReflect",
+      "member": "GetStatic",
+      "kind": "method",
+      "params": [
+        "System.Type",
+        "System.String"
+      ],
+      "returns": "System.Object",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Private static reads."
+    },
+    {
+      "id": "snap.client_display_name",
+      "type": "StoreClientListDict",
+      "member": "GetClientDisplayName",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.clientele"
+      ],
+      "required": false,
+      "why": "Prediction client names as the clientele panel shows them."
+    },
+    {
+      "id": "snap.sec_data",
+      "type": "PlayerStore",
+      "member": "secData",
+      "kind": "field",
+      "returns": "SecData",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Security record owner."
+    },
+    {
+      "id": "snap.crime_types",
+      "type": "SecData",
+      "member": "crimeTypes",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Suspected crimes (VISIBLE with amounts)."
+    },
+    {
+      "id": "snap.crime_amounts",
+      "type": "SecData",
+      "member": "crimeAmount",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.Int32>",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Per-crime amounts printed by GetSuspectedCrimeDisplay (VISIBLE)."
+    },
+    {
+      "id": "snap.evidence_level",
+      "type": "SecData",
+      "member": "evidenceLevel",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Shown as N/100 (VISIBLE)."
+    },
+    {
+      "id": "snap.evidence_display",
+      "type": "SecData",
+      "member": "GetEvidenceLevelDisplay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI text."
+    },
+    {
+      "id": "snap.projected_sentence",
+      "type": "SecData",
+      "member": "GetProjectedSentence",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI text."
+    },
+    {
+      "id": "snap.case_officer",
+      "type": "SecData",
+      "member": "GetCaseOfficer",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI text; arg GetTotalCrimeValue()."
+    },
+    {
+      "id": "snap.crime_total",
+      "type": "SecData",
+      "member": "GetTotalCrimeValue",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Sum of visible amounts."
+    },
+    {
+      "id": "snap.sec_action",
+      "type": "SecData",
+      "member": "GetAction",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI recommended action."
+    },
+    {
+      "id": "snap.sec_operation",
+      "type": "SecData",
+      "member": "GetOperation",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI active operation."
+    },
+    {
+      "id": "snap.sec_note",
+      "type": "SecData",
+      "member": "note",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Record UI officer note."
+    },
+    {
+      "id": "snap.trafficking_value",
+      "type": "SecData",
+      "member": "GetTotalTraffickingCrimes",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Trafficking+fencing value (DERIVABLE)."
+    },
+    {
+      "id": "hidden.crime_amount_total",
+      "type": "SecData",
+      "member": "crimeAmountTotal",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.Int32>",
+      "features": [
+        "record.snapshot.security"
+      ],
+      "required": false,
+      "why": "Per-crime totals that never decay (HIDDEN)."
+    },
+    {
+      "id": "snap.upgrades",
+      "type": "PlayerStore",
+      "member": "networkUpgrade",
+      "kind": "field",
+      "returns": "System.Collections.Generic.Dictionary<System.String,NetworkUpgrade>",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Wild Network upgrades (VISIBLE)."
+    },
+    {
+      "id": "snap.upgrade_id",
+      "type": "NetworkUpgrade",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Upgrade id."
+    },
+    {
+      "id": "snap.upgrade_state",
+      "type": "NetworkUpgrade",
+      "member": "state",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "0 not bought, 1 ready (consumable), 2 unlocked."
+    },
+    {
+      "id": "snap.upgrade_title",
+      "type": "NetworkUpgrade",
+      "member": "GetLocalizedTitle",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Display name."
+    },
+    {
+      "id": "snap.upgrade_cost",
+      "type": "NetworkUpgrade",
+      "member": "GetCost",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Cost with multipliers."
+    },
+    {
+      "id": "snap.upgrade_prereq",
+      "type": "NetworkUpgrade",
+      "member": "IsHavePrerequisite",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Available to buy."
+    },
+    {
+      "id": "snap.upgrade_hidden_for_run",
+      "type": "NetworkUpgrade",
+      "member": "IsHiddenForRun",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.upgrades",
+        "record.night.upgrade"
+      ],
+      "required": false,
+      "why": "Static. Skip hidden upgrades."
+    },
+    {
+      "id": "snap.upgrade_hidden",
+      "type": "NetworkUpgrade",
+      "member": "hidden",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.upgrades"
+      ],
+      "required": false,
+      "why": "Not shown in the Wild Network window."
+    },
+    {
+      "id": "snap.upgrade_unlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.upgrades"
+      ],
+      "required": false,
+      "why": "Owned."
+    },
+    {
+      "id": "snap.services",
+      "type": "PlayerStore",
+      "member": "storeService",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreService>",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Nightly services (VISIBLE in sleep tablet)."
+    },
+    {
+      "id": "snap.service_id",
+      "type": "StoreService",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Service id."
+    },
+    {
+      "id": "snap.service_cost",
+      "type": "StoreService",
+      "member": "cost",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Nightly cost."
+    },
+    {
+      "id": "snap.service_using",
+      "type": "StoreService",
+      "member": "isUsing",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Player selection."
+    },
+    {
+      "id": "snap.service_name",
+      "type": "StoreService",
+      "member": "displayName",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Display name."
+    },
+    {
+      "id": "snap.service_unlocked",
+      "type": "StoreService",
+      "member": "unlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Row shown."
+    },
+    {
+      "id": "snap.service_mandatory",
+      "type": "StoreService",
+      "member": "isMandatory",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "Not toggleable."
+    },
+    {
+      "id": "snap.service_cooldown",
+      "type": "StoreService",
+      "member": "currentCooldown",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.services",
+        "record.night.services"
+      ],
+      "required": false,
+      "why": "On cooldown, not toggleable."
+    },
+    {
+      "id": "snap.events_on_day",
+      "type": "StoreEventManager",
+      "member": "GetActiveEventOnDay",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Boolean",
+        "System.Boolean"
+      ],
+      "returns": "System.Collections.Generic.List<StoreEvent>",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Calendar contents incl. known future events (VISIBLE)."
+    },
+    {
+      "id": "snap.event_id",
+      "type": "StoreEvent",
+      "member": "identifier",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Event id."
+    },
+    {
+      "id": "snap.event_name",
+      "type": "StoreEvent",
+      "member": "GetDisplayName",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Event name."
+    },
+    {
+      "id": "snap.event_type",
+      "type": "StoreEvent",
+      "member": "eventType",
+      "kind": "field",
+      "returns": "StoreEvent+EventType",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "NORMALE/THREAT/COSMETIC/INNATE."
+    },
+    {
+      "id": "snap.event_start",
+      "type": "StoreEvent",
+      "member": "startDay",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Start day."
+    },
+    {
+      "id": "snap.event_duration",
+      "type": "StoreEvent",
+      "member": "totalDuration",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Duration."
+    },
+    {
+      "id": "snap.event_known",
+      "type": "StoreEvent",
+      "member": "IsKnown",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Future event visible on calendar."
+    },
+    {
+      "id": "snap.event_hidden_news",
+      "type": "StoreEvent",
+      "member": "isHiddenFromNewsPaper",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Excluded from newspaper."
+    },
+    {
+      "id": "snap.event_duration_visible",
+      "type": "StoreEvent",
+      "member": "isDurationVisible",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "The calendar shows the duration."
+    },
+    {
+      "id": "hidden.future_events",
+      "type": "StoreEventManager",
+      "member": "futurEvents",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreEvent>",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Unknown future events (HIDDEN)."
+    },
+    {
+      "id": "hidden.future_events_day",
+      "type": "StoreEventManager",
+      "member": "futurEventsDay",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.Int32>",
+      "features": [
+        "record.snapshot.market_events"
+      ],
+      "required": false,
+      "why": "Days until each future event."
+    },
+    {
+      "id": "snap.afterhour_locations",
+      "type": "AfterhourLocation",
+      "member": "GetDiscovered",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<AfterhourLocation>",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Static. Discovered night locations."
+    },
+    {
+      "id": "snap.afterhour_events",
+      "type": "AfterhourEvents",
+      "member": "GetActive",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Collections.Generic.List<AfterhourEventDefinition>",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Static. Active location modifiers."
+    },
+    {
+      "id": "snap.afterhour_days_left",
+      "type": "AfterhourEvents",
+      "member": "GetDaysLeft",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Static."
+    },
+    {
+      "id": "snap.location_id",
+      "type": "AfterhourLocation",
+      "member": "Id",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.afterhours",
+        "record.night.travel"
+      ],
+      "required": false,
+      "why": "Location id."
+    },
+    {
+      "id": "snap.location_title",
+      "type": "AfterhourLocation",
+      "member": "GetTitle",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Location name."
+    },
+    {
+      "id": "snap.location_available",
+      "type": "AfterhourLocation",
+      "member": "IsAvailable",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Open tonight."
+    },
+    {
+      "id": "snap.location_closed",
+      "type": "AfterhourLocation",
+      "member": "IsClosedByEvent",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Closed by an event."
+    },
+    {
+      "id": "snap.afterhour_event_id",
+      "type": "AfterhourEventDefinition",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Event id."
+    },
+    {
+      "id": "snap.afterhour_event_title",
+      "type": "AfterhourEventDefinition",
+      "member": "GetTitle",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Event name."
+    },
+    {
+      "id": "snap.afterhour_event_effects",
+      "type": "AfterhourEventDefinition",
+      "member": "GetEffectTexts",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "record.snapshot.afterhours"
+      ],
+      "required": false,
+      "why": "Effect lines."
+    },
+    {
+      "id": "snap.requests",
+      "type": "PlayerStore",
+      "member": "storeRequests",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreRequest>",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board (VISIBLE)."
+    },
+    {
+      "id": "snap.request_id",
+      "type": "StoreRequest",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_title",
+      "type": "StoreRequest",
+      "member": "title",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_requesterName",
+      "type": "StoreRequest",
+      "member": "requesterName",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_factionId",
+      "type": "StoreRequest",
+      "member": "factionId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_requiredItem",
+      "type": "StoreRequest",
+      "member": "requiredItem",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_requiredItemCount",
+      "type": "StoreRequest",
+      "member": "requiredItemCount",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_creditReward",
+      "type": "StoreRequest",
+      "member": "creditReward",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_reputationReward",
+      "type": "StoreRequest",
+      "member": "reputationReward",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.request_duration",
+      "type": "StoreRequest",
+      "member": "duration",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.requests",
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Request board row."
+    },
+    {
+      "id": "snap.night_logs",
+      "type": "PlayerStore",
+      "member": "nightLogs",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "record.snapshot.night_log"
+      ],
+      "required": false,
+      "why": "Morning report lines (VISIBLE)."
+    },
+    {
+      "id": "hidden.aug_presence",
+      "type": "PlayerStore",
+      "member": "augPresence",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.hidden"
+      ],
+      "required": false,
+      "why": "HIDDEN; aug game over at 100 on some difficulties."
+    },
+    {
+      "id": "hidden.countdown_active",
+      "type": "StoreClientManager",
+      "member": "IsInspectionCountdownActive",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot.hidden"
+      ],
+      "required": false,
+      "why": "Inspection countdown running (HIDDEN)."
+    },
+    {
+      "id": "hidden.health",
+      "type": "PlayerStore",
+      "member": "healthData",
+      "kind": "field",
+      "returns": "HealthData",
+      "features": [
+        "record.snapshot.hidden"
+      ],
+      "required": false,
+      "why": "Luck lives here."
+    },
+    {
+      "id": "hidden.luck",
+      "type": "HealthData",
+      "member": "luck",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.hidden"
+      ],
+      "required": false,
+      "why": "Voids inspection searches (HIDDEN)."
+    },
+    {
+      "id": "customer.service_cost",
+      "type": "StoreClient",
+      "member": "serviceCost",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Info dealer price."
+    },
+    {
+      "id": "customer.gun_order",
+      "type": "StoreClient",
+      "member": "gunOrderData",
+      "kind": "field",
+      "returns": "GunOrderData",
+      "features": [
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Gunsmith order."
+    },
+    {
+      "id": "customer.gun_reward",
+      "type": "GunOrderData",
+      "member": "GetTotalRewardDisplay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Visible reward text."
+    },
+    {
+      "id": "customer.lazy_inspector",
+      "type": "StoreClient",
+      "member": "isLazyInspector",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Personality 2 (visible by name)."
+    },
+    {
+      "id": "customer.inspector_arrived",
+      "type": "EmporiumAnalytics",
+      "member": "TrackInspectorArrived",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Postfix: inspector reached the accept/bribe choice."
+    },
+    {
+      "id": "customer.inspection_bribe",
+      "type": "EmporiumAnalytics",
+      "member": "TrackInspectionBribe",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Postfix: bribe paid."
+    },
+    {
+      "id": "customer.inspection_start",
+      "type": "ContrabandHelper",
+      "member": "StartInspection",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Prefix: snapshot exposed items and poster state."
+    },
+    {
+      "id": "customer.inspected",
+      "type": "EmporiumAnalytics",
+      "member": "TrackOnInspected",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Int32",
+        "System.Int32",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Postfix: outcome level, items and value lost, grace used."
+    },
+    {
+      "id": "customer.inspection_stats",
+      "type": "RunStats",
+      "member": "OnInspection",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Postfix: passed, seized value."
+    },
+    {
+      "id": "customer.bribe_amount",
+      "type": "ContrabandHelper",
+      "member": "GetBribeAmount",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.inspection"
+      ],
+      "required": false,
+      "why": "Static. Bribe offered (VISIBLE in choice text)."
+    },
+    {
+      "id": "record.poster_instance",
+      "type": "StorePoster",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "StorePoster",
+      "features": [
+        "record.inspection",
+        "record.human.poster"
+      ],
+      "required": false,
+      "why": "The hide-stash poster."
+    },
+    {
+      "id": "record.poster_pulled",
+      "type": "StorePoster",
+      "member": "isPulled",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.inspection",
+        "record.human.poster"
+      ],
+      "required": false,
+      "why": "Stash exposed (pulled up)."
+    },
+    {
+      "id": "overlay.builder_addwarning",
+      "type": "CustomUIBuilder",
+      "member": "AddWarning",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String"
+      ],
+      "returns": "CustomUIBuilder",
+      "features": [
+        "display.overlay"
+      ],
+      "required": false,
+      "why": "The overlay's NOT RECORDING line."
+    },
+    {
+      "id": "human.stage",
+      "type": "PlayerStore",
+      "member": "AddedItemToWeightedArea",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "Postfix: item placed on the back counter (filter game-driven moves)."
+    },
+    {
+      "id": "human.unstage",
+      "type": "PlayerStore",
+      "member": "RemovedItemToWeightedArea",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "Postfix: item left the back counter (filter game-driven moves)."
+    },
+    {
+      "id": "human.front_add",
+      "type": "PlayerStore",
+      "member": "AddedItemToClientArea",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "Postfix: front-counter add (mostly game-spawned)."
+    },
+    {
+      "id": "human.front_remove",
+      "type": "PlayerStore",
+      "member": "RemovedItemToClientArea",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter"
+      ],
+      "required": false,
+      "why": "Postfix: front-counter remove."
+    },
+    {
+      "id": "human.showcase_add",
+      "type": "PlayerStore",
+      "member": "AddedItemToDisplayCase",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Postfix: item placed in the display case."
+    },
+    {
+      "id": "human.showcase_remove",
+      "type": "PlayerStore",
+      "member": "RemovedItemToDisplayCase",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Postfix: item removed from the display case."
+    },
+    {
+      "id": "record.loading",
+      "type": "ModHook",
+      "member": "OnGameLoadedInit",
+      "kind": "event",
+      "returns": "System.Action",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "A save starts loading: item moves until OnGameLoadedLate are the loader's."
+    },
+    {
+      "id": "record.scope.dismiss",
+      "type": "PlayerStore",
+      "member": "DismissCurrentClient",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.remove_not_owned",
+      "type": "PlayerStore",
+      "member": "RemoveNotOwnedItemFromTable",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.buy_item",
+      "type": "PlayerStore",
+      "member": "BuyItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.sell_item",
+      "type": "PlayerStore",
+      "member": "SellItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.accept_barter",
+      "type": "PlayerStore",
+      "member": "AcceptBarter",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.add_weighted",
+      "type": "PlayerStore",
+      "member": "AddDirectToWeightedTable",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.move_deal",
+      "type": "PlayerStore",
+      "member": "MoveDealItemToInventory",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.add_selling",
+      "type": "PlayerStore",
+      "member": "TryAddDirectSellingItemToTable",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Boolean",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.add_middle",
+      "type": "PlayerStore",
+      "member": "AddDirectSellingItemToTableMiddle",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.end_night",
+      "type": "PlayerStore",
+      "member": "EndNight",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.begin_day",
+      "type": "PlayerStore",
+      "member": "BeginDay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.clear_back",
+      "type": "EmporiumEntry",
+      "member": "ClearBackInv",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "record.scope.place_inventor",
+      "type": "StoreClientList",
+      "member": "PlaceInventorInventory",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.counter",
+        "record.human.showcase"
+      ],
+      "required": false,
+      "why": "Prefix/postfix depth: item moves inside are the game's, not the player's."
+    },
+    {
+      "id": "human.client_click",
+      "type": "StoreClientMono",
+      "member": "OnClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.tablet"
+      ],
+      "required": false,
+      "why": "Postfix: player opened/closed the tablet by clicking the customer."
+    },
+    {
+      "id": "human.tablet_close",
+      "type": "NegociationUIManager",
+      "member": "CloseUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.tablet"
+      ],
+      "required": false,
+      "why": "Postfix."
+    },
+    {
+      "id": "human.feature_click",
+      "type": "ItemFeatureUI",
+      "member": "OnFeatureUIClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Prefix+postfix: tool used on a feature and result."
+    },
+    {
+      "id": "human.feature_ui_feature",
+      "type": "ItemFeatureUI",
+      "member": "itemFeature",
+      "kind": "field",
+      "returns": "ItemFeature",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Feature the player clicked."
+    },
+    {
+      "id": "human.feature_bad_match",
+      "type": "ItemFeatureUI",
+      "member": "OnExposeFeatureBadMatch",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Postfix: wrong tool."
+    },
+    {
+      "id": "human.notebook_expose",
+      "type": "NotebookElement",
+      "member": "ElementClicked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Prefix+postfix: exposure from a notebook clue."
+    },
+    {
+      "id": "human.tool_id",
+      "type": "NegociationElement",
+      "member": "GetNegociationToolID",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Selected tool id (abstract; read on the selected object)."
+    },
+    {
+      "id": "human.selected_objects",
+      "type": "RTSController",
+      "member": "previousSelectedObjects",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<UnityEngine.GameObject>",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Static. Current tool selection."
+    },
+    {
+      "id": "human.notebook_feature",
+      "type": "NotebookElement",
+      "member": "itemFeature",
+      "kind": "field",
+      "returns": "ItemFeature",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "The clue's feature."
+    },
+    {
+      "id": "human.is_tool",
+      "type": "NegociationElement",
+      "member": "IsNegociationTool",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "The selected element is a tool."
+    },
+    {
+      "id": "human.feature_id",
+      "type": "ItemFeature",
+      "member": "identifier",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Feature id."
+    },
+    {
+      "id": "human.feature_category",
+      "type": "ItemFeature",
+      "member": "category",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Feature category."
+    },
+    {
+      "id": "human.feature_item",
+      "type": "ItemFeature",
+      "member": "parentItemUniqueId",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "The item it belongs to."
+    },
+    {
+      "id": "human.feature_dialog",
+      "type": "ItemFeature",
+      "member": "GetExposeDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "record.human.expose"
+      ],
+      "required": false,
+      "why": "Exposing starts a dialogue instead."
+    },
+    {
+      "id": "human.inspect_item",
+      "type": "InspectionUIManager",
+      "member": "OnInspectItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Prefix: inspection kit used on a customer's item."
+    },
+    {
+      "id": "human.confront",
+      "type": "EmporiumAnalytics",
+      "member": "TrackConfront",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: confront/talk and outcome."
+    },
+    {
+      "id": "record.human.buy_all",
+      "type": "NegociationUIManager",
+      "member": "OnBuyAllClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Prefix: the player pressed the tablet button (not while BarterExecutor runs)."
+    },
+    {
+      "id": "record.human.sell_all",
+      "type": "NegociationUIManager",
+      "member": "OnSellAllClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Prefix: the player pressed the tablet button (not while BarterExecutor runs)."
+    },
+    {
+      "id": "record.human.wholesale",
+      "type": "NegociationUIManager",
+      "member": "OnWholesaleClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Prefix: the player pressed the tablet button (not while BarterExecutor runs)."
+    },
+    {
+      "id": "record.human.confirm_over_budget",
+      "type": "NegociationUIManager",
+      "member": "OnConfirmPanelYes",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.trade"
+      ],
+      "required": false,
+      "why": "Prefix: the player pressed the tablet button (not while BarterExecutor runs)."
+    },
+    {
+      "id": "human.accept_offer",
+      "type": "NegociationUIManager",
+      "member": "OnOfferAcceptClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.trade",
+        "record.customer"
+      ],
+      "required": false,
+      "why": "Prefix: barter/info dealer/gunsmith accept."
+    },
+    {
+      "id": "human.ring_bell",
+      "type": "StoreBell",
+      "member": "RingBell",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.bell"
+      ],
+      "required": false,
+      "why": "Prefix: call next (dismisses a dismissable current client)."
+    },
+    {
+      "id": "human.dialogue_choice",
+      "type": "DialogUIManager",
+      "member": "SelectChoice",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Prefix: every store dialogue decision (rent, buyout, mortgage, inspection, story, wanted)."
+    },
+    {
+      "id": "human.current_dialog",
+      "type": "DialogUIManager",
+      "member": "GetCurrentDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Read choices before SelectChoice."
+    },
+    {
+      "id": "human.dialog_choices",
+      "type": "Dialogue",
+      "member": "choices",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.ValueTuple<GameItem,Dialogue,System.Action>>",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Choice token (name=label), next dialogue (plainText=visible text), action."
+    },
+    {
+      "id": "human.dialog_text",
+      "type": "Dialogue",
+      "member": "plainText",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Visible choice text."
+    },
+    {
+      "id": "human.choice_enabled",
+      "type": "Dialogue",
+      "member": "IsChoiceEnabledAt",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Greyed-out choices."
+    },
+    {
+      "id": "customer.dialog_history",
+      "type": "PlayerStore",
+      "member": "dialogHistory",
+      "kind": "field",
+      "returns": "System.Collections.Generic.Queue<System.String>",
+      "features": [
+        "record.human.dialogue"
+      ],
+      "required": false,
+      "why": "Dialogue lines shown."
+    },
+    {
+      "id": "human.choice_label",
+      "type": "GameItem",
+      "member": "name",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "record.human.dialogue",
+        "record.human.phone"
+      ],
+      "required": false,
+      "why": "Choice token label (internal, often empty)."
+    },
+    {
+      "id": "night.phone_choice",
+      "type": "DialoguePhoneUIManager",
+      "member": "SelectChoice",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.phone"
+      ],
+      "required": false,
+      "why": "Prefix: phone dialogue choice (supplier orders)."
+    },
+    {
+      "id": "human.phone_dialog",
+      "type": "DialoguePhoneUIManager",
+      "member": "GetCurrentDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "record.human.phone"
+      ],
+      "required": false,
+      "why": "Read phone choices before SelectChoice."
+    },
+    {
+      "id": "night.queue_client",
+      "type": "PlayerStore",
+      "member": "QueueFuturClient",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.phone"
+      ],
+      "required": false,
+      "why": "Postfix: courier/visitor queued (supplier order)."
+    },
+    {
+      "id": "human.phone_instance",
+      "type": "DialoguePhoneUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "DialoguePhoneUIManager",
+      "features": [
+        "record.human.phone"
+      ],
+      "required": false,
+      "why": "Phone dialogue singleton."
+    },
+    {
+      "id": "human.report",
+      "type": "PlayerStore",
+      "member": "OnCustomerReported",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.report"
+      ],
+      "required": false,
+      "why": "Prefix: player reported the current customer."
+    },
+    {
+      "id": "human.report_outcome",
+      "type": "EmporiumAnalytics",
+      "member": "TrackCustomerReported",
+      "kind": "method",
+      "params": [
+        "StoreClient"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.report"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "human.wrongful_report",
+      "type": "RunStats",
+      "member": "OnWrongfulReport",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.report"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "customer.wanted_not_reported",
+      "type": "EmporiumAnalytics",
+      "member": "TrackWantedNotReported",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.report"
+      ],
+      "required": false,
+      "why": "Static. Postfix at night: a wanted visitor was let go."
+    },
+    {
+      "id": "human.shoot",
+      "type": "PlayerStore",
+      "member": "OnWantedClientShot",
+      "kind": "method",
+      "params": [
+        "StoreClient"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.shoot"
+      ],
+      "required": false,
+      "why": "Postfix."
+    },
+    {
+      "id": "human.aug_shot",
+      "type": "RunStats",
+      "member": "OnAugShot",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.human.shoot"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "human.appraisal_estimate",
+      "type": "AppraisalServiceHelper",
+      "member": "OnEstimate",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.appraisal"
+      ],
+      "required": false,
+      "why": "Static. Prefix: player's estimate for the appraisal-service client."
+    },
+    {
+      "id": "human.appraisal_sent",
+      "type": "EmporiumAnalytics",
+      "member": "TrackAppraisalSent",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.appraisal"
+      ],
+      "required": false,
+      "why": "Static. Postfix: third arg is the true value (hidden)."
+    },
+    {
+      "id": "night.poster_down",
+      "type": "StorePoster",
+      "member": "PullDown",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.poster"
+      ],
+      "required": false,
+      "why": "Postfix: stash exposed to inspections."
+    },
+    {
+      "id": "night.poster_up",
+      "type": "StorePoster",
+      "member": "PullUp",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.human.poster"
+      ],
+      "required": false,
+      "why": "Postfix: stash concealed."
+    },
+    {
+      "id": "night.sleep",
+      "type": "EndOfDayUIManager",
+      "member": "OnEndDayButtonClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.sleep"
+      ],
+      "required": false,
+      "why": "Prefix: player chose to sleep."
+    },
+    {
+      "id": "night.upgrade_cash",
+      "type": "RunStats",
+      "member": "OnWildUpgradeBought",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.upgrade",
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: cash part of an upgrade purchase (precedes the id)."
+    },
+    {
+      "id": "night.upgrade_bought",
+      "type": "EmporiumAnalytics",
+      "member": "TrackWildUpgradePurchased",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.upgrade",
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: upgrade id bought; called even with analytics disabled."
+    },
+    {
+      "id": "night.travel",
+      "type": "MapUIManager",
+      "member": "Travel",
+      "kind": "method",
+      "params": [
+        "AfterhourLocation"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.travel"
+      ],
+      "required": false,
+      "why": "Prefix: night outing chosen."
+    },
+    {
+      "id": "night.return",
+      "type": "MapUIManager",
+      "member": "Return",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.travel"
+      ],
+      "required": false,
+      "why": "Prefix: back to the store."
+    },
+    {
+      "id": "night.map_current",
+      "type": "MapUIManager",
+      "member": "Current",
+      "kind": "property",
+      "returns": "AfterhourLocation",
+      "features": [
+        "record.night.travel"
+      ],
+      "required": false,
+      "why": "Where the player is."
+    },
+    {
+      "id": "night.scavenge",
+      "type": "ScavHelper",
+      "member": "ScavengeDumpingGrounds",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. Prefix: scavenge attempt (odds via GetMinorWoundChance/GetMajorWoundChance)."
+    },
+    {
+      "id": "night.scav_left",
+      "type": "ScavHelper",
+      "member": "GetScavTimeLeft",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. VISIBLE attempts left."
+    },
+    {
+      "id": "night.scav_minor",
+      "type": "ScavHelper",
+      "member": "GetMinorWoundChance",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Single",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. VISIBLE odds."
+    },
+    {
+      "id": "night.scav_major",
+      "type": "ScavHelper",
+      "member": "GetMajorWoundChance",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Single",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. VISIBLE odds."
+    },
+    {
+      "id": "night.scavenge_attempt",
+      "type": "RunStats",
+      "member": "OnScavengeAttempt",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.scavenge_injury",
+      "type": "RunStats",
+      "member": "OnScavengeInjury",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. Postfix: major or minor wound."
+    },
+    {
+      "id": "night.scavenged",
+      "type": "RunStats",
+      "member": "OnScavengedItems",
+      "kind": "method",
+      "params": [
+        "System.Collections.Generic.List<GameItem>"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. Postfix: items found."
+    },
+    {
+      "id": "night.commissary_buy",
+      "type": "CommissaryData",
+      "member": "BuyItem",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.night.commissary"
+      ],
+      "required": false,
+      "why": "Prefix/postfix: token purchase (diff redeemedCredit)."
+    },
+    {
+      "id": "night.commissary_redeem",
+      "type": "CommissaryUIManager",
+      "member": "OnRedeemAllButtonClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.commissary"
+      ],
+      "required": false,
+      "why": "Prefix: stamps redeemed."
+    },
+    {
+      "id": "night.fill_request",
+      "type": "StoreRequest",
+      "member": "FillRequest",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.night.requests"
+      ],
+      "required": false,
+      "why": "Prefix: request fulfilled."
+    },
+    {
+      "id": "night.service_paid",
+      "type": "RunStats",
+      "member": "OnServicePaid",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: each service charged at sleep."
+    },
+    {
+      "id": "night.rent_paid",
+      "type": "RunStats",
+      "member": "OnRentPaid",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: rent amount and cash left."
+    },
+    {
+      "id": "night.rent_missed",
+      "type": "RunStats",
+      "member": "OnRentMissed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.store_bought",
+      "type": "RunStats",
+      "member": "OnStoreBoughtWithCash",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: buyout."
+    },
+    {
+      "id": "night.mortgage_taken",
+      "type": "RunStats",
+      "member": "OnMortgageTaken",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32",
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: price, down payment, weekly, weeks."
+    },
+    {
+      "id": "night.mortgage_payment",
+      "type": "RunStats",
+      "member": "OnMortgagePayment",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.mortgage_paid_off",
+      "type": "RunStats",
+      "member": "OnMortgagePaidOff",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.georgio_loan",
+      "type": "RunStats",
+      "member": "OnGeorgioLoan",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: player lent to Georgio."
+    },
+    {
+      "id": "night.georgio_payback",
+      "type": "RunStats",
+      "member": "OnGeorgioPayback",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.vending_sale",
+      "type": "RunStats",
+      "member": "OnVendingSale",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.fountain_sale",
+      "type": "RunStats",
+      "member": "OnFountainSale",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "night.burglary",
+      "type": "RunStats",
+      "member": "OnBurglary",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: theft overnight."
+    },
+    {
+      "id": "night.day_ended",
+      "type": "RunStats",
+      "member": "OnDayEnded",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix: day, net worth, cash."
+    },
+    {
+      "id": "customer.inspector_bribe_stats",
+      "type": "RunStats",
+      "member": "OnInspectorBribe",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Static. Postfix."
+    },
+    {
+      "id": "money.permit_bought",
+      "type": "RunStats",
+      "member": "OnPermitBought",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Postfix: business permit price."
+    },
+    {
+      "id": "money.permit_bribe",
+      "type": "RunStats",
+      "member": "OnPermitBribe",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Postfix: permit bribe."
+    },
+    {
+      "id": "money.item_sold",
+      "type": "RunStats",
+      "member": "OnItemSold",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32",
+        "System.Int32",
+        "StoreClient"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Postfix: every sale, covered customer or not."
+    },
+    {
+      "id": "money.item_bought",
+      "type": "RunStats",
+      "member": "OnItemBought",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32",
+        "StoreClient"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.money"
+      ],
+      "required": false,
+      "why": "Postfix: every purchase."
+    },
+    {
+      "id": "run.initial_save",
+      "type": "PlayerStore",
+      "member": "InitialSave",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Postfix: new run fully set up; runID assigned here."
+    },
+    {
+      "id": "run.id",
+      "type": "PlayerStore",
+      "member": "runID",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Run id."
+    },
+    {
+      "id": "run.number",
+      "type": "PlayerStore",
+      "member": "runNumber",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Run number."
+    },
+    {
+      "id": "run.start_type",
+      "type": "PlayerStore",
+      "member": "startType",
+      "kind": "field",
+      "returns": "NewGameData+StartType",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Start."
+    },
+    {
+      "id": "run.scenario",
+      "type": "PlayerStore",
+      "member": "startScenarioId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Scenario id."
+    },
+    {
+      "id": "run.difficulty",
+      "type": "PlayerStore",
+      "member": "difficultyId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "cozy/normal/hard/challenge or mod."
+    },
+    {
+      "id": "run.perks",
+      "type": "PlayerStore",
+      "member": "startingPerks",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StartingPerk>",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Starting perks."
+    },
+    {
+      "id": "run.perk_id",
+      "type": "StartingPerk",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Perk id."
+    },
+    {
+      "id": "run.endless",
+      "type": "PlayerStore",
+      "member": "endlessMode",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Endless flag."
+    },
+    {
+      "id": "run.skip_intro",
+      "type": "PlayerStore",
+      "member": "skipIntro",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Skip intro flag."
+    },
+    {
+      "id": "run.rules",
+      "type": "Difficulty",
+      "member": "Rules",
+      "kind": "property",
+      "returns": "DifficultyRules",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Static. Difficulty numbers (rent growth, property price, permit fee)."
+    },
+    {
+      "id": "run.property_base",
+      "type": "DifficultyRules",
+      "member": "propertyBasePrice",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Buyout base price."
+    },
+    {
+      "id": "run.game_over",
+      "type": "PlayerStore",
+      "member": "ExecuteGameOver",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Prefix: every ending, with its reason."
+    },
+    {
+      "id": "run.continue",
+      "type": "GameOverUIManager",
+      "member": "ContinuePlayClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Postfix: kept playing after a buyout."
+    },
+    {
+      "id": "run.perk_name",
+      "type": "StartingPerk",
+      "member": "GetLocalizedDisplayName",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Perk name."
+    },
+    {
+      "id": "run.rule_retailMarkup",
+      "type": "DifficultyRules",
+      "member": "retailMarkup",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_rentIncreaseMultiplier",
+      "type": "DifficultyRules",
+      "member": "rentIncreaseMultiplier",
+      "kind": "field",
+      "returns": "System.Single",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_vendorPermitFee",
+      "type": "DifficultyRules",
+      "member": "vendorPermitFee",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_mortgageWeeks",
+      "type": "DifficultyRules",
+      "member": "mortgageWeeks",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_mortgageInterestRate",
+      "type": "DifficultyRules",
+      "member": "mortgageInterestRate",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_mortgageDownPaymentShare",
+      "type": "DifficultyRules",
+      "member": "mortgageDownPaymentShare",
+      "kind": "field",
+      "returns": "System.Single",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_augGameOverAtFullPresence",
+      "type": "DifficultyRules",
+      "member": "augGameOverAtFullPresence",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_propertyPriceIncreasePerDay",
+      "type": "DifficultyRules",
+      "member": "propertyPriceIncreasePerDay",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_propertyPriceIncreaseCap",
+      "type": "DifficultyRules",
+      "member": "propertyPriceIncreaseCap",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "run.rule_upgradePriceMultiplier",
+      "type": "DifficultyRules",
+      "member": "upgradePriceMultiplier",
+      "kind": "field",
+      "returns": "System.Single",
+      "features": [
+        "record.run"
+      ],
+      "required": false,
+      "why": "Difficulty rule shown on the difficulty screen."
+    }
+  ]
+}

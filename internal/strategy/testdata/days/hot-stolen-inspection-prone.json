@@ -1,0 +1,303 @@
+{
+ "note": "Gold Chain heat 70 in the showcase and Holo Camera heat 40, evidence 72/100, projected prison, Security -25. Move the chain out of the showcase (back stock or hidden stash), hold both until they cool (day 64 and 63), sell nothing stolen, buy no stolen goods, and raise Security with clean trades.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 60,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 3100,
+    "day": 60,
+    "weekday": "Tuesday",
+    "net_worth": 5920,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 42,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 900,
+    "arrears": 0,
+    "days_left": 3,
+    "days_left_morning": 3,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12500,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 26.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": -25.0,
+     "status": "Disfavored",
+     "next_perk": {
+      "id": "Requisition",
+      "threshold": 0
+     },
+     "next_negative_perk": {
+      "id": "AlarmIgnored",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Watchlist"
+     ]
+    },
+    "black_market": {
+     "value": 44.0,
+     "status": "Dependable",
+     "next_perk": {
+      "id": "Network",
+      "threshold": 60
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker",
+      "Reliable"
+     ]
+    },
+    "revolution": {
+     "value": 6.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 601,
+     "id": "gold_chain",
+     "name": "Gold Chain",
+     "where": "showcase",
+     "estimated_value": 1400,
+     "bought_at": 820,
+     "features": [],
+     "stolen_heat": 70,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "luxury_item"
+     ]
+    },
+    {
+     "uid": 602,
+     "id": "holo_camera",
+     "name": "Holo Camera",
+     "where": "stock",
+     "estimated_value": 900,
+     "bought_at": 560,
+     "features": [
+      {
+       "text": "Scratched (-10%)",
+       "group": "condition"
+      }
+     ],
+     "stolen_heat": 40,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "module"
+     ]
+    },
+    {
+     "uid": 603,
+     "id": "vinyl_record",
+     "name": "Vinyl Record",
+     "where": "showcase",
+     "estimated_value": 180,
+     "bought_at": 100,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 604,
+     "id": "vinyl_record",
+     "name": "Vinyl Record",
+     "where": "stock",
+     "estimated_value": 200,
+     "bought_at": 110,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 605,
+     "id": "desk_fan",
+     "name": "Desk Fan",
+     "where": "stock",
+     "estimated_value": 140,
+     "bought_at": 70,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    }
+   ],
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "FENCING",
+      "amount": 820
+     },
+     {
+      "id": "BRIBERY",
+      "amount": 0
+     }
+    ],
+    "evidence": "72/100",
+    "evidence_level": 72,
+    "projected_sentence": "Prison",
+    "case_officer": "Officer Lee",
+    "recommended_action": "Assign a reliable inspector",
+    "operation": "investigation",
+    "note": "",
+    "trafficking_value": 820
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     },
+     {
+      "id": "POSTER_STASH",
+      "name": "Poster Stash"
+     }
+    ],
+    "available": [
+     {
+      "id": "SEC_GRACE",
+      "name": "Security Grace",
+      "cost": 1500
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "gold_rush",
+      "name": "Gold Rush",
+      "type": "NORMALE",
+      "start_day": 59,
+      "duration": 5,
+      "negotiation": [
+       {
+        "item_type": "luxury_item",
+        "value": 20
+       }
+      ]
+     }
+    ],
+    "calendar": [
+     {
+      "day": 63,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [],
+   "clientele": {
+    "normal_customers": 6,
+    "display_buyers": [
+     "household_good",
+     "luxury_item"
+    ],
+    "display_predictions": [
+     {
+      "client": "Collector",
+      "chance": 45,
+      "item": "gold_chain"
+     }
+    ]
+   }
+  },
+  "hidden": {
+   "days_to_inspection": 1,
+   "zz_hidden_sentinel": "zz_secret_inspection",
+   "items": [
+    {
+     "uid": 601,
+     "true_value": 7777772
+    }
+   ]
+  }
+ }
+}

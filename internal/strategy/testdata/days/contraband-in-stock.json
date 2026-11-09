@@ -1,0 +1,297 @@
+{
+ "note": "Two serious-contraband Stim Injectors and a Combat Knife (level 1, in the showcase); the night log warns of an inspection in 2 days. Serious contraband found means arrest: sell it or move it to the hidden stash before day 69, never to security or no-contraband customers, buy no more, and take the knife off the showcase.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 67,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 2600,
+    "day": 67,
+    "weekday": "Friday",
+    "net_worth": 4180,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 42,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 1000,
+    "arrears": 0,
+    "days_left": 3,
+    "days_left_morning": 3,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 12850,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 33.0,
+     "status": "Recognized",
+     "next_perk": {
+      "id": "RareGood",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral"
+     ]
+    },
+    "upper_levels": {
+     "value": 18.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste"
+     ]
+    },
+    "security": {
+     "value": 5.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Surplus",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition"
+     ]
+    },
+    "black_market": {
+     "value": 52.0,
+     "status": "Recommended",
+     "next_perk": {
+      "id": "Network",
+      "threshold": 60
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor",
+      "Broker",
+      "Reliable"
+     ]
+    },
+    "revolution": {
+     "value": 15.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 701,
+     "id": "stim_injector",
+     "name": "Stim Injector",
+     "where": "stock",
+     "estimated_value": 450,
+     "bought_at": 200,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 3,
+     "serious_contraband": true,
+     "types": [
+      "substance"
+     ]
+    },
+    {
+     "uid": 702,
+     "id": "stim_injector",
+     "name": "Stim Injector",
+     "where": "stock",
+     "estimated_value": 450,
+     "bought_at": 210,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 3,
+     "serious_contraband": true,
+     "types": [
+      "substance"
+     ]
+    },
+    {
+     "uid": 703,
+     "id": "combat_knife",
+     "name": "Combat Knife",
+     "where": "showcase",
+     "estimated_value": 240,
+     "bought_at": 130,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 1,
+     "serious_contraband": false,
+     "types": [
+      "weapon"
+     ]
+    },
+    {
+     "uid": 704,
+     "id": "headphones",
+     "name": "Headphones",
+     "where": "showcase",
+     "estimated_value": 320,
+     "bought_at": 180,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "module"
+     ]
+    },
+    {
+     "uid": 705,
+     "id": "board_game",
+     "name": "Board Game",
+     "where": "stock",
+     "estimated_value": 120,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    }
+   ],
+   "security": {
+    "visible": true,
+    "crimes": [
+     {
+      "id": "DRUG_TRAFFICKING",
+      "amount": 180
+     }
+    ],
+    "evidence": "38/100",
+    "evidence_level": 38,
+    "projected_sentence": "Fine",
+    "case_officer": "Officer Lee",
+    "recommended_action": "",
+    "operation": "investigation",
+    "note": "",
+    "trafficking_value": 180
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     },
+     {
+      "id": "POSTER_STASH",
+      "name": "Poster Stash"
+     }
+    ],
+    "available": []
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    },
+    {
+     "id": "SEC_INFORMANT",
+     "name": "Security Informant",
+     "cost": 60,
+     "unlocked": true,
+     "using": true,
+     "mandatory": false,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "clinic_closure",
+      "name": "Clinic Closure",
+      "type": "NORMALE",
+      "start_day": 66,
+      "duration": 3,
+      "negotiation": [
+       {
+        "item_type": "substance",
+        "value": 25
+       }
+      ]
+     }
+    ],
+    "calendar": [
+     {
+      "day": 70,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     },
+     {
+      "day": 72,
+      "events": [
+       {
+        "identifier": "street_sweep",
+        "name": "Street Sweep",
+        "type": "NORMALE",
+        "start_day": 72,
+        "duration": 3,
+        "negotiation": [
+         {
+          "item_type": "weapon",
+          "value": -20
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [
+    "<color=#f80>Your informant says an inspection is coming in <b>2 days</b>.</color>"
+   ],
+   "requests": []
+  },
+  "hidden": {
+   "days_to_inspection": 2,
+   "zz_hidden_sentinel": "zz_secret_contraband"
+  }
+ }
+}

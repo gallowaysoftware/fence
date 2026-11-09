@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/event.request.schema.json",
+  "title": "event",
+  "description": "POST /v1/event. Fire-and-forget; seq is per-session and monotonic.",
+  "type": "object",
+  "required": ["session_id", "seq", "kind", "game_day", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "seq": {"type": "integer", "minimum": 0},
+    "kind": {"type": "string", "minLength": 1},
+    "game_day": {"type": "integer", "minimum": 0},
+    "data": {"type": "object", "description": "Kind-specific; open. Player-visible values only."},
+    "hidden": {"type": "object", "description": "Values the player cannot see (docs/re/STATE.md). Logged for evaluation and training; never reaches a prompt, memory recall or reflection. Open."}
+  }
+}

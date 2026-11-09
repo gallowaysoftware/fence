@@ -1,0 +1,273 @@
+{
+ "note": "Cash 9400, buyout 13900 (4500 to go, risen since day 50), rent 800 in 3 days, almost no stock; an electronics +25% event starts day 90. Spend above a stated floor on stock (electronics now, to sell on day 90+), use generous buying to push Upper Levels 36.5 toward 40, and do not hoard cash.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 88,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 9400,
+    "day": 88,
+    "weekday": "Thursday",
+    "net_worth": 9455,
+    "wild_favor": 0,
+    "attractiveness": {
+     "total": 42,
+     "trash_penalty": 0,
+     "projector_bonus": 0
+    },
+    "queue_length": 0
+   },
+   "rent": {
+    "rent": 800,
+    "arrears": 0,
+    "days_left": 3,
+    "days_left_morning": 3,
+    "landlord_grace": true
+   },
+   "property": {
+    "owned": false,
+    "mortgage": null,
+    "buyout_price": 13900,
+    "buyout_affordable": false,
+    "mortgage_offer": null
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 47.0,
+     "status": "Dependable",
+     "next_perk": {
+      "id": "Tips",
+      "threshold": 60
+     },
+     "next_negative_perk": {
+      "id": "PoorReviews",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Referral",
+      "RareGood"
+     ]
+    },
+    "upper_levels": {
+     "value": 36.5,
+     "status": "Recognized",
+     "next_perk": {
+      "id": "Charity",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "TouristTrap",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "DiscerningTaste",
+      "Tips"
+     ]
+    },
+    "security": {
+     "value": 21.0,
+     "status": "Established",
+     "next_perk": {
+      "id": "Protection",
+      "threshold": 40
+     },
+     "next_negative_perk": {
+      "id": "Watchlist",
+      "threshold": -20
+     },
+     "unlocked_perks": [
+      "Requisition",
+      "Surplus"
+     ]
+    },
+    "black_market": {
+     "value": 12.0,
+     "status": "Known",
+     "next_perk": {
+      "id": "Broker",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Distrusted",
+      "threshold": -40
+     },
+     "unlocked_perks": [
+      "Honor"
+     ]
+    },
+    "revolution": {
+     "value": 9.0,
+     "status": "Neutral",
+     "next_perk": {
+      "id": "Request",
+      "threshold": 20
+     },
+     "next_negative_perk": {
+      "id": "Blacklisted",
+      "threshold": -40
+     },
+     "unlocked_perks": []
+    }
+   },
+   "inventory": [
+    {
+     "uid": 881,
+     "id": "paperback",
+     "name": "Paperback",
+     "where": "showcase",
+     "estimated_value": 30,
+     "bought_at": 15,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    },
+    {
+     "uid": 882,
+     "id": "mug_logo",
+     "name": "Logo Mug",
+     "where": "stock",
+     "estimated_value": 25,
+     "bought_at": 10,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false,
+     "types": [
+      "household_good"
+     ]
+    }
+   ],
+   "security": {
+    "visible": true,
+    "crimes": [],
+    "evidence": "not applicable",
+    "evidence_level": 0,
+    "projected_sentence": "None",
+    "case_officer": "Officer Lee",
+    "recommended_action": "",
+    "operation": "investigation",
+    "note": "",
+    "trafficking_value": 0
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     },
+     {
+      "id": "NEON_SIGN",
+      "name": "Neon Sign"
+     }
+    ],
+    "available": [
+     {
+      "id": "PROJECTOR",
+      "name": "Projector",
+      "cost": 2200
+     },
+     {
+      "id": "LANDLORD_GRACE",
+      "name": "Landlord Grace",
+      "cost": 900
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "POWER_SERVICE",
+     "name": "Power",
+     "cost": 40,
+     "unlocked": true,
+     "using": true,
+     "mandatory": true,
+     "cooldown": 0
+    },
+    {
+     "id": "SEC_INFORMANT",
+     "name": "Security Informant",
+     "cost": 60,
+     "unlocked": true,
+     "using": true,
+     "mandatory": false,
+     "cooldown": 0
+    },
+    {
+     "id": "BUY_REFERAL",
+     "name": "Buyer Referral",
+     "cost": 120,
+     "unlocked": true,
+     "using": false,
+     "mandatory": false,
+     "cooldown": 0
+    }
+   ],
+   "market_events": {
+    "active": [
+     {
+      "identifier": "art_fair",
+      "name": "Art Fair",
+      "type": "NORMALE",
+      "start_day": 86,
+      "duration": 4,
+      "negotiation": [
+       {
+        "item_type": "household_good",
+        "value": 20
+       }
+      ]
+     }
+    ],
+    "calendar": [
+     {
+      "day": 90,
+      "events": [
+       {
+        "identifier": "launch_week",
+        "name": "Launch Week",
+        "type": "NORMALE",
+        "start_day": 90,
+        "duration": 4,
+        "negotiation": [
+         {
+          "item_type": "module",
+          "value": 25
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "day": 91,
+      "events": [
+       {
+        "name": "Rent day",
+        "type": "INNATE"
+       }
+      ]
+     }
+    ]
+   },
+   "night_log": [],
+   "requests": [],
+   "clientele": {
+    "normal_customers": 6,
+    "display_buyers": [
+     "household_good"
+    ],
+    "display_predictions": []
+   }
+  },
+  "hidden": {
+   "days_to_inspection": 6,
+   "zz_hidden_sentinel": "zz_secret_flush"
+  }
+ }
+}

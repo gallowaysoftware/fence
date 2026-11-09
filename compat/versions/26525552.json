@@ -1,0 +1,1823 @@
+{
+  "steam_build_id": "26525552",
+  "steam_depots": [
+    {
+      "depot": "4348911",
+      "manifest": "7345874240764404166"
+    }
+  ],
+  "app_version": "0.46D",
+  "app_version_sources": {
+    "globalgamemanagers": "0.46D",
+    "mod-audit.log": "0.46D"
+  },
+  "build_label": "100-Rev13",
+  "unity": "2021.3.45f2",
+  "assembly_csharp": {
+    "name": "Assembly-CSharp",
+    "sha256": "725cb999d019dff1ff31bed353c7f9bb8d81a7605a15de1f80f5a3a6cf7b1d05",
+    "mvid": "911508a6-e0eb-4cc0-91e8-e14b16ea28d7"
+  },
+  "referenced_dlls": [
+    {
+      "name": "Assembly-CSharp",
+      "sha256": "725cb999d019dff1ff31bed353c7f9bb8d81a7605a15de1f80f5a3a6cf7b1d05",
+      "version": "0.0.0.0"
+    },
+    {
+      "name": "Newtonsoft.Json",
+      "sha256": "a56146202232958f46bd6a28b5a7da166aea123ee0d646735a46e5c341dfbf1f",
+      "version": "13.0.0.0"
+    },
+    {
+      "name": "UnityEngine",
+      "sha256": "6abba25864b843149b594c7831dbf5eb7afe87c55d5112a4739ca4da09b91280",
+      "version": "0.0.0.0"
+    },
+    {
+      "name": "UnityEngine.CoreModule",
+      "sha256": "e468e19789d608b41e2c7fe4f367c7082fece7d1883f568e75870f6c5384cc86",
+      "version": "0.0.0.0"
+    },
+    {
+      "name": "UnityEngine.UnityWebRequestModule",
+      "sha256": "50021c03482d97bc9779662de6bdde203995352b654cf0257eddc3c2a987e980",
+      "version": "0.0.0.0"
+    },
+    {
+      "name": "netstandard",
+      "sha256": "6ae62e082dc494a2433984177f60ca4db5fae69b1f360a8b33754172b310b8c5",
+      "version": "2.1.0.0"
+    },
+    {
+      "name": "mscorlib",
+      "sha256": "066a409f9228c9478d506d769978f0065fa42f9ccc97bfa266ee4451f4cbafad",
+      "version": "4.0.0.0"
+    },
+    {
+      "name": "0Harmony",
+      "sha256": "e97b8853db4842f1052b6e8f5ca1d34a24e121a77ea3b0adad8ce4c2621a71f8",
+      "version": "2.4.2.0"
+    },
+    {
+      "name": "DseCecil",
+      "sha256": "2a4f3872bbaf7d90cbf66010f0ed5cf2721749ad24c93be12f8ec40522203beb",
+      "version": "0.11.6.0"
+    }
+  ],
+  "scanner": {
+    "version": 4,
+    "refuse_unscannable": false,
+    "retiring": [
+      "reflection-external",
+      "native",
+      "dynamic-code",
+      "threads"
+    ]
+  },
+  "hooks_sha256": "556f6791230254b38feb0d7e50b02afba6062365ba95a335b99d1c176fc061dc",
+  "hooks_ok": true,
+  "required_ok": true,
+  "hooks": [
+    {
+      "id": "IMod.Init",
+      "status": "Ok"
+    },
+    {
+      "id": "IMod.OnEnable",
+      "status": "Ok"
+    },
+    {
+      "id": "IMod.OnDisable",
+      "status": "Ok"
+    },
+    {
+      "id": "ModManifest.ID",
+      "status": "Ok"
+    },
+    {
+      "id": "ModManifest.ModVersion",
+      "status": "Ok"
+    },
+    {
+      "id": "ModLog.ctor",
+      "status": "Ok"
+    },
+    {
+      "id": "ModLog.Log",
+      "status": "Ok"
+    },
+    {
+      "id": "ModLog.Warning",
+      "status": "Ok"
+    },
+    {
+      "id": "ModLog.Error",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.StartCoroutine",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.StopAllCoroutines",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.GetConfig",
+      "status": "Ok"
+    },
+    {
+      "id": "ModConfig.Define(bool)",
+      "status": "Ok"
+    },
+    {
+      "id": "ModConfig.Define(string)",
+      "status": "Ok"
+    },
+    {
+      "id": "ConfigEntry.Value",
+      "status": "Ok"
+    },
+    {
+      "id": "StoreStation.Instance",
+      "status": "Ok"
+    },
+    {
+      "id": "StoreStation.dayCounter",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnGameLoadedLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnShutterOpenedLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnShutterClosedLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnGoingSleepLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnWakingUpLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnLeavingStoreLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnReturningStoreLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnHandlingNightlyServicesLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnGenerateCustomerVeryLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnNewGameStarted",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnDifficultyApplied",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnNetworkUpgradeUnlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnAfterhourArriveLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnAfterhourLeaveLate",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnAfterhourEventStarted",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnAfterhourEventEnded",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHook.OnPaperOpened",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.session_start",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.outcome_bought",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.outcome_sold",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.outcome_left",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.dismiss",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_offer_discount",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_markup",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_offer_markup",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_demand_discount",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_blackmail",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_threaten",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.markup_applied",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.buying_discount_applied",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.blackmail_applied",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.threaten_applied",
+      "status": "Ok"
+    },
+    {
+      "id": "modreflect.get",
+      "status": "Ok"
+    },
+    {
+      "id": "state.store_state",
+      "status": "Ok"
+    },
+    {
+      "id": "display.tooltip",
+      "status": "Ok"
+    },
+    {
+      "id": "display.add_line",
+      "status": "Ok"
+    },
+    {
+      "id": "display.item_parent",
+      "status": "Ok"
+    },
+    {
+      "id": "state.back_counter",
+      "status": "Ok"
+    },
+    {
+      "id": "state.front_counter",
+      "status": "Ok"
+    },
+    {
+      "id": "state.player_store",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.nego_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "state.emporium",
+      "status": "Ok"
+    },
+    {
+      "id": "state.dialog_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "state.client_mono",
+      "status": "Ok"
+    },
+    {
+      "id": "state.store_ui",
+      "status": "Ok"
+    },
+    {
+      "id": "state.map_ui",
+      "status": "Ok"
+    },
+    {
+      "id": "state.current_client",
+      "status": "Ok"
+    },
+    {
+      "id": "state.client_blueprint",
+      "status": "Ok"
+    },
+    {
+      "id": "state.cash",
+      "status": "Ok"
+    },
+    {
+      "id": "state.retail_markup",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rent_value",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rent_days",
+      "status": "Ok"
+    },
+    {
+      "id": "state.reputations",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rep_faction",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rep_exact",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rep_int",
+      "status": "Ok"
+    },
+    {
+      "id": "state.rep_status",
+      "status": "Ok"
+    },
+    {
+      "id": "state.event_manager",
+      "status": "Ok"
+    },
+    {
+      "id": "state.active_events",
+      "status": "Ok"
+    },
+    {
+      "id": "state.event_data",
+      "status": "Ok"
+    },
+    {
+      "id": "state.event_type",
+      "status": "Ok"
+    },
+    {
+      "id": "state.event_value",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.client_manager",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.days_to_inspection",
+      "status": "Ok"
+    },
+    {
+      "id": "state.type_list",
+      "status": "Ok"
+    },
+    {
+      "id": "client.intent",
+      "status": "Ok"
+    },
+    {
+      "id": "client.displayName",
+      "status": "Ok"
+    },
+    {
+      "id": "client.identifier",
+      "status": "Ok"
+    },
+    {
+      "id": "client.clientFaction",
+      "status": "Ok"
+    },
+    {
+      "id": "client.useClientBudget",
+      "status": "Ok"
+    },
+    {
+      "id": "client.noAcceptingContraband",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isRequireVariety",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isSecurity",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isWanted",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isStealthWanted",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isAug",
+      "status": "Ok"
+    },
+    {
+      "id": "client.attractedItemId",
+      "status": "Ok"
+    },
+    {
+      "id": "client.attractedType",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isOfferWholesale",
+      "status": "Ok"
+    },
+    {
+      "id": "client.wholesaleDiscount",
+      "status": "Ok"
+    },
+    {
+      "id": "client.dismissable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isBargainAvailable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isMainDialogueStarted",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isBusinessComplete",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isRegularSellDisable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.isMultiBuyDisabled",
+      "status": "Ok"
+    },
+    {
+      "id": "client.clientBuyingTagList",
+      "status": "Ok"
+    },
+    {
+      "id": "client.clientBlackTagList",
+      "status": "Ok"
+    },
+    {
+      "id": "client.budget",
+      "status": "Ok"
+    },
+    {
+      "id": "client.wants_item",
+      "status": "Ok"
+    },
+    {
+      "id": "state.wholesale_price",
+      "status": "Ok"
+    },
+    {
+      "id": "state.negotiated_item",
+      "status": "Ok"
+    },
+    {
+      "id": "state.back_items",
+      "status": "Ok"
+    },
+    {
+      "id": "state.non_owned_items",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_owned",
+      "status": "Ok"
+    },
+    {
+      "id": "item.identifier",
+      "status": "Ok"
+    },
+    {
+      "id": "item.unique_id",
+      "status": "Ok"
+    },
+    {
+      "id": "item.display_name",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_price",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_est_value",
+      "status": "Ok"
+    },
+    {
+      "id": "item.tag",
+      "status": "Ok"
+    },
+    {
+      "id": "item.tag_int",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_features",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_stolen",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_contraband",
+      "status": "Ok"
+    },
+    {
+      "id": "state.item_contraband_level",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.appraisal_value",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_exposed",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_disabled",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_shown",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_public_hidden",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_stage",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_mod",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.feature_actual_mod",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.feature_real",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_public",
+      "status": "Ok"
+    },
+    {
+      "id": "state.feature_exposed_text",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_DiscountOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_MarkupOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_BuyingMarkupOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_BuyingDiscountOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_BlackmailOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.flag_ThreatenOffered",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_success_chance",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.bargain_leave_chance",
+      "status": "Ok"
+    },
+    {
+      "id": "state.client_arrived",
+      "status": "Ok"
+    },
+    {
+      "id": "state.dialog_current",
+      "status": "Ok"
+    },
+    {
+      "id": "state.client_moving",
+      "status": "Ok"
+    },
+    {
+      "id": "state.about_to_dialog",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.trade_locked",
+      "status": "Ok"
+    },
+    {
+      "id": "state.bargain_introduced",
+      "status": "Ok"
+    },
+    {
+      "id": "state.aug_introduced",
+      "status": "Ok"
+    },
+    {
+      "id": "state.outside",
+      "status": "Ok"
+    },
+    {
+      "id": "state.awful_negotiator",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.lock_bell",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.buy_all",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.sell_all",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.wholesale",
+      "status": "Ok"
+    },
+    {
+      "id": "barter.confirm_over_budget",
+      "status": "Ok"
+    },
+    {
+      "id": "act.client_has_budget",
+      "status": "Ok"
+    },
+    {
+      "id": "act.bargain_refresh_ui",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.manager",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.has_layer",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.window",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_setsize",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_setposition",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_setdraggable",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_addlabel",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_addheader",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_addbutton",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_beginrow",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_beginscroll",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_end",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_show",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.window_alive",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.window_get",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.window_size",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.window_close",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.element_settext",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.element_setvisible",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.element_setinteractable",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.waking_up_early",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.going_sleep_early",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.wild_favor",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.net_worth",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.attractiveness",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.trash_penalty",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.projector_bonus",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.business_permit",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.commissary_data",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.commissary_tokens",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.queue_length",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.stamp_introduced",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.newspaper_unlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.rent_value",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.rent_arrears",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.rent_days",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.landlord_grace",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.property_paid",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.paying_mortgage",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_weekly",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_weeks_left",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.buyout_price",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.can_buyout",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_down",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_preview",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_weeks",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.mortgage_offerable",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.rep_perks",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.perk_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.perk_threshold",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.perk_unlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.owned_items",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.stock",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.showcase",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.hidden_stash",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.trash",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.vending",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.fountain",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.item_parent",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.back_counter2",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.docs",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_inv",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.parent_item",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.smuggler_bay",
+      "status": "Ok"
+    },
+    {
+      "id": "stage.accepts_markup",
+      "status": "Ok"
+    },
+    {
+      "id": "stage.item_is_tag",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.display_types",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.discerning_chance",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.discerning_cooldown",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.normal_customers",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.display_prediction",
+      "status": "Ok"
+    },
+    {
+      "id": "record.prediction_capture",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.supplier_picks",
+      "status": "Ok"
+    },
+    {
+      "id": "modreflect.get_static",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.client_display_name",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.sec_data",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.crime_types",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.crime_amounts",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.evidence_level",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.evidence_display",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.projected_sentence",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.case_officer",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.crime_total",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.sec_action",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.sec_operation",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.sec_note",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.trafficking_value",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.crime_amount_total",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrades",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_state",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_title",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_cost",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_prereq",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_hidden_for_run",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_hidden",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_unlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.services",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_cost",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_using",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_name",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_unlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_mandatory",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.service_cooldown",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.events_on_day",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_name",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_type",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_start",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_duration",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_known",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_hidden_news",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.event_duration_visible",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.future_events",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.future_events_day",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_locations",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_events",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_days_left",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.location_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.location_title",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.location_available",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.location_closed",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_event_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_event_title",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.afterhour_event_effects",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.requests",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_id",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_title",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_requesterName",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_factionId",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_requiredItem",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_requiredItemCount",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_creditReward",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_reputationReward",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.request_duration",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.night_logs",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.aug_presence",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.countdown_active",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.health",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.luck",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.service_cost",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.gun_order",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.gun_reward",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.lazy_inspector",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspector_arrived",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspection_bribe",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspection_start",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspected",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspection_stats",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.bribe_amount",
+      "status": "Ok"
+    },
+    {
+      "id": "record.poster_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "record.poster_pulled",
+      "status": "Ok"
+    },
+    {
+      "id": "overlay.builder_addwarning",
+      "status": "Ok"
+    },
+    {
+      "id": "human.stage",
+      "status": "Ok"
+    },
+    {
+      "id": "human.unstage",
+      "status": "Ok"
+    },
+    {
+      "id": "human.front_add",
+      "status": "Ok"
+    },
+    {
+      "id": "human.front_remove",
+      "status": "Ok"
+    },
+    {
+      "id": "human.showcase_add",
+      "status": "Ok"
+    },
+    {
+      "id": "human.showcase_remove",
+      "status": "Ok"
+    },
+    {
+      "id": "record.loading",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.dismiss",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.remove_not_owned",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.buy_item",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.sell_item",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.accept_barter",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.add_weighted",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.move_deal",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.add_selling",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.add_middle",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.end_night",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.begin_day",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.clear_back",
+      "status": "Ok"
+    },
+    {
+      "id": "record.scope.place_inventor",
+      "status": "Ok"
+    },
+    {
+      "id": "human.client_click",
+      "status": "Ok"
+    },
+    {
+      "id": "human.tablet_close",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_click",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_ui_feature",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_bad_match",
+      "status": "Ok"
+    },
+    {
+      "id": "human.notebook_expose",
+      "status": "Ok"
+    },
+    {
+      "id": "human.tool_id",
+      "status": "Ok"
+    },
+    {
+      "id": "human.selected_objects",
+      "status": "Ok"
+    },
+    {
+      "id": "human.notebook_feature",
+      "status": "Ok"
+    },
+    {
+      "id": "human.is_tool",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_id",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_category",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_item",
+      "status": "Ok"
+    },
+    {
+      "id": "human.feature_dialog",
+      "status": "Ok"
+    },
+    {
+      "id": "human.inspect_item",
+      "status": "Ok"
+    },
+    {
+      "id": "human.confront",
+      "status": "Ok"
+    },
+    {
+      "id": "record.human.buy_all",
+      "status": "Ok"
+    },
+    {
+      "id": "record.human.sell_all",
+      "status": "Ok"
+    },
+    {
+      "id": "record.human.wholesale",
+      "status": "Ok"
+    },
+    {
+      "id": "record.human.confirm_over_budget",
+      "status": "Ok"
+    },
+    {
+      "id": "human.accept_offer",
+      "status": "Ok"
+    },
+    {
+      "id": "human.ring_bell",
+      "status": "Ok"
+    },
+    {
+      "id": "human.dialogue_choice",
+      "status": "Ok"
+    },
+    {
+      "id": "human.current_dialog",
+      "status": "Ok"
+    },
+    {
+      "id": "human.dialog_choices",
+      "status": "Ok"
+    },
+    {
+      "id": "human.dialog_text",
+      "status": "Ok"
+    },
+    {
+      "id": "human.choice_enabled",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.dialog_history",
+      "status": "Ok"
+    },
+    {
+      "id": "human.choice_label",
+      "status": "Ok"
+    },
+    {
+      "id": "night.phone_choice",
+      "status": "Ok"
+    },
+    {
+      "id": "human.phone_dialog",
+      "status": "Ok"
+    },
+    {
+      "id": "night.queue_client",
+      "status": "Ok"
+    },
+    {
+      "id": "human.phone_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "human.report",
+      "status": "Ok"
+    },
+    {
+      "id": "human.report_outcome",
+      "status": "Ok"
+    },
+    {
+      "id": "human.wrongful_report",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.wanted_not_reported",
+      "status": "Ok"
+    },
+    {
+      "id": "human.shoot",
+      "status": "Ok"
+    },
+    {
+      "id": "human.aug_shot",
+      "status": "Ok"
+    },
+    {
+      "id": "human.appraisal_estimate",
+      "status": "Ok"
+    },
+    {
+      "id": "human.appraisal_sent",
+      "status": "Ok"
+    },
+    {
+      "id": "night.poster_down",
+      "status": "Ok"
+    },
+    {
+      "id": "night.poster_up",
+      "status": "Ok"
+    },
+    {
+      "id": "night.sleep",
+      "status": "Ok"
+    },
+    {
+      "id": "night.upgrade_cash",
+      "status": "Ok"
+    },
+    {
+      "id": "night.upgrade_bought",
+      "status": "Ok"
+    },
+    {
+      "id": "night.travel",
+      "status": "Ok"
+    },
+    {
+      "id": "night.return",
+      "status": "Ok"
+    },
+    {
+      "id": "night.map_current",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scavenge",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scav_left",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scav_minor",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scav_major",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scavenge_attempt",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scavenge_injury",
+      "status": "Ok"
+    },
+    {
+      "id": "night.scavenged",
+      "status": "Ok"
+    },
+    {
+      "id": "night.commissary_buy",
+      "status": "Ok"
+    },
+    {
+      "id": "night.commissary_redeem",
+      "status": "Ok"
+    },
+    {
+      "id": "night.fill_request",
+      "status": "Ok"
+    },
+    {
+      "id": "night.service_paid",
+      "status": "Ok"
+    },
+    {
+      "id": "night.rent_paid",
+      "status": "Ok"
+    },
+    {
+      "id": "night.rent_missed",
+      "status": "Ok"
+    },
+    {
+      "id": "night.store_bought",
+      "status": "Ok"
+    },
+    {
+      "id": "night.mortgage_taken",
+      "status": "Ok"
+    },
+    {
+      "id": "night.mortgage_payment",
+      "status": "Ok"
+    },
+    {
+      "id": "night.mortgage_paid_off",
+      "status": "Ok"
+    },
+    {
+      "id": "night.georgio_loan",
+      "status": "Ok"
+    },
+    {
+      "id": "night.georgio_payback",
+      "status": "Ok"
+    },
+    {
+      "id": "night.vending_sale",
+      "status": "Ok"
+    },
+    {
+      "id": "night.fountain_sale",
+      "status": "Ok"
+    },
+    {
+      "id": "night.burglary",
+      "status": "Ok"
+    },
+    {
+      "id": "night.day_ended",
+      "status": "Ok"
+    },
+    {
+      "id": "customer.inspector_bribe_stats",
+      "status": "Ok"
+    },
+    {
+      "id": "money.permit_bought",
+      "status": "Ok"
+    },
+    {
+      "id": "money.permit_bribe",
+      "status": "Ok"
+    },
+    {
+      "id": "money.item_sold",
+      "status": "Ok"
+    },
+    {
+      "id": "money.item_bought",
+      "status": "Ok"
+    },
+    {
+      "id": "run.initial_save",
+      "status": "Ok"
+    },
+    {
+      "id": "run.id",
+      "status": "Ok"
+    },
+    {
+      "id": "run.number",
+      "status": "Ok"
+    },
+    {
+      "id": "run.start_type",
+      "status": "Ok"
+    },
+    {
+      "id": "run.scenario",
+      "status": "Ok"
+    },
+    {
+      "id": "run.difficulty",
+      "status": "Ok"
+    },
+    {
+      "id": "run.perks",
+      "status": "Ok"
+    },
+    {
+      "id": "run.perk_id",
+      "status": "Ok"
+    },
+    {
+      "id": "run.endless",
+      "status": "Ok"
+    },
+    {
+      "id": "run.skip_intro",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rules",
+      "status": "Ok"
+    },
+    {
+      "id": "run.property_base",
+      "status": "Ok"
+    },
+    {
+      "id": "run.game_over",
+      "status": "Ok"
+    },
+    {
+      "id": "run.continue",
+      "status": "Ok"
+    },
+    {
+      "id": "run.perk_name",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_retailMarkup",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_rentIncreaseMultiplier",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_vendorPermitFee",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_mortgageWeeks",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_mortgageInterestRate",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_mortgageDownPaymentShare",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_augGameOverAtFullPresence",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_propertyPriceIncreasePerDay",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_propertyPriceIncreaseCap",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_upgradePriceMultiplier",
+      "status": "Ok"
+    }
+  ]
+}

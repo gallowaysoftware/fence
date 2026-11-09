@@ -1,0 +1,166 @@
+{
+  "note": "A good wholesale lot (1400 for 2600 estimated), but it would leave 100 cash with 600 rent due tomorrow.",
+  "expect": [
+    "dismiss",
+    "defer"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "wholesale-low-cash",
+    "kind": "barter",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:wholesale-low-cash",
+    "context": {
+      "store": {
+        "cash": 1500,
+        "day": 40,
+        "retail_markup": 15,
+        "rent_due": 600,
+        "rent_days_left": 1
+      },
+      "reputation": {
+        "lower_levels": {
+          "value": 10.0,
+          "status": "Known"
+        },
+        "upper_levels": {
+          "value": 0.0,
+          "status": "Neutral"
+        },
+        "security": {
+          "value": 5.0,
+          "status": "Neutral"
+        },
+        "black_market": {
+          "value": 15.0,
+          "status": "Known"
+        },
+        "revolution": {
+          "value": 0.0,
+          "status": "Neutral"
+        }
+      },
+      "client": {
+        "name": "Scrap supplier",
+        "faction": "black_market",
+        "intent": "sell",
+        "budget": null,
+        "interests": [],
+        "restrictions": [],
+        "no_contraband": false,
+        "requires_variety": false,
+        "is_security": false,
+        "on_wanted_poster": false,
+        "wholesale": {
+          "price": 1400,
+          "discount_pct": 30
+        }
+      },
+      "counter": {
+        "theirs": [
+          {
+            "uid": 600,
+            "id": "scrap0",
+            "name": "Circuit board",
+            "price": 350,
+            "estimated_value": 430,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          },
+          {
+            "uid": 601,
+            "id": "scrap1",
+            "name": "Copper coil",
+            "price": 300,
+            "estimated_value": 410,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          },
+          {
+            "uid": 602,
+            "id": "scrap2",
+            "name": "Battery pack",
+            "price": 380,
+            "estimated_value": 450,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          },
+          {
+            "uid": 603,
+            "id": "scrap3",
+            "name": "Servo",
+            "price": 320,
+            "estimated_value": 420,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          },
+          {
+            "uid": 604,
+            "id": "scrap4",
+            "name": "Lens",
+            "price": 330,
+            "estimated_value": 440,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          },
+          {
+            "uid": 605,
+            "id": "scrap5",
+            "name": "Fan",
+            "price": 320,
+            "estimated_value": 450,
+            "features": [],
+            "stolen_heat": null,
+            "contraband_level": 0,
+            "serious_contraband": false
+          }
+        ],
+        "yours_staged": []
+      },
+      "bargain": {
+        "sell_side_used": false,
+        "buy_side_used": false,
+        "blackmail_used": false,
+        "threaten_used": false
+      },
+      "market_events": []
+    },
+    "options": [
+      {
+        "id": "accept_wholesale",
+        "label": "Accept wholesale: all 6 items for 1400"
+      },
+      {
+        "id": "offer_markup_10",
+        "label": "Offer 10% markup (always accepted)"
+      },
+      {
+        "id": "demand_discount_10",
+        "label": "Demand discount 10% (accept 82%, else stay 90%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_25",
+        "label": "Demand discount 25% (accept 52%, else stay 72%, else walk out -3 rep)"
+      },
+      {
+        "id": "demand_discount_50",
+        "label": "Demand discount 50% (accept 2%, else stay 42%, else walk out -3 rep)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send the customer away"
+      }
+    ]
+  }
+}

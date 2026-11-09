@@ -1,0 +1,2 @@
+{"session_id": "s-0001", "seq": 5, "kind": "human_action", "game_day": 69,
+ "data": {"client_seq": 41, "action": "stage", "item_uid": 2231, "decision_id": "d-0001", "advised": "sell_all"}}
