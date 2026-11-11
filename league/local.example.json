@@ -5,7 +5,7 @@
   "endpoints": {
     "drift": {
       "base_url": "http://192.0.2.10:9002/v1",
-      "model": "qwen38fn-mlx",
+      "model": "qwen38-27b-mlx",
       "no_schema": true,
       "thinking": "off",
       "temperature": "0.2",

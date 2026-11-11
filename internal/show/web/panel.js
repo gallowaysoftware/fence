@@ -351,6 +351,7 @@
     renderGhost(s.ghost && s.ghost.ghost, false);
     renderSpark(s.net_worth);
     renderBoard(s.board);
+    if (window.renderAudience) window.renderAudience(s.audience && s.audience.audience);
     ticker = []; moments = [];
     $("ticker-list").innerHTML = ""; $("moment-list").innerHTML = "";
     for (const e of s.ticker || []) pushTicker(e);
@@ -374,6 +375,7 @@
       case "heat": renderHeat(ev.heat); if (ev.level >= 1) pushMoment(ev); return;
       case "ghost": renderGhost(ev.ghost, ev.level >= 2); if (ev.level >= 2) pushMoment(ev); return;
       case "say": say(ev); return;
+      case "audience": if (window.renderAudience) window.renderAudience(ev.audience); return;
       case "day": refreshBoard(); pushMoment(ev); return;
       case "run_end": $("live-dot").classList.remove("on"); refreshBoard(); pushMoment(ev); return;
     }

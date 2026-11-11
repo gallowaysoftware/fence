@@ -44,6 +44,9 @@ type PlanInput struct {
 	Yesterday *DayPlan
 	// Lessons is memory's brief of earlier play, if any.
 	Lessons string
+	// Audience is the stream's chat vote for this plan (internal/twitch), "" for none. It goes
+	// last, where the model cannot miss that it owes an answer.
+	Audience string
 	// Persona is the shop's play style (docs/personas), "" for none.
 	Persona string
 	// Augs is the aug presence rebuilt from the run's history, nil when unknown.
@@ -159,6 +162,9 @@ func BuildPlanPrompt(in PlanInput) (string, error) {
 	renderRoute(&b, in.Route)
 	renderStyle(&b, in.style())
 	s.renderBuyOrder(&b, in.style())
+	if a := strings.TrimSpace(in.Audience); a != "" {
+		fmt.Fprintf(&b, "\n%s\n", a)
+	}
 	fmt.Fprintf(&b, "\nWrite the plan for day %d.", day)
 	return b.String(), nil
 }

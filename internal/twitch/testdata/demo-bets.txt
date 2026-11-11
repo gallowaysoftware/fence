@@ -1,0 +1,8 @@
+# Synthetic bets for a replay of the dress rehearsal (seed 2950001), which predates bets. Each is
+# staked on its day's morning plan and settled by the feed's own clock (ParseSynthetic). Day 38's
+# is replaced on day 40, so its prediction is refunded.
+# day  kind       target  by  claim
+30     cash       3000    33  Cash past 3,000 by day 33, rent and all
+33     net_worth  7500    36  Net worth past 7,500 by day 36
+38     cash       6000    44  Cash past 6,000 by day 44
+40     net_worth  6000    41  Net worth past 6,000 by day 41

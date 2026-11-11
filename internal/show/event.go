@@ -33,6 +33,8 @@ const (
 	KindAutopilot Kind = "autopilot"
 	// KindGhost is the morning's standing against the route's lab book (ghost.go).
 	KindGhost Kind = "ghost"
+	// KindAudience is the Twitch audience's prediction and chat vote (audience.go, internal/twitch).
+	KindAudience Kind = "audience"
 )
 
 // Levels say how loud a moment is: the ticker shows everything, the panel highlights
@@ -66,6 +68,7 @@ type Event struct {
 	Summary    *DaySummary `json:"summary,omitempty"`
 	End        *End        `json:"end,omitempty"`
 	Say        *Say        `json:"say,omitempty"`
+	Audience   *Audience   `json:"audience,omitempty"`
 	// Amount is the signed cash change of a money or purchase event.
 	Amount int64 `json:"amount,omitempty"`
 	// HiddenUsed names the hidden values an autopilot rule read (never the values): the panel marks the

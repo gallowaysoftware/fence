@@ -36,7 +36,9 @@ type Options struct {
 	// LLM writes plans and scorecards; nil records only (scorecards carry facts alone).
 	LLM    llm.Client
 	Recall Recall
-	Logger *slog.Logger
+	// Audience is the stream audience's word for day n's plan (PlanInput.Audience); nil for none.
+	Audience func(day int) string
+	Logger   *slog.Logger
 	// Timeout bounds each plan or scorecard, its repair round included.
 	Timeout       time.Duration
 	RecallTimeout time.Duration
@@ -478,6 +480,9 @@ func (s *Strategist) planDay(ctx context.Context, session string, r *run, n, gen
 	s.mu.Unlock()
 
 	in.Lessons = s.lessons(ctx, session, n)
+	if s.opt.Audience != nil {
+		in.Audience = s.opt.Audience(n)
+	}
 	start := time.Now()
 	draft, err := DraftPlanConversation(ctx, s.opt.LLM, in, s.opt.MaxTokens)
 	if err != nil {

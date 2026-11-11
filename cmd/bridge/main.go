@@ -59,6 +59,8 @@ type config struct {
 	route string
 	// format is a stream format (internal/format) by name: handicaps over the route.
 	format string
+	// chatTally is fencetwitch's chat vote file: its fact goes to the morning plan it is for.
+	chatTally string
 
 	planner     string
 	plannerWait time.Duration
@@ -99,6 +101,7 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.persona, "persona", env("FENCE_PERSONA", ""), "play style for the morning plans: an id in "+strategy.DefaultPersonaDir+" or a file path (env FENCE_PERSONA)")
 	fs.StringVar(&c.planner, "planner", env("FENCE_PLANNER", ""), "llm: the model writes the morning plans under any -policy, so -policy heuristic follows LLM plans; empty: plans only with -policy llm (env FENCE_PLANNER)")
 	fs.DurationVar(&c.plannerWait, "planner-wait", 0, "hold a day's first decision up to this long for that day's plan; for the gym, which outruns the model")
+	fs.StringVar(&c.chatTally, "chat-tally", env("FENCE_CHAT_TALLY", ""), "fencetwitch's chat vote (-tally): the morning plan it is for reads its tally as one fact; empty: none (env FENCE_CHAT_TALLY)")
 	if err := fs.Parse(args); err != nil {
 		return c, err
 	}
@@ -309,6 +312,9 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		so := strategy.Options{LLM: watch, Logger: log, MaxTokens: c.maxTokens, Persona: persona, DeltaDirectives: c.directives == "delta", BaseDirectives: base, Route: routeText, Exemplars: exemplars}
 		if mem != nil {
 			so.Recall = mem
+		}
+		if c.chatTally != "" {
+			so.Audience = (&chatAudience{path: c.chatTally, log: log}).For
 		}
 		strat := strategy.New(so)
 		defer strat.Close()

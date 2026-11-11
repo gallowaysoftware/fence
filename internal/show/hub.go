@@ -26,6 +26,7 @@ type State struct {
 	Summary    *Event     `json:"summary,omitempty"`
 	End        *Event     `json:"end,omitempty"`
 	Say        *Event     `json:"say,omitempty"`
+	Audience   *Event     `json:"audience,omitempty"`
 	Ticker     []Event    `json:"ticker"`
 	Moments    []Event    `json:"moments"`
 	NetWorth   [][2]int64 `json:"net_worth"`
@@ -197,6 +198,10 @@ func (h *Hub) apply(ev Event) {
 	case KindSay:
 		e := ev
 		s.Say = &e
+		return
+	case KindAudience:
+		e := ev
+		s.Audience = &e
 		return
 	}
 	if len(ev.HiddenUsed) > 0 {

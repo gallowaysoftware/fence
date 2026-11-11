@@ -3,6 +3,28 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Twitch — 2026-11-11: predictions on the bets, chat votes for the plan; dry run only, never connected
+
+**Result.** `cmd/fencetwitch` (`internal/twitch`) follows fenceshow's feed and runs Twitch's one prediction slot
+and a chat vote, behind two interfaces whose only implementations are a dry run (would-be Helix calls logged as
+JSON lines, chat from a script) and a documented stub for the live Helix/EventSub client (the Twitch CLI's mock
+server is not installed, so nothing live could be tested; no credential exists anywhere). A strategist's bet (the
+feed's `bet` events, read through `BetOpened`/`BetResolved`) opens a Yes/No prediction that locks after
+`-lock-after` or on the first event that could settle it, resolves on the bet's outcome and is refunded when the
+bet is dropped or replaced, settles while still open, or the run or stream ends; a format with doubt gets "Will the
+Shark own the shop by day 91?" at its start. Twitch's limits (one prediction at a time, a LOCKED one included; 45
+and 25 characters; a 1–1800 s window; refunds after 24 h) are cited from the Helix reference and enforced by the
+dry run. Each morning chat votes (`!vote hold`, one vote per viewer, a 2 s cooldown) on one of five questions built
+from the directives levers (or a fork's options); the tally, never chat's words, goes to the next morning's plan
+through the bridge's `-chat-tally`, placed last in the prompt, and the plan answers it in a "Chat:" line under RISK
+that the panel shows. Qwen 3.8 27B answered 2 of 2 such tallies there (against the vote, with reasons) and 0 of 2
+when the tally sat with memory's lessons. The panel's `audience` box (the lower third beside the caption, or the
+column) writes out the question, the split, the result and the strategist's answer, so a VOD reads without chat.
+Replay demo on the dress rehearsal's days 30–41 with four synthetic bets and a scripted crowd: four predictions
+(Yes, No, refunded, Yes), twelve votes, 444 votes counted, 62 chat lines ignored. Docs: docs/SHOW.md "Twitch";
+the owner's setup (Affiliate, app, scopes `channel:manage:predictions` and `user:read:chat`, token outside the
+repo, env vars): docs/STREAM-OPS.md section 11.
+
 ## Second engine — 2026-11-11: no engine closes the Board-free gap on hard; supply, not demand, is the wall
 
 **Result.** Built and measured a cash-crop lever for the hydroponic bays (`crops`, with tap water for the crop bays)

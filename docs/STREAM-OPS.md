@@ -592,3 +592,64 @@ or two moments, so most of the air is the game and the panel.
   base policy; `-fill-after 40s`; the defaults for `-min-gap` (8 s), `-max-age` (15 s), `-max-lag` (25 s).
 - Autopilot pace 800–1200 as in section 5; a slower pace only lengthens the silences.
 - A fenceshow restart is safe mid-run (same command, same `-record`); expect the sparkline to restart.
+
+## 11. Twitch viewer participation (built, not connected)
+
+`cmd/fencetwitch` (docs/SHOW.md, "Twitch") runs beside fenceshow: predictions on the bets and the
+format verdict, chat votes for the next morning's plan. Today it runs only as a **dry run**: it logs
+the Helix calls it would make and plays chat from a script. The live Helix and EventSub clients are
+stubs (`internal/twitch/helix.go`): they were not built because nothing here could test them without
+credentials (the Twitch CLI's `twitch mock-api` is not installed on the game box). Nothing in the repo
+holds a credential or contacts Twitch.
+
+**Rehearse it** (no account needed):
+
+```sh
+# beside a running fenceshow (replay or live): a silent chat, the tally for the bridge in var/twitch/
+go run ./cmd/fencetwitch -show http://127.0.0.1:7350 -chat-script internal/twitch/testdata/demo-chat.txt
+# the bridge: the tally reaches the morning plan, which answers it in a "Chat:" line under RISK
+make bridge ARGS="… -chat-tally var/twitch/chat-tally.json"
+# a replay with synthetic bets, a scripted crowd and column screenshots, into var/twitch/demo/
+scripts/twitch-demo.sh RUN_DIR 30-41 0.5
+```
+
+**What the owner sets up to go live** (once the live client is built):
+
+1. **Channel.** Predictions need Channel Points, which need Affiliate or Partner status ("limited to
+   partners and affiliates", https://dev.twitch.tv/docs/api/predictions).
+2. **App.** Register an application in the Twitch developer console (https://dev.twitch.tv/console/apps):
+   any name, category "Chat Bot" or "Broadcasting Suite", a redirect URL on loopback
+   (`http://localhost:3000`), client type Confidential. Note its **Client ID**; keep the client secret
+   with the token, never in the repo.
+3. **Token.** A **user** access token of the broadcaster's own account (predictions are the
+   broadcaster's; the EventSub WebSocket transport takes user tokens) with the scopes:
+   - `channel:manage:predictions`: create, lock, resolve, cancel and read predictions (Helix
+     `POST/PATCH/GET /helix/predictions`);
+   - `user:read:chat`: read chat through the EventSub subscription `channel.chat.message` v1 (the
+     replacement for IRC's `chat:read`), condition `broadcaster_user_id` and `user_id` both the
+     broadcaster's id.
+   Get it with the authorization-code flow (e.g. `twitch token -u -s 'channel:manage:predictions
+   user:read:chat'` from the Twitch CLI), and keep the refresh token: user tokens expire after a few
+   hours.
+4. **Storage, outside the repo.** `~/.config/fence/twitch-token` (JSON with `access_token` and
+   `refresh_token`, mode 600) next to `bridge.env`; the client secret in the same directory. fencetwitch
+   refuses a token file inside its working tree.
+5. **Environment** (`~/.config/fence/twitch.env`, loaded by the service or the shell, never committed):
+
+   | Variable | |
+   |---|---|
+   | `TWITCH_CLIENT_ID` | the app's Client ID |
+   | `TWITCH_BROADCASTER_ID` | the channel's numeric user id (Helix `GET /helix/users?login=…`) |
+   | `TWITCH_TOKEN_FILE` | the token file above |
+   | `FENCE_CHAT_TALLY` | where fencetwitch writes the vote (`-tally`, default `var/twitch/chat-tally.json`) and the bridge reads it (`-chat-tally`, off when unset) |
+   | `FENCE_SHOW_URL` | fenceshow's base URL for fencetwitch (default `http://127.0.0.1:7350`) |
+
+6. **Before the first stream:** build the live client against `twitch mock-api` (Twitch CLI; it serves
+   `/helix/predictions` with fake ids and needs no account), then a private test on the real channel with
+   a 30 s prediction, and run the dry-run demo once to see the panel's box in OBS.
+
+**On stream night** (after this lands): start fencetwitch after fenceshow, with `-verdict=false` on a
+format run that will not end tonight (the verdict would hold Twitch's one prediction slot all night and
+then be refunded); `-lock-after 2m` suits a live day of 3–6 minutes. Stopping fencetwitch (Ctrl-C) cancels
+an open prediction with refunds and sends an open vote. A restarted fencetwitch cancels any prediction it
+finds still open on the channel (`Active`), since the bet's history went with the old process.
