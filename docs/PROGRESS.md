@@ -39,6 +39,28 @@ guide's value table sits in gym code — keep, or move to a local file. Still ru
 LLM league (`league/t9-challenge-llm.json`; read with `fenceleague report`), two drift games of t8, the
 standalone Qwen server on :9091 (shutdown steps in the 1d3a173 entry), and the idle runner.
 
+## New production archetypes — 2026-11-11: rats make a route, the suppliers and the printer do not pay on hard
+
+**Result.** Two new hard routes, both 120/120 on fresh seeds 4700001–060 and 4710001–060: `rancher` (the Rat
+Wrangler start with a rat engine; paired win day against `appraiser` −3.6 ± 4.3 and −8.4 ± 4.7, medians 90 and 83)
+and `pharma` (the appraiser plus Dale's injector phone; +2.3 ± 5.0 and −2.2 ± 3.2). Everything else on this axis
+wins 60/60 too, because the Board carries hard, but slows the cash buyout: beer + shareholder +5.7 ± 3.8 days,
+pharma + shareholder +6.7 ± 3.4, the 3D printer on the `gunsmith` route +15.8 ± 7.0 (chips bought in the saving
+window); beer alone, the chem phone and the miner shareholder are neutral. Details: docs/research/ARCHETYPES-NEW.md.
+
+**Fidelity.** (1) Supplier free deliveries and shareholder dividends land on the front counter as ours and the night
+destroys that counter; the gym kept only the furnace's ore, so the 2026-11-10 beer-shareholder test lost every
+dividend case. They are stowed now (gym and live autopilot). The faithful verdict is the same. (2) The rancher
+kit's rats ran loose in the stock grid (breeding, eating stock food, fouling it): the appraiser policy on that start
+was 7.6–13.5 days slower than on the apprentice start, and cutting them up on day 1 removes the gap.
+
+**Levers** (all off by default; summaries byte-identical to a957b56 on 12 runs of 150 days: appraiser, smelter, appraiser on
+the rancher start, normal defaults): `beer` / `pharma` / `chem: "phone"` with `<key>_shareholder`, and
+`miner_shareholder` (`sim/gym/Suppliers.cs`, formerly Beer.cs); `engine` part `rats` (`sim/gym/Rats.cs`; schema,
+protocol and delta prompt updated); `printer: "run"` (`sim/gym/Printer.cs`). Rats are food-bound: sellers offer
+~450 kcal of cheap food a day, so one breeding pair is all it feeds and most colonies die out by day ~27; a feed
+bay would lift that. Not modelled: the chemistry lab and aquaculture (fish feed has no seller).
+
 ## Challenge routes — 2026-11-11: thirteen challenge files; no insurance and no cash upgrades save the weak three
 
 **Result.** `sim/lab/scripts/directives/routes/challenge/<name>.json` is a challenge version of every route

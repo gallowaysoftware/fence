@@ -283,7 +283,7 @@ except an engine that names only part of the base's (a restated `wine` would sto
 | `production` | `[{machine_uid, action, items, note}]` |
 | `augs` | `shoot` / `serve` |
 | `scavenge` | go to the dumping ground tonight |
-| `engine` | gym executor: the production engines to run, `wine`, `water`, `furnace` joined by `+`, or `none` |
+| `engine` | gym executor: the production engines to run, `wine`, `water`, `furnace`, `rats` joined by `+`, or `none` |
 | `mortgage` | gym executor: sign the loan shark's offer by its rule (`auto`), at the next offer (`take`), not today (`later`: he returns next week), never again (`decline` is final), or only to bridge a rent (`accept_if_rent`). The delta lint turns a `decline` into `later` unless the cash buyout projects within 4 weeks |
 | `buyout_by_day` | gym executor: answer the loan shark `later` while the cash buyout projects to be affordable by this day |
 | `mortgage_margin`, `mortgage_float` | gym executor: the `auto` rule's cover share of all payments and the cash it keeps beyond 1.5 payments |

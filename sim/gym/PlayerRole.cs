@@ -514,8 +514,7 @@ namespace Fence.Gym
             if (Furnace.WantsMiner) order.Add("MINER");
             bool vend = Vending.Buys && (P?.Day ?? 0) >= Vending.BuyDay;
             if (vend) order.Add("VENDING_MACHINE");
-            if (Beer.On) order.Add("BREWER");
-            if (Beer.Shareholder) order.Add("BREWER_SHAREHOLDER");
+            order.AddRange(Suppliers.Upgrades());
             if (D.UpgradesBuy != null) order.AddRange(D.UpgradesBuy);
             else order.AddRange(Engine.Upgrades(v));
             // Growth bought with Wild favor (a currency good for nothing else) or real surplus: more traffic
@@ -540,9 +539,9 @@ namespace Fence.Gym
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
                 if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
-                if ((id == "VENDING_MACHINE" && vend) || (Beer.On && (id == "BREWER" || id == "BREWER_SHAREHOLDER")))
+                if ((id == "VENDING_MACHINE" && vend) || Suppliers.Wants(id))
                 {
-                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : Beer.Reserve)) continue;
+                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : Suppliers.Reserve(id))) continue;
                     picks.Add(id);
                     funds -= u.Cost;
                     favor = Math.Max(0, favor - u.Cost);

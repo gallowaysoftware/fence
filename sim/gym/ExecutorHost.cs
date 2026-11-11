@@ -21,7 +21,7 @@ namespace Fence.Gym
         // A read or chore that threw: headless it is counted, live it stops the autopilot.
         void Error(string where, Exception e);
 
-        // A supplier's order by phone (Furnace, Beer): `choice` is the order's index in the call's menu, -1 for the
+        // A supplier's order by phone (Furnace, Suppliers): `choice` is the order's index in the call's menu, -1 for the
         // introduction call. Headless, the call's effects as its dialogue applies them; live, the phone's own flow.
         void PhoneOrder(StorePhoneClient client, long number, int choice, string courier, int days);
 

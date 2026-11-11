@@ -44,13 +44,15 @@ namespace Fence.Gym
             Appraisal.Reset();
             Labels.Reset();
             Modules.Reset();
-            Beer.Reset();
+            Suppliers.Reset();
             treatedOn.Clear();
             keepWater.Clear();
             faucet = null;
             FinishedValue = 0;
             seenFinished.Clear();
             Furnace.Reset();
+            Rats.Reset();
+            Printer.Reset();
             ResetSales();
         }
 
@@ -82,7 +84,7 @@ namespace Fence.Gym
         public static bool Reserved(GameItem i)
         {
             if (Directives.Current.ReleaseUids.Contains(i.uniqueId)) return false;
-            if (Furnace.Reserved(i) || Modules.Reserved(i)) return true;
+            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Printer.Reserved(i)) return true;
             if (WaterSellOn && (WaterReserved(i) || treatedOn.ContainsKey(i.uniqueId) || keepWater.Contains(i.uniqueId))) return true;
             if (!WineOn) return false;
             if (WinePurifierOn && i.identifier == "water_purifier") return true;
@@ -154,7 +156,7 @@ namespace Fence.Gym
         public static int Wants(string id)
         {
             if (DnaWants(id) > 0) return DnaWants(id);
-            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id);
+            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Printer.Wants(id);
             return f > 0 ? Math.Max(w, 0) + f : w;
         }
 
@@ -246,7 +248,7 @@ namespace Fence.Gym
         }
 
         // With `engine: none` nothing is an engine input (a winemaker's bottles are plain stock then).
-        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
+        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Printer.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
 
         static bool IsInputAny(string id) => (DnaOn && Donors.Contains(id ?? "")) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && Owned().Any(i => i.identifier == "water_purifier")))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
 
@@ -261,6 +263,10 @@ namespace Fence.Gym
 
         public static void Morning(IExecutorHost ep)
         {
+            // The rats and the printer first: the cage's mending scrap and growing ingot and the printer's scrap are taken
+            // before the furnace loads every scrap.
+            Rats.Morning(ep);
+            Printer.Morning(ep);
             Furnace.Morning(ep);
             Modules.Morning(ep);
             try { Audit(ep); }

@@ -23,10 +23,18 @@ namespace Fence.Gym
             Headless.Build(managed, Path.Combine(Repo, "var", "gamedata", ".headless-gym"), Variant.Gym);
             Headless.Install();
             GameAssets.EnsureExtracted(GameDir, Var("gamedata"));
+            LoadGuides();
+            done = true;
+        }
+
+        // Its own method: Newtonsoft comes from the game's Managed dir, which resolves only after Install, and
+        // the JIT loads every assembly a method body names before the method runs.
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        static void LoadGuides()
+        {
             string guides = Environment.GetEnvironmentVariable("FENCE_APPRAISAL_GUIDES");
             if (string.IsNullOrEmpty(guides)) guides = Path.Combine(MainCheckout(Repo), "local", "appraisal_guides.json");
             if (File.Exists(guides)) Appraisal.Guides = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(guides));
-            done = true;
         }
 
         // A git worktree's local/ is empty; its .git file names the main checkout ("gitdir: <main>/.git/worktrees/<name>").

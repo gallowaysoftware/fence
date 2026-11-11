@@ -626,6 +626,9 @@ namespace Fence.Gym
             Furnace.Trade(sold, item, amount);
             Modules.Trade(sold, item, amount);
             DemandTrace.Trade(sold, item, amount);
+            Suppliers.Trade(sold, item, amount);
+            Rats.Trade(sold, item, amount);
+            Printer.Trade(sold, item, amount);
             if (sold) Production.Sold(item, amount, GameBarter.CurrentClient());
             if (!sold && GameBarter.CurrentClient()?.identifier == "inventor") JacksonBought(false, item.identifier, amount);
         }
@@ -768,6 +771,7 @@ namespace Fence.Gym
             today["evidence"] = ps.secData?.evidenceLevel ?? 0;
             today["production"] = Production.Status();
             if (Furnace.Status() is JObject furnace) today["furnace"] = furnace;
+            if (Rats.Status() is JObject rats) today["rats"] = rats;
             if (Conceal.Status() is JObject bay) today["smuggler_bay"] = bay;
             if (Vending.Status() is JObject vend) today["vending"] = vend;
             if (Appraisal.Status() is JObject appr) today["appraisal"] = appr;
@@ -802,7 +806,10 @@ namespace Fence.Gym
             if (Appraisal.Status() is JObject appr) s["appraisal"] = appr;
             if (Labels.Status() is JObject labels) s["labels"] = labels;
             if (Modules.Status() is JObject mods) s["modules"] = mods;
-            if (Beer.On) s["beer_orders"] = Beer.Orders;
+            if (Suppliers.BeerOn) s["beer_orders"] = Suppliers.Orders;
+            if (Suppliers.Status() is JObject sup) s["suppliers"] = sup;
+            if (Rats.Status() is JObject rats) s["rats"] = rats;
+            if (Printer.Status() is JObject printer) s["printer"] = printer;
             s["jackson"] = new JObject
             {
                 ["shop_visits"] = jacksonVisits, ["shop_spent"] = jacksonShop.Values.Sum(v => v[1]), ["store_spent"] = jacksonStore.Values.Sum(v => v[1]),

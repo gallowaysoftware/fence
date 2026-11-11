@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Thirteen hard-difficulty policies that win, each with a different start, perk set or engine, so a stream
+Fifteen hard-difficulty policies that win, each with a different start, perk set or engine, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -10,7 +10,7 @@ fence-gym run -seed N -days 1000 -human player -difficulty hard -start <start> -
   -directives sim/lab/scripts/directives/routes/<name>.json
 ```
 
-Each route also has a challenge version, `routes/challenge/<name>.json` (below, "The challenge routes").
+Each route but `rancher` and `pharma` (2026-11-11, hard only) also has a challenge version, `routes/challenge/<name>.json` (below, "The challenge routes").
 
 **What they share.** Every route is the appraisal incumbent (`hard_income_mortgage_appraisal.json`) with
 one thing changed. The Appraisal Board's fees (~49k a run, the same in every route) pay for the shop. Since
@@ -43,6 +43,8 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `water_baron` | water merchant / vending + short sleeper | `engine: "furnace+water"` | 60/60 (94–100 %) | **112** (182) | 5 496 / 16 413 / 17 860 | −10 938 ± 1 224 | Purifies and bottles water (~16k sold a run) beside the furnace; the poorest winner, a week later, one arrest. |
 | `rock_bottom` | rock bottom / vending + short sleeper | the Rock Bottom start | 57/60 (86–98 %) | **126** (182) | 4 778 / 16 108 / 25 590 | −5 733 ± 2 009 | The underdog: starts broke, loses 4 in 60 to the first or second rent (days 14–21), and the survivors win a week late. Since 2026-11-11 it wins 120/120 (below, "Rock Bottom made robust"). |
 | `sprinter` | apprentice / vending + short sleeper | `buyout_by_day: 140`, `buyout_save: ["insurance"]` from day 56 | 60/60 (94–100 %) | **98** (175) | 6 383 / 28 158 / — | — | Tells the loan shark "later", drops the insurance from day 56 (burglars take ~1 000 of goods a run, the fee would be ~5 000) and buys the shop outright for cash, eleven weeks before the mortgage would end (60/60 on 2910001–060, days 70–119). The appraiser's policy and kit with the shark's persona; the hard incumbent since 2026-11-11. |
+| `rancher` | rancher / vending + short sleeper | `engine: "wine+furnace+rats"` | 120/120 (97–100 %) | **90 / 83** | — | — | The Rat Wrangler start: a cage of rats bred, fed from the dispenser and cut up at 400 g for the counter (~2 500 of meat a run), with the Board, wine and a furnace. Paired win day against `appraiser` −3.6 ± 4.3 / −8.4 ± 4.7 on seeds 4700001–060 / 4710001–060 (docs/research/ARCHETYPES-NEW.md). |
+| `pharma` | apprentice / vending + short sleeper | `pharma: "phone"` | 120/120 (97–100 %) | **90 / 90** | — | — | Dale's courier brings five pink injectors a call at a fifth off, sold to addicts and medics (~80 a run): a supplier on screen. Paired win day against `appraiser` +2.3 ± 5.0 / −2.2 ± 3.2 on the `rancher` seeds. |
 
 **On the current main** (55902b7: the outing fix and fair aug detection; this branch's final build, whose alarm
 refits worn modules), 60 more fresh seeds 2203001–060: `appraiser` 60/60, day 175, NW 6 682 / 20 234 / 26 211;
@@ -144,6 +146,8 @@ by its own buy list: on a route the route's base policy does the buying.
 | `lean` | honest-broker | magnate | pure trading and appraisal with a clean name |
 | `water_baron` | water-baron | | the tap |
 | `rock_bottom` | shark | | its native start: nothing but nerve |
+| `rancher` | rancher | | its native start: the rats are the run's engine |
+| `pharma` | honest-broker | magnate | legal medicine from a phone supplier, a clean name |
 
 The cook has no route: the drug-dealer start ends on day 8 (`cartel_retired`).
 
@@ -190,7 +194,7 @@ replay spoke as the default magnate ("a respectable cushion against the inevitab
 | Start or perk set | Wins | Median win day | NW d150 | Note |
 |---|---|---|---|---|
 | scav | 20/20 | 175 | 30 366 | close to the appraiser; not distinct enough |
-| rancher | 20/20 | 175 | 28 001 | its livestock is not used by any engine |
+| rancher | 20/20 | 175 | 28 001 | its livestock is not used by any engine (and ran loose in the stock grid: 7–13 days slower; now the `rancher` route) |
 | aquafarmer | 20/20 | 182 | 26 618 | its RAS tank is not used by any engine |
 | moonshiner, pharmacist, street food vendor, organ trader | 20/20 | 175 | 28 550 | identical net worth day by day: the gym gives each the same bare start (600 cash, no kit), so not a route |
 | drug dealer | 0/20 | — | — | `cartel_retired` on day 8 in every run: the cartel start ends the run before the policy can play it |

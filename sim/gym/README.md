@@ -422,10 +422,35 @@ the same way, or completely within a second or two (a half-written file is retri
   night the grid was full, the cheapest ingot into another row (`vending_upgrades: false` stops both).
   `vending: "buy"` buys the machine from Wild with cash from `vending_day` (default 1) when `vending_reserve`
   (default 500) is left over the rent and floor; `vending: "off"` leaves an owned machine empty.
-  `beer: "phone"` (`sim/gym/Beer.cs`) buys Wild's BREWER introduction and phones the Red Imp rep whenever his
-  line is free (a free case first, then one case of eight beers at 20 % off per call, two once 400 is spent; 4-day
-  cooldown); `beer_shareholder: true` adds BREWER_SHAREHOLDER (another 15 % off, a free case a week); both
-  upgrades wait until `beer_reserve` (default 500) is left over the rent and floor. `jackson_sunday: true` makes
+  Phone suppliers (`sim/gym/Suppliers.cs`): `beer: "phone"` buys Wild's BREWER introduction and
+  phones the Red Imp rep whenever his line is free (a free case first, then one case of eight beers at 20 % off
+  per call, two once 400 is spent; 4-day cooldown); `pharma: "phone"` does the same with PHARMA's Dale (six free
+  pink injectors, then 5 a call, 10 once 500 is spent; 7-day cooldown) and `chem: "phone"` with CHEMIST's Ashish
+  (eight free dream dust, then 8 a call, 16 once 400 is spent; 4-day cooldown; contraband: only the free
+  delivery without `buy.contraband`). `<key>_shareholder: true` adds the shareholder upgrade (another 15 % off and a weekly
+  dividend: a case, 5 injectors or 8 dust); `miner_shareholder: true` adds MINER_SHAREHOLDER once the furnace's
+  `ore_phone` has bought MINER (6 ore every Friday). Each upgrade waits until `<key>_reserve` (default 500) is
+  left over the rent and floor. Free deliveries and dividends land on the front counter as already ours, and the
+  night clears that counter (`EmporiumEntry.ClearFrontInv`): they are stowed after each customer (before
+  2026-11-11 the gym lost every dividend case and free delivery). The summary's `player.suppliers` counts
+  orders, stowed gifts and each supplier good bought and sold.
+  Rats (`sim/gym/Rats.cs`, `engine` containing `rats`; the Rat Wrangler start or RETIRED_RANCHER's kit): each
+  morning rats outside a cage go in, droppings go to the bin, dead rats and those at `rats_butcher_g` (default
+  400) are cut up with the cleaver (raw meat per 400 g, small raw meat per 200 g, morsels), breeders are kept
+  (`rats_breeders: [females, males]`, default [1, 1], each with a young successor spared near its old age), the heaviest growers are cut while the rats fill more than
+  `rats_occupancy` of the cage (default 0.7; growers under 150 g only above 85 %) or, from `rats_food_cut_g`
+  (default 300), while the food would not last two nights, owned food (`Rats.Feeds`: milk, juice, noodles, nutrifruit and other cheap calories, never rat meat) is
+  blended into the dispenser up to `rats_feed_kcal` (default 6000; the shop's own food stock in a pinch), an owned
+  ingot grows the cage a row (up to 8 rows of 10) and scrap mends it below 60 %. The meat is FOOD stock. The
+  summary's `player.rats` (and each day's `rats`) counts births, deaths, cuts, meat sold, feed bought and the cage.
+  The 3D printer (`sim/gym/Printer.cs`, `printer: "run"`; the Gunsmith start's printer or RETIRED_GUNSMITH's,
+  docs/re/RECIPES.md §1): each morning its output goes to stock, a charged cell into its battery and, when it is
+  idle, the first chip of `printer_chips` that is owned, fits its modules and has its inputs owned goes in with
+  those inputs (default order: silencer, improved springs, makeshift RDS, RDS, laser sight, machete, combat knife,
+  kitchen knife, cleaver, hatchet, box cutter; printed pistols are contraband and left out). Chips are bought from
+  the retired gunsmith until `printer_buy_chips` (default 2) of the order are owned, with 1 500 over the rent;
+  plastic, scrap, electronics and a cell as the owned chips need them. `player.printer` counts loads, output value,
+  inputs and chip spend. `jackson_sunday: true` makes
   the Jackson visits on Sundays (his 10 % discount day), every `jackson_every / 7` Sundays.
   `jackson_equipment: true` also buys at his shop what the engines want (`Production.Wants`: the furnace and
   its modules, hydroponic bays, charged cells, the purifier, the bioreactor), not only the `jackson` list;

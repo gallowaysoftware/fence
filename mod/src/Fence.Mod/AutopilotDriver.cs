@@ -482,8 +482,8 @@ namespace Fence.Mod
             RunChore("stow", Production.Stow);
             foreach (var k in Appraisal.KitOnCounter()) Queue(MoveKinds.StowKit, k, null, "the appraisal kit into the dossier, off the counter the night wipes", "player:appraisal_kit", null);
             var left = LiveGame.OwnedOnBack();
-            // Gifts dropped on the front counter as already ours (the free ore courier, the miner's dividend) that the furnace uses.
-            if (Furnace.On) left.AddRange(LiveGame.OwnedOnFront().Where(i => Furnace.IsInput(i.identifier)));
+            // Gifts dropped on the front counter as already ours: the free ore courier and the miner's dividend the furnace uses, and the phone suppliers' free deliveries and dividends.
+            if (Furnace.On || Suppliers.On) left.AddRange(LiveGame.OwnedOnFront().Where(i => (Furnace.On && Furnace.IsInput(i.identifier)) || Suppliers.IsGift(i)));
             foreach (var i in left) Queue(MoveKinds.Unstage, i, null, "unsold, back to stock", "unstage_leftovers", null);
             if (left.Count > 0) Record("plan_unstage", null, left.Count + " unsold item" + (left.Count == 1 ? "" : "s") + " back to stock", "unstage_leftovers", null);
         }

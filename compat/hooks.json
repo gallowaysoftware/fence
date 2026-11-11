@@ -787,7 +787,7 @@
         "advise.barter"
       ],
       "required": false,
-      "why": "Singleton; its \u2026Offered getters run the same Refresh() the game's own panel and StoreClient.CanReport do."
+      "why": "Singleton; its …Offered getters run the same Refresh() the game's own panel and StoreClient.CanReport do."
     },
     {
       "id": "barter.nego_instance",
@@ -9464,6 +9464,331 @@
       ],
       "required": false,
       "why": "Who the autopilot is calling, for the feed."
+    },
+    {
+      "id": "autopilot.storephoneclient.getpharmaphoneclient",
+      "type": "StorePhoneClient",
+      "member": "GetPharmaPhoneClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StorePhoneClient",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.getchemphoneclient",
+      "type": "StorePhoneClient",
+      "member": "GetChemPhoneClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StorePhoneClient",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gutterflowpellethelper.ispellet",
+      "type": "GutterflowPelletHelper",
+      "member": "IsPellet",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.industrialfishfeedhelper.isfeed",
+      "type": "IndustrialFishFeedHelper",
+      "member": "IsFeed",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagstate.getfloat",
+      "type": "TagState",
+      "member": "GetFloat",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.getdispenserslot",
+      "type": "AnimalCage",
+      "member": "GetDispenserSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getanimalkcal",
+      "type": "MachineFeedDispenser",
+      "member": "GetAnimalKcal",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.canupgradesize",
+      "type": "AnimalCage",
+      "member": "CanUpgradeSize",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.getcageinventory",
+      "type": "AnimalCage",
+      "member": "GetCageInventory",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.genetichelper.getcurrentstat",
+      "type": "GeneticHelper",
+      "member": "GetCurrentStat",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.String"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.canrepair",
+      "type": "AnimalCage",
+      "member": "CanRepair",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.husbandryhelper.getspecies",
+      "type": "HusbandryHelper",
+      "member": "GetSpecies",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "AnimalSpecies",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalspecies.growthstages",
+      "type": "AnimalSpecies",
+      "member": "growthStages",
+      "kind": "field",
+      "returns": "System.Int32[]",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getstoragegrid",
+      "type": "MachineFeedDispenser",
+      "member": "GetStorageGrid",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagsystem.istag",
+      "type": "TagSystem",
+      "member": "IsTag",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.upgradesize",
+      "type": "AnimalCage",
+      "member": "UpgradeSize",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.animalcage.repair",
+      "type": "AnimalCage",
+      "member": "Repair",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.destroy",
+      "type": "GameItem",
+      "member": "Destroy",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.husbandryhelper.ismature",
+      "type": "HusbandryHelper",
+      "member": "IsMature",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.husbandryhelper.onanimaldead",
+      "type": "HusbandryHelper",
+      "member": "OnAnimalDead",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.husbandryhelper.onbutcher",
+      "type": "HusbandryHelper",
+      "member": "OnButcher",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Action<GameItem>"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineprogresshelper.canstart",
+      "type": "MachineProgressHelper",
+      "member": "CanStart",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

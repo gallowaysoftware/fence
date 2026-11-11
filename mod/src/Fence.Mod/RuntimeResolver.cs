@@ -138,6 +138,14 @@ namespace Fence.Mod
                 case "Shotgun": found = ShotgunMembers(member); break;
                 case "TransitUI": found = TransitUIMembers(member); break;
                 case "WildNetworkUI": found = WildNetworkUIMembers(member); break;
+                case "GutterflowPelletHelper": found = GutterflowPelletHelperMembers(member); break;
+                case "IndustrialFishFeedHelper": found = IndustrialFishFeedHelperMembers(member); break;
+                case "AnimalCage": found = AnimalCageMembers(member); break;
+                case "MachineFeedDispenser": found = MachineFeedDispenserMembers(member); break;
+                case "GeneticHelper": found = GeneticHelperMembers(member); break;
+                case "HusbandryHelper": found = HusbandryHelperMembers(member); break;
+                case "AnimalSpecies": found = AnimalSpeciesMembers(member); break;
+                case "TagSystem": found = TagSystemMembers(member); break;
                 // A guard type: reflecting on it is a scanner hard refusal, so it stays unchecked at runtime
                 // (Fence.Compat still checks it offline).
                 case "ModReflect": return TypeLookup.Unsupported();
@@ -154,6 +162,14 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ShotgunMembers(string m) => typeof(Shotgun).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] TransitUIMembers(string m) => typeof(TransitUI).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WildNetworkUIMembers(string m) => typeof(WildNetworkUI).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GutterflowPelletHelperMembers(string m) => typeof(GutterflowPelletHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IndustrialFishFeedHelperMembers(string m) => typeof(IndustrialFishFeedHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AnimalCageMembers(string m) => typeof(AnimalCage).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineFeedDispenserMembers(string m) => typeof(MachineFeedDispenser).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GeneticHelperMembers(string m) => typeof(GeneticHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HusbandryHelperMembers(string m) => typeof(HusbandryHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AnimalSpeciesMembers(string m) => typeof(AnimalSpecies).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] TagSystemMembers(string m) => typeof(TagSystem).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IModMembers(string m) => typeof(IMod).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ModManifestMembers(string m) => typeof(ModManifest).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ModLogMembers(string m) => typeof(ModLog).GetMember(m, All);

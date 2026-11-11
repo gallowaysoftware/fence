@@ -123,7 +123,7 @@ namespace Fence.Gym
         public static void Chores(IExecutorHost host)
         {
             Production.Morning(host);
-            try { Beer.Morning(host); }
+            try { Suppliers.Morning(host); }
             catch (Exception e) { host.Error("beer", e); }
             try { Vending.Morning(host); }
             catch (Exception e) { host.Error("vending", e); }

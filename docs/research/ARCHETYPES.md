@@ -207,6 +207,10 @@ alone can do, and the Shark is the only one that must adapt to whatever the dice
 
 ## E. Which archetypes the gym can play headless today
 
+Since 2026-11-11 the gym also plays the phone suppliers and their shareholders, the rats and the 3D printer, and the
+table below is partly stale; docs/research/ARCHETYPES-NEW.md has what each is worth on hard and what is still not
+modelled (the chemistry lab, aquaculture).
+
 `sim/gym/README.md` lists what the headless host fakes. Every path needs **upgrade purchases**
 (the Wild Network window is stubbed; no decide kind exists for buying) — so today every
 archetype plays only from its native start's kit, and only its counter side.

@@ -496,10 +496,14 @@ namespace Fence.Gym
             if (IsPlayer) Guard("stow", Production.Stow);
             var e = EmporiumEntry.Instance;
             var left = In(e.backInvinvElement).ToList();
-            // Gifts dropped on the front counter as already ours (the free ore courier, the miner's dividend)
-            // that the furnace uses; other engines leave the counter as it was.
-            if (IsPlayer && Furnace.On)
-                left.AddRange(In(e.frontInvinvElement).Where(i => GeneralHelper.IsItemOwned(i) && Furnace.IsInput(i.identifier)));
+            // Gifts dropped on the front counter as already ours (the free ore courier, the miner's dividend) that the
+            // furnace uses, and the phone suppliers' free deliveries and dividends; the rest stays where it was.
+            if (IsPlayer && (Furnace.On || Suppliers.On))
+            {
+                var gifts = In(e.frontInvinvElement).Where(i => GeneralHelper.IsItemOwned(i) && ((Furnace.On && Furnace.IsInput(i.identifier)) || Suppliers.IsGift(i))).ToList();
+                foreach (var g in gifts.Where(Suppliers.IsGift)) Suppliers.Stowed(g);
+                left.AddRange(gifts);
+            }
             if (IsPlayer && (Appraisal.On || Labels.On)) StowKit(left);
             if (IsPlayer) Labels.AfterCustomer();
             if (left.Count == 0) return;

@@ -195,7 +195,7 @@ type Directives struct {
 	Production  []ProductionDirective `json:"production,omitempty"`
 	Augs        string                `json:"augs,omitempty"`
 	Scavenge    *bool                 `json:"scavenge,omitempty"`
-	// Engine is the production engine the gym's executor runs: wine, water and furnace joined
+	// Engine is the production engine the gym's executor runs: wine, water, furnace and rats joined
 	// by "+", or none.
 	Engine string `json:"engine,omitempty"`
 	// Mortgage levers of the gym's executor (sim/gym/PlayerRole.cs): when to sign the loan
@@ -246,7 +246,7 @@ var (
 	AugModes     = []string{"shoot", "serve"}
 	EngineModes  = []string{"wine", "none"}
 	// EngineParts join with "+" into an engine; EngineModes are the contract's original values.
-	EngineParts    = []string{"wine", "water", "furnace"}
+	EngineParts    = []string{"wine", "water", "furnace", "rats"}
 	MortgageModes  = []string{"auto", "take", "later", "decline", "accept_if_rent"}
 	AppraisalModes = []string{"join", "off"}
 )

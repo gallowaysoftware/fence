@@ -169,7 +169,7 @@
     },
     "engine": {
       "type": "string",
-      "pattern": "^(none|(wine|water|furnace)(\\+(wine|water|furnace))*)$",
+      "pattern": "^(none|(wine|water|furnace|rats)(\\+(wine|water|furnace|rats))*)$",
       "description": "gym executor: which production engines to run, joined by +"
     },
     "mortgage": {
