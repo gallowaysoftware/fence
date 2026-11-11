@@ -41,6 +41,7 @@ namespace Fence.Gym
             Storage.Reset();
             Conceal.Reset();
             Vending.Reset();
+            Fountain.Reset();
             Appraisal.Reset();
             Labels.Reset();
             Modules.Reset();
@@ -79,6 +80,9 @@ namespace Fence.Gym
                 return false;
             }
         }
+
+        // Clean water the cellar keeps for its bottles and bays (the fountain leaves it).
+        public static bool HeldForWine(GameItem i) => WineOn && keepWater.Contains(i.uniqueId);
 
         // Inputs the engine holds: unfinished bottles, yeast, berries, rations and clean water.
         public static bool Reserved(GameItem i)
@@ -250,7 +254,7 @@ namespace Fence.Gym
         // With `engine: none` nothing is an engine input (a winemaker's bottles are plain stock then).
         public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Printer.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
 
-        static bool IsInputAny(string id) => (DnaOn && Donors.Contains(id ?? "")) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && Owned().Any(i => i.identifier == "water_purifier")))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
+        static bool IsInputAny(string id) => (DnaOn && Donors.Contains(id ?? "")) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
 
         static bool Put(GameItem into, GameItem it)
         {

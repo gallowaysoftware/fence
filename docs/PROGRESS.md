@@ -61,6 +61,28 @@ protocol and delta prompt updated); `printer: "run"` (`sim/gym/Printer.cs`). Rat
 ~450 kcal of cheap food a day, so one breeding pair is all it feeds and most colonies die out by day ~27; a feed
 bay would lift that. Not modelled: the chemistry lab and aquaculture (fish feed has no seller).
 
+## Without the Board — 2026-11-11: the Board is 55–71 % of every route's money; nothing wins hard without it; a fountain route
+
+**Result.** On 30 fresh hard seeds 5100001–030 the Appraisal Board pays 55–71 % of every route's money, the counter
+(with the vending machine) 22–31 % and Georgio 7–17 %; production nets ~0 in cash before the buyout (inputs and
+machines eat the sales; the smelter's furnace is best at +2 800 a run). With `appraisal` removed, the twelve route
+policies (`sprinter` plays `appraiser`'s) win **1 of 720** runs (60 fresh seeds 5100001–060 each; median last day 133–196; rent and repossession): a Board-free
+shop nets 700–900 a week before rent from day 70, half what the hard mortgage's ~1 700 a week needs. No Board-free
+route reached 50/60: overhead cuts, Georgio's peak and early payback, the permit, the alarm and every mortgage-timing
+lever give 0/30 on `appraiser` and `smelter` (screens 5200001–030), and the best water engine (new
+`purify_raw` + `purifiers: 4` + `jackson_equipment`) survives +32.7 ± 8.0 days on 60 fresh seeds 5300001–060 but
+wins 0/60. Tables and why: docs/research/ROUTES.md, "Without the Appraisal Board".
+
+**New engine: the water fountain** (`fountain: "buy" | "landlord"`, `sim/gym/Fountain.cs`, shared with the live
+autopilot): the game's night water vending, which sells a fixed set of bottles from its Base/HQ/Pure slots every
+night (VendingFountainHelper.HandleNight). On `water_baron` it sells ~5 800 a run and leaves the win day unchanged,
+so it ships as a fourteenth route, **`fountain`**: 60/60 on 5200001–060 and 60/60 on fresh 5300001–060, median day
+112 (paired Δ win day +0.9 ± 5.2 and −6.9 ± 9.8 against `water_baron`). Without the Board it adds at most +9 days.
+
+Also: every gym run on main since 41c81d0 crashed at start (Boot.Init named Newtonsoft before the game's assemblies
+resolved); fixed on this branch. All new levers are off by default: summaries byte-identical on 10 hard and 10
+normal seeds. `sim/lab/scripts/income.py` prints the income split from any set of summaries.
+
 ## Challenge routes — 2026-11-11: thirteen challenge files; no insurance and no cash upgrades save the weak three
 
 **Result.** `sim/lab/scripts/directives/routes/challenge/<name>.json` is a challenge version of every route

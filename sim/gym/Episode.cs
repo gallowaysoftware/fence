@@ -1062,6 +1062,7 @@ namespace Fence.Gym
         {
             var ps = PlayerStore.Instance;
             if (IsPlayer) Guard("vending", () => Vending.Evening(this));
+            if (IsPlayer) Guard("fountain", () => Fountain.Evening(this));
             var want = Human.Services(View());
             if (want != null)
                 foreach (var s in ps.storeService)

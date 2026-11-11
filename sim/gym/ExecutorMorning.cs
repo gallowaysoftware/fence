@@ -125,6 +125,8 @@ namespace Fence.Gym
             Production.Morning(host);
             try { Suppliers.Morning(host); }
             catch (Exception e) { host.Error("beer", e); }
+            try { Fountain.Morning(host); }
+            catch (Exception e) { host.Error("fountain", e); }
             try { Vending.Morning(host); }
             catch (Exception e) { host.Error("vending", e); }
             try { Labels.Morning(host); }

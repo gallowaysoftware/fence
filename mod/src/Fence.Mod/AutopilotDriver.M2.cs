@@ -100,6 +100,7 @@ namespace Fence.Mod
                 case StepKind.EveningChores:
                     memory.EveningDone = true;
                     RunChore("vending", () => Vending.Evening(host));
+                    RunChore("fountain", () => Fountain.Evening(host));
                     return;
                 case StepKind.OpenPhone:
                     hands.OpenPhone(gate);

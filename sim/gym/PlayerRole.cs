@@ -261,6 +261,9 @@ namespace Fence.Gym
                 // `landlord_vending: "machine"`: take his vending machine (+150 weekly rent) and stock it (Vending.cs).
                 // Choices: the water fountain and the machine while each is not yet owned, then decline.
                 var on = v.Choices.Where(c => c.Enabled).ToList();
+                // `fountain: "landlord"`: his water fountain, the first choice while it is not owned.
+                if (Fountain.TakesLandlords && !PlayerStore.Instance.isVendingFountainUnlocked && on.Count >= 2)
+                    return Took("player:accept_fountain", v, on[0].Index);
                 if (D.Raw.Value<string>("landlord_vending") == "machine" && !PlayerStore.Instance.isVendingMachineUnlocked && on.Count >= 2)
                     return Took("player:accept_vending_machine", v, on[on.Count - 2].Index);
                 var no = v.Choices.LastOrDefault(c => c.Enabled && (c.Text ?? "").IndexOf("Decline", StringComparison.OrdinalIgnoreCase) >= 0);
@@ -514,6 +517,8 @@ namespace Fence.Gym
             if (Furnace.WantsMiner) order.Add("MINER");
             bool vend = Vending.Buys && (P?.Day ?? 0) >= Vending.BuyDay;
             if (vend) order.Add("VENDING_MACHINE");
+            bool fount = Fountain.Buys && (P?.Day ?? 0) >= Fountain.BuyDay;
+            if (fount) order.Add("VENDING_FOUNTAIN");
             order.AddRange(Suppliers.Upgrades());
             if (D.UpgradesBuy != null) order.AddRange(D.UpgradesBuy);
             else order.AddRange(Engine.Upgrades(v));
@@ -539,9 +544,9 @@ namespace Fence.Gym
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
                 if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
-                if ((id == "VENDING_MACHINE" && vend) || Suppliers.Wants(id))
+                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id))
                 {
-                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : Suppliers.Reserve(id))) continue;
+                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Suppliers.Reserve(id))) continue;
                     picks.Add(id);
                     funds -= u.Cost;
                     favor = Math.Max(0, favor - u.Cost);

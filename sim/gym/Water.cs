@@ -63,6 +63,9 @@ namespace Fence.Gym
         }
 
         public static int PurifiedMl;
+        static bool PurifyRaw => Directives.Current.Raw.Value<bool?>("purify_raw") ?? false;
+        // `purifiers: N` (default 2): water purifiers to own while selling water.
+        static int PurifierTarget => Directives.Current.Raw.Value<int?>("purifiers") ?? 2;
 
         static void TendPurifiers(IExecutorHost ep)
         {
@@ -96,6 +99,17 @@ namespace Fence.Gym
                     var next = Owned().Where(i => WaterVessel(i) && !WaterHelper.IsEmpty(i) && !treatedOn.ContainsKey(i.uniqueId) && !keepWater.Contains(i.uniqueId)
                             && WaterHelper.GetWaterPurity(i) >= 9600 && WaterHelper.GetWaterPurity(i) < 9900)
                         .OrderByDescending(WaterHelper.GetCurrentCapacityML).FirstOrDefault();
+                    // `purify_raw: true`: with nothing pre-treated waiting, the largest empty vessel filled at the tap goes
+                    // straight in (Rustwater reaches HQ in about six nights: ~1 L a night a purifier, no filter or tablet).
+                    if (next == null && PurifyRaw && faucet != null)
+                    {
+                        var raw = Owned().Where(i => WaterVessel(i) && WaterHelper.IsEmpty(i)).OrderByDescending(i => i.GetTagReadonly("LIQUID_CONTAINER_CAPACITY").GetInt()).ThenBy(i => i.uniqueId).FirstOrDefault();
+                        if (raw != null)
+                        {
+                            Chore.Act("tap", raw, () => raw.onThisTargetItemFunc?.Invoke(raw, faucet));
+                            if (!WaterHelper.IsEmpty(raw)) next = raw;
+                        }
+                    }
                     if (next != null && PutIn(m, next)) treatedOn[next.uniqueId] = ep.Day;
                 }
             }
@@ -182,8 +196,8 @@ namespace Fence.Gym
                 case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") ? 0 : Strips().Count() < (WaterSellOn ? 12 : 4) ? (WaterSellOn ? 2 : 1) : 0;
                 case "water_jug": return Math.Max(0, (WaterSellOn ? 5 : 3) - owned.Count(i => i.identifier == "water_jug" && Parent(i) == null && WaterHelper.IsEmpty(i)));
                 case "aquascan": return WaterSellOn && !owned.Any(i => i.identifier == "aquascan") ? 1 : 0;
-                case "water_purifier": return (WaterSellOn && Purifiers().Count < 2) || (WinePurifierOn && Purifiers().Count < 1) ? 1 : 0;
-                case "energy_credit": return WaterSellOn && Purifiers().Any() && owned.Count(i => Charged(i) && Parent(i) == null) < 2 ? 1 : 0;
+                case "water_purifier": return (WaterSellOn && Purifiers().Count < PurifierTarget) || (WinePurifierOn && Purifiers().Count < 1) ? 1 : 0;
+                case "energy_credit": return WaterSellOn && (Purifiers().Any() || Fountain.Machine() != null) && owned.Count(i => Charged(i) && Parent(i) == null) < (Fountain.Machine() != null ? 3 : 2) ? 1 : 0;
                 case "portable_water_purifier": return WaterSellOn && !owned.Any(i => i.identifier == "portable_water_purifier" && DurabilityHelper.GetRealDurability(i) >= 30) ? 1 : 0;
             }
             return 0;

@@ -20,6 +20,7 @@
     <Compile Include="$(GymSrc)/Water.cs" Link="Gym/Water.cs" />
     <Compile Include="$(GymSrc)/Furnace.cs" Link="Gym/Furnace.cs" />
     <Compile Include="$(GymSrc)/Vending.cs" Link="Gym/Vending.cs" />
+    <Compile Include="$(GymSrc)/Fountain.cs" Link="Gym/Fountain.cs" />
     <Compile Include="$(GymSrc)/Conceal.cs" Link="Gym/Conceal.cs" />
     <Compile Include="$(GymSrc)/Suppliers.cs" Link="Gym/Suppliers.cs" />
     <Compile Include="$(GymSrc)/Rats.cs" Link="Gym/Rats.cs" />

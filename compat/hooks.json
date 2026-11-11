@@ -7431,6 +7431,22 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
+      "id": "autopilot.machinehelper.getslot",
+      "type": "MachineHelper",
+      "member": "GetSlot",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "GameInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
       "id": "autopilot.machinehelper.getbodystorage",
       "type": "MachineHelper",
       "member": "GetBodyStorage",
@@ -7644,6 +7660,18 @@
       "id": "autopilot.playerstore.isvendingmachineunlocked",
       "type": "PlayerStore",
       "member": "isVendingMachineUnlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.isvendingfountainunlocked",
+      "type": "PlayerStore",
+      "member": "isVendingFountainUnlocked",
       "kind": "field",
       "returns": "System.Boolean",
       "features": [

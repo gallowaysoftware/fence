@@ -774,6 +774,7 @@ namespace Fence.Gym
             if (Rats.Status() is JObject rats) today["rats"] = rats;
             if (Conceal.Status() is JObject bay) today["smuggler_bay"] = bay;
             if (Vending.Status() is JObject vend) today["vending"] = vend;
+            if (Fountain.Status() is JObject fount) today["fountain"] = fount;
             if (Appraisal.Status() is JObject appr) today["appraisal"] = appr;
             if (Labels.Status() is JObject labels) today["labels"] = labels;
             var crimes = new JObject();
@@ -803,6 +804,7 @@ namespace Fence.Gym
             };
             if (Furnace.On) s["furnace"] = Furnace.Totals(Days.Count > 0 ? (int)Days[Days.Count - 1]["day"] : 0);
             if (Vending.Status() is JObject vend) s["vending"] = vend;
+            if (Fountain.Status() is JObject fount) s["fountain"] = fount;
             if (Appraisal.Status() is JObject appr) s["appraisal"] = appr;
             if (Labels.Status() is JObject labels) s["labels"] = labels;
             if (Modules.Status() is JObject mods) s["modules"] = mods;

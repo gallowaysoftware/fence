@@ -460,6 +460,18 @@ the same way, or completely within a second or two (a half-written file is retri
   The summary's `player.jackson` lists what was bought from him, at the shop and on his visits.
   The default list's water sign is bought but stays in stock unless `window_signs` lists it.
   `landlord_vending: "machine"` accepts the landlord's vending machine (+150 weekly rent) instead of declining it.
+  The water fountain (`sim/gym/Fountain.cs`, docs/re/WATER.md §2.2; off by default): `fountain: "buy"` buys Wild's
+  VENDING_FOUNTAIN (1 800 on hard) from `fountain_day` (default 1) once `fountain_reserve` (default 500) is left over
+  the rent and floor; `fountain: "landlord"` takes the landlord's offer instead (days 43, 57, 71, 85; +150 weekly rent,
+  compounding). Each night it pours and sells, with no customer and no chance, a fixed set of bottles from its Base,
+  HQ and Pure slots (more and larger as its attractiveness rises: 1.2 L a night at 15, up to 9.5 L at 100). At bedtime
+  each empty slot gets the fullest owned water vessel whose true grade reaches it (better water goes up a slot first);
+  each morning its cash is collected, near-empty vessels come back for the water engine, a charged cell goes in, and
+  common electronics raise its attractiveness before the vending machine's. It needs a water engine to feed it. The
+  summary's `player.fountain` and each day's `fountain` give income, attractiveness and vessels poured; sales are
+  `cash_flow.fountain_sales`. With `engine` water: `purify_raw: true` fills the largest empty vessel at the tap and
+  puts it straight into an idle purifier when no pre-treated water waits (Rustwater reaches HQ in about six nights,
+  ~1 L a night a purifier, with no filter or tablet), and `purifiers: N` (default 2) sets how many purifiers to own.
   Wine levers (`sim/gym/Wine.cs`, `sim/gym/Dna.cs`, docs/re/WINE.md; all off by default): `wine_score: N` fills each
   bottle with berries until its score reaches N (best first, a normal berry for a one-point gap, an under/over-ripe one
   for the pair bonus; short of N a filled bottle waits `wine_wait_days`, default 2); `wine_hold_cash: C` holds

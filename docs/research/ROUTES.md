@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Fifteen hard-difficulty policies that win, each with a different start, perk set or engine, so a stream
+Sixteen hard-difficulty policies that win, each with a different start, perk set or engine, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -18,7 +18,8 @@ one thing changed. The Appraisal Board's fees (~49k a run, the same in every rou
 (`buyout_by_day: 140`, `buyout_save: ["insurance"]`, `buyout_save_from: 56`; below, "Every route buys for
 cash"), so a winning run ends around day 84–112 instead of 175, with the mortgage as the fallback when the
 savings stall. The routes differ in what the shop does with the rest of its day: what it makes, what it sells,
-which faction likes it, and how close it runs to the edge.
+which faction likes it, and how close it runs to the edge. None of them wins without the Board (below, "Without
+the Appraisal Board").
 
 ## The menu
 
@@ -41,6 +42,7 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `smelter` | apprentice / vending + short sleeper | `engine: "furnace"`, `ore_phone`, `furnaces: 2`, `furnace_eco` | 60/60 (94–100 %) | **84** (175) | 6 018 / 20 526 / 27 399 | −1 991 ± 1 126 | A metal shop: no wine, two blast furnaces fed by phoned ore, ~330 ingots a run and the busiest counter (61k sold). |
 | `lean` | apprentice / vending + short sleeper | `engine: "none"` | 60/60 (94–100 %) | **91** (175) | 5 546 / 19 910 / 23 283 | −6 128 ± 1 093 | No production at all: buy, sell, appraise. Proves the Board alone carries hard. |
 | `water_baron` | water merchant / vending + short sleeper | `engine: "furnace+water"` | 60/60 (94–100 %) | **112** (182) | 5 496 / 16 413 / 17 860 | −10 938 ± 1 224 | Purifies and bottles water (~16k sold a run) beside the furnace; the poorest winner, a week later, one arrest. |
+| `fountain` | water merchant / vending + short sleeper | `water_baron` + `fountain: "buy"` | 60/60 (94–100 %) on 5300001–060 | **112** | — | — | Buys Wild's water fountain (~day 36) and keeps it stocked from the water engine: it sells ~5 800 of water a run bottle by bottle at night, with nobody at the counter. Added 2026-11-11 (below, "The fountain route"). |
 | `rock_bottom` | rock bottom / vending + short sleeper | the Rock Bottom start | 57/60 (86–98 %) | **126** (182) | 4 778 / 16 108 / 25 590 | −5 733 ± 2 009 | The underdog: starts broke, loses 4 in 60 to the first or second rent (days 14–21), and the survivors win a week late. Since 2026-11-11 it wins 120/120 (below, "Rock Bottom made robust"). |
 | `sprinter` | apprentice / vending + short sleeper | `buyout_by_day: 140`, `buyout_save: ["insurance"]` from day 56 | 60/60 (94–100 %) | **98** (175) | 6 383 / 28 158 / — | — | Tells the loan shark "later", drops the insurance from day 56 (burglars take ~1 000 of goods a run, the fee would be ~5 000) and buys the shop outright for cash, eleven weeks before the mortgage would end (60/60 on 2910001–060, days 70–119). The appraiser's policy and kit with the shark's persona; the hard incumbent since 2026-11-11. |
 | `rancher` | rancher / vending + short sleeper | `engine: "wine+furnace+rats"` | 120/120 (97–100 %) | **90 / 83** | — | — | The Rat Wrangler start: a cage of rats bred, fed from the dispenser and cut up at 400 g for the counter (~2 500 of meat a run), with the Board, wine and a furnace. Paired win day against `appraiser` −3.6 ± 4.3 / −8.4 ± 4.7 on seeds 4700001–060 / 4710001–060 (docs/research/ARCHETYPES-NEW.md). |
@@ -126,6 +128,147 @@ the gym's summaries match the previous build on 10 hard (2620901–910, the incu
 seeds, so no other route changes. `water_baron`, the poorest winner in the menu, wins 60/60 on 2600001–060 on this
 main (NW 5 778 / 17 394 / 19 187, median day 175), so it got no change.
 
+## Without the Appraisal Board (2026-11-11)
+
+Every route wins on the Board's fees. This section measures how much of each route's money is the Board, what each
+route does with the Board switched off (its file with `appraisal` removed), and what was tried to win hard without
+it. Build: this branch's gym (main a957b56 + the Boot fix + the fountain levers; every new lever off, so the routes
+play as on main: summaries byte-identical on 10 hard and 10 normal seeds 5900001–010 / 5900051–060).
+
+### Where the money comes from
+
+Mean per run on 30 fresh hard seeds 5100001–030, each route as shipped (every run won, median win day 91–126).
+"Counter" is counter and vending sales less the trading stock bought (the vending machine sells that stock).
+"Production" is wine, ingots and water sold less the engine inputs bought (berries, bottles, yeast, ore, flux,
+cells, water supplies and the machines themselves). Shares are of the positive parts. `sim/lab/scripts/income.py`
+prints this from any set of run summaries.
+
+| Route | Board fees | Counter | Wine | Ingots | Water | Inputs | Production | Georgio | Board / counter / production / Georgio |
+|---|---|---|---|---|---|---|---|---|---|
+| `appraiser` | 23 447 | 11 274 | 7 018 | 3 002 | 550 | 10 094 | 475 | 4 391 | 59 / 28 / 1 / 11 % |
+| `watchman` | 24 150 | 10 892 | 6 963 | 2 623 | 420 | 10 522 | −515 | 4 334 | 61 / 28 / 0 / 11 % |
+| `farmer` | 22 129 | 11 070 | 6 447 | 2 369 | 414 | 9 121 | 109 | 5 384 | 57 / 29 / 0 / 14 % |
+| `vintner` | 23 537 | 12 383 | 7 280 | 0 | 354 | 8 235 | −601 | 4 336 | 58 / 31 / 0 / 11 % |
+| `labeler` | 24 143 | 10 834 | 7 431 | 2 761 | 558 | 10 331 | 419 | 4 350 | 61 / 27 / 1 / 11 % |
+| `no_vending` | 22 042 | 10 029 | 6 552 | 3 219 | 510 | 8 838 | 1 443 | 4 165 | 58 / 27 / 4 / 11 % |
+| `gunsmith` | 24 236 | 11 939 | 6 714 | 2 659 | 552 | 10 216 | −291 | 4 403 | 60 / 29 / 0 / 11 % |
+| `outlaw` | 26 470 | 12 086 | 7 344 | 2 918 | 586 | 10 674 | 175 | 3 924 | 62 / 28 / 0 / 9 % |
+| `smelter` | 20 469 | 8 050 | 0 | 6 372 | 1 174 | 4 717 | 2 829 | 5 572 | 55 / 22 / 8 / 15 % |
+| `lean` | 20 798 | 8 066 | 0 | 0 | 1 213 | 0 | 1 213 | 6 356 | 57 / 22 / 3 / 17 % |
+| `water_baron` | 28 202 | 9 477 | 0 | 2 794 | 9 125 | 11 746 | 174 | 3 917 | 68 / 23 / 0 / 9 % |
+| `rock_bottom` | 36 333 | 11 460 | 8 020 | 1 109 | 640 | 9 888 | −120 | 3 587 | 71 / 22 / 0 / 7 % |
+
+The Board is 55–71 % of every route's money; the counter (buying and reselling, by hand and through the vending
+machine) 22–31 %; Georgio's fourfold payback 7–17 %. **Production nets almost nothing in cash before the buyout**:
+the wine, ingots and water a route sells are matched by what it spends on inputs and machines, so the routes differ
+in what the shop shows, not in where the money comes from. The smelter's furnace is the only engine clearly ahead
+(+2 800 a run). (Inputs still in stock and machines owned at the buyout count toward net worth, not cash.)
+`sprinter` plays `appraiser`'s runs.
+
+### Every route with the Board off
+
+Each route's file without `appraisal`, 60 fresh hard seeds 5100001–060, 1000-day horizon (the income split of
+these runs is in the same script's output: the counter is 62–89 % of their money).
+
+| Route | Wins | Median last day | Endings | Signed the mortgage | Median peak net worth |
+|---|---|---|---|---|---|
+| `appraiser` | 0/60 | 189 | rent 49, repo 11 | 11 | 9 063 |
+| `watchman` | 0/60 | 192.5 | rent 45, repo 15 | 15 | 9 173 |
+| `farmer` | 0/60 | 175 | rent 43, repo 15, arrest 2 | 15 | 9 246 |
+| `vintner` | 0/60 | 175 | rent 45, repo 15 | 15 | 8 808 |
+| `labeler` | 0/60 | 182 | rent 51, repo 9 | 9 | 8 023 |
+| `no_vending` | 1/60 (mortgage, day 196) | 175 | repo 30, rent 29 | 31 | 10 219 |
+| `gunsmith` | 0/60 | 182 | rent 52, repo 8 | 8 | 8 880 |
+| `outlaw` | 0/60 | 154 | rent 57, arrest 3 | 0 | 6 471 |
+| `smelter` | 0/60 | 196 | rent 50, repo 10 | 10 | 8 400 |
+| `lean` | 0/60 | 168 | rent 57, repo 3 | 3 | 5 982 |
+| `water_baron` | 0/60 | 147 | rent 49, arrest 11 | 0 | 5 561 |
+| `rock_bottom` | 0/60 | 133 | rent 47, arrest 12, repo 1 | 1 | 4 328 |
+
+One win in 720 runs. A Board-free shop peaks at 6–10k of net worth around day 70 (Georgio's payback) and then
+loses the race with the rent: from day 70 to 126 its net worth grows 700–900 a week before rent (appraiser 815,
+smelter 821, vintner 701, no_vending 703, watchman 912; median of 20 runs each), while the rent grows 10 % a week
+from ~520 on day 70 to ~1 350 by day 140. The way out is the mortgage, offered once the cash reaches twice the down
+payment (~6 000) on a rent morning, but its 16 payments of ~1 700 a week need twice the income these shops make:
+the runs that sign it are repossessed. The Board's ~2 200 a week is exactly that gap.
+
+### Trying to win without it (none reached 50/60)
+
+**Overheads, Georgio and the mortgage.** Single levers and two combinations on the Board-off `appraiser` and
+`smelter`, 30 seeds 5200001–030; wins, mean last day, paired Δ last day against the route without the Board,
+mortgages signed:
+
+| Lever | `appraiser` | `smelter` |
+|---|---|---|
+| none | 0/30, 170, —, 10 | 0/30, 183, —, 3 |
+| `georgio_peak_days: [40, 43]` | 0/30, 176, +6.0 ± 12.9, 7 | 0/30, 174, −9.8 ± 11.1, 7 |
+| `georgio_collect: "early"` | 0/30, 178, +8.3 ± 14.0, 4 | 0/30, 185, +1.6 ± 8.2, 2 |
+| no insurance from day 1 (`buyout_save_from: 1`) | 0/30, 173, +3.0 ± 13.9, 5 | 0/30, 187, +3.5 ± 10.4, 2 |
+| `services: ["JANITORIAL_SERVICE"]` | 0/30, 172, +1.3 ± 13.1, 5 | 0/30, 182, −0.9 ± 9.8, 0 |
+| `upgrades_cash_max: 0` | 0/30, 178, +7.6 ± 13.0, 2 | 0/30, 165, −18.4 ± 11.5, 6 |
+| `permit` unset | 0/30, 185, +14.4 ± 15.2, 8 | 0/30, 174, −9.1 ± 15.7, 13 |
+| `alarm: "perfect"` | 0/30, 180, +10.0 ± 15.2, 11 | 0/30, 186, +2.1 ± 14.7, 9 |
+| `mortgage_margin: 0.5` | 0/30, 170, +0.0 ± 0.0, 10 | 0/30, 164, −19.4 ± 13.2, 9 |
+| `mortgage: "take"` | 0/30, 159, −11.0 ± 8.9, 14 | 0/30, 144, −39.9 ± 15.2, 17 |
+| no `buyout_by_day` | 0/30, 167, −3.6 ± 3.9, 10 | 0/30, 177, −6.5 ± 8.7, 5 |
+| peak + janitorial only + no cash upgrades + `permit` unset (the challenge recipe) | 0/30, 167, −3.1 ± 11.5, 5 | 0/30, 164, −18.9 ± 9.1, 2 |
+| the same + `mortgage: "take"`, no `buyout_by_day` | 0/30, 124, −46.6 ± 16.4, 26 | 0/30, 116, −67.3 ± 8.7, 29 |
+
+Nothing wins: cutting costs buys at most two weeks, and signing the mortgage sooner only brings the
+repossession sooner (26 and 29 of 30 repossessed).
+
+**Water.** The owner's normal-game win was water, and water feeds a machine the executor never used: the **water
+fountain** (Wild's VENDING_FOUNTAIN, 1 800 on hard, or the landlord's offer for +150 weekly rent). It sells a fixed
+set of bottles from its Base, HQ and Pure slots every powered night, with no customer and no chance
+(`VendingFountainHelper.HandleNight`): 0.75 L Base and 0.45 L HQ at attractiveness 15, rising to 4.75 L Base, 2.75 L
+HQ and 2 L Pure at 100 (+5 a common electronic), each bottle at its slot's grade price +10 %. At full attractiveness
+and full slots that is ~560 a night, more than the Board. New gym levers (`sim/gym/README.md`): `fountain: "buy" |
+"landlord"` (Fountain.cs, shared with the live autopilot), and for the water engine `purify_raw` (tap water straight
+into an idle purifier: ~1 L of HQ a night per purifier, no filter or tablet) and `purifiers: N`. On `water_baron`
+without the Board, 30 seeds 5200001–030, paired Δ last day against the route without the Board (0/30, mean 143):
+
+| Arm | Wins | Mean last day | Δ last day | Water at the counter | Fountain |
+|---|---|---|---|---|---|
+| `fountain: "landlord"` | 0/30 | 137 | −5.3 ± 6.9 | 6 201 | 6 662 |
+| `fountain: "buy"` | 0/30 | 152 | +9.0 ± 7.5 | 7 981 | 5 328 |
+| `purify_raw`, `purifiers: 4`, `jackson_equipment`, `jackson_need: 7` | 0/30 | 176 | +33.8 ± 10.3 | 20 107 | — |
+| the same + `permit` unset | 0/30 | 180 | **+37.4 ± 9.4** | 18 807 | — |
+| the same + `fountain: "buy"` (permit `buy`) | 0/30 | 174 | +31.5 ± 11.6 | 16 213 | 4 996 |
+| `purifiers: 8` (+ permit unset) | 0/30 | 140 | −2.4 ± 7.5 | 8 813 | — |
+
+Tried on top of the best arm and dropped (not in the code): 20 L water tanks for the raw purifiers (+22 ± 10
+against the route without the Board, below the best arm's +37), a filter count that ignores spent filters
+(+13 ± 15), buying common electronics to raise the fountain faster (no gain). Confirmed on 60 fresh seeds 5300001–060, the best water arm (`purify_raw`, `purifiers: 4`,
+`jackson_equipment`, `jackson_need: 7`, `permit` unset) survives **+32.7 ± 8.0 days** (median last day 182 against
+146) and sells 18 100 of water a run against 10 000, but wins **0/60** (rent 51, arrest 6, execution 3).
+
+Why water does not close the gap: the shop makes 2–3 L of clean water a day (each purifier holds a vessel for
+days, so eight purifiers lock up the empty vessels and water sales halve); common electronics come slowly, so the
+fountain reaches attractiveness 60 at a median day 111 without the Board (11 of 30 runs never); and every litre it
+pours is one the counter does not sell (1 500–3 700 less water at the counter in the fountain arms). Once bought it
+sells ~300–600 a week (median of runs); the mortgage needs ~1 700 a week on top of the shop's ~800.
+
+**What would.** A Board-free route needs a second engine worth ~1 000–1 500 a week by day 70. Neither the wine
+(DNA and racks pay back over a longer game, docs/PROGRESS.md "Wine levers"), the furnace (+2 800 a run at best),
+the labeler (~5 fakes a run) nor water reaches it in this executor. Untested here: the counter itself (the owner's
+counter took 8.6k a week against the gym's ~3.6k, docs/research/OWNER-HARD-GAME.md; the trading-styles work) and
+chemistry or beer (new archetypes). `internal/route`'s test requires every route to join the Board; a Board-free
+route would need that check relaxed.
+
+### The fountain route
+
+The fountain does not win without the Board, but with it it is a different shop for the stream: water sold by a
+machine at night. `fountain.json` is `water_baron` with `fountain: "buy"`:
+
+| Seeds | `water_baron` | `fountain` | Paired Δ win day | Fountain sales | Counter water |
+|---|---|---|---|---|---|
+| 5200001–060 (screen) | 60/60, median 105 | 60/60, median 112 | +0.9 ± 5.2 | 5 832 | 6 136 (against 9 239) |
+| 5300001–060 (fresh) | 60/60, median 112 | 60/60, median 112 | −6.9 ± 9.8 | 5 814 | 6 358 (against 10 071) |
+
+Every run buys the fountain (median day 36) and ends at attractiveness 75 (median); production turns from ~0 to
++2 300 a run, and the win day is unchanged. With the landlord's fountain instead (+150 weekly rent) it wins 60/60 on
+5200001–060 at median 112 with 7 mortgages (+9.9 ± 9.2 days).
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
@@ -145,6 +288,7 @@ by its own buy list: on a route the route's base policy does the buying.
 | `smelter` | smelter | | trash into metal |
 | `lean` | honest-broker | magnate | pure trading and appraisal with a clean name |
 | `water_baron` | water-baron | | the tap |
+| `fountain` | water-baron | | the tap and a machine that sells it at night |
 | `rock_bottom` | shark | | its native start: nothing but nerve |
 | `rancher` | rancher | | its native start: the rats are the run's engine |
 | `pharma` | honest-broker | magnate | legal medicine from a phone supplier, a clean name |
@@ -349,3 +493,7 @@ The challenge-route arms ran one process a seed, `fence-gym run -seed N -days 10
 with the route's `_route.args` and its directives, on the gym of main 2141a86 (`var/sim/gyms/search-2141a86d0f57`);
 the early-rent screen added `-days 15`. The signing day is the first day whose cash falls by more than 6,000 (the
 down payment).
+
+The Board-off and fountain arms ran one process a seed the same way, on this branch's gym, with the route's
+`_route.args` and its directives with `appraisal` removed or a lever added; `sim/lab/scripts/income.py DIR...`
+prints the income split from the summaries. Signed the mortgage = a run with any `cash_flow.mortgage` payment.
