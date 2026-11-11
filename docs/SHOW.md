@@ -387,10 +387,22 @@ go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded li
 go run ./cmd/fenceshow -live-match var/league/<l>/<match> -record var/show/feed.jsonl
 go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
    -player drift -model qwen38fn-mlx -persona shark -llm-url "$DRIFT_URL" -llm-model qwen38fn-mlx
+go run ./cmd/fencevod -feed var/show/stream-2026-11-20.jsonl \
+   -recording "var/stream/2026-11-20/2026-11-20 19-58-12.mkv" -out var/vod/2026-11-20   # the VOD kit
 ```
 
 then open `http://127.0.0.1:7350/?demo=1`. The scoreboard lives in `var/show/board.json`
 across runs; `-board-seed 'var/league/<l>/*'` adds finished matches to it.
+
+## After the stream: the VOD kit
+
+`cmd/fencevod` reads a recorded feed (`-feed`, repeatable) or a match's decision log (`-replay`,
+taking the narrator's lines from `-feed`) and the OBS recordings' start times, and writes per
+recording YouTube chapters, a spoiler-free title, a description with the result below a spoiler
+line, tags, 30–60 s highlight windows and an ffmpeg `cut.sh` (`internal/vod`). It ranks moments
+with the narrator's own `Priority`, so a new kind or beat ranked there becomes a chapter and a clip
+without a change in `internal/vod`; a run start's `player.format` card is read from the feed's JSON,
+whatever its Go type. Usage, rules and the rehearsal's numbers: docs/STREAM-OPS.md section 7.
 
 ## Gaps
 

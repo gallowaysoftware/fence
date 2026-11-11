@@ -3,6 +3,21 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## VOD kit — 2026-11-11: chapters, title and clips from the recorded feed
+
+**Result.** `cmd/fencevod` (`internal/vod`) turns a run's feed (or decision log plus the feed's narrator
+lines) and the OBS recordings' start times into one kit per recording: YouTube chapters, a spoiler-free
+title, a description with the result below a spoiler line and tinyBuild's copyright notice, tags, 30–60 s
+highlight windows and an ffmpeg `cut.sh`. Local only: no upload, no model call. Moments are ranked by the
+narrator's `show.Priority`, so bets, forks, the ghost band's pace and other kinds slot in once ranked there;
+a run's format card is read from the feed's JSON. On the dress rehearsal (seed 2950001, made-up OBS start
+02:36:40): 3 h 12 min, 24 chapters (weeks in pairs, the board's join and three promotions, four plan pivots,
+the permit, Georgio, a counterfeit, "How it ends"), 12 clips of 30–45 s, eleven ending on the Shark's line;
+split into two recordings, days 1–50 and 50–98 with their own chapters. Cutting from a synthetic test-pattern
+recording gave every clip at its planned length. Runbook, OBS recording advice and the rights check
+(tinyBuild's influencer policy allows monetised videos with a copyright notice; the soundtrack's Content ID
+status is unknown): docs/STREAM-OPS.md section 7.
+
 ## Trading styles — 2026-11-11: six ways to trade that win hard 60/60
 
 **Result.** The counter policy every route shared is now one style of six. On top of the `appraiser` route,

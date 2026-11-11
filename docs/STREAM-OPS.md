@@ -102,7 +102,8 @@ Then by hand, in this order:
 2. Start the game; Mods → fence: `autopilot` on, `autopilot_pace_ms` 800–1200, `act_enabled` off;
    the overlay's key bind reads F10. Load the run's save at a morning.
 3. OBS: a 30-second local recording of the full scene; play it back (game picture inside its
-   hole, the panel's column and lower third, the narrator audible over the game).
+   hole, the panel's column and lower third, the narrator audible over the game). On air, record
+   locally the whole time as well (section 7, "Record locally, upload the master").
 4. Panel: the name card shows this run's model and persona; the about card shows the setup lines.
 
 ## 3. OBS scene
@@ -271,6 +272,119 @@ If it patched anyway, the pre-flight's "game build" row is NO-GO:
    ◆ entry (the about card's count); the goal is none (`docs/STREAM.md` section 11).
 7. Write the run's results (ending, day, handovers, faults) under a dated entry in
    `docs/PROGRESS.md`.
+8. Make the VOD kit (below) and upload the local recording to YouTube by hand.
+
+### Record locally, upload the master
+
+The run streams live on Twitch; the VODs go to YouTube. Record in OBS **at the same time** as
+streaming (Settings → Output → Recording; "Start Recording" with "Start Streaming", or tick
+"Automatically record when streaming" under Settings → Advanced) and upload that file. Do not
+depend on Twitch: its past broadcasts expire (days to weeks depending on the account), its
+"Export to YouTube" re-encodes the already-compressed stream, and a muted segment in the VOD
+stays muted in the export. The local master is full quality, survives a dropped stream, and is
+what `fencevod` times its chapters against.
+
+- Format: MKV (a crash never loses the file; OBS's "Automatically remux to MP4" makes the upload
+  copy), the canvas at 1920×1080 60 fps, a quality-based encoder (NVENC CQ ~20 or x264 CRF 18),
+  the stream's audio tracks. Keep OBS's default file name (`%CCYY-%MM-%DD %hh-%mm-%ss`): `fencevod`
+  reads the start time from it.
+- One recording per stream session; a crash or an OBS restart starts a new file, which is a new
+  recording to `fencevod` (pass both; each gets its own chapters).
+- Keep the masters under `var/stream/<date>/` with the feed (never committed: raw recordings
+  stay off the repo), and keep them until the YouTube upload has finished processing.
+- The narration WAVs are already in the recording through the panel's browser source; nothing
+  to mix afterwards.
+
+### The VOD kit (`cmd/fencevod`)
+
+From the stream's feed and the recordings' start times, one kit per recording: YouTube chapters,
+a title, a description (with the chapters, and the result below a spoiler line), tags, a list of
+30–60 s highlight windows for Shorts and Twitch clips, and an ffmpeg script that cuts them. Local
+files only: it uploads nothing and calls no model.
+
+```sh
+# one session, OBS's default file name gives the start time; ffprobe gives the length
+go run ./cmd/fencevod -feed var/show/stream-2026-11-20.jsonl \
+  -recording "var/stream/2026-11-20/2026-11-20 19-58-12.mkv" -out var/vod/2026-11-20
+# a run over three sessions: one -recording-start per recording (local time, or RFC 3339;
+# "/2h45m" appended gives the length when the file is not at hand)
+go run ./cmd/fencevod -feed var/show/stream-2026-11-20.jsonl -feed var/show/stream-2026-11-21.jsonl \
+  -recording-start "2026-11-20 19:58:12" -recording-start "2026-11-21 20:01:40/3h5m" \
+  -recording-start "2026-11-22 19:59:03" -out var/vod/run-shark
+sh var/vod/2026-11-20/cut.sh            # the clips, into var/vod/2026-11-20/clips/ (needs ffmpeg)
+```
+
+Out, per recording (`part-N/` when there are several): `title.txt`, `description.txt`,
+`chapters.txt`, `tags.txt`, `highlights.tsv` (start, end, length, day, caption), `cut.sh` and
+`kit.json` (all of it, for scripts).
+
+- **Timing.** Each event is placed at the time the panel showed it (a feed's publish time `at`;
+  a decision log's `ts`) and offset from its recording's start. Recording times without a zone are
+  local (`-tz` to change). A recording without a length ends where the next starts; the last one
+  shortly after the feed's last event. A recording that holds no event is reported: its start
+  time or `-tz` is wrong.
+- **Chapters** (YouTube's rules: the first at 0:00, at least three, each at least 10 s; about one
+  per 8 minutes, 10–30). The start of each game week, or of each two weeks when weeks would fill
+  more than half the list; then the loudest moments by the narrator's own ranking
+  (`show.Priority`) with a named beat ahead of a plain event of the same rank: the run's start,
+  joining the appraisal board and each promotion, the mortgage and its payments, the gun, a
+  handover, buyout milestones, the permit and upgrades, big trades and a counterfeit sold, plan
+  pivots (the plan changes that make a plan a moment, `show.PlanPivot`), Georgio, missed rent, and
+  any moment of a kind added later (bets, forks, the ghost band's pace, …) at whatever rank
+  `Priority` gives it. The everyday small beats (counter, night, morning plan, appraisal streak),
+  day closes and heat ticks are never chapters. Each repeat of a kind and beat ranks lower, so
+  eight aug fights do not crowd out the rest, and the same pivot taken up again is one chapter.
+  No two chapters closer than a third of the average spacing; a loud moment on a week's start
+  names that chapter ("Weeks 5–6: days 29–42 · A quarter of the way to the deed"). The ending is
+  always "How it ends", win or lose.
+- **Title, description, tags.** The title says who plays, as whom, the format, difficulty and route,
+  and the part, never the result. The description: the premise in the show's voice, the days, the
+  format, the route's brief, the setup and seed, the fair-play rule, the chapters, tinyBuild's
+  copyright notice (below), then a spoiler line and the result (or where a part leaves the run).
+  Templates only: no LLM writes them, so they never invent a number.
+- **Highlights** (`-clips`, default 12): moments ranked by `Priority`, a fact-checked line of the
+  model's own (not a caption read out) worth a rank and a half, a morning plan a rank less; repeats
+  of a kind and clips crowding the same stretch rank lower; none overlap. A window opens 12 s
+  before the moment and closes 3 s after its line has been spoken (2.6 words a second), held to
+  30–60 s inside the recording. The caption is the line. Lines are matched to their moment by the
+  feed's `say.for`, so a decision log's moments can take a feed's lines (`-replay MATCH -feed FEED`:
+  the moments are the current builder's, with today's beats).
+- **Clips.** `cut.sh [RECORDING]` re-encodes each window (x264 CRF 20, AAC) so cuts are exact, not
+  on keyframes. They are 16:9; crop to 9:16 for Shorts in the editor.
+
+Tested on the dress rehearsal (section 10) with a made-up OBS start one minute before the run's
+start, 02:36:40 AST: 3 h 12 min, days 1–98, 24 chapters (the weeks in pairs, the run start, the
+appraisal board's join and three promotions, four plan pivots, the permit and five other purchases, the
+first buyout milestone, an aug fight, two big sales, a counterfeit, Georgio's payback, "How it
+ends") and 12 clips of 30–45 s, eleven of them ending on the Shark's own line. Split at 04:15 into
+two recordings: days 1–50 and 50–98, 12 and 11 chapters, part 1 ending "to be continued" with its
+cash and net worth, part 2 opening on its week. (The rehearsal directory is not a league match:
+`-replay` read a directory holding its `log/`, its `bridge.out` as `bridge.log` and a hand-written
+`match.json`; `-feed` gave the narrator's lines.) Cut from a synthetic 3 h 13 min test-pattern file named like an OBS recording: start and length
+read from the file, 12 clips of exactly the planned lengths.
+
+### Rights and music (checked 2026-11-11)
+
+- **The publisher's policy.** Probably Stolen is developed by Questing Goose Studio and published by
+  tinyBuild (Steam store page, https://store.steampowered.com/app/4348910/). tinyBuild's influencer
+  policy, https://www.tinybuild.com/influencer-policy (linked from its help centre), authorises
+  anyone to use images and sounds from any of tinyBuild's games in Let's Plays, streams and similar
+  videos on YouTube, Twitch, Facebook and TikTok, "even if your videos are monetized or contain
+  advertisements", provided the video shows original content and not only the game's, and carries
+  the notice "Copyright © tinyBuild, LLC. All Rights Reserved. www.tinybuild.com" in or close to the
+  video. It forbids uploading the soundtrack alone or re-uploading tinyBuild's own videos, names no
+  excluded game, has no date or version, and "may be subject to change". `fencevod` puts the notice
+  in every description. Formal documentation: PR@tinybuild.com. No Questing Goose-specific
+  streaming policy was found, and nothing on the Steam page addresses streaming.
+- **Music.** The game's soundtrack is sold as a Steam DLC ("Probably Stolen Soundtrack"); the store
+  page says nothing of its licence, its composer, or whether it is registered with Content ID, and
+  no other source said either. tinyBuild's policy permits the game's sounds in videos, but a
+  distributor's Content ID claim can still land on a VOD; it would be a claim to dispute with the
+  policy, not a strike. To keep the risk small: stream with the game's music lowered or off (the
+  narrator carries the audio anyway), never add outside music, and on a claim dispute it citing the
+  policy URL above. Twitch mutes VOD segments on detected copyrighted music, another reason to
+  upload the local master.
+- Re-check both pages before the first upload; the policy is undated.
 
 ## 8. Rehearsal without the game
 
