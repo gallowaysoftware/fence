@@ -1,0 +1,20 @@
+{
+  "title": "Clean hands",
+  "difficulty": "hard",
+  "handicaps": [
+    "clean_shop"
+  ],
+  "card": "Hard, but nothing stolen crosses the counter.",
+  "pitch": "Hard with clean hands: any lot holding a stolen item is refused, whatever the margin.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 60,
+    "median_end_day": 98,
+    "median_win_day": 98,
+    "endings": {
+      "buyout": 60
+    }
+  }
+}

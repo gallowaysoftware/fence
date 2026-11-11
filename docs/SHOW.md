@@ -44,7 +44,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 
 | Kind | Payload | From |
 |---|---|---|
-| `run_start` | `player`: `id`, `model`, `persona`, `persona_name`, `persona_tagline`, `route`, `route_brief`, `difficulty`, `start`, `perks`, `seed`, `planner`, `book` (the route's lab band: `route`, `fallback`, `runs`, `wins`, `median_win_day`, `p10`/`p50`/`p90` by morning), `prev_run` (`label`, `path`) | `run_start` event + match.json + `internal/show/data/ghost_bands.json` |
+| `run_start` | `player`: `id`, `model`, `persona`, `persona_name`, `persona_tagline`, `route`, `route_brief`, `difficulty`, `start`, `perks`, `seed`, `planner`, `book` (the route's lab band: `route`, `fallback`, `runs`, `wins`, `median_win_day`, `p10`/`p50`/`p90` by morning), `prev_run` (`label`, `path`), `format` (the format's card, below) | `run_start` event + match.json + `internal/show/data/ghost_bands.json` |
 | `plan` | `plan`: `day`, `source` (`llm` prose, `directives` only, `executor` when the model changed nothing), `headline` (≤ 4 lines from GOALS/CASH/RISK), `sections`, `directives` (in words), `changes` vs the previous plan, `change`, `why` (the model's reasons, "bargain: …", then the bridge's corrections, "overruled: …"), `goals` (the standing plan: the last prose goal, mortgage savings, rent cover, buyout progress, the base directives' engine and permit) | `/v1/summary` (live); bridge.log (replay) |
 | `candidates` | `candidates`: `day`, `metric`, `options[]`: `label`, `source`, `directives`, `score`, `stderr`, `rollouts`, `chosen`, `note` | the hybrid planner, a `show` line in its decision log (or `/v1/ingest`) |
 | `thought` | `hidden_used` (names only) when an autopilot rule read a hidden value; the panel marks it ◆ | a customer and the executor's reason (gym), a model's own rationale (advise/act), services, outings, concealment, every live autopilot action with its reason |
@@ -178,6 +178,111 @@ check on the first try:
 | 21 | above the sprinter book's band (90th percentile 3,947, median 3,481) | Nine out of ten ghosts are still counting change. I am the card sharp holding the ace. |
 | 44 | back inside the sprinter book's band, ahead (median 4,448) | Ahead of the ghost. The book says I should be bleeding, but my pockets are heavy. |
 | 71 | now ahead of the sprinter book (median 19,989; was on pace) | Ghost is choking on its own tail now. I just took a bite of the lead it thought it owned. |
+
+## Formats
+
+Hard is solved: every route wins 60/60 with the Appraisal Board, so a plain hard run has no doubt in
+it. A **format** is a named stream setup with a real chance of losing: a difficulty, an optional
+route, handicaps declared up front and an optional buyout deadline, with a card for the panel, a
+one-line pitch for the narrator and the lab's odds. Each is a file,
+`sim/lab/scripts/directives/formats/<name>.json` (`internal/format`):
+
+| Field | |
+|---|---|
+| `title`, `card` | the name card's heading and line (the card may hold numbers; the panel shows it) |
+| `pitch` | the narrator's premise; no number in digits or words (the fact check would reject it) |
+| `difficulty` | `hard` or `challenge`; a challenge format plays `routes/challenge/<route>.json` |
+| `route` | a route name; empty lets the run pick (the bridge's `-route`; the lab plays `sprinter`) |
+| `handicaps` | ids below |
+| `deadline_day` | only a buyout on or before that day wins the format |
+| `lab` | the executor's record alone: `runs`, `wins`, `median_end_day`, `median_win_day`, `endings` (a buyout after the deadline is `late`), `seeds`, `route`, `note` |
+
+**Handicaps** map onto existing directives; the executor enforces them through one new lever,
+`locked` (`sim/gym/Directives.cs`, shared with the live autopilot; off unless a base file lists keys):
+the keys a base file locks keep the base's value whatever a day's plan sends. The bridge also drops a delta
+plan's change to a locked key, with an "overruled: … locked by the run's format" note, so the panel
+never shows a plan the hands will not play (`internal/strategy/locked.go`).
+
+| Id | Card | Directives | Locked |
+|---|---|---|---|
+| `no_board` | No Appraisal Board | `appraisal: "off"` | `appraisal` |
+| `no_mortgage` | No mortgage | `mortgage: "decline"` (the loan shark's first offer is declined for good: cash buyout only) | `mortgage`, `loan` |
+| `no_haggle` | No haggling | `bargain`, `bargain_buy: "never"` (the `fair_dealer` route's) | `bargain`, `bargain_buy` |
+| `clean_shop` | Nothing stolen | `buy.hot_stock_cap: 0` (the `clean_shop` route's) | `buy.hot_stock_cap` |
+| `no_insurance` | No insurance | `services: ["JANITORIAL_SERVICE"]` (the challenge routes') | `services` |
+
+A deadline is the show's rule, not the executor's: the executor plays as always and the run's end is
+judged against the day (the lab's odds are therefore the plain route's win days cut at the deadline).
+
+**The formats and their odds.** Lab = the executor alone on 60 fresh seeds 8300001–060 (1000-day
+horizon, this branch's gym; `fenceformat lab`), the route `sprinter` (`challenge/sprinter` on
+challenge). The odds between about 20 % and 80 % are the good television.
+
+| Format | Setup | Lab wins (95 % CI) | Median end / win day | Endings | Television |
+|---|---|---|---|---|---|
+| `standard` | hard | 60/60 (94–100 %) | 91 / 91 | buyout 60 | no doubt |
+| `clean_shop` | hard, nothing stolen | 60/60 (94–100 %) | 98 / 98 | buyout 60 | no doubt |
+| `fair_dealer` | hard, no haggling | 60/60 (94–100 %) | 98 / 98 | buyout 59, mortgage 1 | no doubt |
+| `cash_only` | hard, no mortgage | 60/60 (94–100 %) | 91 / 91 | buyout 60 | no doubt |
+| `purist` | hard, all four vows (no haggling, nothing stolen, no mortgage, no insurance) | 60/60 (94–100 %) | 98 / 98 | buyout 60 | no doubt |
+| `challenge` | challenge | 60/60 (94–100 %) | 182 / 182 | mortgage 60 | no doubt |
+| **`challenge_clock`** | challenge, bought by day 182 | **44/60 (61–83 %)** | 182 / 182 | mortgage 44, late 16 (189–217) | **yes**, the edge of it |
+| **`sprint_91`** | hard, bought by day 91 | **31/60 (39–64 %)** | 91 / 84 | buyout 31, late 29 (98–126) | **yes**: a coin flip |
+| **`purist_sprint`** | `purist` + bought by day 91 | **20/60 (23–46 %)** | 98 / 84 | buyout 20, late 40 | **yes**: about 1 in 3 |
+| `board_free` | hard, no Appraisal Board | 1/120 here; **3 in 2,940** pooled | 189 / 196 | here: rent 87, repo 32, mortgage 1 | the quest: any win is history |
+
+No handicap alone moves hard: every one, and all four together, still wins 60/60 here; it costs about a week
+(median win day 98 against 91; the purist's win days spread 70–126). The Appraisal Board is the one
+handicap that decides the run, and without it the shop almost never wins (`sprinter` 0/60, rent 49, repo
+11; `no_vending` 1/60, a mortgage paid off on day 196). On challenge a handicap does not bite either:
+`challenge` with no haggling won 60/60 (median day 182; the other challenge screens were stopped there). So the formats with jeopardy are the deadlines,
+cut from those same runs: the executor plays a deadline format exactly as the plain one (it never sees
+the deadline), and a buyout after it is `late`. Thirteen weeks on hard is a coin flip (31/60; by day 84
+it is 18/60, by 98 42/60); the vows take a week, so the purist with the same deadline wins 1 in 3; on
+challenge, the earliest deed there is (the mortgage signed on day 70, paid off on day 182) comes in 44
+runs of 60. The `board_free` record pools 2,820 earlier Board-free runs (docs/research/ROUTES.md and
+TRADING-STYLES.md: wins on `no_vending` day 196 and `appraiser` day 210) with these 120.
+
+Measured on this branch's gym (main c4a484d + the `locked` lever, inert without a plan: `standard`'s 60
+summaries are identical to main's gym on the same seeds). `standard`, `clean_shop`, `fair_dealer`,
+`purist` and `challenge` ran through `fenceformat lab`; `cash_only` and `board_free` on main's gym with
+the same directives; the three deadline formats are `fenceformat tally` cuts of `standard`, `purist` and
+`challenge`.
+
+**On screen.** The name card grows a format block: the title and the lab's win share, the card line,
+a chip per handicap (and the deadline), a bar of the odds, the lab's record in words ("the lab wins it
+31 times in 60 (about 5 in 10), median win day 84") and the attempts so far ("On stream: 1 win in 3
+attempts (last: rent, day 141)"). The run's start caption ends with the format and the lab's numbers
+("Format: Deadline sprint, the shop bought by day 91; the lab wins it 31 times in 60 (about 5 in 10),
+…"), so at that moment the narrator may say them: they are in its facts. Everywhere else the narrator
+gets the format's title, pitch and the odds **in words** in its system prompt ("a coin flip: the lab
+wins it about half the time"; "a long shot: the lab has almost never won it"), never a number, so the
+fact check is untouched; the mood is unchanged. A deadline format's run end adds the verdict ("Deadline
+sprint lost: the deadline was day 91."). `TestShippedFormatsHaveNoNumbersForTheNarrator` reads every
+format's title and stakes through the fact check.
+
+**The record of attempts** is `var/formats/record.jsonl` (not committed): one line per played run,
+`{format, run, source, model, persona, route, seed, ending, day, won}`. fenceshow appends a
+`-live-log` run's end (source `stream`); fenceleague appends each finished format match (source
+`league`); `fenceformat record` adds one by hand. The card reads it when fenceshow starts; a replay
+leaves its own match out.
+
+`cmd/fenceformat`:
+
+```sh
+go run ./cmd/fenceformat list                        # every format, its lab record and attempts
+go run ./cmd/fenceformat card sprint_91              # the card, the narrator's stakes, the strategist's text
+go run ./cmd/fenceformat directives cash_only        # one line for the mod's autopilot_directives
+go run ./cmd/fenceformat write -dir var/formats/x cash_only   # the route file with the handicaps (gym -directives)
+go run ./cmd/fenceformat lab -update -seed0 8300000 -seeds 60 -parallel 8 cash_only   # measure (nice 10)
+go run ./cmd/fenceformat tally -update sprint_91 var/formats/lab/standard-8300000      # re-cut existing runs
+go run ./cmd/fenceformat record -run qwen27:r3 -ending rent -day 141 board_free
+```
+
+A league plays a format with `"routes": [{"format": "sprint_91"}, {"format": "challenge", "route":
+"smelter"}]` (the format's difficulty must be one the league plays; matches are named
+`<player>__f-<format>__r-<route>__s<seed>…`); the bridge takes `-format NAME` (with `-route` for a
+format that names none), fenceshow `-format NAME` (a league match names its own).
 
 ## Producers
 

@@ -265,6 +265,10 @@ func (b *Builder) event(e *logEvent) []Event {
 		}
 		b.fill(d.Difficulty, d.Start, d.Perks)
 		b.Player.Book = BookFor(b.Player.Route, b.Player.Difficulty, b.Player.Start)
+		// Every book is a Board run; a Board-free run would read "behind" all game.
+		if f := b.Player.Format; f != nil && slices.Contains(f.Handicaps, "no_board") {
+			b.Player.Book = nil
+		}
 		b.run, b.started = run, true
 		p := b.Player
 		return []Event{{Kind: KindRunStart, Level: LevelMoment, Day: max(e.GameDay, 1), Player: &p, Text: runStartText(p)}}
@@ -1324,6 +1328,9 @@ func runStartText(p Player) string {
 	}
 	if p.Start != "" {
 		s += ", " + strings.ReplaceAll(p.Start, "_", " ") + " start"
+	}
+	if p.Format != nil {
+		return s + ". " + p.Format.Caption()
 	}
 	return s + "."
 }

@@ -1,0 +1,17 @@
+{
+  "title": "Challenge",
+  "difficulty": "challenge",
+  "card": "Challenge rules: a dearer shop, a harsher mortgage, triple insurance.",
+  "pitch": "Challenge rules: the deed costs more every day, the mortgage is brutal and insurance triples; the shop is won by mortgage or not at all.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 60,
+    "median_end_day": 182,
+    "median_win_day": 182,
+    "endings": {
+      "buyout_mortgage": 60
+    }
+  }
+}

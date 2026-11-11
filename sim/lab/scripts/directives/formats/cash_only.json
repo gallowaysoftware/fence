@@ -1,0 +1,20 @@
+{
+  "title": "Cash or nothing",
+  "difficulty": "hard",
+  "handicaps": [
+    "no_mortgage"
+  ],
+  "card": "Hard with the loan shark turned away: the shop is bought for cash or not at all.",
+  "pitch": "Hard with the loan shark turned away for good: the shop is bought outright for cash, or the run is lost.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 60,
+    "median_end_day": 91,
+    "median_win_day": 91,
+    "endings": {
+      "buyout": 60
+    }
+  }
+}

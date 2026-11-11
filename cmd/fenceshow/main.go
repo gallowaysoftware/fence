@@ -23,6 +23,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/show"
 )
@@ -44,6 +45,7 @@ type config struct {
 	listen, record, board, boardSeed         string
 	personas, model, persona, playerID       string
 	route, baseDirectives, prevRun           string
+	format, formats, formatRecord            string
 	defaultPersona                           string
 	exitAfter                                time.Duration
 	setup                                    string
@@ -88,6 +90,9 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.route, "route", "", "route name or file for -live-log, or for a -replay/-live-match whose match names none (a rehearsal's log dir)")
 	fs.StringVar(&c.prevRun, "prev-run", "", "an earlier run on the same seed to race beside the route's book: a decision log, a match or rehearsal directory, or a gym summary")
 	fs.StringVar(&c.baseDirectives, "base-directives", "", "for -live-log: the bridge's -base-directives file, for the standing plan's goals; empty: the -route's directives")
+	fs.StringVar(&c.format, "format", "", "the run's stream format (docs/SHOW.md, \"Formats\"): its card and lab odds on the name card, its stakes for the narrator (a league match names its own)")
+	fs.StringVar(&c.formats, "formats", format.DefaultDir, "format directory")
+	fs.StringVar(&c.formatRecord, "format-record", format.DefaultRecord, "the local record of format attempts: the card reads it, and a -live-log run's end is appended")
 	fs.StringVar(&c.defaultPersona, "default-persona", show.DefaultPersona, "persona for a run that has none, so the name card and the narrator have a character; empty: none")
 	fs.DurationVar(&c.exitAfter, "exit-after", -1, "replay: exit this long after the last event (e.g. 20s); negative: keep serving")
 	fs.StringVar(&c.setup, "setup", env("FENCE_SHOW_SETUP", ""), "the rig for the \"about this AI\" card, lines separated by ';' (e.g. \"Strategist: Qwen 27B, local;Voice: Kokoro\")")
@@ -182,6 +187,11 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 			match.Player.SetRoute(c.route)
 		}
 		match.Player.PrevRun = prev
+		if c.format != "" {
+			if err := match.Player.SetFormat(c.formats, c.format, c.formatRecord, filepath.Base(filepath.Clean(dir))); err != nil {
+				return err
+			}
+		}
 	}
 	if c.convert {
 		f, err := os.Open(match.LogFile)
@@ -269,7 +279,11 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 	defer srv.Close()
 	log.Info("show panel", "url", "http://"+ln.Addr().String()+"/", "column", "/column", "lower", "/lower")
 
-	publish := func(ev show.Event) show.Event { return hub.Publish(ev) }
+	toHub := func(ev show.Event) show.Event { return hub.Publish(ev) }
+	publish := toHub
+	if match != nil {
+		publish = formatPublish(toHub, &match.Player, "", log)
+	}
 	pace := show.DefaultPace
 	pace.Speed = c.speed
 	pace.Recorded, pace.MaxHold = c.recordedPace, 3*time.Minute
@@ -291,7 +305,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 		}
 		err = show.PlayFeed(ctx, f, win, pace, gate, publish)
 	default:
-		l := &show.Live{Publish: func(ev show.Event) { hub.Publish(ev) }, Log: log, Bridge: c.bridge}
+		l := &show.Live{Log: log, Bridge: c.bridge}
 		if match != nil {
 			l.LogDir, l.Player, l.Bridge, l.Base = filepath.Dir(match.LogFile), match.Player, "", match.Base
 			if match.Listen != "" {
@@ -309,7 +323,22 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 			if l.Player.ID == "" {
 				l.Player.ID = "live"
 			}
+			if err := l.Player.SetFormat(c.formats, c.format, c.formatRecord, ""); err != nil {
+				return err
+			}
+			if c.format != "" && c.baseDirectives == "" {
+				l.Base, err = formatBase(c.formats, c.format, c.route)
+				if err != nil {
+					return err
+				}
+			}
 		}
+		record := ""
+		if match == nil {
+			record = c.formatRecord
+		}
+		pub := formatPublish(toHub, &l.Player, record, log)
+		l.Publish = func(ev show.Event) { pub(ev) }
 		return l.Run(ctx)
 	}
 	if err != nil && ctx.Err() == nil {

@@ -111,14 +111,37 @@ namespace Fence.Gym
             return s.EndsWith("_SERVICE") || Bare.Contains(s) ? s : s + "_SERVICE";
         }
 
-        // `over` wins field by field (a day's plan over the run's base file).
+        // `over` wins field by field (a day's plan over the run's base file), except the keys the base lists in
+        // `locked` (dotted for nested ones, "buy.hot_stock_cap"): a stream format's handicaps, which no plan may lift.
         public static Directives Merge(Directives under, Directives over)
         {
             if (under == null) return over ?? new Directives();
             if (over == null) return under;
             var raw = (JObject)under.Raw.DeepClone();
             raw.Merge(over.Raw, new JsonMergeSettings { MergeArrayHandling = MergeArrayHandling.Replace, MergeNullValueHandling = MergeNullValueHandling.Merge });
+            if (under.Raw["locked"] is JArray locked)
+                foreach (var path in locked.Select(t => t.Type == JTokenType.String ? (string)t : null).Where(p => !string.IsNullOrEmpty(p)).Concat(new[] { "locked" }))
+                    Relock(raw, under.Raw, path.Split('.'));
             return Parse(raw);
+        }
+
+        static void Relock(JObject merged, JObject under, string[] path)
+        {
+            JToken want = under;
+            foreach (var key in path) want = (want as JObject)?[key];
+            JObject parent = merged;
+            for (int i = 0; i < path.Length - 1; i++)
+            {
+                if (!(parent[path[i]] is JObject next))
+                {
+                    if (want == null) return;
+                    parent[path[i]] = next = new JObject();
+                }
+                parent = next;
+            }
+            string last = path[path.Length - 1];
+            if (want == null) parent.Remove(last);
+            else parent[last] = want.DeepClone();
         }
 
         // Knobs (-human knobs vocabulary) seed the directives the executor starts from, so the old

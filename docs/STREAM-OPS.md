@@ -158,6 +158,26 @@ go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
   -setup "Strategist: Qwen 27B on the stream PC, delta plans over the sprinter route;Hands: rule-based executor in the mod;Narrator: Claude Haiku, fact-checked;Voice: Kokoro"
 ```
 
+- **A format run** (docs/SHOW.md, "Formats": a run with a real chance of losing). Pick one from
+  `go run ./cmd/fenceformat list` (the lab's odds and the attempts so far), then give all three
+  pieces the same format:
+
+  ```sh
+  # the mod: Options → Mods → autopilot_directives, the format's directives in one line (handicaps locked)
+  go run ./cmd/fenceformat directives sprint_91            # add -route NAME for a format that names none
+  # the bridge: the plans are told the format, and a change to a locked key is overruled
+  make bridge ARGS="-mode observe -planner llm -directives delta -format sprint_91 -route sprinter -persona shark \
+    -provider openai -base-url $STRATEGIST_URL -model $STRATEGIST_MODEL"
+  # the panel and narrator: the format card, the lab's odds, the stakes; the run's end goes in the record
+  go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
+    -player qwen27 -model qwen3.8-27b -persona shark -route sprinter -format sprint_91 -fill-after 40s \
+    -record var/show/stream-$(date +%F).jsonl -tts-url http://127.0.0.1:8881
+  ```
+
+  Start the save on the format's difficulty (a challenge format needs a challenge save). Put the
+  default text back in `autopilot_directives` after the run. A run that ends while fenceshow is down is
+  not recorded: add it with `go run ./cmd/fenceformat record -run <player>:<run_id> -ending rent -day
+  141 sprint_91`. The record is `var/formats/record.jsonl`; keep it across streams like the board.
 - **Name each player.** `-player` is the scoreboard's player column and half of a run's id
   (`<player>:<run_id>`); give each model its own (`qwen27`, `drift`, `haiku`) so the board keeps
   them apart.

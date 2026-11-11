@@ -1,0 +1,25 @@
+{
+  "title": "Purist sprint",
+  "difficulty": "hard",
+  "handicaps": [
+    "no_haggle",
+    "clean_shop",
+    "no_mortgage",
+    "no_insurance"
+  ],
+  "deadline_day": 91,
+  "card": "The purist's vows and a deadline: bought for cash by day 91, never haggling, nothing stolen, never insured.",
+  "pitch": "Hard with every vow kept in public and the calendar against you: no haggling, nothing stolen, no mortgage, no insurance, and the deed bought before the deadline.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 20,
+    "median_end_day": 98,
+    "median_win_day": 84,
+    "endings": {
+      "buyout": 20,
+      "late": 40
+    }
+  }
+}

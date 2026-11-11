@@ -85,6 +85,7 @@
       const s = document.createElement("span");
       s.className = "chip"; s.textContent = c; $("chips").appendChild(s);
     }
+    if (window.renderFormat) window.renderFormat(p.format);
     $("live-dot").classList.add("on");
   }
 

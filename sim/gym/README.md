@@ -349,7 +349,10 @@ the same way, or completely within a second or two (a half-written file is retri
   also lists `wild_purchases` (upgrade, cost, cash and favor spent). The forward cash floor holds
   from five days before rent: the rent less 60 % of the last week's average daily sales per day left.
 - `directives.json`: the contract in `docs/PROTOCOL.md` "Directives" (`protocol/fixtures/directives.json`);
-  every field optional, `{}` plays the base. How the executor reads the protocol fields:
+  every field optional, `{}` plays the base. A base file's `locked` (a list of keys, dotted for nested
+  ones: `["mortgage", "buy.hot_stock_cap"]`; default none) keeps those keys at the base's value whatever
+  a day's plan sends: a stream format's handicaps (docs/SHOW.md, "Formats"; `Directives.Merge`, shared
+  with the live autopilot). How the executor reads the protocol fields:
   `services` forces exactly those services on (the tablet still drops what tonight's cash cannot pay);
   unset keeps insurance and janitorial on unless tonight's bill is unaffordable and turns the power
   service off while nothing owned draws store power. `permit`: `bribe` never buys (goods donated to

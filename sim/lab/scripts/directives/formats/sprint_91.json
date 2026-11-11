@@ -1,0 +1,19 @@
+{
+  "title": "Deadline sprint",
+  "difficulty": "hard",
+  "deadline_day": 91,
+  "card": "Hard with a deadline: buy the shop by day 91, or the run counts as lost.",
+  "pitch": "A race against the calendar on hard: the deed must be bought before the deadline, or the run counts as lost.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 31,
+    "median_end_day": 91,
+    "median_win_day": 84,
+    "endings": {
+      "buyout": 31,
+      "late": 29
+    }
+  }
+}

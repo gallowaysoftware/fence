@@ -6,6 +6,8 @@ package show
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/gallowaysoftware/fence/internal/format"
 )
 
 // SchemaVersion is Event.V. Bump it on a change a consumer must know about.
@@ -124,6 +126,8 @@ type Player struct {
 	Book *Book `json:"book,omitempty"`
 	// PrevRun is an earlier run to race beside the book (fenceshow -prev-run).
 	PrevRun *PrevRun `json:"prev_run,omitempty"`
+	// Format is the run's stream format (internal/format), nil for none.
+	Format *format.Card `json:"format,omitempty"`
 }
 
 // Plan is the morning plan or a change to it. Source is "llm" when the strategist's prose

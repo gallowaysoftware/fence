@@ -197,7 +197,8 @@ loses the race with the rent: from day 70 to 126 its net worth grows 700–900 a
 smelter 821, vintner 701, no_vending 703, watchman 912; median of 20 runs each), while the rent grows 10 % a week
 from ~520 on day 70 to ~1 350 by day 140. The way out is the mortgage, offered once the cash reaches twice the down
 payment (~6 000) on a rent morning, but its 16 payments of ~1 700 a week need twice the income these shops make:
-the runs that sign it are repossessed. The Board's ~2 200 a week is exactly that gap.
+the runs that sign it are repossessed. The Board's ~2 200 a week is exactly that gap. The stream plays this as the `board_free` format, the lab's record on its card
+(docs/SHOW.md, "Formats").
 
 ### Trying to win without it (none reached 50/60)
 

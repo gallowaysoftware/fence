@@ -1,0 +1,19 @@
+{
+  "title": "Challenge on the clock",
+  "difficulty": "challenge",
+  "deadline_day": 182,
+  "card": "Challenge rules and the earliest deed there is: sign by day 70, pay sixteen weeks, own it by day 182.",
+  "pitch": "Challenge rules with no slack: the mortgage must be signed at the first chance and paid off on schedule, or the run counts as lost.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 44,
+    "median_end_day": 182,
+    "median_win_day": 182,
+    "endings": {
+      "buyout_mortgage": 44,
+      "late": 16
+    }
+  }
+}

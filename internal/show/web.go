@@ -34,6 +34,7 @@ func Handler(h *Hub, audioDir string) http.Handler {
 	mux.HandleFunc("GET /about", page)
 	mux.Handle("GET /panel.js", noStore(files))
 	mux.Handle("GET /panel.css", noStore(files))
+	mux.Handle("GET /format.js", noStore(files))
 	mux.HandleFunc("GET /events", h.ServeSSE)
 	mux.HandleFunc("GET /state", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

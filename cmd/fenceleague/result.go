@@ -23,6 +23,7 @@ type Result struct {
 	Start    string `json:"start"`
 	Persona  string `json:"persona,omitempty"`
 	Route    string `json:"route,omitempty"`
+	Format   string `json:"format,omitempty"`
 	// Perks is the set the match started with; PerksRequested differs when the gym could
 	// not apply the spec's set.
 	Perks          string `json:"perks"`
@@ -127,7 +128,7 @@ func BuildResult(m Match, s *Spec, dir string) (*Result, error) {
 	readJSON(filepath.Join(dir, "match.json"), &meta)
 	r := &Result{Match: m.ID(), Player: m.Player.ID, Mode: m.Player.Mode, Endpoint: m.Player.Endpoint, Model: meta.Model,
 		Perks: meta.Perks, PerksRequested: meta.PerksAsked, PerksHeldOut: meta.HeldOut,
-		Seed: m.Seed, Start: m.Start, Persona: m.Persona, Route: m.Route, Difficulty: m.Difficulty, Horizon: s.Days,
+		Seed: m.Seed, Start: m.Start, Persona: m.Persona, Route: m.Route, Format: m.Format, Difficulty: m.Difficulty, Horizon: s.Days,
 		LastDay: g.LastDay, DaysPlayed: g.DaysPlayed, Cash: int64(g.Cash), GymSeconds: g.Seconds,
 		Customers: g.Stats.Customers, Decisions: g.Stats.Decisions, Deferred: g.Stats.Deferred, DecisionFailures: g.Stats.DecisionFailures}
 	for _, v := range g.CashByDay {

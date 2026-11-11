@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/protocol"
 	"github.com/gallowaysoftware/fence/internal/route"
 )
@@ -45,6 +46,7 @@ type matchJSON struct {
 	Start      string   `json:"start"`
 	Perks      string   `json:"perks"`
 	Difficulty string   `json:"difficulty"`
+	Format     string   `json:"format"`
 	BridgeArgs []string `json:"bridge_args"`
 }
 
@@ -87,6 +89,8 @@ func LoadMatch(dir, personaDir string) (*Match, error) {
 		}
 	}
 	m.Base, _ = BaseDirectives(routeRef, baseFile)
+	// A replay of a format run shows the format; an unreadable one is left off the card.
+	_ = m.Player.SetFormat("", mj.Format, format.DefaultRecord, filepath.Base(filepath.Clean(dir)))
 	if m.Player.Persona != "" {
 		m.Player.SetPersona(personaDir, m.Player.Persona, "")
 	}

@@ -464,6 +464,7 @@ func (n *Narrator) system(mood Mood) string {
 	if n.player != nil {
 		routeBrief = n.player.RouteBrief
 	}
+	stakes := formatStakes(n.player)
 	n.mu.Unlock()
 	p := LoadPersona(n.PersonaD, id)
 	var b strings.Builder
@@ -482,6 +483,7 @@ func (n *Narrator) system(mood Mood) string {
 	if routeBrief != "" {
 		fmt.Fprintf(&b, "This run's route, what your shop does (background for what you care about; never quote its numbers):\n%s\n", routeBrief)
 	}
+	b.WriteString(stakes)
 	if p.Text != "" {
 		fmt.Fprintf(&b, "How you play (background for motive and attitude; its prices and days are not today's facts, never quote them):\n%s\n", clip(strings.TrimSpace(p.Text), 900))
 	}

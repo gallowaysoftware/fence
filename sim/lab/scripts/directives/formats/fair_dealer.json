@@ -1,0 +1,21 @@
+{
+  "title": "Fair dealer",
+  "difficulty": "hard",
+  "handicaps": [
+    "no_haggle"
+  ],
+  "card": "Hard without haggling: every price taken as it stands.",
+  "pitch": "Hard without haggling: no discounts demanded, no markups, every price taken as it stands.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 60,
+    "median_end_day": 98,
+    "median_win_day": 98,
+    "endings": {
+      "buyout": 59,
+      "buyout_mortgage": 1
+    }
+  }
+}

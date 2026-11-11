@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -320,5 +321,38 @@ func TestRouteRunSpec(t *testing.T) {
 	}
 	if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[{"id":"h","mode":"heuristic"}],"routes":[{"route":"nope"}]}`)); err == nil {
 		t.Error("an unknown route must fail")
+	}
+}
+
+// TestFormatRunSpec: a format entry plays the format's route on the format's difficulty only, its
+// match id names the format, and a plan bridge is told it.
+func TestFormatRunSpec(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "s.json")
+	os.WriteFile(p, []byte(`{"name":"f","seeds":[7],"days":10,"difficulties":["hard","challenge"],"executor":{"human":"player"},
+		"players":[{"id":"q","endpoint":"e","mode":"plan"}],
+		"routes":[{"format":"cash_only"},{"format":"challenge","route":"smelter"},{"route":"smelter"}]}`), 0o644)
+	t.Chdir(filepath.Join("..", ".."))
+	spec, err := LoadSpec(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	for _, m := range spec.Matches() {
+		ids = append(ids, m.ID()+"/"+m.Difficulty+"/"+m.Format)
+	}
+	want := []string{"q__f-cash_only__r-sprinter__s7__shark__hard/hard/cash_only", "q__r-smelter__s7__smelter__hard/hard/",
+		"q__f-challenge__r-smelter__s7__smelter__challenge/challenge/challenge", "q__r-smelter__s7__smelter__challenge/challenge/"}
+	if !slices.Equal(ids, want) {
+		t.Fatalf("matches %q", ids)
+	}
+	m := spec.Matches()[0]
+	l := &League{Spec: spec, Local: &Local{}, GymDLL: "gym.dll", Persona: true, Perks: true}
+	if b := strings.Join(l.bridgeArgs(m, nil, "", "127.0.0.1:1", "/m"), " "); !strings.Contains(b, "-format cash_only") {
+		t.Errorf("bridge args %q", b)
+	}
+	os.WriteFile(p, []byte(`{"name":"f","seeds":[7],"players":[{"id":"h","mode":"local"}],"routes":[{"format":"challenge"}]}`), 0o644)
+	if _, err := LoadSpec(p); err == nil || !strings.Contains(err.Error(), "does not") {
+		t.Errorf("a challenge format in a hard league: %v", err)
 	}
 }

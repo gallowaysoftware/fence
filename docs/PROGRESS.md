@@ -34,6 +34,40 @@ behind, with nine pace beats; the Qwen 27B narrator's pace lines all passed the 
 ten ghosts are still counting change. I am the card sharp holding the ace."). Details in docs/SHOW.md, "The
 ghost band".
 
+## Stream formats — 2026-11-11: three formats with real jeopardy; no handicap alone moves hard
+
+**Result.** A stream run can now be a **format**: a difficulty, an optional route, handicaps the executor
+enforces and an optional buyout deadline, with a card for the panel, a pitch for the narrator and the lab's
+odds (`sim/lab/scripts/directives/formats/`, `internal/format`, docs/SHOW.md "Formats"). On 60 fresh seeds
+8300001–060 (executor alone, `sprinter` / `challenge/sprinter`):
+
+| Format | Lab wins | Median win day |
+|---|---|---|
+| `standard`, `clean_shop` (nothing stolen), `fair_dealer` (no haggling), `cash_only` (no mortgage), `purist` (all four vows), `challenge` | 60/60 each | 91–98; challenge 182 |
+| **`challenge_clock`** (challenge, bought by day 182) | **44/60** (61–83 %) | 182 |
+| **`sprint_91`** (hard, bought by day 91) | **31/60** (39–64 %) | 84 |
+| **`purist_sprint`** (the four vows, bought by day 91) | **20/60** (23–46 %) | 84 |
+| `board_free` (no Appraisal Board) | 1/120 here; 3 in 2,940 pooled with earlier Board-free runs | 196 |
+
+No handicap alone, nor all four together, costs hard a run (nor no haggling on challenge: 60/60): they cost about a week (median win day 98
+against 91). The jeopardy comes from deadlines cut from the same runs (the executor never sees the deadline):
+those three land between 20 % and 80 %. The Board is the only handicap that decides a run, and without it the
+lab has three wins in 2,940, all mortgages paid off on days 196–210: the `board_free` quest.
+
+**Enforcement.** Handicaps map onto existing directives (`appraisal: off`, `mortgage: decline`, `bargain` and
+`bargain_buy: never`, `buy.hot_stock_cap: 0`, `services: [JANITORIAL_SERVICE]`). The one new lever is
+`locked` (`sim/gym/Directives.cs`, shared with the live autopilot, off unless a base file lists keys): a locked
+key keeps the base's value whatever a day's plan sends; the bridge drops a plan's change to one with an
+overruled note. Without a plan it is inert: `standard`'s 60 summaries are identical to main's gym.
+
+**Wiring.** `fenceformat` (list, card, directives for the mod, write, lab, tally, record); the bridge,
+fenceshow and league specs take a format (`-format NAME`; `"routes": [{"format": …}]`). The name card shows the
+format, its handicaps, the lab's odds and the attempts so far from `var/formats/record.jsonl` (appended by
+fenceshow's live hook and by fenceleague). The run's start caption carries the odds in digits, so the narrator
+may say them there; elsewhere it gets the stakes in words only ("a coin flip"), so the fact check is untouched.
+Checked with Qwen 3.8 27B on a 6-day replay of `sprint_91`: 7/7 lines passed first time, the first "Day
+ninety-one is the clock."
+
 ## Trading styles — 2026-11-11: six ways to trade that win hard 60/60
 
 **Result.** The counter policy every route shared is now one style of six. On top of the `appraiser` route,

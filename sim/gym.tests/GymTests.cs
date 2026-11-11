@@ -87,6 +87,18 @@ namespace Fence.Gym.Tests
             Assert.Equal(80, over.MinPct);
             Assert.Equal(1350, over.SellDownToCash);
             Assert.Throws<ArgumentException>(() => Directives.Load(Path.Combine(tmp, "bad.json")));
+
+            var handicapped = Directives.Parse(Newtonsoft.Json.Linq.JObject.Parse("{\"bargain\":\"never\",\"appraisal\":\"off\",\"buy\":{\"hot_stock_cap\":0,\"single_max_pct\":75},\"locked\":[\"bargain\",\"appraisal\",\"buy.hot_stock_cap\",\"mortgage\"]}"));
+            var plan = Directives.Parse(Newtonsoft.Json.Linq.JObject.Parse("{\"bargain\":\"aggressive\",\"appraisal\":\"join\",\"mortgage\":\"take\",\"buy\":{\"hot_stock_cap\":9,\"single_max_pct\":60},\"locked\":[],\"sell\":{\"min_pct\":80}}"));
+            var played = Directives.Merge(handicapped, plan);
+            Assert.Equal("never", played.Bargain);
+            Assert.Equal("off", played.Raw.Value<string>("appraisal"));
+            Assert.Null(played.Raw["mortgage"]);
+            Assert.Equal(0, played.HotStockCap);
+            Assert.Equal(60, played.SingleMaxPct);
+            Assert.Equal(80, played.MinPct);
+            Assert.Equal(4, ((Newtonsoft.Json.Linq.JArray)played.Raw["locked"]).Count);
+            Assert.Equal("aggressive", Directives.Merge(d, plan).Bargain);
         }
 
         // The executor is deterministic too, and by day 20 on normal it has met an aug (scripted on days 13

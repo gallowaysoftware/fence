@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/gallowaysoftware/fence/internal/decisionlog"
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/memory"
 	"github.com/gallowaysoftware/fence/internal/policy"
@@ -56,6 +57,8 @@ type config struct {
 	baseDirectives string
 	// route is a docs/research/ROUTES.md route by name or path.
 	route string
+	// format is a stream format (internal/format) by name: handicaps over the route.
+	format string
 
 	planner     string
 	plannerWait time.Duration
@@ -91,6 +94,7 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.exemplars, "exemplars", env("FENCE_EXEMPLARS", ""), "strong-play index (fenceexemplars) whose nearest days the morning plan is shown; empty: off (env FENCE_EXEMPLARS)")
 	fs.StringVar(&c.directives, "directives", env("FENCE_DIRECTIVES", "delta"), "full: the plan as every directive; delta: only changes to the executor's defaults (env FENCE_DIRECTIVES)")
 	fs.StringVar(&c.baseDirectives, "base-directives", env("FENCE_BASE_DIRECTIVES", ""), "the directives file the gym plays over its defaults (its -directives), shown to delta plans; empty: none (env FENCE_BASE_DIRECTIVES)")
+	fs.StringVar(&c.format, "format", env("FENCE_FORMAT", ""), "the run's stream format ("+format.DefaultDir+" name): its handicaps are laid over the route's directives and locked, and the plans are told the format (env FENCE_FORMAT)")
 	fs.StringVar(&c.route, "route", env("FENCE_ROUTE", ""), "the run's route ("+route.DefaultDir+" name or a file path): the morning plans are written as that shop, and its directives are the base unless -base-directives is set (env FENCE_ROUTE)")
 	fs.StringVar(&c.persona, "persona", env("FENCE_PERSONA", ""), "play style for the morning plans: an id in "+strategy.DefaultPersonaDir+" or a file path (env FENCE_PERSONA)")
 	fs.StringVar(&c.planner, "planner", env("FENCE_PLANNER", ""), "llm: the model writes the morning plans under any -policy, so -policy heuristic follows LLM plans; empty: plans only with -policy llm (env FENCE_PLANNER)")
@@ -257,7 +261,12 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		}
 	}
 	var base, routeText string
-	if c.route != "" {
+	switch {
+	case c.format != "":
+		if base, routeText, err = formatRoute(c.format, c.route); err != nil {
+			return err
+		}
+	case c.route != "":
 		r, err := route.Load("", c.route)
 		if err != nil {
 			return err

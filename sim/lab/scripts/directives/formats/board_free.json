@@ -1,0 +1,17 @@
+{
+  "title": "Board-free quest",
+  "difficulty": "hard",
+  "handicaps": [
+    "no_board"
+  ],
+  "card": "Hard without the Appraisal Board: 3 wins in 2,940 lab runs, every one a mortgage paid off after day 195.",
+  "pitch": "Hard without the Appraisal Board, the fees every winning shop lives on: a quest nobody has solved, where any win is history.",
+  "lab": {
+    "seeds": "5100001–060, 5200001–030, 5300001–060, 7100001–060, 8300001–060",
+    "runs": 2940,
+    "wins": 3,
+    "median_end_day": 189,
+    "median_win_day": 196,
+    "note": "Pooled: 2,820 Board-free runs in docs/research/ROUTES.md (\"Without the Appraisal Board\": 720 route runs, 780 lever screens, 240 water arms) and docs/research/TRADING-STYLES.md (1,080 style runs), with wins on no_vending day 196 and appraiser day 210; plus 120 on 8300001–060 (sprinter 0/60, no_vending 1/60 on day 196). Median end day is the 120."
+  }
+}

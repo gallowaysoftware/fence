@@ -1,0 +1,23 @@
+{
+  "title": "The purist",
+  "difficulty": "hard",
+  "handicaps": [
+    "no_haggle",
+    "clean_shop",
+    "no_mortgage",
+    "no_insurance"
+  ],
+  "card": "Hard with four vows: no haggling, nothing stolen, no mortgage, no insurance.",
+  "pitch": "Hard with vows kept in public: never haggle, never touch stolen goods, never borrow against the deed, never insure.",
+  "lab": {
+    "route": "sprinter",
+    "seeds": "8300001–060",
+    "runs": 60,
+    "wins": 60,
+    "median_end_day": 98,
+    "median_win_day": 98,
+    "endings": {
+      "buyout": 60
+    }
+  }
+}

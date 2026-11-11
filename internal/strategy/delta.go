@@ -93,6 +93,7 @@ func finishDelta(raw json.RawMessage, rawErr error, s *snapshot, day int, base s
 	r.Fixes = append(r.Fixes, lintBaseEngine(&r.Directives, base)...)
 	r.Fixes = append(r.Fixes, lintDecline(&r.Directives, s)...)
 	r.Fixes = append(r.Fixes, protectBuying(&r.Directives, s)...)
+	r.Fixes = append(r.Fixes, lintLocked(&r.Directives, base)...)
 	return r
 }
 

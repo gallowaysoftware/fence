@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	routes "github.com/gallowaysoftware/fence/internal/route"
 )
 
@@ -50,9 +52,13 @@ type Spec struct {
 // RouteRun is a route and the persona that plays it.
 type RouteRun struct {
 	Route string `json:"route"`
+	// Format is a stream format (internal/format): its difficulty and handicaps over the route
+	// (the format's own route when it names one, else Route, else the default).
+	Format string `json:"format,omitempty"`
 	// Persona is a docs/personas id; empty takes the route's own.
 	Persona string `json:"persona,omitempty"`
 	r       routes.Route
+	f       *format.Format
 }
 
 // NoPerks is the perk set of a match that starts without any.
@@ -211,7 +217,21 @@ func (s *Spec) normalizeRoutes() error {
 	seen := map[string]bool{}
 	for i := range s.Routes {
 		rr := &s.Routes[i]
-		r, err := routes.Load("", rr.Route)
+		ref := rr.Route
+		if rr.Format != "" {
+			f, err := format.Load("", rr.Format)
+			if err != nil {
+				return err
+			}
+			if ref, err = f.RouteFile(rr.Route); err != nil {
+				return err
+			}
+			if !slices.Contains(s.Difficulties, f.Difficulty) && cmp.Or(s.Difficulty, "hard") != f.Difficulty {
+				return fmt.Errorf("format %s plays %s, which the league does not", f.Name, f.Difficulty)
+			}
+			rr.f = &f
+		}
+		r, err := routes.Load("", ref)
 		if err != nil {
 			return err
 		}
@@ -222,7 +242,7 @@ func (s *Spec) normalizeRoutes() error {
 		if rr.Persona != "" && !idRE.MatchString(rr.Persona) {
 			return fmt.Errorf("route %s: persona %q is not an id", rr.Route, rr.Persona)
 		}
-		key := r.Name + "/" + rr.Persona
+		key := r.Name + "/" + rr.Format + "/" + rr.Persona
 		if seen[key] {
 			return fmt.Errorf("route %s with persona %q twice", rr.Route, rr.Persona)
 		}
@@ -287,11 +307,16 @@ type Match struct {
 	// Route is the route's name, "" for a match without one; RoutePath its file.
 	Route     string
 	RoutePath string
+	// Format is the match's stream format, "" for none.
+	Format string
 }
 
 func (m Match) ID() string {
 	if m.Route != "" {
 		id := m.Player.ID + "__r-" + m.Route + "__s" + strconv.Itoa(m.Seed)
+		if m.Format != "" {
+			id = m.Player.ID + "__f-" + m.Format + "__r-" + m.Route + "__s" + strconv.Itoa(m.Seed)
+		}
 		if m.Persona != "" {
 			id += "__" + m.Persona
 		}
@@ -333,9 +358,16 @@ func (s *Spec) Matches() []Match {
 		}
 		for _, seed := range seeds {
 			for _, rr := range s.Routes {
+				if rr.f != nil && rr.f.Difficulty != diff {
+					continue
+				}
 				for _, p := range s.Players {
-					out = append(out, Match{Player: p, Seed: seed, Start: rr.r.Start, Persona: rr.Persona, Perks: sortedPerks(rr.r.Perks),
-						Route: rr.r.Name, RoutePath: mustAbs(rr.r.Path), Difficulty: diff, multiDiff: len(diffs) > 1})
+					m := Match{Player: p, Seed: seed, Start: rr.r.Start, Persona: rr.Persona, Perks: sortedPerks(rr.r.Perks),
+						Route: rr.r.Name, RoutePath: mustAbs(rr.r.Path), Difficulty: diff, multiDiff: len(diffs) > 1}
+					if rr.f != nil {
+						m.Format = rr.f.Name
+					}
+					out = append(out, m)
 				}
 			}
 			for _, start := range s.Starts {

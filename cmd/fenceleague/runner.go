@@ -18,6 +18,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/gallowaysoftware/fence/internal/format"
 )
 
 const (
@@ -299,6 +301,7 @@ type MatchMeta struct {
 	Start      string   `json:"start"`
 	Persona    string   `json:"persona,omitempty"`
 	Route      string   `json:"route,omitempty"`
+	Format     string   `json:"format,omitempty"`
 	Perks      string   `json:"perks"`
 	PerksAsked string   `json:"perks_requested"`
 	HeldOut    bool     `json:"perks_held_out,omitempty"`
@@ -340,7 +343,17 @@ func (l *League) runMatch(ctx context.Context, m Match) (err error) {
 		}
 	}()
 
-	meta := MatchMeta{Match: id, League: l.Spec.Name, Player: m.Player, Seed: m.Seed, Start: m.Start, Persona: m.Persona, Route: m.Route,
+	if m.Format != "" {
+		// The match plays, and records, the format's directives as they were when it started.
+		f, err := format.Load("", m.Format)
+		if err != nil {
+			return err
+		}
+		if m.RoutePath, err = f.Materialize(m.RoutePath, filepath.Join(dir, "format")); err != nil {
+			return err
+		}
+	}
+	meta := MatchMeta{Match: id, League: l.Spec.Name, Player: m.Player, Seed: m.Seed, Start: m.Start, Persona: m.Persona, Route: m.Route, Format: m.Format,
 		Perks: l.appliedPerks(m), PerksAsked: m.Perks, HeldOut: m.HeldOut, Difficulty: m.Difficulty, Days: l.Spec.Days, Executor: l.Spec.executor(m.Player), GymDir: l.Local.GymDir, StartedAt: began.UTC().Format(time.RFC3339)}
 
 	meta.Executor.Directives = l.directives(m)
@@ -410,6 +423,9 @@ func (l *League) bridgeArgs(m Match, ep *Endpoint, model, addr, dir string) []st
 	}
 	if m.Route != "" && m.Player.Mode == ModePlan {
 		a = append(a, "-route", m.RoutePath)
+	}
+	if m.Format != "" && m.Player.Mode == ModePlan {
+		a = append(a, "-format", m.Format)
 	}
 	a = append(a, m.Player.BridgeFlags...)
 	if m.Persona != "" && l.Persona {
@@ -564,7 +580,10 @@ func (l *League) finish(m Match, dir string, wall time.Duration) error {
 		return err
 	}
 	r.WallSeconds = round1(wall.Seconds())
-	return writeJSON(filepath.Join(dir, resultFile), r)
+	if err := writeJSON(filepath.Join(dir, resultFile), r); err != nil {
+		return err
+	}
+	return recordFormat(m, r)
 }
 
 func freePort() (int, error) {
