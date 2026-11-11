@@ -171,6 +171,7 @@ namespace Fence.Gym
             Scheduler.Reset();
             Hooks.Clear();
             Production.Reset();
+            SupplyProbe.Reset();
             GameOverField.SetValue(null, null);
             Scheduler.OnError = e => GameError("coroutine", e);
             Hooks.OnError = (id, e) => GameError("hook " + id, e);

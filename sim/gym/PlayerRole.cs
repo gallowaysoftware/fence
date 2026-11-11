@@ -535,6 +535,8 @@ namespace Fence.Gym
             bool fount = Fountain.Buys && (P?.Day ?? 0) >= Fountain.BuyDay;
             if (fount) order.Add("VENDING_FOUNTAIN");
             order.AddRange(Suppliers.Upgrades());
+            order.AddRange(Lab.Upgrades());
+            order.AddRange(Crops.Upgrades());
             if (D.UpgradesBuy != null) order.AddRange(D.UpgradesBuy);
             else order.AddRange(Engine.Upgrades(v));
             // Growth bought with Wild favor (a currency good for nothing else) or real surplus: more traffic
@@ -559,9 +561,9 @@ namespace Fence.Gym
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
                 if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
-                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id))
+                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id))
                 {
-                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Suppliers.Reserve(id))) continue;
+                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Lab.WantsUpgrade(id) ? Lab.UpgradeReserve : Crops.WantsUpgrade(id) ? 300 : Suppliers.Reserve(id))) continue;
                     picks.Add(id);
                     funds -= u.Cost;
                     favor = Math.Max(0, favor - u.Cost);

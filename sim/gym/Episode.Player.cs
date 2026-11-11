@@ -45,6 +45,7 @@ namespace Fence.Gym
             // Without the table the board would silently go unjoined and every appraisal result would be wrong.
             if (Appraisal.Guides == null && Directives.Current.Raw.Value<string>("appraisal") == "join")
                 throw new InvalidOperationException("appraisal: join needs the guides' value tables in local/appraisal_guides.json (or FENCE_APPRAISAL_GUIDES); see docs/re/APPRAISAL.md");
+            SupplyProbe.Morning(Day);
             PlayerDay.Current = ExecutorMorning.Plan(this, Ledger.Days);
             ExecutorMorning.Chores(this);
         }
@@ -628,6 +629,9 @@ namespace Fence.Gym
             DemandTrace.Trade(sold, item, amount);
             Suppliers.Trade(sold, item, amount);
             Rats.Trade(sold, item, amount);
+            Crops.Trade(sold, item, amount);
+            Lab.Trade(sold, item, amount);
+            SupplyProbe.Trade(sold, item, amount);
             Printer.Trade(sold, item, amount);
             if (sold) Production.Sold(item, amount, GameBarter.CurrentClient());
             if (!sold && GameBarter.CurrentClient()?.identifier == "inventor") JacksonBought(false, item.identifier, amount);
@@ -772,6 +776,7 @@ namespace Fence.Gym
             today["production"] = Production.Status();
             if (Furnace.Status() is JObject furnace) today["furnace"] = furnace;
             if (Rats.Status() is JObject rats) today["rats"] = rats;
+            if (Lab.Status() is JObject lab) today["lab"] = lab;
             if (Conceal.Status() is JObject bay) today["smuggler_bay"] = bay;
             if (Vending.Status() is JObject vend) today["vending"] = vend;
             if (Fountain.Status() is JObject fount) today["fountain"] = fount;
@@ -812,6 +817,7 @@ namespace Fence.Gym
             if (Suppliers.Status() is JObject sup) s["suppliers"] = sup;
             if (Rats.Status() is JObject rats) s["rats"] = rats;
             if (Printer.Status() is JObject printer) s["printer"] = printer;
+            if (SupplyProbe.Totals() is JObject probe) s["supply_probe"] = probe;
             s["jackson"] = new JObject
             {
                 ["shop_visits"] = jacksonVisits, ["shop_spent"] = jacksonShop.Values.Sum(v => v[1]), ["store_spent"] = jacksonStore.Values.Sum(v => v[1]),

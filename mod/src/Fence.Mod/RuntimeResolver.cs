@@ -142,6 +142,7 @@ namespace Fence.Mod
                 case "GutterflowPelletHelper": found = GutterflowPelletHelperMembers(member); break;
                 case "IndustrialFishFeedHelper": found = IndustrialFishFeedHelperMembers(member); break;
                 case "AnimalCage": found = AnimalCageMembers(member); break;
+                case "MachineChemFinisher": found = MachineChemFinisherMembers(member); break;
                 case "MachineFeedDispenser": found = MachineFeedDispenserMembers(member); break;
                 case "GeneticHelper": found = GeneticHelperMembers(member); break;
                 case "HusbandryHelper": found = HusbandryHelperMembers(member); break;
@@ -166,6 +167,7 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GutterflowPelletHelperMembers(string m) => typeof(GutterflowPelletHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IndustrialFishFeedHelperMembers(string m) => typeof(IndustrialFishFeedHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AnimalCageMembers(string m) => typeof(AnimalCage).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineChemFinisherMembers(string m) => typeof(MachineChemFinisher).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineFeedDispenserMembers(string m) => typeof(MachineFeedDispenser).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GeneticHelperMembers(string m) => typeof(GeneticHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HusbandryHelperMembers(string m) => typeof(HusbandryHelper).GetMember(m, All);

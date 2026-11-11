@@ -30,7 +30,7 @@ namespace Fence.Gym
 
         static bool InBox(GameItem i) => Parent(i) == null || (Parent(i).identifier ?? "").EndsWith("_container", StringComparison.Ordinal);
 
-        static GameItem Pitcher() => Owned().FirstOrDefault(i => i.identifier == "water_pitcher" && Parent(i) == null);
+        static GameItem Pitcher() => Owned().FirstOrDefault(i => i.identifier == "water_pitcher" && Parent(i) == null && !Lab.Holds(i));
 
         static int FilterLeft(GameItem pitcher)
         {
@@ -42,7 +42,7 @@ namespace Fence.Gym
         static IEnumerable<GameItem> Strips() => Owned().Where(i => i.identifier == "water_test_strip" && !i.IsTag("IS_SPENT") && InBox(i));
 
         // Containers the engine keeps for water (never sold, used for wine and the bays).
-        static bool WaterVessel(GameItem i) => Treatable.Contains(i.identifier ?? "") && Parent(i) == null;
+        static bool WaterVessel(GameItem i) => Treatable.Contains(i.identifier ?? "") && Parent(i) == null && !Lab.Holds(i);
 
         // ---- purifiers: Basewater to High Quality (99.01 %) overnight, ~3 L a night ----------------
 

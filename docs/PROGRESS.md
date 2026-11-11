@@ -3,6 +3,21 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Second engine — 2026-11-11: no engine closes the Board-free gap on hard; supply, not demand, is the wall
+
+**Result.** Built and measured a cash-crop lever for the hydroponic bays (`crops`, with tap water for the crop bays)
+and a caffeine lab (`lab: "caffeine"`: the Retired Chemist's machines run a batch a step each morning while the
+day's seconds run the reactions). Without the Board neither wins (0/96 runs on seeds 8500001–016); each loses net
+worth (day 100: crops −1 258 ± 969, lab −2 150 ± 745 to −2 375 ± 738) and survives 8–34 days less. With the Board
+both still win 16/16 but ~38 days later (lab +38.9 ± 25.7, crops +37.6 ± 24.4). A gym-only demand probe
+(`supply_probe`) shows the counter would sell 92–98 % of free pills or beans: 12 lab-pure caffeine pills a day
+(~1 800 a week) wins 16/16 Board-free by day 105, 12 pharma-grade pills 6/16, 4 beans 4/16, 4 near-pharma pills
+(what an unmodded lab makes) 0/16. The lab gets ~22 beans a run, starts on day ~69 (when 1 500 is first spare),
+never sees a chem module (the Retired Chemist's machines fill the counter first) and sells ~11 pills a week at ~10;
+coffee bays on the water the shop has make 28–44 a night before ~13 of power, and sit dry or unpowered. Rats on a
+feed bay and dream dust were estimated on paper and not built. Crop yields by water grade: `fence-lab
+production.crops`. Levers off: byte-identical to main on 8 runs. Write-up: docs/research/SECOND-ENGINE.md.
+
 ## VOD kit — 2026-11-11: chapters, title and clips from the recorded feed
 
 **Result.** `cmd/fencevod` (`internal/vod`) turns a run's feed (or decision log plus the feed's narrator

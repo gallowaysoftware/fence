@@ -9848,6 +9848,124 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.gettotalvolume",
+      "type": "WaterHelper",
+      "member": "GetTotalVolume",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.iswet",
+      "type": "WaterHelper",
+      "member": "IsWet",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinechemfinisher.canoutput",
+      "type": "MachineChemFinisher",
+      "member": "CanOutput",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameSlotInventory"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagstate.enable",
+      "type": "TagState",
+      "member": "Enable",
+      "kind": "method",
+      "params": [],
+      "returns": "TagState",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagstate.setint",
+      "type": "TagState",
+      "member": "SetInt",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "TagState",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagstate.setstring",
+      "type": "TagState",
+      "member": "SetString",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "TagState",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.modifytag",
+      "type": "GameItem",
+      "member": "ModifyTag",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Action<TagState>",
+        "System.Boolean"
+      ],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitemfunc.onactivateslotitemfunc",
+      "type": "GameItemFunc",
+      "member": "onActivateSlotItemFunc",
+      "kind": "property",
+      "returns": "System.Action<GameItem,GameInventory,SlotMarker>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

@@ -279,6 +279,70 @@ namespace Fence.Lab
             }
         }
 
+        // Every crop a bay can grow, replanted from its own harvest, on pure water with the gym's nutrient dose (a tablet
+        // per litre) and, for the cash crops, on each lower grade with no tablets: nights per harvest, produce per harvest,
+        // value a night (docs/research/SECOND-ENGINE.md).
+        public static void Crops(int seed)
+        {
+            W.New(seed);
+            W.Cash = 100000;
+            var pure = new Action<GameItem>(j => { WaterHelper.FillWithPureWater(j); Dissolve(j, 6); });
+            var setups = new List<(string crop, string water, Action<GameItem> fill)>();
+            foreach (var crop in new[] { "coffee_bean", "kotton_seed", "dream_cap_seed", "nutrifruit_seed", "fillerweed_seed", "bloomberry_seed" })
+                setups.Add((crop, "pure+tablets", pure));
+            foreach (var crop in new[] { "coffee_bean", "kotton_seed" })
+            {
+                setups.Add((crop, "base", j => WaterHelper.FillWithBaseWater(j)));
+                setups.Add((crop, "ghost", j => WaterHelper.FillWithGhostwater(j)));
+                setups.Add((crop, "rust", j => WaterHelper.FillWithRustWater(j)));
+                setups.Add((crop, "gutter", j => WaterHelper.FillWithGutterflow(j)));
+                setups.Add((crop, "base+tablets", j => { WaterHelper.FillWithBaseWater(j); Dissolve(j, 6); }));
+                setups.Add((crop, "rust+tablets", j => { WaterHelper.FillWithRustWater(j); Dissolve(j, 6); }));
+            }
+            int reps = 4, nights = 24;
+            var bays = new List<(string crop, string water, Action<GameItem> fill, GameItem bay, GameItem jug)>();
+            foreach (var (crop, water, fill) in setups)
+                for (int r = 0; r < reps; r++)
+                {
+                    var bay = W.Own("hydroponic");
+                    Put(MachineHelper.GetBatterySlot(bay), Battery());
+                    var jug = Owned("water_jug");
+                    fill(jug);
+                    Put(MachineHydroponic.GetWaterSlot(bay), jug);
+                    if (!Put(MachineHydroponic.GetInputSlot(bay), Owned(crop))) throw new InvalidOperationException(crop + " rejected");
+                    bays.Add((crop, water, fill, bay, jug));
+                }
+            var log = bays.ToDictionary(b => b.bay, b => new List<(int night, Dictionary<string, int> got, long value)>());
+            for (int night = 1; night <= nights; night++)
+            {
+                W.QuietDay();
+                foreach (var b in bays)
+                {
+                    var outp = MachineHydroponic.GetOutputSlot(b.bay);
+                    var fresh = outp.childItems.Where(x => x != null).ToList();
+                    if (fresh.Count > 0)
+                    {
+                        var got = fresh.GroupBy(x => x.identifier).ToDictionary(g => g.Key, g => g.Count());
+                        // A seed crop's own seeds are its replanting stock, not produce; coffee replants one of its beans.
+                        long value = fresh.Where(x => x.identifier != b.crop).Sum(x => x.unitValue) + (b.crop == "coffee_bean" ? fresh.Skip(1).Sum(x => x.unitValue) : 0);
+                        log[b.bay].Add((night, got, value));
+                        foreach (var x in fresh) outp.Expel(x);
+                    }
+                    var input = MachineHydroponic.GetInputSlot(b.bay);
+                    if (input.childItem == null && !Put(input, Owned(b.crop))) throw new InvalidOperationException("replant " + b.crop);
+                    if (WaterHelper.GetCurrentCapacityML(b.jug) < 2000) { WaterHelper.RemoveMl(b.jug, WaterHelper.GetCurrentCapacityML(b.jug)); b.fill(b.jug); }
+                }
+            }
+            foreach (var g in bays.GroupBy(b => (b.crop, b.water)))
+            {
+                var all = g.SelectMany(b => log[b.bay]).ToList();
+                string nightsStr = string.Join(",", log[g.First().bay].Select(h => h.night));
+                string produce = string.Join(" ", all.SelectMany(h => h.got).GroupBy(kv => kv.Key).Select(kv => $"{kv.Key}:{kv.Sum(x => x.Value) / (double)Math.Max(1, all.Count):0.0}"));
+                double perNight = all.Sum(h => h.value) / (double)(reps * nights);
+                R.Info($"crops [{g.Key.crop}, {g.Key.water}]: harvest nights (one bay); items per harvest; produce value a night per bay", nightsStr, all.Count, $"{produce}; {perNight:0.0}/night");
+            }
+        }
+
         static void Dissolve(GameItem jug, int tablets)
         {
             for (int i = 0; i < tablets; i++) ChemicalHelper.DissolveInto(Owned("nutrient_tablet"), jug);

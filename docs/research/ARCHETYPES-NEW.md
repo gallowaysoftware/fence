@@ -125,7 +125,8 @@ hungry growers (tried on 12 seeds) did not keep them alive, since the food is th
 days over cutting them up (−4.3 ± 4.7 and −9.3 ± 4.5), and the rancher start with them wins as fast as the
 apprentice appraiser. Without the engine the rancher start is a
 week or two slower (the loose-rat penalty above). A feed bay (fillerweed or nutrifruit seeds in a hydroponic bay)
-would lift the food wall; it is not built.
+would lift the food wall; it is not built: the rats return about what their feed is worth, so a feed bay earns
+no more than selling its crop (docs/research/SECOND-ENGINE.md).
 
 ### The 3D printer (Gunsmith start, RETIRED_GUNSMITH)
 
@@ -145,7 +146,8 @@ The printer pays only over a longer game or with chips already owned; the lever 
   lab-pure dust (42, ~72 at market) and a coffee bean (28) ~8 legal caffeine pills (24) — but only with four chem
   modules on every machine (250 each from the retired chemist's rolls), a plate held in a 40–49 °C window, measured
   acid and base pours, two filters and 1–4 evaporator nights a batch. That is a multi-step lab procedure with
-  per-second reactions, not a morning chore; it is the richest unmodelled engine and the largest to build.
+  per-second reactions, not a morning chore; it is the richest unmodelled engine and the largest to build. Since built as `lab: "caffeine"`
+  and measured: docs/research/SECOND-ENGINE.md.
 - **Aquaculture** (AQUACULTURE, Aquafarmer start). `AquacultureHelper` is ~2 500 lines (water quality, filters,
   power, species stages, roe). The fish eat industrial fish feed, which no visiting seller's stock samples contain (the kit's two
   bags only), so a fish engine would hit the same food wall as the rats.

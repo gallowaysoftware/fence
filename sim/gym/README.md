@@ -446,6 +446,16 @@ the same way, or completely within a second or two (a half-written file is retri
   blended into the dispenser up to `rats_feed_kcal` (default 6000; the shop's own food stock in a pinch), an owned
   ingot grows the cage a row (up to 8 rows of 10) and scrap mends it below 60 %. The meat is FOOD stock. The
   summary's `player.rats` (and each day's `rats`) counts births, deaths, cuts, meat sold, feed bought and the cage.
+  Cash crops (`sim/gym/Crops.cs`, docs/research/SECOND-ENGINE.md): `crops: {"coffee_bean": 2, ...}` buys that many
+  bays beyond the cellar's `bays` and grows each crop in them, replanted from its own harvest, the rest sold as stock;
+  with `crops_tap` (default true) it buys WATER_TRADER and GUTTERFLOW_TAP and fills a dry crop bay at the faucet.
+  `production.crops` counts bays, harvests, sales and tap water. The caffeine lab (`sim/gym/Lab.cs`, `lab:
+  "caffeine"`): buys RETIRED_CHEMIST (after the permit unless `lab_after_permit: false`; `lab_reserve`, default 500,
+  over rent and floor) and runs one batch a step each morning (blend with acid and lipobond, heat, filter and dry,
+  press pills); it holds `lab_beans` (default 12) beans and buys packs, a second pitcher, filters, chem modules and
+  missing machines. `production.lab` counts batches, pills, sales, modules and why it stalled. Gym only,
+  `supply_probe: {"caffeine_pill": {"per_day": 12, "purity": 99.5}}` puts free units in stock each morning from
+  `supply_probe_from` (default 30), and `player.supply_probe` counts what sold: a demand ceiling, not a player move.
   The 3D printer (`sim/gym/Printer.cs`, `printer: "run"`; the Gunsmith start's printer or RETIRED_GUNSMITH's,
   docs/re/RECIPES.md §1): each morning its output goes to stock, a charged cell into its battery and, when it is
   idle, the first chip of `printer_chips` that is owned, fits its modules and has its inputs owned goes in with

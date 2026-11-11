@@ -54,6 +54,8 @@ namespace Fence.Gym
             Furnace.Reset();
             Rats.Reset();
             Printer.Reset();
+            Crops.Reset();
+            Lab.Reset();
             ResetSales();
         }
 
@@ -88,7 +90,7 @@ namespace Fence.Gym
         public static bool Reserved(GameItem i)
         {
             if (Directives.Current.ReleaseUids.Contains(i.uniqueId)) return false;
-            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Printer.Reserved(i)) return true;
+            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Printer.Reserved(i) || Crops.Reserved(i) || Lab.Reserved(i)) return true;
             if (WaterSellOn && (WaterReserved(i) || treatedOn.ContainsKey(i.uniqueId) || keepWater.Contains(i.uniqueId))) return true;
             if (!WineOn) return false;
             if (WinePurifierOn && i.identifier == "water_purifier") return true;
@@ -141,6 +143,7 @@ namespace Fence.Gym
                 keepWater.Add(c.uniqueId);
                 needMl -= WaterHelper.GetCurrentCapacityML(c);
             }
+            if (Crops.On) Crops.Earmark(Bays());
         }
 
         static void Audit(IExecutorHost ep)
@@ -160,7 +163,7 @@ namespace Fence.Gym
         public static int Wants(string id)
         {
             if (DnaWants(id) > 0) return DnaWants(id);
-            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Printer.Wants(id);
+            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Printer.Wants(id) + (Crops.On ? Crops.Wants(id, Bays()) : 0) + Lab.Wants(id);
             return f > 0 ? Math.Max(w, 0) + f : w;
         }
 
@@ -189,7 +192,8 @@ namespace Fence.Gym
                 case "water_ration": return Math.Max(0, bottles + 8 - owned.Count(WineHelper.IsWaterRation));
                 case "water_ration_small": return Math.Max(0, 2 * (bottles + 8) - owned.Count(WineHelper.IsWaterRation));
                 // The retired farmer brings a bay every visit: more bays, more berries (they bind next to water).
-                case "hydroponic": return Bays().Count >= 1 && Bays().All(b => MachineHydroponic.GetInputSlot(b).childItem != null) && Bays().Count < (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays() && PlayerStore.Instance.playerCash > 1500 ? 1 : 0;
+                case "hydroponic": return Bays().Count >= 1 && Bays().All(b => MachineHydroponic.GetInputSlot(b).childItem != null) && Bays().Count < (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays() + Crops.ExtraBays && PlayerStore.Instance.playerCash > 1500 ? 1 : 0;
+                case "bloomberry_seed" when Crops.On: return Math.Max(0, Math.Min(Bays().Count, (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays()) - Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == "bloomberry_seed") - owned.Count(i => i.identifier == "bloomberry_seed" && Parent(i) == null)) + DnaWantsSeed();
                 case "bloomberry_seed": return Math.Max(0, Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem == null) - owned.Count(i => i.identifier == "bloomberry_seed" && Parent(i) == null)) + DnaWantsSeed();
                 case "nutrient_tablet":
                 case "nutrient_tablet_container": return Bays().Any() && owned.Count(i => i.identifier == "nutrient_tablet") < 8 ? 1 : 0;
@@ -252,7 +256,7 @@ namespace Fence.Gym
         }
 
         // With `engine: none` nothing is an engine input (a winemaker's bottles are plain stock then).
-        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Printer.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
+        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Printer.IsInput(id) || Crops.IsInput(id) || Lab.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
 
         static bool IsInputAny(string id) => (DnaOn && Donors.Contains(id ?? "")) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
 
@@ -271,6 +275,7 @@ namespace Fence.Gym
             // before the furnace loads every scrap.
             Rats.Morning(ep);
             Printer.Morning(ep);
+            Lab.Morning(ep);
             Furnace.Morning(ep);
             Modules.Morning(ep);
             try { Audit(ep); }
@@ -426,6 +431,7 @@ namespace Fence.Gym
         // Kits land on the back counter, where the next buyer's sale would take them: stow every bay.
         public static void Stow()
         {
+            Lab.Stow();
             if (!WineOn && !WaterSellOn) return;
             Earmark();
             if (!WineOn) return;
@@ -442,12 +448,18 @@ namespace Fence.Gym
             if (!ReferenceEquals(bay.parentInventory, stock) && Chore.Accept(stock, bay, -1) != 0 && !ReferenceEquals(bay.parentInventory, EmporiumEntry.Instance.showcaseElement))
                 Chore.Accept(EmporiumEntry.Instance.showcaseElement, bay, -1);
             foreach (var berry in MachineHydroponic.GetOutputSlot(bay).childItems.Where(i => i != null).ToList())
-                if (Chore.Accept(stock, berry, -1) == 0) { Harvested++; HarvestSeen(berry); }
+                if (Chore.Accept(stock, berry, -1) == 0)
+                {
+                    if (Crops.On && berry.identifier != "wine_berry") { Crops.Harvest(berry); continue; }
+                    Harvested++;
+                    HarvestSeen(berry);
+                }
             var input = MachineHydroponic.GetInputSlot(bay);
             if (input.childItem == null)
             {
-                var seed = SeedToPlant();
-                if (seed != null && Modules.ReadyToPlant(ep, bay)) Chore.Accept(input, seed, -1);
+                var crop = Crops.SeedFor(Bays(), (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays());
+                var seed = crop ?? SeedToPlant();
+                if (seed != null && Modules.ReadyToPlant(ep, bay) && Chore.Accept(input, seed, -1) == 0 && crop != null) Crops.Planted++;
             }
             if (Charge(bay) < 16)
             {
@@ -460,6 +472,7 @@ namespace Fence.Gym
                     Chore.Accept(slot, cell, -1);
                 }
             }
+            if (Crops.Water(ep, bay)) return;
             var ws = MachineHydroponic.GetWaterSlot(bay);
             var water = ws.childItem;
             int purity = water == null || WaterHelper.IsEmpty(water) ? 0 : WaterHelper.GetWaterPurity(water);
@@ -558,6 +571,8 @@ namespace Fence.Gym
         {
             var t = new JObject { ["wine_started"] = Started, ["wine_finished"] = Finished, ["wine_value_at_finish"] = FinishedValue, ["wine_emptied_undrinkable"] = Emptied, ["berries_harvested"] = Harvested, ["water_treated_ml"] = WaterTreatedMl, ["water_relabelled"] = WaterRelabelled, ["wine_sold"] = SalesTotals() };
             if (DnaOn) t["dna"] = DnaTotals();
+            if (Crops.Totals(Bays()) is JObject crops) t["crops"] = crops;
+            if (Lab.Status() is JObject lab) t["lab"] = lab;
             return t;
         }
     }
