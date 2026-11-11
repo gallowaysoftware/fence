@@ -30,10 +30,11 @@
       </div>
       <div id="mortgage" class="sub hidden"></div>
       <div class="buyout">
-        <div class="row between"><span class="label">Net worth</span><span id="nw" class="num">—</span></div>
+        <div class="row between"><span class="label">Net worth<span id="pace" class="pace hidden"></span></span><span id="nw" class="num">—</span></div>
         <div class="bar"><div id="buyout-fill"></div></div>
         <div class="row between sub"><span id="buyout-text"></span><span id="nw-delta"></span></div>
-        <svg id="spark" viewBox="0 0 500 44" preserveAspectRatio="none"><polyline id="spark-line" points=""/></svg>
+        <svg id="spark" viewBox="0 0 500 44" preserveAspectRatio="none"><polygon id="spark-band" points=""/><polyline id="spark-median" points=""/><polyline id="spark-prev" points=""/><polyline id="spark-line" points=""/></svg>
+        <div id="book-text" class="sub hidden"></div>
       </div>
     </section>
 

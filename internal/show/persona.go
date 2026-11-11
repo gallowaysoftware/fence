@@ -141,3 +141,19 @@ func MoodOf(c *Clock, lastNet *int64) Mood {
 	}
 	return m
 }
+
+// paceCues put the run's standing against its lab book (ghost.go) in the mood, without numbers.
+var paceCues = map[string]string{
+	PaceAhead:  " You are ahead of the book: richer this morning than the lab's typical run of this route by the same day.",
+	PaceOnPace: " You are on pace with the book: about where the lab's runs of this route were by now.",
+	PaceBehind: " You are behind the book: poorer this morning than the lab's typical run of this route by the same day.",
+}
+
+// withPace adds the race against the book to a mood; a bought shop has nothing left to race.
+func withPace(m Mood, pace string) Mood {
+	if m.Name == "" || m.Name == "triumphant" || paceCues[pace] == "" {
+		return m
+	}
+	m.Cue += paceCues[pace]
+	return m
+}

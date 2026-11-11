@@ -22,6 +22,7 @@ type State struct {
 	Heat       *Heat      `json:"heat,omitempty"`
 	Plan       *Event     `json:"plan,omitempty"`
 	Candidates *Event     `json:"candidates,omitempty"`
+	Ghost      *Event     `json:"ghost,omitempty"`
 	Summary    *Event     `json:"summary,omitempty"`
 	End        *Event     `json:"end,omitempty"`
 	Say        *Event     `json:"say,omitempty"`
@@ -170,6 +171,9 @@ func (h *Hub) apply(ev Event) {
 		s.Candidates = &e
 	case KindHeat:
 		s.Heat = ev.Heat
+	case KindGhost:
+		e := ev
+		s.Ghost = &e
 	case KindDay:
 		e := ev
 		s.Summary = &e
@@ -198,9 +202,9 @@ func (h *Hub) apply(ev Event) {
 	if len(ev.HiddenUsed) > 0 {
 		s.HiddenUsed++
 	}
-	if ev.Kind == KindThought || ev.Level == LevelTicker {
+	if (ev.Kind == KindThought || ev.Level == LevelTicker) && ev.Kind != KindGhost {
 		s.Ticker = appendKeep(s.Ticker, ev, tickerKeep)
-	} else if ev.Kind != KindPlan && ev.Kind != KindCandidates {
+	} else if ev.Kind != KindPlan && ev.Kind != KindCandidates && ev.Level > LevelTicker {
 		s.Moments = appendKeep(s.Moments, ev, momentsKeep)
 	}
 }

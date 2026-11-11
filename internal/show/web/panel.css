@@ -71,7 +71,17 @@ body.demo #game span { display: block; color: var(--faint); letter-spacing: .3em
 .bar > div { height: 100%; width: 0; background: var(--accent); transition: width 1s ease; }
 .bar.heat > div { background: linear-gradient(90deg, var(--money), var(--heat)); }
 #spark { width: 100%; height: 44px; margin-top: 6px; display: block; }
+#spark.book { height: 64px; }
 #spark-line { fill: none; stroke: var(--accent); stroke-width: 2; vector-effect: non-scaling-stroke; opacity: .85; }
+#spark-band { fill: rgba(235, 230, 220, .14); stroke: none; }
+#spark-prev { fill: none; stroke: var(--money); stroke-width: 1.5; stroke-dasharray: 2 3; vector-effect: non-scaling-stroke; opacity: .75; }
+#spark-median { fill: none; stroke: var(--dim); stroke-width: 1; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; opacity: .7; }
+.pace { margin-left: 10px; font-size: 12px; letter-spacing: .1em; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; }
+.pace.ahead { color: var(--good); }
+.pace.on-pace { color: var(--money); }
+.pace.behind { color: var(--bad); }
+.pace.flash { animation: flash 1.6s ease-out; }
+#book-text { margin-top: 2px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 #plan ul { margin: 8px 0 0; padding: 0; list-style: none; }
 #plan li { padding: 3px 0 3px 14px; position: relative; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -97,6 +107,7 @@ tr.live td:first-child::before { content: "● "; color: var(--heat); }
 #moment-list li.k-money, #moment-list li.k-purchase { border-color: var(--accent); }
 #moment-list li.k-day { border-color: var(--faint); }
 #moment-list li.k-run_end, #moment-list li.k-autopilot { border-color: var(--bad); }
+#moment-list li.k-ghost { border-color: var(--good); }
 li.hidden-used::before { content: "◆ "; color: var(--heat); }
 #ticker { flex: 1 1 auto; min-height: 150px; overflow: hidden; display: flex; flex-direction: column; }
 #ticker-list { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; }

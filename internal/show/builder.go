@@ -70,6 +70,8 @@ type Builder struct {
 	streakFees              int64
 	augDetection            string
 	handedOver              bool
+
+	ghost ghostRun
 }
 
 type client struct{ name, faction, intent string }
@@ -259,8 +261,10 @@ func (b *Builder) event(e *logEvent) []Event {
 		if b.started {
 			b.Player.Difficulty, b.Player.Start, b.Player.Perks = "", "", nil
 			b.ended, b.heat, b.planDay, b.planDirectives, b.day, b.mornings = false, nil, 0, nil, 0, 0
+			b.ghost = ghostRun{}
 		}
 		b.fill(d.Difficulty, d.Start, d.Perks)
+		b.Player.Book = BookFor(b.Player.Route, b.Player.Difficulty, b.Player.Start)
 		b.run, b.started = run, true
 		p := b.Player
 		return []Event{{Kind: KindRunStart, Level: LevelMoment, Day: max(e.GameDay, 1), Player: &p, Text: runStartText(p)}}
@@ -441,6 +445,7 @@ func (b *Builder) snapshot(e *logEvent) []Event {
 			// The morning's plan can take a minute; the panel shows the new day meanwhile.
 			out = append(out, Event{Kind: KindThought, Level: LevelTicker, Day: day, Clock: b.Clock(),
 				Text: fmt.Sprintf("Day %d begins with %s in the till.", day, num(b.clock.Cash))})
+			out = append(out, b.ghostMorning(day)...)
 		}
 		b.day = day
 		b.morningCash, b.morningNW, b.morningRep = b.clock.Cash, b.clock.NetWorth, rep

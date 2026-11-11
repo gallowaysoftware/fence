@@ -43,7 +43,7 @@ type config struct {
 	speed                                    float64
 	listen, record, board, boardSeed         string
 	personas, model, persona, playerID       string
-	route, baseDirectives                    string
+	route, baseDirectives, prevRun           string
 	defaultPersona                           string
 	exitAfter                                time.Duration
 	setup                                    string
@@ -85,7 +85,8 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.playerID, "player", "", "player id for -live-log (a league match names its own)")
 	fs.StringVar(&c.model, "model", "", "model name for the name card when the source does not give one")
 	fs.StringVar(&c.persona, "persona", "", "persona id for -live-log (a league match names its own)")
-	fs.StringVar(&c.route, "route", "", "route name or file for -live-log (a league match names its own)")
+	fs.StringVar(&c.route, "route", "", "route name or file for -live-log, or for a -replay/-live-match whose match names none (a rehearsal's log dir)")
+	fs.StringVar(&c.prevRun, "prev-run", "", "an earlier run on the same seed to race beside the route's book: a decision log, a match or rehearsal directory, or a gym summary")
 	fs.StringVar(&c.baseDirectives, "base-directives", "", "for -live-log: the bridge's -base-directives file, for the standing plan's goals; empty: the -route's directives")
 	fs.StringVar(&c.defaultPersona, "default-persona", show.DefaultPersona, "persona for a run that has none, so the name card and the narrator have a character; empty: none")
 	fs.DurationVar(&c.exitAfter, "exit-after", -1, "replay: exit this long after the last event (e.g. 20s); negative: keep serving")
@@ -157,6 +158,12 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 		return err
 	}
 	log := slog.New(slog.NewTextHandler(stderr, nil))
+	var prev *show.PrevRun
+	if c.prevRun != "" {
+		if prev, err = show.LoadPrevRun(c.prevRun); err != nil {
+			return fmt.Errorf("-prev-run: %w", err)
+		}
+	}
 
 	var match *show.Match
 	if dir := c.replay + c.liveMatch; dir != "" {
@@ -171,6 +178,10 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 			id = c.persona
 		}
 		match.Player.SetPersona(c.personas, id, c.defaultPersona)
+		if match.Player.Route == "" {
+			match.Player.SetRoute(c.route)
+		}
+		match.Player.PrevRun = prev
 	}
 	if c.convert {
 		f, err := os.Open(match.LogFile)
@@ -291,6 +302,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 			l.Player = show.Player{ID: c.playerID, Model: c.model}
 			l.Player.SetPersona(c.personas, c.persona, c.defaultPersona)
 			l.Player.SetRoute(c.route)
+			l.Player.PrevRun = prev
 			if l.Base, err = show.BaseDirectives(c.route, c.baseDirectives); err != nil {
 				return fmt.Errorf("base directives: %w", err)
 			}

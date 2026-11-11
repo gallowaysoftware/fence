@@ -25,6 +25,8 @@ type Facts struct {
 	// Side is a trade's side ("sell", "buy"); Profit its profit when known.
 	Side   string
 	Profit *int64
+	// Ghost is the run's standing against its lab book, on a ghost event.
+	Ghost *Ghost
 	// numbers is every other number the narrator was shown.
 	numbers []int64
 }
@@ -109,6 +111,10 @@ func FactsOf(ev Event) Facts {
 	if e := ev.End; e != nil {
 		add(e.Cash, e.NetWorth, int64(e.Day))
 	}
+	if g := ev.Ghost; g != nil {
+		f.Ghost = g
+		add(g.NetWorth, g.P10, g.P50, g.P90)
+	}
 	texts := []string{ev.Text}
 	if p := ev.Plan; p != nil {
 		texts = slices.Concat(texts, p.Headline, p.Changes, p.Directives, p.Why, p.Goals)
@@ -167,6 +173,9 @@ func (f Facts) Prompt() string {
 	if f.Profit != nil {
 		line("Profit on it: %s.", signed(*f.Profit))
 	}
+	if g := f.Ghost; g != nil {
+		line("Against the book (the lab's test runs of this route on the same day): %s; net worth %s, the book's median %s.", against(g.Status, "it"), num(g.NetWorth), num(g.P50))
+	}
 	return b.String()
 }
 
@@ -201,6 +210,9 @@ var (
 	lossRe    = regexp.MustCompile(`\b(?:at a loss|lost money|took a loss)\b`)
 	weekdayRe = regexp.MustCompile(`\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b`)
 	profitRe  = regexp.MustCompile(`\b(?:a profit|turned a profit|for a profit|made a killing)\b`)
+	bookRe    = `(?:the )?(?:book|ghost|lab|pace)\b`
+	aheadRe   = regexp.MustCompile(`\b(?:ahead of|beating|outpacing|in front of|ahead on) ` + bookRe)
+	behindRe  = regexp.MustCompile(`\b(?:behind|trailing|chasing|lagging|off) ` + bookRe)
 )
 
 // CheckLine finds what a narrator line says that the facts contradict or do not give:
@@ -250,6 +262,16 @@ func CheckLine(line string, f Facts) []Fault {
 		}
 		if *f.Profit < 0 && profitRe.MatchString(l) {
 			fault("says a profit but it was a loss of %s", num(-*f.Profit))
+		}
+	}
+
+	// Ahead and behind are against the book's median; the status holds them a little past it.
+	if g := f.Ghost; g != nil {
+		if m := aheadRe.FindString(l); m != "" && g.NetWorth < g.P50 {
+			fault("says %q but net worth %s is under the book's median %s", m, num(g.NetWorth), num(g.P50))
+		}
+		if m := behindRe.FindString(l); m != "" && g.NetWorth > g.P50 {
+			fault("says %q but net worth %s is over the book's median %s", m, num(g.NetWorth), num(g.P50))
 		}
 	}
 

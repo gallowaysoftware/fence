@@ -29,6 +29,8 @@ const (
 	// KindAutopilot is the live autopilot stopping (faulted, or handing a customer to the human) or the
 	// human pausing and resuming it (docs/STREAM.md).
 	KindAutopilot Kind = "autopilot"
+	// KindGhost is the morning's standing against the route's lab book (ghost.go).
+	KindGhost Kind = "ghost"
 )
 
 // Levels say how loud a moment is: the ticker shows everything, the panel highlights
@@ -68,6 +70,7 @@ type Event struct {
 	// entry as one where the hands knew more than a player could.
 	HiddenUsed []string        `json:"hidden_used,omitempty"`
 	Autopilot  *AutopilotState `json:"autopilot,omitempty"`
+	Ghost      *Ghost          `json:"ghost,omitempty"`
 	// Beat names a stream beat the narrator plays up (BeatPromotion, …); "" for the rest.
 	Beat string `json:"beat,omitempty"`
 }
@@ -88,6 +91,8 @@ const (
 	BeatMorning         = "morning_plan"
 	BeatMilestone       = "milestone"
 	BeatAppraisalStreak = "appraisal_streak"
+	// BeatPace is the run changing pace against its book, or leaving or re-entering its band.
+	BeatPace = "pace"
 )
 
 // AutopilotState is the autopilot's state after a stop, pause or resume. NeedsHuman is a stop the
@@ -115,6 +120,10 @@ type Player struct {
 	Perks      []string `json:"perks,omitempty"`
 	Seed       int64    `json:"seed,omitempty"`
 	Planner    string   `json:"planner,omitempty"`
+	// Book is the route's lab band the run races (ghost.go), nil when there is none.
+	Book *Book `json:"book,omitempty"`
+	// PrevRun is an earlier run to race beside the book (fenceshow -prev-run).
+	PrevRun *PrevRun `json:"prev_run,omitempty"`
 }
 
 // Plan is the morning plan or a change to it. Source is "llm" when the strategist's prose

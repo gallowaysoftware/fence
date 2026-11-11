@@ -18,6 +18,8 @@
   const TICKER = 7, MOMENTS = 3;
   const WEEKDAYS = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   let ticker = [], moments = [], day = 0, clock = null, nwPoints = [];
+  // book is the route's lab band (player.book); ghost the latest morning against it.
+  let book = null, ghost = null, prevRun = null;
   let playing = false, waiting = null, idleTimer = null;
   let player = null, hiddenUsed = 0, setup = [];
   // The "about this AI" card takes the ticker's place for ABOUT_SHOW ms at a run's start and every
@@ -70,6 +72,8 @@
   function renderPlayer(p, run) {
     if (!p) return;
     player = p;
+    book = p.book && p.book.p50 && p.book.p50.length ? p.book : null;
+    prevRun = p.prev_run && p.prev_run.path && p.prev_run.path.length ? p.prev_run : null;
     renderAbout();
     text($("model"), p.model || p.id || "—");
     text($("persona"), p.persona_name ? "as " + p.persona_name : "no persona");
@@ -121,6 +125,11 @@
 
   function renderSpark(points) {
     nwPoints = points || [];
+    $("spark").classList.toggle("book", !!book);
+    if (book) { renderBook(); return; }
+    $("spark-band").setAttribute("points", "");
+    $("spark-median").setAttribute("points", "");
+    $("spark-prev").setAttribute("points", "");
     const pts = nwPoints.slice(-120);
     if (pts.length < 2) { $("spark-line").setAttribute("points", ""); return; }
     let lo = Infinity, hi = -Infinity;
@@ -128,6 +137,52 @@
     if (hi === lo) hi = lo + 1;
     const step = 500 / (pts.length - 1);
     $("spark-line").setAttribute("points", pts.map(([, v], i) => (i * step).toFixed(1) + "," + (40 - (36 * (v - lo)) / (hi - lo)).toFixed(1)).join(" "));
+  }
+
+  // With a book the line is the run's mornings against the lab band (10–90 %) and its median: the
+  // last 60 days and three weeks ahead, so the viewer sees the race to come as well as the one run.
+  function renderBook() {
+    const path = (ghost && ghost.path) || [];
+    const last = path.length ? path[path.length - 1][0] : 1;
+    // The earlier run is drawn only as far as this one has got: a ghost, not a spoiler.
+    const prev = prevRun ? prevRun.path.filter(([d]) => d <= last) : [];
+    const to = Math.max(last, Math.min(book.p50.length, last + 21), 30), from = Math.max(1, to - 81);
+    const at = (arr, d) => arr[Math.min(d, arr.length) - 1];
+    let lo = Infinity, hi = -Infinity;
+    for (let d = from; d <= to; d++) { lo = Math.min(lo, at(book.p10, d)); hi = Math.max(hi, at(book.p90, d)); }
+    const shown = path.concat(prev).filter(([d]) => d >= from);
+    for (const [, v] of shown) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    const pad = (hi - lo) * 0.06 + 1;
+    lo -= pad; hi += pad;
+    const x = (d) => ((500 * (d - from)) / (to - from)).toFixed(1);
+    const y = (v) => (43 - (42 * (v - lo)) / (hi - lo)).toFixed(1);
+    const line = (pts) => pts.filter(([d]) => d >= from).map(([d, v]) => x(d) + "," + y(v)).join(" ");
+    const up = [], down = [], mid = [];
+    for (let d = from; d <= to; d++) {
+      up.push(x(d) + "," + y(at(book.p90, d)));
+      down.push(x(d) + "," + y(at(book.p10, d)));
+      mid.push(x(d) + "," + y(at(book.p50, d)));
+    }
+    $("spark-band").setAttribute("points", up.concat(down.reverse()).join(" "));
+    $("spark-median").setAttribute("points", mid.join(" "));
+    $("spark-line").setAttribute("points", line(path));
+    $("spark-prev").setAttribute("points", line(prev));
+    const bt = $("book-text");
+    bt.classList.remove("hidden");
+    const name = words(book.route) + " book";
+    const prevNow = prev.length ? " · last run " + fmt(prev[prev.length - 1][1]) : "";
+    text(bt, ghost ? name + " · median " + fmt(ghost.p50) + " · " + fmt(ghost.p10) + "–" + fmt(ghost.p90) + prevNow
+      : name + (book.fallback ? " (no route)" : "") + " · " + book.wins + "/" + book.runs + " lab runs won, median day " + book.median_win_day);
+  }
+
+  function renderGhost(g, flash) {
+    ghost = g || null;
+    const el = $("pace");
+    if (!ghost || !book) { el.classList.add("hidden"); $("book-text").classList.toggle("hidden", !book); if (book) renderBook(); return; }
+    el.className = "pace " + ghost.status.replace(" ", "-");
+    text(el, ghost.status);
+    if (flash) { void el.offsetWidth; el.classList.add("flash"); }
+    renderBook();
   }
 
   function renderHeat(h) {
@@ -292,6 +347,7 @@
     renderHeat(s.heat);
     renderPlan(s.plan, false);
     renderCandidates(s.candidates);
+    renderGhost(s.ghost && s.ghost.ghost, false);
     renderSpark(s.net_worth);
     renderBoard(s.board);
     ticker = []; moments = [];
@@ -315,6 +371,7 @@
       case "plan": renderPlan(ev, ev.level >= 1); return;
       case "candidates": renderCandidates(ev); pushMoment(ev); return;
       case "heat": renderHeat(ev.heat); if (ev.level >= 1) pushMoment(ev); return;
+      case "ghost": renderGhost(ev.ghost, ev.level >= 2); if (ev.level >= 2) pushMoment(ev); return;
       case "say": say(ev); return;
       case "day": refreshBoard(); pushMoment(ev); return;
       case "run_end": $("live-dot").classList.remove("on"); refreshBoard(); pushMoment(ev); return;

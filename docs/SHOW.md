@@ -44,7 +44,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 
 | Kind | Payload | From |
 |---|---|---|
-| `run_start` | `player`: `id`, `model`, `persona`, `persona_name`, `persona_tagline`, `route`, `route_brief`, `difficulty`, `start`, `perks`, `seed`, `planner` | `run_start` event + match.json |
+| `run_start` | `player`: `id`, `model`, `persona`, `persona_name`, `persona_tagline`, `route`, `route_brief`, `difficulty`, `start`, `perks`, `seed`, `planner`, `book` (the route's lab band: `route`, `fallback`, `runs`, `wins`, `median_win_day`, `p10`/`p50`/`p90` by morning), `prev_run` (`label`, `path`) | `run_start` event + match.json + `internal/show/data/ghost_bands.json` |
 | `plan` | `plan`: `day`, `source` (`llm` prose, `directives` only, `executor` when the model changed nothing), `headline` (≤ 4 lines from GOALS/CASH/RISK), `sections`, `directives` (in words), `changes` vs the previous plan, `change`, `why` (the model's reasons, "bargain: …", then the bridge's corrections, "overruled: …"), `goals` (the standing plan: the last prose goal, mortgage savings, rent cover, buyout progress, the base directives' engine and permit) | `/v1/summary` (live); bridge.log (replay) |
 | `candidates` | `candidates`: `day`, `metric`, `options[]`: `label`, `source`, `directives`, `score`, `stderr`, `rollouts`, `chosen`, `note` | the hybrid planner, a `show` line in its decision log (or `/v1/ingest`) |
 | `thought` | `hidden_used` (names only) when an autopilot rule read a hidden value; the panel marks it ◆ | a customer and the executor's reason (gym), a model's own rationale (advise/act), services, outings, concealment, every live autopilot action with its reason |
@@ -55,6 +55,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 | `heat` | `heat`: `visible`, `evidence`, `level` ("14/100"), `operation`, `officer`, `sentence`, `crimes`, `hot_items` (stolen items on hand) | the security record in each snapshot |
 | `aug` | `amount` | shot an aug (bounty), a wrongful kill, a wanted capture |
 | `day` | `summary`: `cash_delta`, `net_worth_delta`, `sold`/`sold_items`, `bought`/`bought_items`, `customers`, `rep` (faction → change) | `day_ended` + the close snapshot |
+| `ghost` | `ghost`: `route`, `fallback`, `status` (`ahead`, `on pace`, `behind`), `zone` (`above`, `inside`, `below` the 10–90 % band), `net_worth`, `p10`, `p50`, `p90` (this morning's), `path` (the run's mornings so far, `[day, net worth]`) | each morning's snapshot against the run's book (below, "The ghost band") |
 | `run_end` | `end`: `ending`, `day`, `cash`, `net_worth`, `won` (a buyout) | `run_end` |
 | `say` | `say`: `line`, `audio` (URL path or absent), `voice`, `for` (the moment's seq), `source` (`llm`/`caption`), `check` (`pass`, `retry`, `fallback`), `faults` (the first try's), `ms` (LLM time for the line), `mood` (`MoodOf` when it spoke) | the narrator |
 
@@ -84,12 +85,99 @@ outing brought home, from the sleep snapshot's new items against the close snaps
 the dumping ground, 5 scavenges: back with Quality Module and Scrap Metal (estimate 74)." or
 "Night at Dr. Jackson's: back with nothing."), `morning_plan` (the day's first notable plan,
 raised to a moment; later changes that day stay notable), `milestone` (net worth crossing 25,
-50 and 75 % of the buyout price, once each a run) and `appraisal_streak` (the third accepted
-appraisal in a row and every fifth; a refusal starts over). Their numbers are in the caption, so
+50 and 75 % of the buyout price, once each a run), `appraisal_streak` (the third accepted
+appraisal in a row and every fifth; a refusal starts over) and `pace` (the run against its lab book, below,
+"The ghost band"). Their numbers are in the caption, so
 the fact check covers them, and the narrator may tell them twice as late as `-max-age` and
 `-max-lag` allow the rest: a night out is still news 30 s on, a rent payment is not. The dress
 rehearsal's 98 days have 409 moments instead of 81: 127 counter, 92 morning plan (10 plans were
 moments before), 85 night, 32 streak and 3 milestones.
+
+## The ghost band
+
+A sports scoreline for the run: its net worth each morning against the **book**, how the executor's own
+play of the same route did in the lab by that morning, like a split time against a record.
+
+- **The book.** `internal/show/data/ghost_bands.json`, built by `sim/lab/scripts/ghost_bands.py` from 60
+  fresh hard seeds per route (8100001–060, 1000-day horizon, the gym of c4a484d) for all 22 routes in
+  `sim/lab/scripts/directives/routes/*.json`, each with its `_route` start and perks: the 10th, 25th, 50th,
+  75th and 90th percentile of net worth on every morning, the wins and the median win day. It lives next to
+  the only code that reads it and is embedded in fenceshow (like the panel), so the show needs no path or
+  checkout at run time; the generator sits beside `arms.py` and uses its convention: a won run keeps its last
+  morning before the buyout, any other ending counts 0, so the band does not thin out to the slow runs late
+  in the race. The curve runs until no more than a tenth of the lab runs still play; past it the last morning
+  stands. It holds aggregates of our own gym runs only: no game data.
+- **Net worth** is the game's estimated total value (cash plus stock at the estimate), the field the bridge's
+  snapshots carry and the panel, the day summaries and the narrator use. The gym's `net_worth_by_day` records
+  it after each night, so it equals the next **morning** snapshot's (checked on the dress rehearsal: 97 of 97
+  mornings equal); the day-close value in `day` events is taken before the night, which moves it (992 at
+  day 2's close, 899 the next morning). So the book is by morning and the run is compared each morning.
+- **Which book.** The match's `-route` (fenceshow's `-route` for `-live-log`, and now also for a `-replay`
+  of a directory without `match.json`, such as a rehearsal's). With no route, a run known to be **hard
+  from the apprentice start** gets the `appraiser` book (the reference shop every route changes one thing
+  of; marked "no route" on the panel), since that is what an unrouted hard run plays. Any other start or
+  difficulty, or a route without a book (the challenge routes), gets no band: a hard book would mislead.
+  `sprinter` and `appraiser` are the same policy file (only the persona differs), so their books are equal.
+- **Standing.** Each morning: **ahead** above the 75th percentile, and it stays ahead until it falls under
+  the median; **behind** under the 25th, likewise back to the median; **on pace** otherwise. The hysteresis
+  keeps a run sitting on a quartile from flipping daily. Separately the **zone**: above the 90th, below the
+  10th, or inside the band.
+- **On screen.** A `ghost` event each morning (the hub keeps the latest; it is not a ticker line). The
+  net-worth row gets a pill, green **ahead**, gold **on pace**, red **behind**; the sparkline becomes the race:
+  the band (10–90 %) shaded, the median dashed, the run's mornings as the line, over the last 60 days and
+  three weeks ahead; under it the morning's book ("sprinter book · median 3,339 · 2,820–3,826 · last run
+  2,886" on day 22 of the rehearsal). The pill is the morning's standing; the number beside it follows the
+  clock through the day. The event carries the run's
+  whole path, so a late panel or a replay window draws the line from day 2.
+- **Beat** `pace`: a change of standing (ahead, on pace, behind) or of zone (out of the band above or
+  below, back inside) since the last one told, once it has **held a second morning**. Without the second
+  morning the rehearsal's run, which rode the 90th percentile for weeks, crossed it seven times in thirty
+  days. Captions: "Day 21: net worth 3,991, above the sprinter book's band: richer than 9 in 10 of its lab
+  runs by this morning (90th percentile 3,947, median 3,481).", "Day 67: net worth 13,003, now on pace with
+  the sprinter book (median 13,470; was ahead)." It ranks with the milestone and is a small beat (twice the
+  age and lag limits).
+- **Narrator.** The latest standing becomes a sentence of the mood ("You are ahead of the book: richer this
+  morning than the lab's typical run of this route by the same day"), no numbers, dropped once the shop is
+  owned. On a pace beat the facts add "Against the book …: ahead of it; net worth 3,991, the book's median
+  3,481", the caption's numbers are allowed, and `CheckLine` faults "ahead of the book" (or beating, in front
+  of … the book, ghost, lab or pace) under the median and "behind the book" (trailing, off the pace …) over it.
+- **Second ghost** (`-prev-run`): an earlier run on the same seed, from a decision log, a match or rehearsal
+  directory, or a gym summary, drawn dotted in gold beside the line, only as far as this run has got (a
+  ghost, not a spoiler), with its net worth that morning in the caption ("· last run 6,100"). It is drawn
+  only with a book. fenceshow does not check the seed.
+- **Rebuild:** `python3 sim/lab/scripts/ghost_bands.py run` (8 gym processes at nice 10; resumable: a
+  summary already in `var/ghost/<route>/` is kept; it launches nothing while the game runs) then
+  `python3 sim/lab/scripts/ghost_bands.py build`. The gym is deterministic per seed, so the same tree
+  rebuilds the same file. Rebuild after a route or gym change; `TestBooksCoverEveryRoute` fails when a
+  route file has no book.
+
+Some books (net worth on the morning of the day, 10th / **median** / 90th percentile; all 22 in the file). 60/60
+everywhere but `rock_bottom` (57/60), median win day 88–126, within a week of docs/research/ROUTES.md's on
+other seeds.
+
+| Route | Wins | Median win day | Day 25 | Day 50 | Day 75 |
+|---|---|---|---|---|---|
+| `sprinter` (= `appraiser`) | 60/60 | 98 | 3 378 / **3 898** / 4 401 | 5 135 / **6 022** / 7 732 | 19 181 / **21 872** / 26 459 |
+| `smelter` | 60/60 | 91 | 2 974 / **3 458** / 3 930 | 4 146 / **5 630** / 6 744 | 19 885 / **22 738** / 27 238 |
+| `rancher` | 60/60 | 88 | 3 775 / **4 470** / 4 995 | 5 592 / **7 290** / 8 465 | 20 425 / **24 944** / 29 313 |
+| `lean` | 60/60 | 91 | 2 359 / **2 826** / 3 474 | 3 659 / **5 116** / 6 014 | 18 791 / **22 480** / 25 632 |
+| `water_baron` | 60/60 | 108 | 2 626 / **3 101** / 3 686 | 4 491 / **5 274** / 6 881 | 15 693 / **19 206** / 23 954 |
+| `rock_bottom` | 57/60 | 126 | 1 206 / **1 956** / 2 853 | 3 182 / **4 620** / 5 302 | 9 767 / **14 100** / 18 821 |
+
+**On the dress rehearsal** (docs/STREAM-OPS.md section 10: seed 2950001, the Shark, the `sprinter` route as it
+stood before `buyout_save`; `-replay var/rehearsal/run1 -route sprinter -persona shark -prev-run <gym summary>`,
+the earlier run being the current `sprinter` file played by the executor alone on the same seed, bought on day
+98 too). The run was ahead of the book on 78 of 97 mornings and on pace on 19, never behind: ahead from day 10,
+above the band on days 21–30 and 33–43, back to on pace on day 67 (13,003 against a median of 13,470), ahead again on day 71 (22,110 against 19,989), on pace on day 87,
+ahead on day 96, bought on day 98, the book's median win day. Nine pace beats in 98 days: 10, 21, 31, 33, 44, 67,
+71, 87, 96. Narrated with Qwen 3.8 27B (days 20–22, 43–45 and 70–72, captions only), every pace line passed the
+check on the first try:
+
+| Day | Caption | Line |
+|---|---|---|
+| 21 | above the sprinter book's band (90th percentile 3,947, median 3,481) | Nine out of ten ghosts are still counting change. I am the card sharp holding the ace. |
+| 44 | back inside the sprinter book's band, ahead (median 4,448) | Ahead of the ghost. The book says I should be bleeding, but my pockets are heavy. |
+| 71 | now ahead of the sprinter book (median 19,989; was on pace) | Ghost is choking on its own tail now. I just took a bite of the lead it thought it owned. |
 
 ## Producers
 
@@ -229,7 +317,8 @@ in the player's persona and voice, and publishes a `say` event with the WAV the 
   last day's net-worth change): *triumphant* once the shop is owned, *broke* when the next rent or
   mortgage payment is not covered (sweat, gallows humour), *tight* under twice it, *flush* at 60 %
   of the buyout price or six payments in hand (swagger), else *steady*; a big up or down day adds
-  a word. The mood goes in the system prompt without numbers, so it cannot break the fact check.
+  a word, and the run's standing against its lab book (ahead, on pace or behind; "The ghost band")
+  a sentence. The mood goes in the system prompt without numbers, so it cannot break the fact check.
 - **Beats.** A beat's moment carries a cue saying what kind of moment it is ("the appraisal board
   just promoted you", "say plainly that it is over to the human, and why"); a small beat's cue
   asks for the telling ("a customer at the counter: who they were, how the haggle went", "the
@@ -384,6 +473,7 @@ make show-demo                                    # replay days 38–46 of a fin
 make show-demo ARGS="var/league/<l>/<match> 40-44 1"
 go run ./cmd/fenceshow -replay var/league/<l>/<match> -days 40-60 -speed 1.5
 go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded live feed
+go run ./cmd/fenceshow -replay var/rehearsal/run1 -route sprinter -prev-run var/sim/prev.summary.json  # a rehearsal against its book and an earlier run
 go run ./cmd/fenceshow -live-match var/league/<l>/<match> -record var/show/feed.jsonl
 go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
    -player drift -model qwen38fn-mlx -persona shark -llm-url "$DRIFT_URL" -llm-model qwen38fn-mlx

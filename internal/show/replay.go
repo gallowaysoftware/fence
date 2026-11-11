@@ -134,10 +134,10 @@ func EachEvent(r io.Reader, b *Builder, w Window, emit func(Event) error) error 
 	}
 }
 
-// holdLatest keeps the run start and the latest plan, heat and day summary.
+// holdLatest keeps the run start and the latest plan, heat, day summary and standing against the book.
 func holdLatest(held []Event, ev Event) []Event {
 	switch ev.Kind {
-	case KindPlan, KindHeat, KindDay:
+	case KindPlan, KindHeat, KindDay, KindGhost:
 	default:
 		return held
 	}

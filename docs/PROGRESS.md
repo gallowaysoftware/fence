@@ -18,6 +18,22 @@ recording gave every clip at its planned length. Runbook, OBS recording advice a
 (tinyBuild's influencer policy allows monetised videos with a copyright notice; the soundtrack's Content ID
 status is unknown): docs/STREAM-OPS.md section 7.
 
+## Ghost band — 2026-11-11: the stream gets a scoreline against the lab
+
+**Result.** The panel and the narrator now race each run against its route's **book**: the executor's own
+play of the route in the gym, 60 fresh hard seeds per route (8100001–060), all 22 routes, as the 10th–90th
+percentile of net worth on each morning (`internal/show/data/ghost_bands.json`, 75 KB, embedded; rebuilt by
+`sim/lab/scripts/ghost_bands.py`). Each morning the run is **ahead** (past the 75th percentile, held to the
+median), **on pace** or **behind**; the panel shows the word and the band behind the run's line, and a change
+of standing or a crossing of the 10–90 band, held a second morning, is a `pace` beat the narrator speaks. The
+standing is also a sentence of the narrator's mood, without numbers; the fact check faults "ahead of the
+book" under the median and "behind" over it. A run with no route on hard from the apprentice start gets the
+`appraiser` book; others none. Optional second ghost: `-prev-run` draws an earlier run on the same seed.
+On the dress rehearsal's log (seed 2950001, Shark, sprinter) the run was ahead on 78 of 97 mornings and never
+behind, with nine pace beats; the Qwen 27B narrator's pace lines all passed the check first time ("Nine out of
+ten ghosts are still counting change. I am the card sharp holding the ace."). Details in docs/SHOW.md, "The
+ghost band".
+
 ## Trading styles — 2026-11-11: six ways to trade that win hard 60/60
 
 **Result.** The counter policy every route shared is now one style of six. On top of the `appraiser` route,

@@ -63,6 +63,9 @@ type Narrator struct {
 	seen    int64
 	busy    bool
 	quietAt time.Time
+
+	// pace is the run's latest standing against its book (ghost.go), "" without one.
+	pace string
 }
 
 func (n *Narrator) defaults() {
@@ -99,7 +102,7 @@ func (n *Narrator) defaults() {
 // Priority ranks moments when only one can be spoken.
 func Priority(ev Event) int {
 	switch ev.Beat {
-	case BeatMilestone:
+	case BeatMilestone, BeatPace:
 		return 4
 	case BeatNight, BeatAppraisalStreak:
 		return 2
@@ -196,7 +199,7 @@ func (n *Narrator) intake(ctx context.Context, events <-chan Event) {
 		}
 		n.mu.Lock()
 		if ev.Kind == KindRunStart {
-			n.clock, n.lastNet = nil, nil
+			n.clock, n.lastNet, n.pace = nil, nil, ""
 			// A restart's replayed run start is the same run: its phrasebook stands.
 			if ev.Run != n.bookRun {
 				n.books, n.bookRun = nil, ev.Run
@@ -209,6 +212,9 @@ func (n *Narrator) intake(ctx context.Context, events <-chan Event) {
 		if ev.Clock != nil {
 			c := *ev.Clock
 			n.clock = &c
+		}
+		if ev.Ghost != nil {
+			n.pace = ev.Ghost.Status
 		}
 		if ev.Kind == KindDay && ev.Summary != nil {
 			d := ev.Summary.NetWorthDelta
@@ -445,7 +451,7 @@ func (n *Narrator) mood(ev Event) Mood {
 	if c == nil {
 		c = n.clock
 	}
-	return MoodOf(c, n.lastNet)
+	return withPace(MoodOf(c, n.lastNet), n.pace)
 }
 
 func (n *Narrator) system(mood Mood) string {
@@ -554,6 +560,7 @@ var smallBeatCues = map[string]string{
 	BeatMorning:         "the morning. Say what you mean to do today, in one sentence, in your own words.",
 	BeatMilestone:       "a milestone on the road to buying the shop. Mark it.",
 	BeatAppraisalStreak: "a run of appraisals: your eye is earning its fees.",
+	BeatPace:            "the race against the book, the lab's test runs of your route: you just pulled ahead of it, fell behind it, or crossed the edge of its band. Say where you stand against that ghost and how it feels.",
 }
 
 var (
