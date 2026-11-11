@@ -25,6 +25,16 @@ namespace Fence.Barter
             "lower_levels", "upper_levels", "security", "black_market", "revolution", "cartel",
         };
 
+        // The faction as the player can tell it: a customer with no faction ("NONE", every undisguised aug)
+        // talks in a plain bubble like the Lower Levels, so it is named by its bubble, never "none".
+        public static string Visible(ClientInfo c)
+        {
+            if (c == null) return null;
+            if (string.IsNullOrEmpty(c.FactionId) || c.FactionId == "NONE")
+                return Fence.Aug.Bubbles.ImpliedFaction(Fence.Aug.Bubbles.Of(c.BubbleColor, c.FactionId));
+            return Name(c.FactionId);
+        }
+
         public static string Name(string factionId)
         {
             if (string.IsNullOrEmpty(factionId)) return null;

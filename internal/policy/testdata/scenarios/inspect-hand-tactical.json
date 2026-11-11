@@ -1,0 +1,62 @@
+{
+  "note": "A carbon hand with add-ons: estimate from the rule value.",
+  "expect": [
+    "estimate"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-hand-tactical",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-hand-tactical",
+    "context": {
+      "mode": "appraisal",
+      "item": {
+        "uid": 6021,
+        "id": "prosthetic_hand",
+        "name": "Prosthetic hand",
+        "kind": "prosthetic_hand"
+      },
+      "client": {
+        "name": "Collector",
+        "faction": "upper_levels",
+        "intent": "appraisal"
+      },
+      "visual": {
+        "material": "carbon composite",
+        "interface_marking": "EMG+",
+        "marking_style": "symbol",
+        "condition": "pristine",
+        "armor_plating": "fitted",
+        "blade": "fitted"
+      },
+      "appraisal": {
+        "their_figure": 250,
+        "rank": "appraiser",
+        "base_fee": 40,
+        "fee_pct": {
+          "perfect": 18,
+          "excellent": 15,
+          "good": 12,
+          "mediocre": 10,
+          "awful": 0
+        },
+        "refusals": 0
+      }
+    },
+    "options": [
+      {
+        "id": "estimate",
+        "label": "Submit an estimate: fee 40 + the grade's share of your estimate; refused under 50% or over 150% of the true value",
+        "params": {
+          "value": {
+            "type": "int",
+            "min": 1,
+            "max": 5000
+          }
+        }
+      }
+    ]
+  }
+}

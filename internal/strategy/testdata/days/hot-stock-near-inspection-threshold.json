@@ -1,0 +1,279 @@
+{
+ "note": "Trafficking record 44, just under the 50 where inspections start (one more fencing sale crosses it); the mini smuggler bay is full (Gold Ring, Holo Camera); four hot items (Smart Watch 82, Designer Bag 100, Tablet 64, Silver Chain 28) and a stolen level-2 keycard (heat 46) sit in open stock; Security -52 (Priority at -60, thorough inspections at -80); a Security Sweep THREAT on day 32. A good plan states the expected loss per inspection, buys no more hot stock, sells nothing hot (crossing 50 starts inspections), clears or hides hot stock before day 32 (the bay is full: sell what cools in time, e.g. the Silver Chain clean on day 32, or keep the rest off counters and window), keeps the keycard out of reach, considers Inspection Early Warning (300, affordable from favor 180 + cash 120) and keeps Security away from -60.",
+ "event": {
+  "session_id": "scenario",
+  "seq": 3,
+  "kind": "day_snapshot",
+  "game_day": 30,
+  "data": {
+   "phase": "morning",
+   "store": {
+    "cash": 650,
+    "day": 30,
+    "weekday": "Tuesday",
+    "wild_favor": 180,
+    "net_worth": 2900,
+    "retail_markup": 15
+   },
+   "rent": {
+    "rent": 220,
+    "arrears": 0,
+    "days_left": 4,
+    "landlord_grace": false
+   },
+   "reputation": {
+    "lower_levels": {
+     "value": 14.0
+    },
+    "upper_levels": {
+     "value": 3.0
+    },
+    "security": {
+     "value": -52.0
+    },
+    "black_market": {
+     "value": 31.0
+    },
+    "revolution": {
+     "value": 0.0
+    }
+   },
+   "inventory": [
+    {
+     "uid": 800,
+     "id": "smuggler_bay_mini",
+     "name": "Mini Smuggler Bay",
+     "types": [],
+     "where": "stock",
+     "estimated_value": 0,
+     "bought_at": 0,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 801,
+     "id": "gold_ring",
+     "name": "Gold Ring",
+     "types": [
+      "luxury_item"
+     ],
+     "where": "inside:800",
+     "estimated_value": 240,
+     "bought_at": 90,
+     "features": [],
+     "stolen_heat": 64,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 802,
+     "id": "holo_camera",
+     "name": "Holo Camera",
+     "types": [
+      "electronics"
+     ],
+     "where": "inside:800",
+     "estimated_value": 310,
+     "bought_at": 120,
+     "features": [],
+     "stolen_heat": 46,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 803,
+     "id": "smart_watch",
+     "name": "Smart Watch",
+     "types": [
+      "electronics"
+     ],
+     "where": "stock",
+     "estimated_value": 420,
+     "bought_at": 160,
+     "features": [],
+     "stolen_heat": 82,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 804,
+     "id": "designer_bag",
+     "name": "Designer Bag",
+     "types": [
+      "luxury_item"
+     ],
+     "where": "stock",
+     "estimated_value": 380,
+     "bought_at": 140,
+     "features": [],
+     "stolen_heat": 100,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 805,
+     "id": "tablet_pc",
+     "name": "Tablet",
+     "types": [
+      "electronics"
+     ],
+     "where": "stock",
+     "estimated_value": 260,
+     "bought_at": 100,
+     "features": [],
+     "stolen_heat": 64,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 806,
+     "id": "silver_chain",
+     "name": "Silver Chain",
+     "types": [
+      "luxury_item"
+     ],
+     "where": "stock",
+     "estimated_value": 150,
+     "bought_at": 60,
+     "features": [],
+     "stolen_heat": 28,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 807,
+     "id": "keycard_sec",
+     "name": "Security Keycard",
+     "types": [],
+     "where": "stock",
+     "estimated_value": 100,
+     "bought_at": 40,
+     "features": [],
+     "stolen_heat": 46,
+     "contraband_level": 2,
+     "serious_contraband": true
+    },
+    {
+     "uid": 808,
+     "id": "toolkit",
+     "name": "Toolkit",
+     "types": [
+      "tool"
+     ],
+     "where": "showcase",
+     "estimated_value": 300,
+     "bought_at": 140,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    },
+    {
+     "uid": 809,
+     "id": "canned_food",
+     "name": "Canned Food",
+     "types": [
+      "food"
+     ],
+     "where": "stock",
+     "estimated_value": 24,
+     "bought_at": 10,
+     "features": [],
+     "stolen_heat": null,
+     "contraband_level": 0,
+     "serious_contraband": false
+    }
+   ],
+   "security": {
+    "visible": true,
+    "trafficking_value": 44,
+    "crimes": [
+     {
+      "id": "FENCING",
+      "amount": 44
+     }
+    ],
+    "evidence": "38/100",
+    "projected_sentence": "Fine"
+   },
+   "upgrades": {
+    "owned": [
+     {
+      "id": "COUNTER_LAMP",
+      "name": "Counter Lamp"
+     }
+    ],
+    "available": [
+     {
+      "id": "INSPECTION_INFORMANT",
+      "name": "Inspection Early Warning",
+      "cost": 300
+     },
+     {
+      "id": "CRIMINEL_NETWORK",
+      "name": "Criminal Networking",
+      "cost": 350
+     },
+     {
+      "id": "SEC_GRACE",
+      "name": "Clemency",
+      "cost": 250
+     }
+    ]
+   },
+   "services": [
+    {
+     "id": "INSURANCE",
+     "name": "Insurance",
+     "cost": 12,
+     "using": true
+    },
+    {
+     "id": "JANITORIAL",
+     "name": "Janitorial",
+     "cost": 8,
+     "using": true
+    }
+   ],
+   "market_events": {
+    "active": [],
+    "calendar": [
+     {
+      "day": 32,
+      "events": [
+       {
+        "identifier": "security_sweep",
+        "name": "Security Sweep",
+        "type": "THREAT",
+        "start_day": 32,
+        "duration": 2,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     },
+     {
+      "day": 34,
+      "events": [
+       {
+        "identifier": "rent_day",
+        "name": "Rent day",
+        "type": "INNATE",
+        "start_day": 34,
+        "duration": 1,
+        "is_duration_visible": true,
+        "negotiation": []
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "hidden": {
+   "days_to_inspection": 3,
+   "zz_hidden_sentinel": "zz_secret_nearthreshold"
+  }
+ }
+}

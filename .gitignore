@@ -9,3 +9,6 @@ mod/**/obj/
 .env
 /bridge
 /local.mk
+/local/
+__pycache__/
+/fenceexpert

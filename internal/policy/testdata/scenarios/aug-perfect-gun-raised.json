@@ -1,0 +1,62 @@
+{
+  "note": "The player already raised the gun on a stated aug: lowering it now lets the aug go, so fire.",
+  "expect": [
+    "shoot"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "aug-perfect-gun-raised",
+    "kind": "aug_check",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:aug-perfect-gun-raised",
+    "context": {
+      "detection": "perfect",
+      "client": {
+        "name": "Thief",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "wants": [
+          "material",
+          "energy_cell"
+        ],
+        "budget": 180,
+        "aug": true
+      },
+      "gun_raised": true,
+      "threaten_used": false,
+      "run": {
+        "day": 40,
+        "days_since_intro": 28,
+        "difficulty": "normal",
+        "presence_rise": 10,
+        "kill_presence_drop": 25,
+        "game_over_at_100": false,
+        "aug_menace": false,
+        "kill_reward": 128,
+        "manslaughter_crime": 500
+      }
+    },
+    "options": [
+      {
+        "id": "shoot",
+        "label": "Shoot: if an aug, about +128 cash, rep +2 LL/+2 BM/+2 Rev/+8 Sec, presence -25; if human, MANSLAUGHTER crime 500 and rep -15 LL/-15 Sec/-10 Rev/-10 BM (no game over); the sale is lost either way"
+      },
+      {
+        "id": "serve",
+        "label": "Serve them normally: an aug leaves alive (presence +10)"
+      }
+    ],
+    "hidden": {
+      "client": {
+        "identifier": "x",
+        "is_aug": true,
+        "stealth_wanted": false,
+        "aug_tier": 4,
+        "aug_idle_tell": "default",
+        "disguised": false
+      },
+      "shoot_result_if_shot": "good_kill"
+    }
+  }
+}

@@ -38,6 +38,7 @@ module bay set `TOTAL_PERCENTAGE_{PERFORMANCE,POWER,QUALITY}_BONUS_INT`
 (`ModuleHelper.ComputeModuleEffect`); `ModuleHelper.ApplyBasicModuleEffect` turns performance into
 `CURRENT_PROCESSING_SPEED_TAG` (divided by `MACHINE_PERFORMANCE_RATIO_INT` when set) and efficiency
 into lower power use. `MachineryHelper.GetCurrentQualityBonus(GameItem)` is the raw quality %.
+Per-machine module rules, breakpoints and loadouts: [`MODULES.md`](MODULES.md).
 
 ## 1. Garden: hydroponic bay (`hydroponic`, `MachineHydroponic`)
 
@@ -52,7 +53,7 @@ into lower power use. `MachineryHelper.GetCurrentQualityBonus(GameItem)` is the 
 | Harvest | Automatic at night into the output grid; the player drags produce out. No ripeness window, no rot on the vine (inferred: nothing decays output) | VISIBLE | `HydroponicHelper.ContinueGrowing` → `FinishGrowing` → `PlantDefinition.onHarvest` |
 | Water | `GetWaterUsePerCycle(seed)` ml per night (plant `waterUseRate` × genetics `WATER_USE`), removed from the water-slot container | VISIBLE (seed tooltip) | `HandleWaterConsumption` |
 | Nutrients / contaminants | Each progress point checks the water slot's `mineral` level against `nutrimentLevel ± nutrimentRange` (below: health −1 %, above: −0.5 %) and consumes `mineralUseRate`; each other contaminant (heavy metal, chemical, microbe, organic, acid, base) costs health on a step table (0 up to 6.4 % per point) × `contaminantEffect` × genetics sensitivity. Chemistry: see `WATER.md` | HIDDEN in the tooltip; VISIBLE as "growth score" with the plant analyser (WATER.md) | `HandleNutriment`, `HandleContaminant`, `ApplyContaminantEffect` |
-| Health | `PLANT_HEALTH_INT` (×100 scale), reset to `startingHealth` (100 × genetics) at each cycle start | HIDDEN | `StartGrowing`, `StartNextFruitingCycle` |
+| Health | `PLANT_HEALTH_INT` (×100 scale), reset to `startingHealth` (100 × genetics) at each cycle start. For a perennial the reset (`StartNextFruitingCycle`) runs in the **same night as the harvest**, right after the berries roll (`FinishGrowing`), so the morning after a harvest always reads 100 % — the berries just harvested got the depleted health. Not clamped at 0 (measured, docs/sim/VERIFIED.md) | HIDDEN | `StartGrowing`, `StartNextFruitingCycle` |
 | Yield | `GetHarvestCount(seed)` = `round(base × (1 + quality/100))`, base = plant `harvestQuantity` × genetics `HARVEST_QUANTITY`, quality = `ModuleHelper.GetAjustedQuality` (quality bonus / `MACHINE_QUALITY_RATIO_INT` 2) | base VISIBLE (seed tooltip "harvest quantity"); module bonus DERIVABLE | `GetHarvestCount`, `GetBaseHarvestQuantity` |
 | Growth time | `GetRequiredProgress(seed)` = `requiredProgress / GROWTH_SPEED multiplier`; perennials, once established, use `refruitProgress` (or 50 %) | VISIBLE ("required work") | `GetRequiredProgress`, `GetRefruitBaseProgress` |
 | Upgrade path | Hydroponic modules (performance → speed, quality → yield); plant genetics via `PlantGeneticsHelper` / DNA manipulator (see §6) | | |
@@ -61,7 +62,7 @@ into lower power use. `MachineryHelper.GetCurrentQualityBonus(GameItem)` is the 
 
 | Seed id (value) | Produce | Work (first / refruit) | Nights at speed 8 | Base yield | Notes |
 |---|---|---|---|---|---|
-| `bloomberry_seed` (40) | `wine_berry` ×8 | 18 / 10 | 3, then **every 2** | 8 | Perennial: the seed is never consumed; nutrients 200±75, contaminant ×1.25, water 100 ml/night |
+| `bloomberry_seed` (40) | `wine_berry` ×6 | 23 / 12 (18 / 10 base, ÷ 0.8) | 3, then **every 2** | 6 (8 base × 0.75) | The innate `perennial` trait carries HARVEST_QUANTITY −25 % and GROWTH_SPEED −20 % (measured, docs/sim/VERIFIED.md: 6 every harvest over 324 harvests). Perennial: the seed is never consumed; nutrients 200±75, contaminant ×1.25, water 100 ml/night |
 | `nutrifruit_seed` (40; 8 or 4 once freed) | nutrifruit (S/M/L/huge by health), +3 seeds | 23 | 3 | 5 | Size split by health and quality (`PlantHarvest.SplitByHealth`) |
 | `kotton_seed` (20) | kotton fiber (46 each, sizes) or `kotton_fabric` with the loom module; 1–2 seeds | 32 | 4 | 9 | Water 176 |
 | `dream_cap_seed` (24, contraband 1) | dream cap (23, contraband 2) / meal cap with module / nightmare cap with module; +1 seed | 28 | 4 | 8 | Contraband status stripped by the dream-cap or smuggler module |
@@ -149,10 +150,10 @@ retired farmer and Dr. Jackson. `StoreClientListSpec.CreateRetiredWinemaker`,
 | Item | `furnace`, unitValue 200 | VISIBLE | `MachineFurnace.Furnace()` |
 | Panels | battery, module bay (`MODULE_TYPE_UNIVERSAL`, `MODULE_TYPE_FURNACE`), input grid 9x6 (`scrap_metal`, `common_ore`, `flux_agent`, `advanced_flux_agent`; `junk` only with the junk module), output grid 9x6 | VISIBLE | `CreateMachineInventoryWindow` |
 | Per night | **One smelt** if the output can take an ingot, ≥ 2 metal inputs (3 with the blast module) and power: consumes the last 2 (3) scrap/ore, makes 1 `metal_ingot` (2 with blast) | VISIBLE (result next morning) | `Furnace()` cycle lambda |
-| Power | 8 per smelt (only drawn when it smelts) | DERIVABLE | `InitMachinery(…, 8)` |
+| Power | 8 per smelt, **16 with the blast module** (only drawn when it smelts; measured, docs/sim/VERIFIED.md) | DERIVABLE | `InitMachinery(…, 8)` |
 | Purity | Level = LOW + `2 × ore / inputs` (integer) + flux level, clamped to VERY_LOW…PERFECT. Flux level = quality% / 100 (−1 with blast); a `flux_agent` raises it to at least 1 and is consumed; an `advanced_flux_agent` raises it to at least 1 and is **never consumed** | label HIDDEN until tested (flashlight shows only LOW/VERY_LOW, analyser shows all); price DERIVABLE: the true modifier is applied before testing | `IngotPurityHelper.SetPurityFromInput`, `GetPurityConst`, `SetPurity` |
 | Junk module | If no smelt happened that night: 6 `junk` → 4 `scrap_metal` | | `HaveJunkModule` branch |
-| Modules | `furnace_module_blast` (150): 3 in → 2 out, −1 flux level; `furnace_module_junk` (120) | | `ModuleDirectory` |
+| Modules | `furnace_module_blast` (150): 3 in → 2 out, −1 flux level, power 8 → 16 per smelt; `furnace_module_junk` (120) | | `ModuleDirectory` |
 
 | Purity | Level | innate % | Ingot value (base 50) |
 |---|---|---|---|
@@ -175,6 +176,71 @@ retired farmer and Dr. Jackson. `StoreClientListSpec.CreateRetiredWinemaker`,
 Inputs: `scrap_metal` 10, `common_ore` 15, `junk` 3, `flux_agent` 4, `advanced_flux_agent` 300,
 `metal_ingot` 50 (`MaterialDirectory`). Ingots are `MATERIAL`, so MATERIAL market events move
 them (§5).
+
+### Running a furnace (verified 2026-11-09 against the decompile and in the gym)
+
+**The night's job.** Nothing happens unless the output grid can take one more ingot
+(`GraphUtils.CanAccept` with a fresh `metal_ingot`), so a full output stops smelting *and* the
+junk module. Then exactly one of: a smelt, when the input holds at least 2 metal (3 with the blast
+module) and the battery pays the draw; else, with the junk module, a conversion of 6 junk into 4
+scrap, which also needs room in the output, and pays the same per-night draw (8, or 16 with the
+blast module). The smelt takes the *last* 2 or 3 of the input's scrap followed by its ore, so ore
+is used first. Junk-made scrap lands in the **output** grid, not the input: a player has to move
+it back before it can be smelted. A failed power draw does nothing that night.
+
+**Room.** Junk, scrap, ore and ingots are all 3×2 (six cells; `item_shapes.json`), flux is 1×1.
+The input and output grids are 9×6, so each holds nine of them: six junk plus a flux leave room
+for only two metal, so on a blast night the junk has to come out. Every ingot left in the output
+blocks one more night.
+
+**Getting a furnace.**
+
+| Source | When | Price | Evidence |
+|---|---|---|---|
+| Dr. Jackson's introduction | day 6, scripted (`StoreClientManager` adds `CreateInventorIntro` on day 6) | 200 less the new-customer discount (`FirstTimeDiscount`, −`newCustomerDiscount`: 75 % cozy/normal, 35 % hard, 10 % challenge) = 50 / 50 / 130 / 180; no bargaining. Buying it makes him add a 50-charge energy credit, the ingot book and two flux to the deal | `StoreClientListStory.CreateInventorIntro`, `ItemFeatureList.FirstTimeDiscount`, `Difficulty` |
+| Dr. Jackson in the store | days 8 and 12, then every day ≥ 12 with day % 7 = 5 (not with the `LLAVOIDED` perk) | always offered while none is owned, 25 % per visit after; his goods carry `inventorMarkup` 0 / 15 / 50 / 100 % (cozy…challenge): 300 on hard | `StoreClientManager.HandleInventorClient`, `StoreClientList.CreateInventor`, `PlaceInventorInventory` |
+| Dr. Jackson at night (`dr_jackson` location, once introduced) | any night (uses the night's one outing) | same stock and markup, plus the location's `inventor_sell_price` event modifier | `DrJacksonLocation`, `GetInventorShopPriceChange` |
+| Retired junker | weekly (day % 7 = 3) with the junker start or the hidden `RUINED_MACHINE_UNLOCK` referral (300) | a furnace every visit, plus 1–4 flux | `StoreClientListSpec.CreateRetiredJunker` |
+| Ruined furnace | broken-machine content | 135, needs 4 wire / 4 screw / 5 weld repairs; may hold a blast module, advanced flux or turbo booster | `PreBuiltItemHelper.CreateBrokenFurnace` |
+
+The two modules come only from Dr. Jackson's stock, each with a 20 % chance per visit
+(`furnace_module_blast` 150, `furnace_module_junk` 120, before his markup: 225 / 180 on hard; the gym
+also saw them at 150 / 120 on hard).
+
+**Inputs.** Junk is 54 % of dumping-ground finds (§6). Scrap: the scavenger supplier's material
+stock (one, plus four at 50 % each), the day-5 story scrap seller (five, wholesale −33 %), the
+junker, the welder at the dump (+10 % a search), and the junk module. Ore: the miner (sell-and-buy,
+wholesale −15 to −25 %; seen about weekly in the gym at 11–15 each), the Revolution
+quartermaster (25 %: 5–12 ore) and the mining courier by phone (below). Flux: Dr. Jackson's furnace
+gift and the junker.
+
+**Ore by phone (Caulson).** Wild's `MINER` introduction (250 × the upgrade multiplier: 375 on hard)
+gives the card and sets Caulson's line to its introduction; the first call queues
+`courrierMiningFree` for the next day (8 ore, already owned, dropped on the front counter). After
+that each call (line `Regular`, then a **5-day cooldown**, `PhoneClientList.CreateMining`) orders
+6 ore delivered in 1 day, or 12 in 2 days once 350 has been spent with him (`amountSpent`, counted
+on the courier's sales). The courier (`courrierMining`) sells the lot wholesale at −20 % (−35 % with
+`MINER_SHAREHOLDER`, 900 × multiplier, which also drops 6 owned ore on the counter every week on
+day % 7 = 5), no bargaining: 12 ore for 144 on hard. That is at most ~2.4 ore a day, 0.8 of a blast
+smelt. Evidence: `PhoneDialogList.MiningIntro/MiningRegular`, `StorePhoneClient.UseService/OnNewDay`,
+`StoreClientListSupplier.CreateCourrierMining*`, `ShareholderHelper`.
+
+**Who buys ingots.** Any client buying `MATERIAL`: Dr. Jackson (in the store and at night;
+budget 50 + 2 × day + 10 × his investment bonus, no bargaining), the station engineer (250–500),
+the foreman event (400), the material-shortage client (190–240), the lower repairman and
+maintenance worker (100–125), the aug material buyer (150–250) and a few story clients. On hard
+there is no retail markup, so an ingot sells at its estimate (purity is priced before it is
+tested). The machinist's "3 ingots" procurement offer exists in code but nothing schedules it.
+
+**What it earns (gym, hard, apprentice start, 30 paired seeds; `sim/gym/Furnace.cs`, `engine:
+furnace`).** About 150 a week per furnace (median over a run: 138 ingots at ~60, 88 smelts, 27 junk
+conversions; value made less inputs at estimate and charge at cost). It is input-bound: nightly
+scavenging feeds a conversion every three or four nights and the miner a few ore a week, and the
+junk module (20 % per Jackson visit) arrives late in some runs. With ore by phone and two furnaces
+(`ore_phone`, `furnaces: 2`): ~315 a week over a run and ~450 once both run (days 100–170: 16
+ingots a week, ~1 000 of ingots against ~550 of inputs and charge); a blast furnace fed 3 ore and a
+flux every night nets ~80, and the phone feeds 0.8 of a night. Charge is a fifth to a quarter of the
+cost. Details in `sim/gym/README.md` (Status).
 
 ## 4. Other machines and systems
 
@@ -263,9 +329,14 @@ budgets 125–175 / 150–200 / 100–130 / 190–240 / 250–300) when a major 
 ≥ 30, and a wholesale seller (`StoreClientListSurplus.*`, wholesale −15 %, −20 % at ≤ −75) when
 ≤ −30. **In this build it never fires**: `PlayerStore.GetMarketModifierType(List<System.String>)`
 keys its sums by `NegociationData.identifier`, which is a fresh GUID, not the type name, so the
-filter never matches and the list is always empty (inferred from code; a play-test with an active
-FOOD event would confirm). The per-event clients in `StoreEventActionDict` (food buyer, foreman,
-pharmacist…) do arrive, one per active day.
+filter never matches and the list is always empty (were it ever to match, `dictionary[key] +=` on an
+empty dictionary would throw). Confirmed in the owner's games, not just the headless one: events are
+built in code (`EventList*`, `OperationList*`), not ScriptableObjects; the GUID is set in the
+constructor and saved as such (both saves hold GUID identifiers in `negociationDatas`); neither save's
+`permanentClientTracker` has any `*_shortage_client` or surplus client, and the hard game's days
+110–111 ran a `medicalSuppliesShortage` (MEDICAL +50) with no Worried Resident among the customers.
+There is no water shortage client in the code at all. The per-event clients in `StoreEventActionDict`
+(food buyer, foreman, pharmacist…) do arrive, one per active day.
 
 ### Speculation math
 
@@ -288,24 +359,26 @@ realized through ordinary FOOD customers.
 | Wounds | Per attempt, minor `5 + attempts so far` %, else major `1 + 0.25 × attempts` % (halved with a flashlight in the bag, × `injury_chance` modifier; 0 with Careful Scavenger or `injury_immunity`). Luck can cancel a wound. First 10 / 20 searches of a run are immune to minor / major | VISIBLE (panel shows both %) | `GetMinorWoundChance`, `GetMajorWoundChance`, `ScavengeDumpingGrounds` |
 | Wound cost | Minor `woundState` +2, major +5; a fresh wound ends scavenging for the night; > 5 blocks outings; heals −4/night once stable (10 % worsen / 50 % stabilise per night otherwise) | VISIBLE (night log) | `HealthData.ReceiveMinorWound`, `HandleNightlyWound` |
 | Bad luck | Negative luck: chance of an empty search | | `HealthData.RollBadLuck` |
-| Loot | One roll of table group `dumpingGroundTG` (contents live in Unity data, not the decompile; read them with the F8 `loot-list dumpingGroundTG`), plus: 3 % the satchel then the kids' backpack (once each), 1 % degraded cassette, 1 % mouse trap, 10 % each `nuts_metal` / `wire` / `scrap_metal` when a screwdriver / wire cutter / welder is in the bag, and a double-loot roll at the metal scanner's chance (15 %, +5 per upgrade, max 100) + `loot_double_chance` | VISIBLE (items land in the afterhour bag) | `GetRandomScavengedItem`, `SpawnDumpingGroundLoot`, `InitScavScanner` |
+| Loot | One roll of table group `dumpingGroundTG` (contents live in Unity data, not the decompile; read them with the F8 `loot-list dumpingGroundTG`; measured: 1.02 items and 12.9 cr a search on average, junk 54 %, then ~2 % each of ~20 items, docs/sim/VERIFIED.md), plus: 3 % the satchel then the kids' backpack (once each), 1 % degraded cassette, 1 % mouse trap, 10 % each `nuts_metal` / `wire` / `scrap_metal` when a screwdriver / wire cutter / welder is in the bag, and a double-loot roll at the metal scanner's chance (15 %, +5 per upgrade, max 100) + `loot_double_chance` | VISIBLE (items land in the afterhour bag) | `GetRandomScavengedItem`, `SpawnDumpingGroundLoot`, `InitScavScanner` |
 | Events | Wednesday `fresh_dump` (junk −50 % weight, injuries +25 %); `georgio_assistance` (no injuries, +5 attempts) | VISIBLE (location card) | `VanillaAfterhourEvents` |
 | Diminishing returns | Only through rising wound odds within a visit; no depletion across nights (inferred) | | |
-| Stolen / heat | Finds are spawned plainly; nothing in the scavenging path marks them stolen or adds heat (inferred) | | `ScavHelper` has no `StolenHelper` call |
+| Stolen / heat | Finds are spawned plainly; nothing in the scavenging path marks them stolen or adds heat (measured: 0 stolen in 95 796 searches, docs/sim/VERIFIED.md) | | `ScavHelper` has no `StolenHelper` call |
 
 Expected value per night is the table's mean value × (≈ 5 attempts × (1 − wound odds)) plus tool
 bonuses; with a welder, +0.5 scrap (5 cr) per night feeds the furnace.
 
 ## 7. Most profitable chains (code numbers, neutral water, default markup ignored)
 
+Berry yield (6 per harvest) and blast power (16 per smelt) are measured, docs/sim/VERIFIED.md.
+
 | Chain | Capital | Per cycle | Gross out | Inputs + power | Net / night |
 |---|---|---|---|---|---|
-| Bloomberries sold as food | hydroponic 300 + seed 40 | 8 berries / 2 nights | 112 | 16 power + 200 ml water | ~48 |
-| Bloomberries → wine, 2 berries/bottle (healthy plant: 60 % best) | + bottles, yeast | 4 bottles / 2 nights | ~4 × 150–175 ≈ 650 | 4 × (12 bottle + 10 yeast) + 3 L water + 16 | **~280** |
-| Bloomberries → wine, 1 berry/bottle | same | 8 bottles / 2 nights | ~8 × 115 ≈ 920 (best 125, normal 100) | 8 × 22 + 6 L + 16 | **~360**, bottle-limited |
+| Bloomberries sold as food | hydroponic 300 + seed 40 | 6 berries / 2 nights | 84 | 16 power + 200 ml water | ~34 |
+| Bloomberries → wine, 2 berries/bottle (healthy plant: 60 % best) | + bottles, yeast | 3 bottles / 2 nights | ~3 × 150–175 ≈ 490 | 3 × (12 bottle + 10 yeast) + 2.25 L water + 16 | **~205** |
+| Bloomberries → wine, 1 berry/bottle | same | 6 bottles / 2 nights | ~6 × 115 ≈ 690 (best 125, normal 100) | 6 × 22 + 4.5 L + 16 | **~270**, bottle-limited |
 | Wine aging | rack 350 (optional) | per bottle | +5.25/night (Master), +10.5 in a rack | 24 power for the whole rack | +5 to +10 per bottle |
 | Furnace, 2 scrap + flux | furnace 200 | 1 ingot / night | 50 | 24 + 8 | ~18 |
-| Furnace, blast + 3 ore + flux | + module 150 | 2 ingots / night | 150 | 49 + 8 | **~93** |
+| Furnace, blast + 3 ore + flux | + module 150 | 2 ingots / night | 150 | 49 + 16 | **~85** |
 
 So the owner's instinct is right, with two corrections from the code: (1) **wine dominates** —
 a berry is worth 14 as food but 85–125 as a one-berry wine, so even under/over-ripe berries
@@ -391,8 +464,6 @@ grade roll (seeded by `RNG`, depends on HIDDEN health), scavenging loot, and eve
 
 ## Riskiest / least certain
 
-- Shortage/surplus clients being dead (GUID key) is a code reading; confirm in play with an
-  active FOOD event and the clientele forecast.
 - Bottles aging twice per night inside the rack relies on `FindAllItem` recursing into the rack's
   grid (it does for other containers); verify by aging one bottle in and one out of a rack.
 - Berry footprint in the 6x2 bottle grid is not in code (sprite shape); the ingredient count per
@@ -409,7 +480,7 @@ effect on water is in `WATER.md`.
 
 | Item | Sold as | Used for | Consumed? | Effect |
 |---|---|---|---|---|
-| `bloomberry_seed` | 40, SEED | hydroponic seed | **No** (perennial; only a hatchet removes it) | 8 berries every 2 nights forever after a 3-night start: ~28 berries/week. Never sell a working seed |
+| `bloomberry_seed` | 40, SEED | hydroponic seed | **No** (perennial; only a hatchet removes it) | 6 berries every 2 nights forever after a 3-night start: ~21 berries/week (measured, docs/sim/VERIFIED.md). Never sell a working seed |
 | `nutrifruit_seed` | 40 (8 / 4 once freed), SEED | hydroponic seed | Yes, returns 3 seeds | 5+ nutrifruit (sizes by health) per 3 nights |
 | `kotton_seed` / `dream_cap_seed` / `fillerweed_seed` / `hydroreed_seed` / `coffee_bean` | 20 / 24 / 9 / 20 / 28 | hydroponic seed | Yes, return 1–2 seeds (coffee: none) | §1 plant table |
 | `wine_berry` (any grade) | 14, FOOD (same price for every grade) | wine ingredient | Yes | +2 best, +1 normal, 0 under/over-ripe, −1 moldy to the wine score; one berry in a bottle with yeast turns 14 into 85–125 |
@@ -426,10 +497,10 @@ effect on water is in `WATER.md`.
 | `flux_agent` | 4, MATERIAL | furnace | Yes, when it acts | +1 purity level (Low → Fair: +7.5 per ingot) |
 | `advanced_flux_agent` | 300, MATERIAL | furnace | **No** | Same +1 level every night forever: worth it after ~75 smelts vs 4-credit flux |
 | `metal_ingot` | 50 × purity (37.5–150), MATERIAL | 3D printer input | Yes | 1 ingot → 2–5 gun parts by purity |
-| `furnace_module_blast` | 150, module | furnace module | No | 3 inputs → 2 ingots per night (doubles throughput) |
+| `furnace_module_blast` | 150, module | furnace module | No | 3 inputs → 2 ingots per night (doubles throughput); doubles power to 16 per smelt |
 | `furnace_module_junk` | 120, module | furnace module | No | Enables junk → scrap |
 | hydroponic / furnace / other modules | module value | machine module bay | No (locked while working) | Performance → speed; quality → yield (hydroponic), flux level (furnace), extra aging steps (rack, +1 per 125 %) |
-| `energy_credit` (any charge) | ~1 per charge unit + base | machine battery | Charge drawn | Hydroponic 8, furnace 8, rack 24, purifier 4, moisture farm 6, printer 8 per night |
+| `energy_credit` (any charge) | ~1 per charge unit + base | machine battery | Charge drawn | Hydroponic 8, furnace 8 (16 with the blast module), rack 24, purifier 4, moisture farm 6, printer 8 per night |
 | `turbo_booster_adv` | 300 | extra machine cycle | No (3-night recharge) | One more night of work for one machine |
 | `plant_analyser` | 200, TOOL | reads seed genetics | No | Information only |
 | `water_filter` / `water_filter_adv` / `hydroreed_filter` | 25 / 350 / 20, HOUSEHOLD_GOOD + FILTER + WATER_PURIFICATION_SUPPLY | water treatment | adv 400 and hydroreed 200 durability | Cleans water for wine (+score), hydroponics (plant health → berry grade) and fish; see `WATER.md`. Selling one gives 20–350 once; keeping it raises the grade of every bottle and harvest |

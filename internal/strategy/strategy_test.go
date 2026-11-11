@@ -40,10 +40,18 @@ func TestRenderScenarios(t *testing.T) {
 			"- Tools for the dock, from Foreman Rudd, Lower Levels, wants 1 x toolkit, pays 380, +3 rep, 2 days",
 		},
 		"hot-stolen-inspection-prone": {
-			"- Gold Chain #601 (luxury_item) in showcase, est. 1400, paid 820, heat 70, sells clean from day 64 [EXPOSED: not in a smuggler bay; an inspection that finds it resets heat to 100] [ON SHOWCASE: visible to security]",
+			"- Gold Chain #601 (luxury_item) in showcase, est. 1400, paid 820, heat 70, sells clean from day 64 [EXPOSED: not in a smuggler bay; an inspection finds it with chance = its heat % and confiscates it] [ON SHOWCASE: visible to security]",
 			"- Holo Camera #602 (module) in stock, est. 900, paid 560, heat 40, sells clean from day 63 [EXPOSED",
 			"Security record: trafficking 820, crimes fencing 820, bribery 0, evidence 72/100, projected sentence Prison",
 			"- Security -25 (Disfavored); next perk Requisition at 0, 25 to go; next penalty AlarmIgnored at -40, 15 away",
+		},
+		"hot-stock-near-inspection-threshold": {
+			"- Smart Watch #803 (electronics) in stock, est. 420, paid 160, heat 82, sells clean from day 35 [EXPOSED",
+			"Hot stock exposed to an inspection: 5 item(s) outside a smuggler bay (2 inside one); an inspection finds each with chance = its heat % and CONFISCATES it: expected loss about 979 credits and 16 Security rep per inspection.",
+			"No scheduled inspection while the trafficking record (fencing included) stays under 50 (now 44)",
+			"- Security at -100 = immediate arrest: now -52, 48 away",
+			"Inspection Early Warning (300) affordable: favor 180 + cash 120",
+			"THREAT Security Sweep",
 		},
 		"contraband-in-stock": {
 			"- Stim Injector #701 (substance) in stock, est. 450, paid 200, contraband level 3 SERIOUS\n",
@@ -55,7 +63,7 @@ func TestRenderScenarios(t *testing.T) {
 		"flush-nothing-to-sell": {
 			"Property: buyout price 13900 (4500 to go).",
 			"- day 90 (in 2): Launch Week: module +25% (4 days)",
-			"Upgrades available: Projector (2200), Landlord Grace (900).",
+			"Upgrades available (paid from Wild favor first, then cash, 0 favor on hand): Projector (2200) affordable: favor 0 + cash 2200, Landlord Grace (900) affordable: favor 0 + cash 900.",
 		},
 		"production-food-shortage": {
 			"- Berries (food) [Ripe] x9 #801 #802 #803 #804 …, est. 30 each, paid 0 avg (stock)",
@@ -71,7 +79,7 @@ func TestRenderScenarios(t *testing.T) {
 		},
 		"stolen-meat-smuggler-bay": {
 			"- Wagyu Cut #955 (food) in smuggler bay #950 (inspections do not search it), est. 700, paid 300, heat 70, sells clean from day 86,",
-			"- Ribs #954 (food) in showcase, est. 220, paid 90, heat 35, sells clean from day 84, before rent is due on day 87 [EXPOSED: not in a smuggler bay; an inspection that finds it resets heat to 100] [ON SHOWCASE: visible to security]",
+			"- Ribs #954 (food) in showcase, est. 220, paid 90, heat 35, sells clean from day 84, before rent is due on day 87 [EXPOSED: not in a smuggler bay; an inspection finds it with chance = its heat % and confiscates it] [ON SHOWCASE: visible to security]",
 			"- Prime Steak #952 (food) in stock, est. 260, paid 120, heat 10, sells clean from day 83",
 			"- Prime Steak #951 (food) in stock, est. 260, paid 120, heat 0 (sells clean now)\n",
 			"- day 84 (in 2): THREAT Security Sweep (2 days); rent day",
@@ -104,7 +112,7 @@ func TestRenderScenarios(t *testing.T) {
 			"Security record: trafficking 60, evidence Low, suspected of Fencing, projected sentence Fine.",
 		},
 		"wine-berries-two-bottles-no-yeast": {
-			"- Hydroponic bay #500: bloomberry (perennial: never replant, established: 10 work to refruit), progress 2/10, harvest in 1 night(s) (morning of day 42) of 8;",
+			"- Hydroponic bay #500: bloomberry (perennial: never replant, established: 12 work to refruit), progress 2/12, harvest in 1 night(s) (morning of day 42) of 6;",
 			"- Wine: 2 empty bottle(s) #520 #521; 0 yeast; berries: 3 best #510 #511 #512, 2 normal #513 #514, 1 under-ripe #515, 1 over-ripe #516, 1 moldy #517.",
 			"Best fill of the 2 bottle(s) tonight: 1 x (best+best, no yeast -> Reserve 150), 1 x (best+normal, no yeast -> Production 125)",
 			"With one wine_yeast (10) per bottle instead: 1 x (best+best + yeast -> Master Vintage 175), 1 x (best+normal + yeast -> Reserve 150), worth 367 (+50)",
@@ -314,8 +322,10 @@ func (f *fakeLLM) Complete(ctx context.Context, req llm.Request) (llm.Response, 
 			return llm.Response{}, ctx.Err()
 		}
 	}
-	switch req.System {
-	case planSystem:
+	switch {
+	case isDirectivesAsk(req):
+		return llm.Response{Text: `{"cash_floor":0,"bargain":"ev_positive","scavenge":true}`, Model: "fake"}, nil
+	case strings.HasPrefix(req.System, planSystem):
 		f.mu.Lock()
 		defer f.mu.Unlock()
 		if f.failPlan {
@@ -323,7 +333,9 @@ func (f *fakeLLM) Complete(ctx context.Context, req llm.Request) (llm.Response, 
 		}
 		f.plans++
 		return llm.Response{Text: fmt.Sprintf("CALENDAR\n- nothing\nGOALS\n- plan %d goal one\n- goal two\nCASH\n- floor 600\nFACTIONS\n- d\nWINDOW\n- w\nSTOCK\n- e\nKEEP\n- k2\nPRODUCTION\n- p\nRISK\n- f\nCUSTOMERS\n- g", f.plans), Model: "fake"}, nil
-	case reviewSystem:
+	case req.System == windfallSystem:
+		return llm.Response{Text: "<think>hm</think>**WINDFALL:** blast module -> pivot? yes, 32 a night beats the path's next buy\n- buy it up to 150\n- no other change\n- a fourth line that is dropped", Model: "fake"}, nil
+	case req.System == reviewSystem:
 		return llm.Response{Text: "- MET: goal one (cash 1450)\n- NEXT: keep going", Model: "fake"}, nil
 	}
 	return llm.Response{}, errors.New("unexpected system prompt")
@@ -333,6 +345,22 @@ func (f *fakeLLM) requests() []llm.Request {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return append([]llm.Request(nil), f.reqs...)
+}
+
+// planRequests are the requests without the directives follow-ups.
+func (f *fakeLLM) planRequests() []llm.Request {
+	var out []llm.Request
+	for _, r := range f.requests() {
+		if !isDirectivesAsk(r) {
+			out = append(out, r)
+		}
+	}
+	return out
+}
+
+func isDirectivesAsk(req llm.Request) bool {
+	n := len(req.Messages)
+	return n > 0 && strings.HasPrefix(req.Messages[n-1].Content, directivesAsk)
 }
 
 type stubRecall struct{ got []*protocol.DecideRequest }
@@ -466,9 +494,11 @@ func TestStrategistWithoutLLM(t *testing.T) {
 }
 
 // TestHiddenNeverReachesModel: events carrying a hidden block, and data with fields the
-// strategist does not know, must produce byte-identical model requests to clean ones.
+// strategist does not know, must produce byte-identical model requests and directives to
+// clean ones.
 func TestHiddenNeverReachesModel(t *testing.T) {
-	const hidden = `"hidden":{"days_to_inspection":3,"zz_secret_key":"zz_secret_value","items":[{"uid":1,"true_value":987654321,"real_features":["zz_counterfeit"]}],"store":{"cash":555444333}}`
+	const hidden = `"hidden":{"days_to_inspection":3,"zz_secret_key":"zz_secret_value","items":[{"uid":1,"true_value":987654321,"real_features":["zz_counterfeit"]},{"uid":77,"stolen_heat":90}],"store":{"cash":555444333,"business_permit":false},"rent":{"rent":444333222,"days_left":1},"security":{"trafficking_value":999}}`
+	var directives []string
 	run := func(withHidden bool) []llm.Request {
 		f := &fakeLLM{}
 		s := New(Options{LLM: f})
@@ -491,28 +521,42 @@ func TestHiddenNeverReachesModel(t *testing.T) {
 		send("going_sleep", 5, `{}`)
 		send("day_snapshot", 6, fmt.Sprintf(snap, "morning", 1200, 6))
 		s.wg.Wait()
+		d, _, ok := s.CurrentDirectives("s1")
+		if !ok {
+			t.Fatal("no directives")
+		}
+		directives = append(directives, string(d))
 		return f.requests()
 	}
 	with, without := run(true), run(false)
-	if len(with) != 3 {
-		t.Fatalf("%d model calls, want plan, review, plan", len(with))
+	if len(with) != 5 {
+		t.Fatalf("%d model calls, want plan, directives, review, plan, directives", len(with))
 	}
 	a, _ := json.Marshal(with)
 	b, _ := json.Marshal(without)
 	if string(a) != string(b) {
 		t.Fatalf("model requests differ when hidden is present:\nwith    %s\nwithout %s", a, b)
 	}
-	for _, s := range []string{"zz_", "987654321", "555444333", "days_to_inspection"} {
+	if directives[0] != directives[1] {
+		t.Fatalf("directives differ when hidden is present:\nwith    %s\nwithout %s", directives[0], directives[1])
+	}
+	for _, s := range []string{"zz_", "987654321", "555444333", "444333222", "days_to_inspection", "#77"} {
 		if strings.Contains(string(a), s) {
 			t.Errorf("hidden %q reached the model", s)
+		}
+	}
+	for _, s := range []string{"444333222", "[77", ",77", `"permit"`, `"hot_stock_cap"`} {
+		if strings.Contains(directives[0], s) {
+			t.Errorf("hidden %q reached the directives: %s", s, directives[0])
 		}
 	}
 }
 
 var (
-	_ server.Recorder = (*Strategist)(nil)
-	_ policy.Planner  = (*Strategist)(nil)
-	_ Recall          = (*memory.Store)(nil)
+	_ server.Recorder          = (*Strategist)(nil)
+	_ server.DirectivesPlanner = (*Strategist)(nil)
+	_ policy.Planner           = (*Strategist)(nil)
+	_ Recall                   = (*memory.Store)(nil)
 )
 
 func TestLintPlan(t *testing.T) {

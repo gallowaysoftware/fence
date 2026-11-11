@@ -1,0 +1,56 @@
+{
+  "name": "t6-hard-drift-b",
+  "players": [
+    {
+      "id": "drift-delta",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "seeds": [
+    1200024,
+    1200023,
+    1200022,
+    1200021,
+    1200020,
+    1200019,
+    1200018,
+    1200017,
+    1200016,
+    1200015,
+    1200014,
+    1200013,
+    1200012,
+    1200011,
+    1200010,
+    1200009,
+    1200008,
+    1200007,
+    1200006,
+    1200005,
+    1200004,
+    1200003,
+    1200002,
+    1200001
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_mortgage.json"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

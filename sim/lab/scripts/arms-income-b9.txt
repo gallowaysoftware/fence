@@ -1,0 +1,4 @@
+# Hard income, batch 9: PerunGamingAU's H18 (take the landlord's vending machine) and H19 (renovations early) on vs2.
+h18_landlord_ss  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/h18_landlord.json -perks short_sleeper+proficient_scavenger
+h18_landlord_s   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/h18_landlord.json -perks short_sleeper
+h19_reno2        | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/h19_reno2.json -perks vending+short_sleeper

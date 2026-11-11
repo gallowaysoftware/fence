@@ -89,6 +89,52 @@ type class AppraisalHelper
   method static System.Void InitAppraisalItem(GameItem gameItem, System.Int32 defaultValue)
   method static System.Void SetDefaultAppraisalValue(GameItem gameItem, System.Int32 defaultValue)
 
+type static class AppraisalRankHelper
+  field const System.Int32 GRADE_AWFUL = 5
+  field const System.Int32 GRADE_EXCELLENT = 2
+  field const System.Int32 GRADE_GOOD = 3
+  field const System.Int32 GRADE_MEDIOCRE = 4
+  field const System.Int32 GRADE_PERFECT = 1
+  field const System.Int32 PROMOTION_RETRY_DAYS = 7
+  field const System.Int32 RANK_APPRAISER = 1
+  field const System.Int32 RANK_JUNIOR = 0
+  field const System.Int32 RANK_MASTER = 3
+  field const System.Int32 RANK_SENIOR = 2
+  field const System.String APPRAISAL_CUSTOMER_ID = "scavAppraisalRandom"
+  field const System.String PROMOTION_CLIENT_ID = "appraisalBoardPromotion"
+  method static AppraisalRankHelper+Rank GetRankData(System.Int32 rank)
+  method static GameItem CreateCertificate(System.Int32 rank)
+  method static GameItem GetDisplayedCertificate()
+  method static System.Boolean CanProgress()
+  method static System.Boolean IsCertificate(GameItem item)
+  method static System.Boolean IsGradeAccepted(System.Int32 grade)
+  method static System.Boolean IsPromotionReady()
+  method static System.Boolean PromotionUnlocksItems(System.Int32 toRank)
+  method static System.Int32 GetAttractionChance()
+  method static System.Int32 GetBaseAttractionChance()
+  method static System.Int32 GetBaseFee()
+  method static System.Int32 GetCertificateRank(GameItem item)
+  method static System.Int32 GetDaysMissed()
+  method static System.Int32 GetFeePercent(System.Int32 grade)
+  method static System.Int32 GetProgressPercent()
+  method static System.Int32 GetPromotionCost(System.Int32 toRank)
+  method static System.Int32 GetRank()
+  method static System.Single GetThreshold()
+  method static System.String GetRankName(System.Int32 rank)
+  method static System.Void CreateCertificateTooltip(RichTextBuilder builder, GameItem item)
+  method static System.Void DeclinePromotionForGood()
+  method static System.Void DeclinePromotionForNow()
+  method static System.Void HandlePromotionClient(StoreClientManager manager)
+  method static System.Void InitCertificate(GameItem item, System.Int32 rank)
+  method static System.Void OnCustomerRolled(System.Collections.Generic.List<System.ValueTuple<System.String,System.Int32,System.String>> prediction, System.Collections.Generic.HashSet<System.String> spawnedIds)
+  method static System.Void OnCustomerWalkout()
+  method static System.Void OnEstimateAccepted(System.Int32 grade)
+  method static System.Void OnEstimateRefused(System.Int32 grade)
+  method static System.Void Promote()
+  method static System.Void ReissueLostCertificate()
+  method static System.Void SetRank(System.Int32 rank)
+  property static AppraisalRankHelper+Rank Current { get; }
+
 type class AppraisalServiceHelper
   ctor ()
   method static Dialogue GetAcceptEstimateDialog(GameItem gameItem, System.Int32 value)
@@ -99,6 +145,25 @@ type class AppraisalServiceHelper
   method static System.String SetString(System.Int32 fee, System.Int32 baseFee, System.Int32 percentage, System.String quality, System.String slipValue, System.Int32 estimate, System.Int32 correctValue)
   method static System.Void GiveAppraisalFee(System.Int32 value, System.Int32 precision, System.Int32 correctValue)
   method static System.Void OnEstimate(GameItem gameItem, System.Int32 value)
+
+type class AugHelper
+  ctor ()
+  field const System.Int32 SHOT_AUG = 0
+  field const System.Int32 SHOT_INNOCENT = 1
+  field const System.Int32 SHOT_WANTED_CAPTURE = 2
+  method static Dialogue CreateRandomMaterialAugDialogue(System.Int32 budget, System.Int32 tier)
+  method static Dialogue CreateRandomMedAugDialogue(System.Int32 budget, System.Int32 tier)
+  method static Dialogue GetClientReactionUnholster()
+  method static Dialogue GetRandomClientReactionUnholster()
+  method static StoreClientInstance GetShotClient()
+  method static System.Int32 GetShootResult()
+  method static System.Int32 RollAugTier()
+  method static System.Void CleanupKill()
+  method static System.Void MakeDisguisedAug(StoreClient storeClient, System.Int32 augTier)
+  method static System.Void OnAugLeftAlive()
+  method static System.Void OnGoodKill()
+  method static System.Void OnShootoutLeave()
+  method static System.Void SetRandomAugFaction(StoreClient storeClient, System.Int32 augTier)
 
 type class BargainUIManager : UnityEngine.MonoBehaviour
   ctor ()
@@ -877,6 +942,62 @@ type class EndOfDayUIManager : UnityEngine.MonoBehaviour
   property System.Boolean IsOpen { get; }
   property static EndOfDayUIManager Instance { get; }
 
+type class GameGridInventory : GameInventory
+  ctor (System.Int32 width, System.Int32 height)
+  ctor (System.String shape, System.Int32 width)
+  field System.Boolean renderDynamicBackground
+  method GameGridInventory ClearCellBackdrops()
+  method GameGridInventory SetBackgroundSprite(System.String atlasPath, System.String spritePath)
+  method GameGridInventory SetCellBackdrop(System.Int32 x, System.Int32 y, UnityEngine.Sprite sprite)
+  method GameGridInventory SetMachineryStyle()
+  method GameGridInventory SetShape(System.Int32 width, System.Int32 height)
+  method GameGridInventory SetShape(System.String shape, System.Int32 width)
+  method GameGridInventory SetSolidSprite(System.String atlasPath, System.String spritePath)
+  method GameGridInventory SetTransparency(System.Single transparency)
+  method SlotMarker TryFindOneValidInventorySlot(GameItem item, System.Boolean keepOrientation)
+  method SlotMarker TryFindOneValidInventorySlot_TopMiddle(GameItem item, System.Boolean keepOrientation)
+  method System.Boolean CanTakeAnything()
+  method System.Boolean HasCellBackdrop(System.Int32 x, System.Int32 y)
+  method System.Boolean HasFreeCell()
+  method System.Void ForceRecomputeDynamicBackground()
+  method System.Void HideBorder()
+  method System.Void ShowBorder()
+  method virtual SlotMarker GetIncompleteItemInventorySlot(GameItem item)
+  method virtual SlotMarker GetItemInventorySlot(GameItem item)
+  method virtual SlotMarker TryFindOneValidInventorySlot(GameItem item)
+  method virtual SlotMarker TryInventorySlot(GameItem item, System.Int32 requestedNum, UnityEngine.Vector2 itemGraphicsCenterPosition, GridShape tempShape, TagSystem tempState)
+  method virtual System.Boolean AddParent(GraphNodeStorage node)
+  method virtual System.Boolean Attach(PixelElement element)
+  method virtual System.Boolean CheckInventorySlotStillValid(GameItem item, GridShape tempShape, TagSystem tempState)
+  method virtual System.Boolean CheckShapePlacement(GameItem item, GridShape shape, System.Collections.Generic.List<GameItem> ignoredItems)
+  method virtual System.Boolean Detach(PixelElement element)
+  method virtual System.Boolean Expel(GameItem item)
+  method virtual System.Boolean IsAdjacent(SlotMarker slot, SlotMarker slot2)
+  method virtual System.Boolean MayHaveValidInventorySlot(GameItem item)
+  method virtual System.Boolean RemoveParent(GraphNodeStorage node)
+  method virtual System.Boolean UncheckedAccept(GameItem item)
+  method virtual System.Collections.Generic.List<TreeNodeRender> HighlightSlot(SlotMarker slot, RenderHandler+BackgroundColor color, System.Boolean doReplace)
+  method virtual System.Collections.Generic.List<TreeNodeRender> HighlightWholeInventory(RenderHandler+BackgroundColor color)
+  method virtual System.Int32 HeightPixelsClamp(System.Int32 height)
+  method virtual System.Int32 WidthPixelsClamp(System.Int32 width)
+  method virtual System.Int32 XClamp(System.Int32 x)
+  method virtual System.Int32 YClamp(System.Int32 y)
+  method virtual System.Void ClearHighlight()
+  method virtual System.Void ResizePixels(System.Int32 width, System.Int32 height)
+  method virtual System.Void Validate()
+  property GridShape inventoryShape { get; }
+  property System.Boolean SupportsGroupPlacement { get; }
+  property System.Boolean canResize { get; }
+  property System.Boolean isMachineryStyle { get; }
+  property System.Collections.Generic.List<GameItem> childItems { get; }
+  property System.Collections.Generic.List<GraphNodeStorage> children { get; }
+  property System.Int32 heightPixels { get; }
+  property System.Int32 widthPixels { get; }
+  property System.Single transparency { get; }
+  property TreeNodeRender handler { get; }
+  property TreeNodeRender inner { get; }
+  property UnityEngine.RectTransform rectTransform { get; }
+
 type class GameInventory : GameInventoryFunc
   ctor protected ()
   field System.Boolean overrideLockInsert
@@ -1194,6 +1315,15 @@ type class GeneralHelper
   method static System.Void TrackBuyPrice(GameItem gameItem, System.Int32 boughtPrice)
   method static System.Void UnlockItem(GameItem gameItem)
 
+type interface GraphNodeStorage
+  method abstract SlotMarker TryFindOneValidInventorySlot(GameItem item)
+  method abstract System.Boolean AddParent(GraphNodeStorage node)
+  method abstract System.Boolean MayHaveValidInventorySlot(GameItem item)
+  method abstract System.Boolean RemoveParent(GraphNodeStorage node)
+  method abstract System.Void Validate()
+  property System.Collections.Generic.List<GraphNodeStorage> children { get; }
+  property System.Collections.Generic.List<GraphNodeStorage> parents { get; }
+
 type class GraphUtils
   ctor ()
   method static System.Boolean CanAccept(GraphNodeStorage currentNode, GameItem item)
@@ -1220,6 +1350,34 @@ type class GraphUtils
   method static System.Void ReportUnplaced(System.String identifier, System.Int32 count, System.String context)
   method static T FindChildType<T>(GraphNodeStorage currentNode, System.Func<T,System.Boolean> filter, System.Func<T,System.Boolean> passthrough)
   method static T FindParentType<T>(GraphNodeStorage currentNode, System.Func<T,System.Boolean> filter, System.Func<T,System.Boolean> passthrough)
+
+type interface GridShape
+  method abstract GridShape Clone()
+  method abstract System.Byte GetLocal(System.Int32 localX, System.Int32 localY)
+  method virtual System.Boolean FullyIntersects(GridShape other, System.Func<System.Byte,System.Byte,System.Boolean> condition)
+  method virtual System.Boolean FullyIntersectsRect(System.Int32 width, System.Int32 height, System.Func<System.Byte,System.Byte,System.Boolean> condition)
+  method virtual System.Boolean Intersects(GridShape other, System.Func<System.Byte,System.Byte,System.Boolean> condition)
+  method virtual System.Boolean Intersects(System.Int32 x, System.Int32 y)
+  method virtual System.Boolean Intersects(System.Int32 x, System.Int32 y, System.Func<System.Byte,System.Boolean> condition)
+  method virtual System.Boolean IntersectsBounds(GridShape other)
+  method virtual System.Boolean IntersectsBounds(System.Int32 x, System.Int32 y)
+  method virtual System.Boolean IsTouchingLeft()
+  method virtual System.Boolean IsTouchingTop()
+  method virtual System.Byte Get(System.Int32 globalX, System.Int32 globalY)
+  method virtual System.Byte GetOutsideBounds()
+  method virtual System.ValueTuple<System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean> GetIntersection(GridShape other)
+  method virtual System.ValueTuple<System.Int32,System.Int32> ForwardTransform(System.Int32 localX, System.Int32 localY)
+  method virtual System.ValueTuple<System.Int32,System.Int32> InverseTransform(System.Int32 x, System.Int32 y)
+  property System.Boolean flipped { get; }
+  property System.Int32 globalHeight { get; }
+  property System.Int32 globalWidth { get; }
+  property System.Int32 height { get; }
+  property System.Int32 maxX { get; }
+  property System.Int32 maxY { get; }
+  property System.Int32 minX { get; }
+  property System.Int32 minY { get; }
+  property System.Int32 orientation { get; }
+  property System.Int32 width { get; }
 
 type class GunOrderData
   ctor ()
@@ -1419,6 +1577,22 @@ type class InspectionUIManager : UnityEngine.MonoBehaviour
   method static System.Boolean IsConfrontLocked()
   property static InspectionUIManager Instance { get; }
 
+type class ItemCondition
+  ctor ()
+  field System.Boolean hiddenAsPublic
+  field System.Boolean isTransformative
+  field System.Int32 compareValue
+  field System.Int32 customValue
+  field System.Int32 modValue
+  field System.Int32 modValueDisplay
+  field System.String category
+  field System.String display
+  field System.String identifier
+  field System.String onActivateActionId
+  method System.Boolean HasOnActivateAction()
+  method System.String GetModValueFormated()
+  method System.Void ExecuteOnActivateAction(GameItem item)
+
 type class ItemFeature
   ctor ()
   ctor (ItemFeature+FeatureType featureType)
@@ -1493,6 +1667,37 @@ type class ItemFeatureUI : UnityEngine.MonoBehaviour
   method System.Void OnFeatureUIClick()
   method virtual System.Void OnPointerEnter(UnityEngine.EventSystems.PointerEventData eventData)
   method virtual System.Void OnPointerExit(UnityEngine.EventSystems.PointerEventData eventData)
+
+type class LocHelper
+  ctor ()
+  field const System.String LOCALE_SAVE_KEY = "locale"
+  method static System.Boolean HasLocalizedNetworkUpgrade(System.String key)
+  method static System.Boolean HasLocalizedUI(System.String key)
+  method static System.Boolean TryParseMissingTranslation(System.String text, System.String& table, System.String& key)
+  method static System.Collections.IEnumerator SetLocale(System.String localeCode)
+  method static System.String BulletLine(System.String text)
+  method static System.String BulletLines(System.String text)
+  method static System.String GetCurrentLocaleCode()
+  method static System.String GetLocalized(System.String table, System.String key)
+  method static System.String GetLocalizedClientName(System.String key)
+  method static System.String GetLocalizedDialogue(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedDialoguePhone(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedInteractable(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedItem(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedMainMenu(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedMechanic(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedMechanicOrDefault(System.String key, System.String englishFallback, System.Object[] arguments)
+  method static System.String GetLocalizedName(System.String key)
+  method static System.String GetLocalizedNetworkUpgrade(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedNewGame(System.String key)
+  method static System.String GetLocalizedOrDefault(System.String table, System.String key, System.String englishFallback, System.Object[] arguments)
+  method static System.String GetLocalizedPerkTable(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedRepPerkTable(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedUI(System.String key, System.Object[] arguments)
+  method static System.String GetLocalizedUIOrDefault(System.String key, System.String englishFallback, System.Object[] arguments)
+  method static System.String RelocalizeIfMissing(System.String text)
+  method static System.String ResolveStartupLocale()
+  method static System.String WrapInLocalizedQuotes(System.String text)
 
 type class MapUIManager : UnityEngine.MonoBehaviour
   ctor ()

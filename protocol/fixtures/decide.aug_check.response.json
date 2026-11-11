@@ -1,0 +1,15 @@
+{
+  "decision_id": "a-4b1c9e02-2",
+  "choice": {
+    "option": "shoot"
+  },
+  "rationale": "Confirmed aug and the gun is ready: a good kill pays about 128 and drops presence 25.",
+  "source": "heuristic",
+  "option_notes": {
+    "dismiss": "lets a confirmed aug go: presence +10",
+    "probe_markup_10": "no need: the aug is confirmed",
+    "serve": "lets a confirmed aug go: presence +10",
+    "shoot": "confirmed aug: a good kill",
+    "threaten": "forfeits the shot: the aug escapes, presence +10"
+  }
+}

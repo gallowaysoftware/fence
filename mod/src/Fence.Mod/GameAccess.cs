@@ -42,6 +42,13 @@ namespace Fence.Mod
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public static void AddKeyBind(string key, string section, string label, Func<KeyCode> get, Action<KeyCode> set, string tooltip) =>
+            ModHelper.AddGameOptionKeyBind(ModId, section, key, () => label, get, set, () => tooltip);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool KeyDown(KeyCode key) => key != KeyCode.None && Input.GetKeyDown(key);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public static Coroutine StartModCoroutine(IEnumerator routine) => ModHelper.StartCoroutine(ModId, routine);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -1,0 +1,4 @@
+# Hard income, confirmation on fresh seeds 970001-970060 (never used for selection).
+c_best_old | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json
+c_vs2      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2.json -perks vending+short_sleeper
+c_mort     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m08.json -perks vending+short_sleeper

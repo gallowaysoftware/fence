@@ -54,7 +54,22 @@ namespace Fence.Gym
             Human = a.Str("human", "default"),
             Parity = a.Flag("parity"),
             WireLog = a.Str("wire", null),
+            SecondsPerCustomer = a.Dbl("sec-per-customer", 80),
+            SecondsPerDay = a.Dbl("sec-per-day", 255),
+            Permit = a.Str("permit", "buy"),
+            Upgrades = a.Str("upgrades", "baseline"),
+            Knobs = a.Str("knobs", ""),
+            Perks = a.Str("perks", ""),
+            Warm = a.Str("warm", ""),
+            DirectivesFile = a.Str("directives", ""),
+            StepDir = a.Str("step-dir", ""),
+            StepTimeoutSec = a.Int("step-timeout", 600),
+            AugDetection = AugDetectionArg(a.Str("aug-detection", Fence.Aug.AugDetection.Tells)),
+            AugLines = a.Str("aug-lines", "on") != "off",
         };
+
+        static string AugDetectionArg(string s) => s == Fence.Aug.AugDetection.Tells || s == Fence.Aug.AugDetection.Perfect
+            ? s : throw new ArgumentException("-aug-detection " + s + " (tells|perfect)");
 
         static string RunName(GymOptions o, string bridge) =>
             $"sim-{o.Difficulty}-{o.Start.ToLowerInvariant()}-s{o.Seed}-{(bridge == null ? "local" : "bridge")}{(o.Human == "default" ? "" : "-" + o.Human)}";
@@ -63,6 +78,8 @@ namespace Fence.Gym
         static int RunOne(Args a)
         {
             var o = Options(a);
+            StartingPerks.Parse(string.IsNullOrEmpty(o.Perks) ? WarmStart.Parse(o.Warm)?.Perks : o.Perks);
+            _ = new Knobs(o.Knobs);
             string bridge = a.Str("bridge", null);
             string name = RunName(o, bridge);
             string outPath = a.Str("out", Boot.Var("sim", "runs", name + ".jsonl"));
@@ -75,6 +92,8 @@ namespace Fence.Gym
                 {
                     ["seed"] = o.Seed, ["days"] = o.Days, ["difficulty"] = o.Difficulty, ["start"] = o.Start, ["skip_intro"] = o.SkipIntro,
                     ["deadline_ms"] = o.DeadlineMs, ["verbose"] = o.Verbose, ["human"] = o.Human, ["bridge"] = bridge, ["trajectory"] = traj, ["parity"] = o.Parity, ["wire"] = o.WireLog,
+                    ["sec_per_customer"] = o.SecondsPerCustomer, ["sec_per_day"] = o.SecondsPerDay, ["permit"] = o.Permit, ["upgrades"] = o.Upgrades, ["knobs"] = o.Knobs, ["perks"] = o.Perks, ["warm"] = o.Warm,
+                    ["directives"] = o.DirectivesFile, ["step_dir"] = o.StepDir, ["step_timeout"] = o.StepTimeoutSec, ["aug_detection"] = o.AugDetection, ["aug_lines"] = o.AugLines,
                 }.ToString()));
                 string summary = k == 1 ? a.Str("summary", Path.ChangeExtension(outPath, null) + ".summary.json") : Path.ChangeExtension(path, null) + ".summary.json";
                 System.IO.Directory.CreateDirectory(Path.GetDirectoryName(summary));
@@ -101,6 +120,12 @@ namespace Fence.Gym
                 Seed = (int)j["seed"], Days = (int)j["days"], Difficulty = (string)j["difficulty"], Start = (string)j["start"],
                 SkipIntro = (bool)j["skip_intro"], DeadlineMs = (int)j["deadline_ms"], Verbose = (bool)j["verbose"], Human = (string)j["human"],
                 Parity = (bool?)j["parity"] ?? false, PhaseLog = (bool?)j["phase_log"] ?? false, WireLog = (string)j["wire"],
+                SecondsPerCustomer = (double?)j["sec_per_customer"] ?? 80, SecondsPerDay = (double?)j["sec_per_day"] ?? 255,
+                Permit = (string)j["permit"] ?? "buy", Upgrades = (string)j["upgrades"] ?? "baseline", Knobs = (string)j["knobs"] ?? "",
+                Perks = (string)j["perks"] ?? "", Warm = (string)j["warm"] ?? "",
+                DirectivesFile = (string)j["directives"] ?? "", StepDir = (string)j["step_dir"] ?? "", StepTimeoutSec = (int?)j["step_timeout"] ?? 600,
+                AugDetection = (string)j["aug_detection"] ?? Fence.Aug.AugDetection.Tells,
+                AugLines = (bool?)j["aug_lines"] ?? true,
             };
             return Play(o, (string)j["bridge"], (string)j["trajectory"]).ToString(Formatting.None);
         }
@@ -108,10 +133,13 @@ namespace Fence.Gym
         [MethodImpl(MethodImplOptions.NoInlining)]
         static JObject Play(GymOptions o, string bridgeUrl, string trajectoryPath)
         {
+            Knobs.Current = new Knobs(o.Knobs);
             var trajectory = trajectoryPath != null ? new Trajectory(RunName(o, bridgeUrl)) : null;
-            IBridge inner = bridgeUrl != null ? new HttpBridge(bridgeUrl) : new LocalBridge(o.Seed);
+            IBridge inner = bridgeUrl == "defer:" ? new DeferBridge(o.Seed) : bridgeUrl != null ? new HttpBridge(bridgeUrl) : new LocalBridge(o.Seed);
             using IBridge bridge = o.WireLog != null ? new WireLog(inner, o.WireLog) : inner;
             var ep = new Episode(o, bridge, trajectory);
+            ep.BaseDirectives = Directives.Merge(Directives.FromKnobs(Knobs.Current), string.IsNullOrEmpty(o.DirectivesFile) ? null : Directives.Load(o.DirectivesFile));
+            ep.Planner = StepMode.Planner(o, inner);
             if (o.Verbose) ep.Defaults.Log = (k, d) => Console.Error.WriteLine($"  [day {ep.Day}] default {k}: {d}");
             var sw = Stopwatch.StartNew();
             string crash = null;
@@ -136,6 +164,12 @@ namespace Fence.Gym
                 ["difficulty"] = o.Difficulty,
                 ["start"] = o.Start,
                 ["human_role"] = o.Human,
+                ["permit"] = o.Permit,
+                ["upgrades"] = o.Upgrades,
+                ["knobs"] = o.Knobs,
+                ["perks"] = ep.StartState?["perks"],
+                ["warm"] = o.Warm,
+                ["start_state"] = ep.StartState,
                 ["bridge"] = bridgeUrl ?? "local",
                 ["days_requested"] = o.Days,
                 ["days_played"] = s.CashByDay.Count,
@@ -151,8 +185,17 @@ namespace Fence.Gym
                     ["executed"] = s.Executed, ["sales"] = s.Sales, ["purchases"] = s.Purchases, ["walkouts"] = s.Walkouts,
                     ["forced_dismissals"] = s.Forced, ["dialogue_stalls"] = s.Stalls, ["game_errors"] = s.GameErrors,
                     ["events"] = ep.Mod.EventsSent, ["decision_failures"] = ep.Mod.DecisionFailures,
+                    ["upgrades"] = s.Upgrades, ["item_seconds"] = s.ItemSeconds, ["item_callbacks"] = s.ItemCallbacks, ["shape_misses"] = Fence.Sim.Shapes.Misses,
                 },
+                ["fill"] = Fill(),
+                ["end"] = End(),
                 ["defaults"] = JObject.FromObject(ep.Defaults.Counts),
+                ["player"] = o.Human == "player" ? ep.Ledger.Summary() : null,
+                ["player_days"] = o.Human == "player" ? new JArray(ep.Ledger.Days) : null,
+                ["directives_file"] = o.DirectivesFile,
+                ["aug_detection"] = o.AugDetection,
+                ["aug_lines"] = o.AugLines,
+                ["aug_eval"] = o.Human == "player" && !Fence.Aug.AugDetection.IsPerfect(o.AugDetection) ? ep.AugEval.Json() : null,
                 ["errors"] = new JArray(s.Errors),
                 ["parity"] = new JObject { ["checked"] = s.ParityChecked, ["problems"] = new JArray(s.ParityProblems) },
                 ["phases"] = new JArray(s.Phases),
@@ -163,6 +206,46 @@ namespace Fence.Gym
             };
         }
 
+        // End-of-run state for strategy experiments.
+        static JObject End()
+        {
+            var ps = PlayerStore.Instance;
+            var j = new JObject();
+            try
+            {
+                var rep = new JObject();
+                foreach (var r in ps.storeReputations) if (r != null) rep[r.factionId] = Math.Round(r.GetReputation() * 1.0, 1);
+                j["rep"] = rep;
+                j["permit"] = ps.hasBusinessPermit;
+                j["crime"] = ps.secData?.GetTotalCrimeValue() ?? -1;
+                j["evidence"] = ps.secData?.evidenceLevel ?? -1;
+                var crimes = new JObject();
+                for (int i = 0; i < (ps.secData?.crimeTypes?.Count ?? 0); i++)
+                    crimes[ps.secData.crimeTypes[i]] = new JArray(ps.secData.crimeAmount[i], ps.secData.crimeAmountTotal[i]);
+                j["crimes"] = crimes;
+                j["rent"] = ps.GetRentValue();
+                j["net_worth"] = ps.GetTotalEstimatedValue();
+                j["buyout_price"] = ps.GetStoreBuyPrice(false);
+                j["stock_items"] = EmporiumEntry.Instance.GetAllOwnedItems(false, true).Count;
+                // The game's own visit counts by client id, as a save's permanentClientTracker holds them.
+                var visits = new JObject();
+                foreach (var kv in (ps.storeClientManager?.permanentClientTracker ?? new Dictionary<string, int>()).OrderBy(kv => kv.Key, StringComparer.Ordinal))
+                    if (kv.Value > 0) visits[kv.Key] = kv.Value;
+                j["client_visits"] = visits;
+            }
+            catch (Exception e)
+            {
+                j["error"] = e.Message;
+            }
+            return j;
+        }
+
+        static JObject Fill()
+        {
+            try { return Episode.Fill(); }
+            catch (Exception e) { return new JObject { ["error"] = e.Message }; }
+        }
+
         // Child processes: each run gets a fresh game (the game keeps static state).
         static int Smoke(Args a)
         {
@@ -171,11 +254,15 @@ namespace Fence.Gym
             System.IO.Directory.CreateDirectory(dir);
             string self = Environment.ProcessPath;
             string dll = typeof(Program).Assembly.Location;
-            var extra = a.Passthrough("difficulty", "start", "bridge", "human");
+            var extra = a.Passthrough("difficulty", "start", "bridge", "human", "sec-per-customer", "sec-per-day", "permit", "upgrades", "knobs", "perks", "warm", "directives", "aug-detection", "aug-lines").ToList();
+            foreach (var f in new[] { "no-trajectory", "skip-intro" })
+                if (a.Flag(f)) extra.Add("-" + f);
+            int seed0 = a.Int("seed0", 0);
             var sw = Stopwatch.StartNew();
             var results = new JObject[seeds];
-            Parallel.For(1, seeds + 1, new ParallelOptions { MaxDegreeOfParallelism = parallel }, seed =>
+            Parallel.For(1, seeds + 1, new ParallelOptions { MaxDegreeOfParallelism = parallel }, idx =>
             {
+                int seed = seed0 + idx;
                 string summary = Path.Combine(dir, $"s{seed}.summary.json");
                 string traj = Path.Combine(dir, $"s{seed}.jsonl");
                 var psi = new ProcessStartInfo(self.EndsWith("dotnet") ? self : self) { RedirectStandardOutput = true, RedirectStandardError = true };
@@ -185,7 +272,7 @@ namespace Fence.Gym
                 string stdout = p.StandardOutput.ReadToEnd();
                 string stderr = p.StandardError.ReadToEnd();
                 p.WaitForExit();
-                results[seed - 1] = File.Exists(summary) && p.ExitCode == 0
+                results[idx - 1] = File.Exists(summary) && p.ExitCode == 0
                     ? JObject.Parse(File.ReadAllText(summary))
                     : new JObject { ["seed"] = seed, ["crash"] = "exit " + p.ExitCode + ": " + Tail(stderr + stdout) };
             });
@@ -255,6 +342,7 @@ namespace Fence.Gym
         public string Str(string k, string def) => values.TryGetValue(k, out var v) ? v : def;
         public int Int(string k, int def) => values.TryGetValue(k, out var v) ? int.Parse(v, CultureInfo.InvariantCulture) : def;
         public bool Flag(string k) => flags.Contains(k);
+        public double Dbl(string k, double def) => values.TryGetValue(k, out var v) ? double.Parse(v, CultureInfo.InvariantCulture) : def;
 
         public IEnumerable<string> Passthrough(params string[] keys)
         {

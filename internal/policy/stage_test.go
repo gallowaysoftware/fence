@@ -202,7 +202,7 @@ func TestLLMStageRejectsForbiddenOffers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			client := &scripted{replies: tt.replies}
-			d := NewLLM(client).Decide(context.Background(), stageReq(t, security, clean+","+stolen, "", 500))
+			d := NewLLM(client, WithStageLLM(true)).Decide(context.Background(), stageReq(t, security, clean+","+stolen, "", 500))
 			if d.Choice.Option != tt.want || d.Source != tt.source {
 				t.Fatalf("chose %s (%s: %s), want %s", d.Choice.Option, d.Source, d.Rationale, tt.want)
 			}
@@ -224,7 +224,7 @@ func TestStagePrompt(t *testing.T) {
 	rec := &recordingRecall{}
 	client := &scripted{replies: []reply{{text: `{"rationale":"r","option":"offer_2240","params":{}}`}}}
 	plan := "KEEP\n- Radio #2240 (uncertain)"
-	d := (&LLM{Client: client, Recall: rec, Plan: &recordingPlanner{text: plan, day: 69}}).Decide(context.Background(), stageFixture(t))
+	d := (&LLM{StageLLM: true, Client: client, Recall: rec, Plan: &recordingPlanner{text: plan, day: 69}}).Decide(context.Background(), stageFixture(t))
 	if d.Choice.Option != "offer_2240" {
 		t.Fatalf("chose %s: %s", d.Choice.Option, d.Rationale)
 	}
@@ -275,5 +275,36 @@ func TestStagePrompt(t *testing.T) {
 		if !strings.Contains(stageSystem, w) {
 			t.Errorf("stage system prompt lacks %q", w)
 		}
+	}
+}
+
+func TestLLMStageUsesTheFastRulesUnlessEnabled(t *testing.T) {
+	req := stageFixture(t)
+	want := Heuristic{}.Decide(context.Background(), req)
+
+	client := &scripted{}
+	d := NewLLM(client).Decide(context.Background(), req)
+	if client.calls() != 0 {
+		t.Fatalf("model called %d times for a stage decision", client.calls())
+	}
+	if d.Choice.Option != want.Choice.Option || d.Source != protocol.SourceHeuristic {
+		t.Fatalf("chose %s (%s), want the heuristic's %s", d.Choice.Option, d.Source, want.Choice.Option)
+	}
+	if len(d.Notes) == 0 {
+		t.Error("option notes are missing")
+	}
+
+	client = &scripted{replies: []reply{{text: `{"rationale":"r","option":"offer_2240","params":{}}`}}}
+	d = NewLLM(client, WithStageLLM(true)).Decide(context.Background(), req)
+	if client.calls() != 1 || d.Source != protocol.SourceLLM {
+		t.Fatalf("enabled: %d calls, source %s", client.calls(), d.Source)
+	}
+}
+
+func TestLLMStageFastRulesKeepTheSafetyCheck(t *testing.T) {
+	client := &scripted{}
+	d := NewLLM(client).Decide(context.Background(), stageReq(t, security, stolen, "", 500))
+	if client.calls() != 0 || d.Choice.Option == "offer_2" {
+		t.Fatalf("offered stolen goods to security: %+v", d)
 	}
 }

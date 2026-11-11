@@ -1,0 +1,4 @@
+# Hard income, batch 11: the water engine with Dr. Jackson's purifier on the shopping list (HQ water), and the same on normal.
+w_water_pur      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/w_water_pur.json -perks vending+short_sleeper
+w_wine_water_pur | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/w_wine_water_pur.json -perks vending+short_sleeper
+n_water_pur      | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_water_pur.json

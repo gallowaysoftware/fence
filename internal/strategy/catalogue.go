@@ -15,7 +15,10 @@ var catalogueJSON []byte
 // CatalogueEntry is one item's use: what it does for the shop's own production and what
 // that is worth, from docs/re/PRODUCTION.md §9 and docs/re/WATER.md §8.
 type CatalogueEntry struct {
-	Key       string   `json:"key"`
+	Key string `json:"key"`
+	// Engine marks an item that starts or grows an income engine (a machine, a module, a
+	// perennial seed): one turning up is a windfall worth a mid-day re-plan.
+	Engine    bool     `json:"engine"`
 	Match     []string `json:"match"`
 	Chain     string   `json:"chain"`
 	SoldAs    string   `json:"sold_as"`
@@ -183,8 +186,8 @@ type ItemUse struct {
 
 // UseNote is a one-line use-versus-sale judgement for an item at the counter, read
 // against the shop's morning snapshot (nil or unreadable: judged without the shop's
-// state, so every use counts as open). sale is what the deal would pay, 0 if unknown.
-// "" when the catalogue knows no use for the item.
+// state, so every use counts as open): "use ≈ N vs sale M (chain: effect)". sale is what
+// the item would sell for, 0 if unknown. "" when the catalogue knows no use for the item.
 func UseNote(snapshot json.RawMessage, id, name string, sale int64) string {
 	e, ok := catalogue.Lookup(id, name)
 	if !ok {
@@ -195,14 +198,18 @@ func UseNote(snapshot json.RawMessage, id, name string, sale int64) string {
 		ps = s.production()
 	}
 	grade := berryGradeText(name)
-	t := fmt.Sprintf("use value %s (%s: %s)", e.valueText(grade), e.Chain, e.Effect)
-	if ps != nil {
-		if open, missing := e.open(ps); !open {
-			t = fmt.Sprintf("no use in this shop now (needs %s); otherwise %s", nonEmpty(missing, "a use the shop lacks"), t)
-		}
+	t := "use " + e.valueText(grade)
+	if v, ok := e.worth(grade); ok && e.Per != "" && e.Per != "cycle" && len(e.GradeValues) == 0 {
+		t += fmt.Sprintf(" (%d over %d nights)", v, useHorizonNights)
 	}
 	if sale > 0 {
-		t += fmt.Sprintf(", sale ≈ %d", sale)
+		t += fmt.Sprintf(" vs sale %d", sale)
+	}
+	t += fmt.Sprintf(" (%s: %s)", e.Chain, clip(e.Effect, 110))
+	if ps != nil {
+		if open, missing := e.open(ps); !open {
+			t = fmt.Sprintf("no use in this shop now (needs %s); elsewhere %s", nonEmpty(missing, "a use the shop lacks"), t)
+		}
 	}
 	return t
 }
@@ -248,12 +255,12 @@ type useGroup struct {
 }
 
 // useGroups judges every stock item the catalogue knows, in inventory order. Items in a
-// machine or the pitcher are in use and left out.
+// machine or the pitcher, and owned smuggler bays, are in use and left out.
 func (s *snapshot) useGroups(ps *prodState) []*useGroup {
 	groups := map[string]*useGroup{}
 	var out []*useGroup
 	for _, it := range s.Inventory {
-		if it.stolen() || ps.isFinishedWine(it) || ps.isBusyBottle(it) || s.inMachine(it) {
+		if it.stolen() || isBay(it) || ps.isFinishedWine(it) || ps.isBusyBottle(it) || s.inMachine(it) {
 			continue
 		}
 		e, ok := catalogue.Lookup(it.ID, it.Name)

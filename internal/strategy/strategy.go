@@ -41,6 +41,20 @@ type Options struct {
 	Timeout       time.Duration
 	RecallTimeout time.Duration
 	MaxTokens     int
+	// Persona is the play style every plan follows (docs/personas), "" for none. A session's
+	// sim_run event may name another by id.
+	Persona string
+	// PersonaDir resolves those ids; DefaultPersonaDir when empty.
+	PersonaDir string
+	// Exemplars are strong-play days the morning plan is shown the nearest of; nil for none.
+	Exemplars Exemplars
+	// DeltaDirectives writes directives as changes to the executor's defaults.
+	DeltaDirectives bool
+	// BaseDirectives is the directives JSON the executor plays over its defaults (the gym's
+	// -directives), shown to the delta ask; "" for none.
+	BaseDirectives string
+	// Route is the run's route (route.Route.Text): its plans are written as that shop; "" for none.
+	Route string
 }
 
 // Strategist implements the server's Recorder (it sees the stripped views only) and
@@ -58,6 +72,8 @@ type Strategist struct {
 	sessions map[string]*run
 	order    []string
 	latest   *run
+	// personas are per-session style overrides from sim_run.
+	personas map[string]string
 }
 
 // run is one playthrough as far as the strategist can tell; sessions of the same save
@@ -65,9 +81,17 @@ type Strategist struct {
 type run struct {
 	lastDay int
 	days    map[int]*dayState
-	// plan is the latest plan written; a failed morning keeps the previous one.
+	// persona is the style a session override gave the run, so a reload keeps it.
+	persona string
+	// augs is the run's aug history, for the presence the plan needs.
+	augs augHistory
+	// wine is when each finished wine appeared, to tell a stalled wine engine.
+	wine WineHistory
+	// plan is the latest plan written; a failed morning keeps the previous one. directives
+	// are written with it.
 	plan, planModel string
 	planDay         int
+	directives      *protocol.Directives
 	reviewDay       int
 	tail            chan struct{}
 }
@@ -78,11 +102,17 @@ type dayState struct {
 	morning, close *snapshot
 	planGen        int
 	plan, model    string
+	directives     *protocol.Directives
 	scorecard      string
 	facts          string
 	stats          *dayStats
 	observed       int
 	arrived        int
+	// windfalls counts the day's mid-day re-plans; windfallSeen keys the items they were
+	// for; offers are the engine items each barter decision's seller had.
+	windfalls    int
+	windfallSeen map[string]bool
+	offers       map[string][]counterItem
 }
 
 func New(opt Options) *Strategist {
@@ -95,8 +125,11 @@ func New(opt Options) *Strategist {
 	if opt.RecallTimeout <= 0 {
 		opt.RecallTimeout = DefaultRecallTimeout
 	}
+	if opt.PersonaDir == "" {
+		opt.PersonaDir = DefaultPersonaDir
+	}
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Strategist{opt: opt, log: opt.Logger, ctx: ctx, cancel: cancel, sessions: map[string]*run{}}
+	return &Strategist{opt: opt, log: opt.Logger, ctx: ctx, cancel: cancel, sessions: map[string]*run{}, personas: map[string]string{}}
 }
 
 // Close cancels pending model calls and waits for them to return.
@@ -111,6 +144,9 @@ func (s *Strategist) Close() {
 func (s *Strategist) Hello(string, protocol.HelloRequest) {}
 
 func (s *Strategist) Event(session string, ev protocol.Event) {
+	if ev.Kind == "sim_run" {
+		s.simRun(session, ev)
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closed {
@@ -138,6 +174,8 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 		switch snap.Phase {
 		case "morning":
 			d.morning, d.morningRaw = snap, ev.Data
+			r.augs.noteMorning(n, snap.NightLog)
+			r.wine.note(n, snap)
 			d.planGen++
 			gen := d.planGen
 			s.enqueue(r, func(ctx context.Context) { s.planDay(ctx, session, r, n, gen) })
@@ -148,6 +186,10 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 		if r := s.runFor(session, ev.GameDay); r != nil {
 			n := ev.GameDay
 			s.enqueue(r, func(ctx context.Context) { s.reviewDay(ctx, r, n) })
+		}
+	case "aug":
+		if r := s.runFor(session, ev.GameDay); r != nil && isGoodKill(ev.Data) {
+			r.augs.noteKill(ev.GameDay)
 		}
 	case "customer_observed":
 		if r := s.runFor(session, ev.GameDay); r != nil {
@@ -176,6 +218,48 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 	}
 }
 
+// simRun takes the session's persona override; an unknown persona keeps the default.
+func (s *Strategist) simRun(session string, ev protocol.Event) {
+	id := simRunPersona(ev.Data)
+	if id == "" {
+		return
+	}
+	if isPersonaPath(id) {
+		s.log.Warn("sim_run persona must be an id, not a path; keeping the default", "session", session, "persona", id)
+		return
+	}
+	text, err := LoadPersona(s.opt.PersonaDir, id)
+	if err != nil {
+		s.log.Warn("sim_run persona unavailable; keeping the default", "session", session, "err", err)
+		return
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.closed {
+		if len(s.personas) >= maxSessions {
+			for k := range s.personas {
+				if s.sessions[k] == nil {
+					delete(s.personas, k)
+				}
+			}
+		}
+		s.personas[session] = text
+		s.log.Info("persona set", "session", session, "persona", id)
+	}
+}
+
+// personaFor is the style session's plans follow. Callers hold s.mu.
+func (s *Strategist) personaFor(session string, r *run) string {
+	if p, ok := s.personas[session]; ok {
+		r.persona = p
+		return p
+	}
+	if r.persona != "" {
+		return r.persona
+	}
+	return s.opt.Persona
+}
+
 // isCounterMove tells barter options (docs/PROTOCOL.md, "Barter option ids") from the
 // staging and inspection moves a human_action also reports.
 func isCounterMove(action string) bool {
@@ -192,6 +276,7 @@ func (s *Strategist) Decision(session string, req *protocol.DecideRequest, _ pro
 	defer s.mu.Unlock()
 	if r := s.runFor(session, req.GameDay); r != nil && !s.closed {
 		r.day(req.GameDay).stats.decisions++
+		s.decisionWindfalls(session, r, req)
 	}
 }
 
@@ -200,6 +285,7 @@ func (s *Strategist) Outcome(session string, oc protocol.Outcome) {
 	defer s.mu.Unlock()
 	if r := s.runFor(session, oc.GameDay); r != nil && !s.closed {
 		r.day(oc.GameDay).stats.addOutcome(oc.DecisionID, oc.Result)
+		s.outcomeWindfalls(session, r, oc)
 	}
 }
 
@@ -213,6 +299,22 @@ func (s *Strategist) CurrentPlan(session string) (text string, day int, ok bool)
 		return "", 0, false
 	}
 	return r.plan, r.planDay, true
+}
+
+// CurrentDirectives is CurrentPlan's plan as directives (docs/PROTOCOL.md, "Directives"),
+// as JSON, and the day they were written for.
+func (s *Strategist) CurrentDirectives(session string) (directives json.RawMessage, day int, ok bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	r := s.sessions[session]
+	if r == nil || r.plan == "" || r.directives == nil {
+		return nil, 0, false
+	}
+	raw, err := json.Marshal(r.directives)
+	if err != nil {
+		return nil, 0, false
+	}
+	return raw, r.planDay, true
 }
 
 // Scorecard is the latest evening review for session's run: one line per goal, then the
@@ -324,6 +426,7 @@ func (s *Strategist) bind(session string, r *run) {
 		s.order = append(s.order, session)
 		if len(s.order) > maxSessions {
 			delete(s.sessions, s.order[0])
+			delete(s.personas, s.order[0])
 			s.order = s.order[1:]
 		}
 	}
@@ -363,31 +466,48 @@ func (s *Strategist) planDay(ctx context.Context, session string, r *run, n, gen
 		s.mu.Unlock()
 		return
 	}
-	in := PlanInput{Day: n, Snapshot: d.morningRaw}
+	in := PlanInput{Day: n, Snapshot: d.morningRaw, Persona: s.personaFor(session, r), Augs: r.augs.trackFor(d.morning, n), WineIdle: r.wine.Idle(n), Delta: s.opt.DeltaDirectives, BaseDirectives: s.opt.BaseDirectives, Route: s.opt.Route, Exemplars: s.opt.Exemplars.Similar(d.morningRaw, n, 3)}
 	if y := r.yesterday(n); y != nil {
 		yp := y.dayPlan()
 		in.Yesterday = &yp
+	}
+	if w := r.days[n-7]; w != nil && w.morning != nil && w.morning.NetWorth != nil && d.morning != nil && d.morning.NetWorth != nil {
+		g := *d.morning.NetWorth - *w.morning.NetWorth
+		in.WeekGain = &g
 	}
 	s.mu.Unlock()
 
 	in.Lessons = s.lessons(ctx, session, n)
 	start := time.Now()
-	plan, model, err := DraftPlan(ctx, s.opt.LLM, in, s.opt.MaxTokens)
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	draft, err := DraftPlanConversation(ctx, s.opt.LLM, in, s.opt.MaxTokens)
 	if err != nil {
 		s.log.Warn("day plan failed; keeping the previous plan", "day", n, "kept_day", r.planDay, "err", err)
 		return
 	}
+	planMS := time.Since(start).Milliseconds()
+	// Directives are published with the plan, so whoever waits for the plan finds them.
+	dr := DraftDirectives(ctx, s.opt.LLM, draft)
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if d.planGen != gen {
 		return
 	}
-	d.plan, d.model = plan, model
+	d.plan, d.model, d.directives = draft.Plan, draft.Model, &dr.Directives
 	if n >= r.planDay || r.plan == "" {
-		r.plan, r.planModel, r.planDay = plan, model, n
+		r.plan, r.planModel, r.planDay, r.directives = draft.Plan, draft.Model, n, &dr.Directives
 	}
-	s.log.Info("day plan written", "day", n, "bytes", len(plan), "ms", time.Since(start).Milliseconds())
+	s.log.Info("day plan written", "day", n, "bytes", len(draft.Plan), "ms", planMS, "directives_ms", time.Since(start).Milliseconds()-planMS, "plan", draft.Plan)
+	if dr.Err != nil {
+		s.log.Warn("model directives unusable; derived from the plan", "day", n, "err", dr.Err)
+	}
+	if b, err := json.Marshal(dr.Directives); err == nil {
+		why, _ := json.Marshal(dr.Why)
+		s.log.Info("directives", "day", n, "json", string(b), "why", string(why))
+	}
+	if len(dr.Fixes) > 0 {
+		s.log.Info("directives fixed", "day", n, "from_model", dr.FromModel, "fixes", dr.Fixes)
+	}
 }
 
 func (s *Strategist) reviewDay(ctx context.Context, r *run, n int) {

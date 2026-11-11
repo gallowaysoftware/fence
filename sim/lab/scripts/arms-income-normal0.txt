@@ -1,0 +1,1 @@
+n_default_inc0 | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_default.json

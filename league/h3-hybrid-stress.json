@@ -1,0 +1,55 @@
+{
+  "name": "h3-hybrid-stress",
+  "players": [
+    {
+      "id": "executor",
+      "mode": "local"
+    },
+    {
+      "id": "hybrid-blind",
+      "mode": "hybrid",
+      "rollout_flags": [
+        "-samples",
+        "4",
+        "-par",
+        "4"
+      ]
+    },
+    {
+      "id": "hybrid-qwen27",
+      "mode": "hybrid",
+      "endpoint": "localmodel",
+      "rollout_flags": [
+        "-samples",
+        "4",
+        "-par",
+        "4"
+      ]
+    }
+  ],
+  "baseline": "executor",
+  "seeds": [
+    2300001,
+    2300002,
+    2300003,
+    2300004,
+    2300005,
+    2300006,
+    2300007,
+    2300008,
+    2300009,
+    2300010
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_mortgage.json"
+  }
+}

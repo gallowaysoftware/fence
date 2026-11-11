@@ -766,7 +766,7 @@ func (ps *prodState) renderWine(b *strings.Builder, s *snapshot, day int) {
 	if bottles < nb+nn+nm || yeast < bottles {
 		src := "bottles and yeast come from the retired winemaker visitor (4 bottles, yeast) and the Winemaker upgrade (200: 3 yeast, 3 bottles, 2 berries)"
 		for _, u := range s.UpgradesOffer {
-			if strings.Contains(strings.ToLower(u), "winemaker") {
+			if strings.Contains(strings.ToLower(u.name()), "winemaker") {
 				src += "; the Winemaker upgrade is on offer now"
 			}
 		}
@@ -993,10 +993,14 @@ func (s *snapshot) renderFurnaces(b *strings.Builder, ps *prodState, day int) {
 			fmt.Fprintf(b, ", %d junk", junkS)
 		}
 		b.WriteString(".")
-		if l.powerSeen && (l.battery < 8 && !l.power) {
-			b.WriteString(" NO POWER for a smelt (8 a smelt): put a charged energy credit in its battery or nothing melts tonight.")
+		need := int64(8)
+		if l.blast {
+			need = 16
+		}
+		if l.powerSeen && (l.battery < need && !l.power) {
+			fmt.Fprintf(b, " NO POWER for a smelt (%d a smelt): put a charged energy credit in its battery or nothing melts tonight.", need)
 		} else if l.powerSeen && l.battery > 0 {
-			fmt.Fprintf(b, " Battery %d (8 a smelt).", l.battery)
+			fmt.Fprintf(b, " Battery %d (%d a smelt).", l.battery, need)
 		}
 		metal := l.scrap + l.ore + scrapS + oreS
 		fmt.Fprintf(b, " One smelt a night from %d loaded metal: ", per)
@@ -1311,7 +1315,7 @@ func (ps *prodState) renderHydro(b *strings.Builder, day int) {
 			if h.Seed.Perennial != nil && *h.Seed.Perennial {
 				t += " (perennial: never replant"
 				if h.Seed.Established != nil && *h.Seed.Established {
-					t += ", established: 10 work to refruit"
+					t += ", established: 12 work to refruit"
 				}
 				t += ")"
 			}
@@ -1352,7 +1356,7 @@ func contaminantSensitive(plant string) bool {
 }
 
 // renderBayWater judges the water feeding a bay: on Basewater a bloomberry plant's health
-// falls to about 0 in one cycle, so its berries roll moldy and under-ripe (WATER.md §2.3).
+// is about 16-44 at harvest, three quarters bad berries (measured, docs/sim/VERIFIED.md).
 func (ps *prodState) renderBayWater(b *strings.Builder, plant string) {
 	for _, w := range ps.water {
 		if !strings.Contains(strings.ToLower(w.parentText()), "hydroponic") {
@@ -1368,14 +1372,14 @@ func (ps *prodState) renderBayWater(b *strings.Builder, plant string) {
 		case g < 0:
 			fmt.Fprintf(b, "  Bay water %s: grade unknown; test it: anything below High Quality ruins the plant's health.\n", name)
 		case g >= 2:
-			fmt.Fprintf(b, "  WATER PROBLEM: the bay drinks %s (%s %s). On Basewater or worse a %s plant's health falls to about 0 in one cycle, so its berries come out mostly moldy and under/over-ripe whatever the minerals. Feed it High Quality or Pure water (the purifier's output) and sell the Basewater instead.\n",
+			fmt.Fprintf(b, "  WATER PROBLEM: the bay drinks %s (%s %s). On Basewater a %s plant's health is about 16 at the first harvest and 44 at later ones (three quarters of the berries bad); on Ghostwater or worse it goes below 0 and every berry is bad. Feed it High Quality or Pure water (the purifier's output) and sell the Basewater instead.\n",
 				name, how, waterGrades[g].name, strings.ReplaceAll(plant, "_", " "))
 		case how == "label":
 			fmt.Fprintf(b, "  Bay water %s is labelled %s but untested: test it, labels go stale after treatment.\n", name, waterGrades[g].name)
 		}
 	}
 	if strings.Contains(plant, "bloomberry") {
-		b.WriteString("  Bloomberry wants minerals at 200 ± 75 bp of the water (nutrient tablets, 15 ml each, added AFTER filtering or purifying, which strip minerals): health about 78 on High Quality + tablets, 100 on Pure + tablets, about 0 on Basewater. The plant analyser's growth score is that health.\n")
+		b.WriteString("  Bloomberry wants minerals at 200 ± 75 bp of the water (nutrient tablets, 15 ml each, added AFTER filtering or purifying, which strip minerals): Pure + about 6 tablets per 6 L keeps health at 100 (no bad berries, 62% best, measured); High Quality about 56-70 (a third bad, about a fifth with tablets); Basewater about 16-44 (three quarters bad). Health resets to 100 in the harvest night after the berries roll, so the analyser's growth score the morning after a harvest is the new cycle.\n")
 	}
 }
 
@@ -1513,7 +1517,7 @@ func (ps *prodState) cleanWaterKeeps(s *snapshot) []string {
 		}
 		var uses []string
 		if bay {
-			uses = append(uses, "the hydroponic bay (bloomberry health ~78 with tablets on High Quality, 100 on Pure, ~0 on Basewater)")
+			uses = append(uses, "the hydroponic bay (bloomberries on Pure + tablets 0% bad, on High Quality about a third bad, on Basewater three quarters bad)")
 		}
 		if bottles {
 			uses = append(uses, "wine bottles (+1 score, one grade, 749 ml each)")

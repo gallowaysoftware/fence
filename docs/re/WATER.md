@@ -94,11 +94,12 @@ remediation and plant purification), `basePurifierRemoveAmount`, `canBeRemovedBy
 | 5 | Gutterflow | < 90 % (and an empty container: purity 0) | −90 % | 4 | −3 |
 
 Value: `unitValue = round(40 × litres)` (`WaterFeatureHelper.GetWaterPrice(System.Int32)`;
-the `WATER_PRICES` array 200/100/40/27/20/10 is **unused**), plus the container's
-`LIQUID_CONTAINER_BASE_PRICE_TAG` added inside `GameItem.ComposeStagedValue`, then the condition
-modifier of the **label** while unexposed, of the true grade once exposed
-(`ItemFeature.GetFakeValueModifier` / `GetActualValueModifier`), then market events and retail
-markup. "Hazardous" label = label < 98 % (`IsLabelledHazardousWater`).
+the `WATER_PRICES` array 200/100/40/27/20/10 is **unused**), times the condition modifier of the
+**label** while unexposed, of the true grade once exposed (`ItemFeature.GetFakeValueModifier` /
+`GetActualValueModifier`); the container's `LIQUID_CONTAINER_BASE_PRICE_TAG` is added **after**
+the modifier, unmodified (`GameItem.ComposeStagedValue`); then market events and retail markup.
+A full 750 ml `bottled_water` is worth **65 / 50 / 35 / 25 / 12 / 8** by grade (pure 30 × 2 + 5,
+not (30 + 5) × 2 = 70; gutter 3 + 5 = 8, not 3.5) (measured, docs/sim/VERIFIED.md). "Hazardous" label = label < 98 % (`IsLabelledHazardousWater`).
 
 ### 1.4 Sources
 
@@ -107,11 +108,11 @@ markup. "Hazardous" label = label < 98 % (`IsLabelledHazardousWater`).
 | Faucet with `RUSTWATER_TAP` (network upgrade 350, needs `GUTTERFLOW_TAP`) | today's roll 90.00–91.50 % (Rustwater), fills the container to the brim, free | `waterContaminantDistribution` (organic 20, microbe 15, physical 10, chemical 30, mineral 15, heavy 10 %) | daily purity HIDDEN (`StoreStation.todayRustwaterPurity`), DERIVABLE by testing one fill | `WaterHelper.InitLiquidContainerItem` faucet branch; `StoreStation.StartDay` |
 | Faucet with `GUTTERFLOW_TAP` only (250, needs `WATER_TRADER`) | 80.00–89.99 % (Gutterflow) | same distribution | same | same |
 | Starting perk "working pipes" | unlocks both taps | | | `StartingPerkContent` |
-| Premade fills `WaterHelper.FillWith*` / `Add*` (`AddWater(GameItem, int grade, …)`) | grade 0 uniform 99.90–99.99; grades 1–3 **rolled near the lower edge** (exponential, mean ≈ 8 % of the band above the floor: base ≈ 98.0x %); grade 4 uniform 90.00–95.99; grade 5 uniform 35–89.99 % | grade 2 `baseWater…`, grade 4 `rustWater…`, grade 5 `gutterflow…`, else `waterContaminantDistribution` | | `AddWater`, `RollNearLowerEdge`, `WaterPremadeHelper` |
+| Premade fills `WaterHelper.FillWith*` / `Add*` (`AddWater(GameItem, int grade, …)`) | grade 0 uniform 99.90–99.99; grades 1–3 **rolled near the lower edge** (exponential, mean ≈ 15 % of the band above the floor: base ≈ 98.15 %; measured, docs/sim/VERIFIED.md); grade 4 uniform 90.00–95.99; grade 5 uniform 35–89.99 % | grade 2 `baseWater…`, grade 4 `rustWater…`, grade 5 `gutterflow…`, else `waterContaminantDistribution` | | `AddWater`, `RollNearLowerEdge`, `WaterPremadeHelper` |
 | Water sellers (`StoreClientListWater.GetRandomWaterSupplier`: honest 20 %, company 12 %, dishonest scav 7 %, scav otherwise) | via `WaterPremadeHelper.GetRandomWater` odds 30/20/10/10/10 → accurate base, accurate ghost, accurate rust (low end), **ghost labelled base**, **base labelled HQ**; dishonest scav adds ghost-as-base (75 %, 50 %) and **ghost-as-pure** (25 %) | | label VISIBLE, truth HIDDEN | `StoreClientListWater` |
 | Moisture farm (night) | 850 ml × (1 + perf %) / (1 + 0.25 × (other running farms)); grade from `quality bonus + 50`: <0 gutter, <50 rust, <100 **ghost (default)**, <150 base, <200 HQ, else pure | grade's premade distribution | tooltip shows ml and grade VISIBLE | `MachineMoistureFarm.GetOutputVolume/GetOutputQuality/Fill` |
 | Evaporator (night) | removes up to 300 ml × (1 + perf %) of evaporative liquids (water, alcohol, lipobond) from the input; distillate gets `quality bonus %` (clamped 0–100) of it, so **distillate is 100 % water** (with the solvent-recovery module only alcohol is kept). At quality 0 the water is simply lost | | | `MachineEvaporator` |
-| Water rations (`water_ration` 750 ml / `_small` 375 ml) | poured only into a wine bottle: base grade (≈ 98.0x %) | base distribution | | `WineHelper.PourRationIntoBottle` |
+| Water rations (`water_ration` 750 ml / `_small` 375 ml) | poured only into a wine bottle: base grade (≈ 98.15 % on average, near the lower edge) | base distribution | | `WineHelper.PourRationIntoBottle` |
 | Water Merchant start | ghostwater 2 L, rust (low end) 6 L, strips, tablets, pitcher + filter, shabby portable purifier at 75 charge, shabby bottle printer | | | `NewGameData` (`StartType.WATER_MERCHANT`) |
 
 Containers (`InitLiquidContainerItem(GameItem, capacityMl, basePrice, isFilterContainer, isGraduated, isDropper, isTransparent, sheet)`):
@@ -194,7 +195,7 @@ progress points (base 8). **Per point** (`HydroponicHelper.ContinueGrowing`):
   improve as the plant drinks), grow-tick traits (`purifying`/`polluting`).
 
 Plant water parameters (`PlantList`): bloomberry nutrients 200 ± 75 bp, contaminant ×1.25,
-100 ml/night, 18 points then 10 to refruit; nutrifruit 150 ± 100, ×1.0, 100 ml; kotton
+100 ml/night, 23 points then 12 to refruit (18 / 10 base, slowed 20 % by the innate `perennial` trait; measured, docs/sim/VERIFIED.md); nutrifruit 150 ± 100, ×1.0, 100 ml; kotton
 350 ± 150, ×1.26, 176 ml; dream cap / coffee 250 ± 75, ×1.01; fillerweed 100 ± 100, ×0, 287 ml;
 hydroreed 100 ± 100, ×0, 20 ml, innate `purifying` rank 4 (28 %/night).
 
@@ -204,14 +205,20 @@ Harvest quality comes from final health (`PlantHarvest.SplitByHealth`; bloomberr
 through the **plant analyser** (`PlantAnalyserUIManager`, "growth score" = `PLANT_HEALTH_INT`/100);
 the bay tooltip does not print it.
 
-Worked bloomberry cycle (≈ 23 points, contaminant ×1.25):
+Worked bloomberry cycle (contaminant ×1.25). The first cycle is ≈ 24 penalty points (3 nights at
+speed 8), every refruit only **16** (2 nights); health resets to 100 in the harvest night, *after*
+the berries roll (`FinishGrowing` → `StartNextFruitingCycle`), so the morning reading after a
+harvest is always 100 % and never the health the berries got. Health is not clamped at 0. Measured
+end to end on 6 bays × 216 berries per setup (measured, docs/sim/VERIFIED.md):
 
-| Water in the slot | Contaminant loss / point | Mineral loss / point | Health at harvest | Berries |
+| Water in the slot | Contaminant loss / point | Mineral loss / point | Health at harvest (first / refruit) | Berries (measured) |
 |---|---|---|---|---|
-| Basewater ≈ 98.0 % (chem ≈ 61, organic ≈ 41, heavy ≈ 31, microbe ≈ 20, mineral ≈ 31 bp) | (1.6 + 0.8 + 0.6 + 0.2) × 1.25 = 4 % | 1 % (31 < 125) | 0 | worst roll (moldy-heavy) |
-| HQ ≈ 99.0 % (chem 30, organic 20, microbe 15, heavy 10) | (0.4 + 0.2 + 0.15) × 1.25 ≈ 0.94 % | 1 % | ≈ 55 | mostly −1/−2 |
-| HQ + 3–5 nutrient tablets per 3 L (mineral 150–250 bp) | ≈ 0.94 % | 0 | ≈ 78 | 25 % −1, 45 % +1, 30 % +2 |
-| Pure + nutrient tablets | 0 | 0 | 100 | 60 % +2, 40 % +1 |
+| Basewater ≈ 98.0 % (chem ≈ 61, organic ≈ 41, heavy ≈ 31, microbe ≈ 20, mineral ≈ 31 bp) | (1.6 + 0.8 + 0.6 + 0.2) × 1.25 = 4 % | 1 % (31 < 125) | ≈ 16 / ≈ 44 | **≈ 75 % bad** (moldy or under/over-ripe), not "worst roll" |
+| HQ ≈ 99.0 % (chem 30, organic 20, microbe 15, heavy 10) | (0.4 + 0.2 + 0.15) × 1.25 ≈ 0.94 % | 1 % | ≈ 56 / ≈ 70 | **≈ 34 % bad**, mostly normal/best |
+| HQ + ~6 nutrient tablets per 6 L (mineral ≈ 150 bp) | ≈ 0.94 % | 0 | ≈ 78 / ≈ 85 (computed) | ≈ 22 % bad |
+| Pure alone (no minerals) | 0 | 1 % | ≈ 76 / ≈ 84 (computed) | ≈ 25–29 % under/over-ripe |
+| Pure + ~6 nutrient tablets per 6 L (mineral ≈ 150 bp; or a 250 ml nutrient-solution mini bottle) | 0 | 0 | 100 | **0 % bad, 62 % best** |
+| Ghostwater / Rustwater (the farmer start ships its bays with Ghostwater) | ≈ 7.75 % (ghost, computed) | 1 % | far below 0 | 100 % bad (≈ 55 % moldy) |
 
 Minerals are the only contaminant plants want. The purifier strips them (last) and so do
 filters (particle 30 ≥ 22); the `purifying` trait spares them. Add nutrient tablets *after*
@@ -388,7 +395,7 @@ Values are tooltip values before markup and market events (§1.3).
 | Pure water | purifier quality bonus ≥ 100, or evaporator with quality bonus (distillate 100 %), or moisture farm quality ≥ 150 | Pure | 80/L; required for top berries, pulls the stockpiler (500 + day budget) |
 | Moisture farm | power only | 850 ml ghost/night unupgraded (26.8/L ≈ 23/night) | each extra farm cuts all farms' output (÷ 1 + 0.25 per extra) |
 | Wine | swap a base ration for HQ/pure water | +1 score: e.g. Production → Reserve (+25 % on 100 base) or Undrinkable → Bucket Brew (−100 % → −15 %) | 0.75 L of HQ (45) buys +25…+85 value per bottle |
-| Bloomberries | pure (or HQ) + nutrient tablets to 125–275 mineral bp | health ≈ 100 (≈ 78 with HQ) instead of 0 on base water | the difference between moldy and +2 berries for wine |
+| Bloomberries | pure (or HQ) + nutrient tablets to 125–275 mineral bp | pure + ~6 tablets per 6 L: 0 % bad, 62 % best; HQ + tablets ≈ 22 % bad; base water ≈ 75 % bad (measured, docs/sim/VERIFIED.md) | the difference between moldy and +2 berries for wine |
 | Fish | filters in RAS slots | waste held near 0 | a 400-durability filter = 400 ml waste ≈ 80 kg-nights of tilapia |
 
 Dangers:
@@ -402,7 +409,7 @@ Dangers:
 | Topping up a labelled container with worse water | label stays — silent mislabel (§1.5) |
 | Purified/distilled water left un-retested | sells at the stale (often Gutterflow) label: −90 % |
 | Boiling (> 100 °C, upgraded plate) | evaporates water 2 %/s → purity falls |
-| Base water in a hydroponic bay | bloomberry health → 0 in one cycle |
+| Base water in a hydroponic bay | bloomberry health ≈ 16 at the first harvest, ≈ 44 at refruits → ≈ 75 % bad berries; Ghostwater/Rustwater → 100 % bad (measured, docs/sim/VERIFIED.md) |
 | RAS unpowered | −34 % health/night and filters off |
 | Selling the filters, purifier, UV, AquaScan | gives up the use value above (catalogue below) |
 

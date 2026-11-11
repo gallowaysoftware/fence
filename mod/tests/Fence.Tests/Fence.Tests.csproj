@@ -17,10 +17,12 @@
     <ProjectReference Include="../../tools/Fence.Compat/Fence.Compat.csproj" />
     <!-- Built first so the Cecil and scanner tests can read Fence.Mod.dll; never loaded. -->
     <ProjectReference Include="../../src/Fence.Mod/Fence.Mod.csproj" ReferenceOutputAssembly="false" Private="false" />
+    <ProjectReference Include="../../src/Fence.Autopilot/Fence.Autopilot.csproj" ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyMetadata Include="RepoRoot" Value="$(RepoRoot)" />
     <AssemblyMetadata Include="GameManaged" Value="$(GameManaged)" />
     <AssemblyMetadata Include="ModBinDir" Value="$(MSBuildThisFileDirectory)../../src/Fence.Mod/bin/$(Configuration)/netstandard2.1" />
+    <AssemblyMetadata Include="AutopilotBinDir" Value="$(MSBuildThisFileDirectory)../../src/Fence.Autopilot/bin/$(Configuration)/netstandard2.1" />
   </ItemGroup>
 </Project>

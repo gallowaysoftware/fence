@@ -1,0 +1,1315 @@
+{
+ "build": "26525552 / 0.46D",
+ "doc": "docs/re/MODULES.md; owner guide docs/guides/MACHINE-MODULES.md",
+ "formulas": {
+  "sum": "P, E, Q summed over every module and node in the bay; no cap, no diminishing returns (ModuleHelper.ComputeModuleEffect)",
+  "speed": "base + trunc(base*P/perf_ratio)/100, truncated (ModuleHelper.ApplyBasicModuleEffect)",
+  "power": "base - trunc(base*E/100), min 1; wine rack: E and P halved and P also lowers the draw",
+  "quality": "per machine, raw or /MACHINE_QUALITY_RATIO_INT (ModuleHelper.GetAjustedQuality)",
+  "overshoot": "progress overshoot is lost at finish: only whole-night breakpoints matter"
+ },
+ "bay": {
+  "standard": {
+   "cells": 26,
+   "squares": 4,
+   "long_plus_squares": [
+    [
+     1,
+     4
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     4,
+     0
+    ]
+   ]
+  },
+  "kit1": {
+   "cells": 31,
+   "squares": 6,
+   "long_plus_squares": [
+    [
+     1,
+     5
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     3
+    ],
+    [
+     4,
+     2
+    ]
+   ]
+  },
+  "kit2": {
+   "cells": 35,
+   "squares": 6,
+   "long_plus_squares": [
+    [
+     2,
+     6
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     4,
+     4
+    ]
+   ]
+  },
+  "note": "hand packing with rotation; the game's auto-placement fits fewer (1 long + 2 squares on a standard bay)"
+ },
+ "jackson_markup": {
+  "cozy": 0,
+  "normal": 15,
+  "hard": 50,
+  "challenge": 100
+ },
+ "random_effects_from_day": 21,
+ "modules": {
+  "system_module_performance": {
+   "value": 70,
+   "P": 16,
+   "E": 0,
+   "Q": 0,
+   "shape": "2x2 (random: L/T 4 cells, C 3 cells x0.75)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 33%/visit",
+    "jackson module intro (once, first-time discount)",
+    "rev raider 22.5% stolen",
+    "barter offer 6%",
+    "exchange",
+    "dump 1%/search (P/E/Q)",
+    "engineering crate 50%"
+   ],
+   "price_hard_jackson": 105
+  },
+  "system_module_efficiancy": {
+   "value": 70,
+   "P": 0,
+   "E": 16,
+   "Q": 0,
+   "shape": "2x2 (random variants)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 33%",
+    "module intro",
+    "rev raider 22.5%",
+    "barter 6%",
+    "exchange",
+    "dump",
+    "engineering crate 50%"
+   ],
+   "price_hard_jackson": 105
+  },
+  "system_module_quality": {
+   "value": 70,
+   "P": 0,
+   "E": 0,
+   "Q": 8,
+   "shape": "2x2 (random variants)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 33%",
+    "module intro",
+    "rev raider 22.5%",
+    "barter 6%",
+    "exchange",
+    "dump",
+    "engineering crate 50%"
+   ],
+   "price_hard_jackson": 105
+  },
+  "system_module_overclock": {
+   "value": 100,
+   "P": 36,
+   "E": -44,
+   "Q": 0,
+   "shape": "2x2; 2/3 of random spawns 5-cell x1.25 (+45/-55)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 16%",
+    "rev raider 22.5%",
+    "barter 3%",
+    "exchange",
+    "engineering crate 33%"
+   ],
+   "price_hard_jackson": 150
+  },
+  "system_module_eco": {
+   "value": 100,
+   "P": -16,
+   "E": 32,
+   "Q": 0,
+   "shape": "2x2; 2/3 random 5-cell x1.25 (-20/+40)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 16%",
+    "barter 3%",
+    "exchange",
+    "dump 0.5%",
+    "engineering crate 33%"
+   ],
+   "price_hard_jackson": 150
+  },
+  "system_module_fineness": {
+   "value": 100,
+   "P": -8,
+   "E": -15,
+   "Q": 25,
+   "shape": "2x2; 2/3 random 5-cell x1.25 (-10/-18/+31)",
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "jackson 16%",
+    "barter 3%",
+    "exchange",
+    "dump 0.5%",
+    "engineering crate 33%"
+   ],
+   "price_hard_jackson": 150
+  },
+  "system_capped_neural_core": {
+   "value": 250,
+   "P": 100,
+   "E": -100,
+   "Q": 50,
+   "shape": "2x2",
+   "contraband": 3,
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "engineering crate 4%",
+    "barter 1%",
+    "exchange 1%"
+   ],
+   "price_hard_jackson": 375
+  },
+  "system_uncapped_neural_core": {
+   "value": 1500,
+   "P": 200,
+   "E": -100,
+   "Q": 100,
+   "shape": "2x2",
+   "contraband": 4,
+   "types": [
+    "universal"
+   ],
+   "sources": [
+    "hypertech smuggler (network 2500), one per visit"
+   ],
+   "price_hard_jackson": 2250
+  },
+  "system_module_corrupt": {
+   "value": 45,
+   "P": -8,
+   "E": -5,
+   "Q": 0,
+   "shape": "3 cells",
+   "types": [
+    "universal"
+   ],
+   "note": "+common_electronic -> P 33% / E 22% / Q 45% (ModuleHelper.RestoreModule)",
+   "price_hard_jackson": 68
+  },
+  "system_module_ruined": {
+   "value": 30,
+   "P": 0,
+   "E": 0,
+   "Q": 0,
+   "shape": "3 cells",
+   "types": [
+    "universal"
+   ],
+   "note": "screwdriver -> common_electronic + printer_plastic + junk",
+   "price_hard_jackson": 45
+  },
+  "random_node": {
+   "value": 50,
+   "P": 0,
+   "E": 0,
+   "Q": 0,
+   "shape": "1x2",
+   "types": [
+    "universal"
+   ],
+   "effect": "Support: + (sum of adjacent modules' base P/E/Q)/5, signs included",
+   "sources": [
+    "jackson 33%",
+    "special stock 5",
+    "engineering crate 50% x2"
+   ],
+   "price_hard_jackson": 75
+  },
+  "furnace_module_blast": {
+   "value": 150,
+   "P": 0,
+   "E": -100,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "furnace"
+   ],
+   "effect": "3 inputs -> 2 ingots; flux level -1",
+   "sources": [
+    "jackson 20%",
+    "engineering crate 15%"
+   ],
+   "price_hard_jackson": 225
+  },
+  "furnace_module_junk": {
+   "value": 120,
+   "P": 0,
+   "E": 0,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "furnace"
+   ],
+   "effect": "idle night: 6 junk -> 4 scrap (into the output)",
+   "sources": [
+    "jackson 20%"
+   ],
+   "price_hard_jackson": 180
+  },
+  "alarm_module_transmitter": {
+   "value": 100,
+   "P": 0,
+   "E": -50,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "alarm"
+   ],
+   "effect": "+1 rep/night (x difficulty gain, 0.75 hard) to its faction; cycle Sec->BM->UL->Rev; one per faction; first alarm only",
+   "sources": [
+    "jackson 20%"
+   ],
+   "price_hard_jackson": 150
+  },
+  "farm_module_nutrifruit": {
+   "value": 150,
+   "P": -10,
+   "E": -10,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "+1 nutrifruit per harvest",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 225
+  },
+  "farm_module_dream_cap": {
+   "value": 150,
+   "P": 15,
+   "E": 15,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "dream caps +2/harvest, edible, contraband stripped",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 225
+  },
+  "farm_module_nightmare_cap": {
+   "value": 150,
+   "P": -33,
+   "E": -50,
+   "Q": 0,
+   "shape": "1x2",
+   "contraband": 3,
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "dream caps -> nightmare caps",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 225
+  },
+  "farm_module_kotton_loom": {
+   "value": 200,
+   "P": -50,
+   "E": -100,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "kotton -> kotton fabric",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 300
+  },
+  "farm_module_fillerweed_production": {
+   "value": 115,
+   "P": 0,
+   "E": -25,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "+4 fillerweed, no seeds",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 172
+  },
+  "farm_module_hydroreed_filter": {
+   "value": 105,
+   "P": 0,
+   "E": -15,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "+1 hydroreed filter per harvest per module",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 158
+  },
+  "farm_module_smuggler": {
+   "value": 100,
+   "P": 0,
+   "E": 0,
+   "Q": 0,
+   "shape": "1x2",
+   "types": [
+    "hydroponic"
+   ],
+   "effect": "strips contraband from the growing seed",
+   "sources": [
+    "jackson 25% (retired farmer)"
+   ],
+   "price_hard_jackson": 150
+  },
+  "evaporator_module_solvent_recovery": {
+   "value": 275,
+   "P": 0,
+   "E": -25,
+   "Q": 50,
+   "shape": "1x4",
+   "types": [
+    "evaporator"
+   ],
+   "effect": "distillate keeps alcohol only",
+   "sources": [
+    "retired chemist"
+   ],
+   "price_hard_jackson": 412
+  },
+  "printer_module_metal": {
+   "value": 300,
+   "P": 0,
+   "E": -50,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "printer"
+   ],
+   "effect": "metal chips",
+   "sources": [
+    "retired gunsmith"
+   ],
+   "price_hard_jackson": 450
+  },
+  "printer_module_cnc": {
+   "value": 400,
+   "P": -25,
+   "E": -25,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "printer"
+   ],
+   "effect": "frame/gun-part chips (with metal)",
+   "sources": [
+    "retired gunsmith"
+   ],
+   "price_hard_jackson": 600
+  },
+  "printer_module_melee_batch": {
+   "value": 250,
+   "P": -50,
+   "E": -50,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "printer"
+   ],
+   "effect": "+1 melee weapon per print per module",
+   "sources": [
+    "retired gunsmith"
+   ],
+   "price_hard_jackson": 375
+  },
+  "dna_manipulator_module_stabilizer": {
+   "value": 500,
+   "P": -50,
+   "E": -25,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "dna"
+   ],
+   "effect": "extraction keeps the seed",
+   "sources": [
+    "jackson 25% (plant dna)"
+   ],
+   "price_hard_jackson": 750
+  },
+  "dna_manipulator_module_positive_filter": {
+   "value": 500,
+   "P": 0,
+   "E": -25,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "dna"
+   ],
+   "effect": "extract beneficial traits only",
+   "sources": [
+    "jackson 25% (plant dna)"
+   ],
+   "price_hard_jackson": 750
+  },
+  "dna_manipulator_module_negative_filter": {
+   "value": 500,
+   "P": 0,
+   "E": -25,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "dna"
+   ],
+   "effect": "extract harmful traits only",
+   "sources": [
+    "jackson 25% (plant dna)"
+   ],
+   "price_hard_jackson": 750
+  },
+  "dna_manipulator_module_precision": {
+   "value": 1000,
+   "P": -75,
+   "E": -75,
+   "Q": 0,
+   "shape": "1x4",
+   "types": [
+    "dna"
+   ],
+   "effect": "extract a chosen trait",
+   "sources": [
+    "jackson 25% (plant dna)"
+   ],
+   "price_hard_jackson": 1500
+  },
+  "chem_module": {
+   "value": 250,
+   "shape": "2x2",
+   "types": [
+    "chem"
+   ],
+   "effect": "blender/finisher/plate by count 0-4 (CHEMISTRY.md)",
+   "sources": [
+    "jackson with retired chemist 25-50%",
+    "cartel"
+   ],
+   "price_hard_jackson": 375
+  },
+  "module_bay_expansion_kit": {
+   "value": 150,
+   "tool": true,
+   "effect": "standard machine bay 26 -> 31 -> 35 cells; +100 machine value; 2 per machine",
+   "sources": [
+    "jackson 20% (+20% day>=20, +20% day>=40)",
+    "special stock 2",
+    "engineering crate 25% x2",
+    "rev raider 9%",
+    "lou gift (2)"
+   ]
+  },
+  "turbo_booster": {
+   "value": 35,
+   "tool": true,
+   "effect": "one extra night cycle, single use"
+  },
+  "turbo_booster_adv": {
+   "value": 300,
+   "tool": true,
+   "effect": "one extra night cycle per 3 nights (5 power/night recharge)"
+  },
+  "module_extractor": {
+   "value": 100,
+   "tool": true,
+   "effect": "unstick a stuck module, 6 uses; repair with common electronic"
+  },
+  "module_extractor_advanced": {
+   "value": 350,
+   "tool": true,
+   "effect": "unstick, unlimited"
+  }
+ },
+ "machines": {
+  "hydroponic": {
+   "value": 300,
+   "bay": [
+    "universal",
+    "hydroponic"
+   ],
+   "base_power": 8,
+   "power_when": "every growing night",
+   "base_speed": 8,
+   "perf_ratio": 2,
+   "speed": "8 + trunc(8*P/2)/100 -> 9@P25 10@P50 11@P75 12@P100 16@P200",
+   "quality": "harvest = round_half_up(base*(1+floor(Q/2)/100)); bloomberry base 6: 7@Q18 8@Q50 9@Q84 10@Q118",
+   "gotcha": "bay locks at planting; a bloomberry re-locks every harvest: fit modules BEFORE planting",
+   "evidence": [
+    "ModuleHelper.ApplyBasicModuleEffect",
+    "HydroponicHelper.GetHarvestCount",
+    "HydroponicHelper.StartNextFruitingCycle",
+    "MachineHydroponic.Hydroponic"
+   ],
+   "loadouts": [
+    {
+     "goal": "bare",
+     "modules": [],
+     "berries_per_night": 3,
+     "power": 8,
+     "verified": true
+    },
+    {
+     "goal": "budget quality",
+     "modules": [
+      "system_module_quality",
+      "system_module_quality",
+      "system_module_quality"
+     ],
+     "berries_per_night": 3.5,
+     "power": 8,
+     "cost_hard": 315,
+     "payback_nights_food": 45,
+     "payback_nights_wine": 8,
+     "verified": true
+    },
+    {
+     "goal": "budget quality (one module)",
+     "modules": [
+      "system_module_fineness"
+     ],
+     "berries_per_night": 3.5,
+     "power": 9,
+     "cost_hard": 150,
+     "payback_nights_food": 25,
+     "payback_nights_wine": 4,
+     "note": "first harvest one night later",
+     "verified": true
+    },
+    {
+     "goal": "profit (nightly harvest)",
+     "modules": [
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_performance",
+      "system_module_performance"
+     ],
+     "berries_per_night": 6,
+     "power": 15,
+     "cost_hard": 510,
+     "payback_nights_food": 15,
+     "payback_nights_wine": 2.2,
+     "verified": "speed formula; 3-overclock variant measured"
+    },
+    {
+     "goal": "profit (nightly harvest)",
+     "modules": [
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_overclock"
+     ],
+     "berries_per_night": 6,
+     "power": 18,
+     "cost_hard": 450,
+     "payback_nights_food": 14,
+     "payback_nights_wine": 2,
+     "verified": true
+    },
+    {
+     "goal": "profit + quality",
+     "modules": [
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_fineness"
+     ],
+     "berries_per_night": 7,
+     "power": 19,
+     "cost_hard": 600,
+     "payback_nights_food": 13,
+     "payback_nights_wine": 2,
+     "verified": true
+    },
+    {
+     "goal": "max without core (kit 1)",
+     "modules": [
+      "module_bay_expansion_kit",
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_performance",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "berries_per_night": 8,
+     "power": 20,
+     "cost_hard": 1080,
+     "payback_nights_food": 19,
+     "payback_nights_wine": 2.8,
+     "verified": false
+    },
+    {
+     "goal": "max (core)",
+     "modules": [
+      "system_capped_neural_core",
+      "system_module_overclock",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "berries_per_night": 9,
+     "power": 21,
+     "verified": true
+    },
+    {
+     "goal": "min power, same output",
+     "modules": [
+      "system_module_efficiancy",
+      "system_module_efficiancy",
+      "system_module_efficiancy",
+      "system_module_efficiancy"
+     ],
+     "berries_per_night": 3,
+     "power": 3,
+     "cost_hard": 420,
+     "payback_nights_power": 84,
+     "note": "for a hypertech cell (<=12)",
+     "verified": false
+    }
+   ]
+  },
+  "wine_rack": {
+   "value": 350,
+   "bay": [
+    "universal"
+   ],
+   "base_power": 24,
+   "perf_ratio": 2,
+   "eff_ratio": 2,
+   "perf_lowers_power": true,
+   "quality": "extra aging steps per night = 1 + Q/125 (plus the bottle's own +1 anywhere owned)",
+   "value_per_step": "3 x (1 + grade%): bucket 2.55, homebrew 3, production 3.75, reserve 4.5, master 5.25; holds 6 bottles",
+   "evidence": [
+    "MachineWineRack.AgeWell",
+    "MachineWineRack.GetAgingDays",
+    "ModuleHelper.ApplyBasicModuleEffect"
+   ],
+   "loadouts": [
+    {
+     "goal": "bare",
+     "modules": [],
+     "steps": 2,
+     "power": 24,
+     "net_6_master": 7.5,
+     "net_6_production": -1.5,
+     "verified": true
+    },
+    {
+     "goal": "min power",
+     "modules": [
+      "system_module_efficiancy",
+      "system_module_efficiancy",
+      "system_module_efficiancy",
+      "system_module_efficiancy"
+     ],
+     "steps": 2,
+     "power": 16,
+     "cost_hard": 420,
+     "payback_nights": 52,
+     "verified": true
+    },
+    {
+     "goal": "min power",
+     "modules": [
+      "system_module_performance",
+      "system_module_performance",
+      "system_module_performance",
+      "system_module_performance"
+     ],
+     "steps": 2,
+     "power": 17,
+     "verified": true
+    },
+    {
+     "goal": "max aging",
+     "modules": [
+      "system_capped_neural_core",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "steps": 3,
+     "power": 32,
+     "net_6_master": 31,
+     "verified": true
+    },
+    {
+     "goal": "max aging without core (kit 1)",
+     "modules": [
+      "module_bay_expansion_kit",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "steps": 3,
+     "power": 37,
+     "cost_hard": 975,
+     "verified": false
+    }
+   ]
+  },
+  "furnace": {
+   "value": 200,
+   "bay": [
+    "universal",
+    "furnace"
+   ],
+   "base_power": 8,
+   "power_when": "per smelt or junk conversion",
+   "quality": "flux level = Q/100 (-1 with blast): Q>=100 replaces flux, Q>=200 +1 purity",
+   "evidence": [
+    "MachineFurnace.Furnace",
+    "IngotPurityHelper.SetPurityFromInput"
+   ],
+   "loadouts": [
+    {
+     "goal": "profit",
+     "modules": [
+      "furnace_module_blast"
+     ],
+     "ingots_per_smelt": 2,
+     "power": 16,
+     "verified": true
+    },
+    {
+     "goal": "profit + min power",
+     "modules": [
+      "furnace_module_blast",
+      "system_module_eco",
+      "system_module_eco"
+     ],
+     "ingots_per_smelt": 2,
+     "power": 10,
+     "cost_hard": 300,
+     "payback_smelts": 50,
+     "verified": true
+    },
+    {
+     "goal": "scrap feed",
+     "modules": [
+      "furnace_module_junk"
+     ],
+     "note": "idle nights 6 junk -> 4 scrap"
+    }
+   ]
+  },
+  "water_purifier": {
+   "value": 250,
+   "bay": [
+    "universal"
+   ],
+   "base_power": 4,
+   "power_when": "only nights it removes something",
+   "quality": "cap 99.01 / 99.16@Q15 / 99.36@Q25 / 99.65@Q50 / 99.80@Q75 / 99.90 (Pure)@Q100 / 100@Q200",
+   "performance": "budget x (dirt bonus + P/100)",
+   "evidence": [
+    "MachinePurifier.PurifyContainer",
+    "MachinePurifier.GetMaxPurityCap"
+   ],
+   "loadouts": [
+    {
+     "goal": "pure water",
+     "modules": [
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "cap": 9990,
+     "power": 6,
+     "cost_hard": 600,
+     "verified": true
+    },
+    {
+     "goal": "pure water (core)",
+     "modules": [
+      "system_capped_neural_core",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "cap": 9990,
+     "power": 9,
+     "verified": true
+    }
+   ]
+  },
+  "moisture_farm": {
+   "value": 350,
+   "bay": [
+    "universal"
+   ],
+   "base_power": 6,
+   "performance": "volume 850 ml x (1+P/100), / (1 + 0.25 x other farms running)",
+   "quality": "grade of Q+50: ghost, base@Q50, HQ@Q100, pure@Q150",
+   "evidence": [
+    "MachineMoistureFarm.GetOutputVolume",
+    "MachineMoistureFarm.GetOutputQuality"
+   ],
+   "loadouts": [
+    {
+     "goal": "bare",
+     "modules": [],
+     "ml": 850,
+     "grade": "ghost",
+     "power": 6,
+     "value": 22.8,
+     "verified": true
+    },
+    {
+     "goal": "volume",
+     "modules": [
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_overclock"
+     ],
+     "ml": 2074,
+     "grade": "ghost",
+     "power": 16,
+     "value": 55.6,
+     "cost_hard": 600,
+     "payback_nights": 26,
+     "verified": false
+    },
+    {
+     "goal": "volume",
+     "modules": [
+      "system_module_overclock",
+      "system_module_overclock",
+      "system_module_performance",
+      "system_module_performance"
+     ],
+     "ml": 1734,
+     "grade": "ghost",
+     "power": 11,
+     "value": 46.5,
+     "cost_hard": 510,
+     "payback_nights": 27,
+     "verified": false
+    },
+    {
+     "goal": "grade",
+     "modules": [
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "ml": 714,
+     "grade": "base",
+     "power": 7,
+     "value": 28.6,
+     "cost_hard": 300,
+     "payback_nights": 62,
+     "verified": true
+    },
+    {
+     "goal": "grade",
+     "modules": [
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "ml": 578,
+     "grade": "HQ",
+     "power": 9,
+     "value": 34.7,
+     "cost_hard": 600,
+     "payback_nights": 67,
+     "verified": true
+    },
+    {
+     "goal": "max (core)",
+     "modules": [
+      "system_capped_neural_core",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "ml": 1564,
+     "grade": "HQ",
+     "power": 13,
+     "value": 93.8,
+     "verified": true
+    }
+   ]
+  },
+  "evaporator": {
+   "value": 300,
+   "bay": [
+    "universal",
+    "evaporator"
+   ],
+   "bay_shape": "4x4",
+   "base_power": 6,
+   "performance": "volume 300 ml x (1+P/100)",
+   "quality": "distillate % = clamp(Q,0,100)",
+   "evidence": [
+    "MachineEvaporator.Evaporator"
+   ],
+   "loadouts": [
+    {
+     "goal": "full recovery",
+     "modules": [
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "ml": 204,
+     "recovery": 100,
+     "power": 9,
+     "verified": true
+    },
+    {
+     "goal": "alcohol",
+     "modules": [
+      "evaporator_module_solvent_recovery",
+      "evaporator_module_solvent_recovery"
+     ],
+     "ml": 300,
+     "recovery": 100,
+     "power": 9
+    }
+   ]
+  },
+  "printer": {
+   "value": 350,
+   "bay": [
+    "universal",
+    "printer"
+   ],
+   "base_power": 8,
+   "base_speed": 24,
+   "speed": "24 + trunc(24*P/100)",
+   "quality": "melee condition +Q/4; gun/frame stats x(100+Q/4)%",
+   "evidence": [
+    "MachinePrinter.Printer",
+    "MachinePrinter.ApplyPrintedMeleeCondition"
+   ],
+   "chip_nights_total_P_needed": {
+    "pistol(50)": {
+     "2": 5
+    },
+    "double_pistol/10mm_ext/frame(60)": {
+     "2": 25
+    },
+    "kitchen_knife(64)": {
+     "2": 34
+    },
+    "hatchet(75)": {
+     "3": 5,
+     "2": 59
+    },
+    "cleaver(82)": {
+     "3": 17,
+     "2": 71
+    },
+    "combat_knife(98)": {
+     "4": 5,
+     "3": 38
+    },
+    "machete(120)": {
+     "4": 25,
+     "3": 67
+    },
+    "box_cutter(34)": {
+     "1": 42
+    },
+    "22_high/10mm(36)": {
+     "1": 50
+    },
+    "22_ext/10mm_high(48)": {
+     "1": 100
+    },
+    "gun_part(30)": {
+     "1": 25
+    }
+   },
+   "note": "total P includes the metal/CNC/batch module penalties"
+  },
+  "desequencer": {
+   "value": 350,
+   "bay": [
+    "universal",
+    "alarm"
+   ],
+   "base_power": 10,
+   "base_speed": 33,
+   "breakpoints": {
+    "75": "3->2 @P16",
+    "100": "4->3 @P4",
+    "125": "4->3 @P28",
+    "150": "5->4 @P16, ->3 @P52"
+   },
+   "evidence": [
+    "MachineDesequencer.Desequencer"
+   ]
+  },
+  "plant_dna_manipulator": {
+   "value": 1000,
+   "bay": [
+    "universal",
+    "dna"
+   ],
+   "base_power": 12,
+   "base_speed": 10,
+   "perf_ratio": 2,
+   "quality": "success = clamp(95 - 5*complexity + Q/2, 5, 100)",
+   "work": "20 + 4*complexity",
+   "evidence": [
+    "MachineDnaManipulator.PlanOperation",
+    "PlantGeneticsHelper.GetSuccessChance"
+   ]
+  },
+  "mirage_projector": {
+   "value": 400,
+   "bay": [
+    "universal"
+   ],
+   "base_power": 16,
+   "boost": "100 + Q/2 + P/4 (reset nightly)",
+   "attractiveness": "250 base (+150/renovation) - trash + boost; >=300 budgets +10%, >=400 pool tier 1, >=450 +25%, >=500 +1 customer, >=600 +50%, >=650 tier 2",
+   "evidence": [
+    "MachineProjector.GetAttractivenessBoost",
+    "PlayerStore.GetCurrentStoreAttractiveness",
+    "StoreClient.ApplyBudgetModifier",
+    "StoreClientManager.GetAttractivenessTier"
+   ],
+   "loadouts": [
+    {
+     "goal": "bare",
+     "modules": [],
+     "boost": 100,
+     "power": 16,
+     "verified": true
+    },
+    {
+     "goal": "tier-1 pool",
+     "modules": [
+      "system_capped_neural_core"
+     ],
+     "boost": 150,
+     "power": 32,
+     "verified": true
+    },
+    {
+     "goal": "tier-1 pool without core (kit 1)",
+     "modules": [
+      "module_bay_expansion_kit",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness",
+      "system_module_fineness"
+     ],
+     "boost": 152,
+     "power": 28,
+     "verified": false
+    },
+    {
+     "goal": "tier-1 pool, four 5-cell fineness",
+     "modules": [
+      "system_module_fineness(5-cell)",
+      "system_module_fineness(5-cell)",
+      "system_module_fineness(5-cell)",
+      "system_module_fineness(5-cell)"
+     ],
+     "boost": 152,
+     "verified": false
+    }
+   ]
+  },
+  "security_alarm": {
+   "value": 150,
+   "bay": [
+    "universal",
+    "alarm"
+   ],
+   "base_power": 4,
+   "power_when": "early night pass",
+   "stop": "burglary stop % = 50 + P; roll(stop+1); only matters uninsured",
+   "evidence": [
+    "MachineAlarm.GetAlarmeStopRate",
+    "PlayerStore.HandleInsurance",
+    "MachineAlarm.Operate"
+   ],
+   "loadouts": [
+    {
+     "goal": "replace insurance",
+     "modules": [
+      "system_module_overclock",
+      "system_module_performance"
+     ],
+     "stop": 100,
+     "power": 5,
+     "cost_hard_incl_alarm": 480,
+     "verified": "2-overclock variant measured (122%)"
+    },
+    {
+     "goal": "replace insurance + security rep",
+     "modules": [
+      "alarm_module_transmitter",
+      "system_module_overclock",
+      "system_module_performance"
+     ],
+     "stop": 100,
+     "power": 7,
+     "verified": false
+    },
+    {
+     "goal": "all-faction rep (kit 1)",
+     "modules": [
+      "module_bay_expansion_kit",
+      "alarm_module_transmitter",
+      "alarm_module_transmitter",
+      "alarm_module_transmitter",
+      "alarm_module_transmitter",
+      "system_module_overclock",
+      "system_module_performance"
+     ],
+     "stop": 100,
+     "power": 13,
+     "verified": false
+    }
+   ]
+  },
+  "deal_maker": {
+   "value": 400,
+   "bay": [
+    "universal"
+   ],
+   "base_power": 25,
+   "note": "no source in code"
+  }
+ },
+ "power_sources": {
+  "energy_credit": "100 charge; ~1 credit/unit",
+  "energy_credit_ext": "250 charge",
+  "energy_credit_breeder": "100 charge, +4/night early pass (runs <=4-draw machines forever)",
+  "energy_credit_dis": "1000 charge, no recharge, contraband 1",
+  "recharger": "+3/night per cell inside (6 with commercial power), needs store power",
+  "current_converter": "1.5 cr/unit (-0.1 per common electronic to 1.0; power hijack -15/25/50%); billed as a night service; blackout stops it",
+  "energy_credit_hyp": "free, endless, max draw 12 (+10 per hypertech electronic)"
+ },
+ "assumptions": {
+  "power_cost_per_unit": 1.0,
+  "berry_food": 14,
+  "berry_wine_net": 80,
+  "prices": "hard Jackson = value x 1.5"
+ },
+ "executor": {
+  "today": [
+   "furnace: junk + blast modules (sim/gym/Furnace.cs)",
+   "everything else bare; no alarm; insurance by PlayerRole.Services"
+  ],
+  "levers": [
+   {
+    "name": "alarm: perfect",
+    "action": "buy security_alarm, fit P>=50 (overclock+performance), keep powered, drop insurance",
+    "gain": "saves 2*(stock/400+3)/night on hard",
+    "priority": 1
+   },
+   {
+    "name": "transmitters",
+    "action": "alarm_module_transmitter per faction (security first)",
+    "gain": "+0.75 rep/night per faction on hard",
+    "priority": 2
+   },
+   {
+    "name": "jackson_module_intro: buy",
+    "action": "buy the once-only P/E/Q at first-time discount",
+    "gain": "3 modules ~46 each on hard",
+    "priority": 2
+   },
+   {
+    "name": "bay_modules: nightly",
+    "action": "fit P>=100 (+Q>=18) before planting bloomberry",
+    "gain": "3 -> 6..8 berries/night per bay",
+    "priority": 3
+   },
+   {
+    "name": "projector_modules: tier1",
+    "action": "capped core or 5 fineness (kit) in the projector",
+    "gain": "attractiveness 350 -> 400 (tier-1 pool); untested value",
+    "priority": 3
+   },
+   {
+    "name": "rack_modules: efficiency",
+    "action": "4 efficiency in the rack, or no rack below reserve wine",
+    "gain": "24 -> 16 draw",
+    "priority": 4
+   },
+   {
+    "name": "furnace_eco",
+    "action": "blast + 2 eco",
+    "gain": "16 -> 10 per smelt",
+    "priority": 5
+   }
+  ]
+ }
+}

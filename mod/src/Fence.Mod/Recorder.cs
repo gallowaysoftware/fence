@@ -32,6 +32,17 @@ namespace Fence.Mod
         public readonly HumanFilter Filter = new HumanFilter();
         // The customer and advice in force; set by BarterAdvisor.
         public Func<AdviceInForce> Advice = () => null;
+        // The inspect decision in force for the item under the magnifier, or null; set by InspectAdvisor.
+        public Func<AdviceInForce> InspectAdvice = () => null;
+        // The aug_check decision in force for the customer at the counter, or null; set by AugAdvisor.
+        public Func<AdviceInForce> AugAdvice = () => null;
+        // The issue the player submitted for an item (game identifier), or null; set by InspectAdvisor.
+        public Func<string, string> InspectVerdictFor = _ => null;
+        // A move outside the executor: the autopilot claims it when it is the delayed consequence of its own
+        // press (returns its actor) and otherwise pauses, since it was the player's. Set by FenceMod.
+        public Func<string, string> ClaimHuman;
+        // Who presses while Filter.Executing: the P2a counter or the autopilot. Set by FenceMod.
+        public Func<string> ExecutorActor = () => Actors.Mod;
 
         public Recorder(FenceLog log, Emit emit, Func<string, bool> featureOn)
         {
@@ -184,17 +195,22 @@ namespace Fence.Mod
 
         // ---- human actions ----
 
-        void Human(string action, int? itemUid = null, JObject extra = null)
+        void Human(string action, int? itemUid = null, JObject extra = null, bool inspect = false, bool aug = false)
         {
             AdviceInForce advice = null;
             try
             {
-                advice = Advice?.Invoke();
+                if (inspect) advice = InspectAdvice?.Invoke();
+                if (aug) advice = AugAdvice?.Invoke();
+                if (advice == null) advice = Advice?.Invoke();
             }
             catch (Exception)
             {
             }
-            emit(RecordKinds.HumanAction, HumanActions.Build(action, advice, itemUid, extra), null);
+            var data = HumanActions.Build(action, advice, itemUid, extra);
+            string actor = Filter.Executing ? ExecutorActor() : ClaimHuman?.Invoke(action);
+            if (actor != null) data["actor"] = actor;
+            emit(RecordKinds.HumanAction, data, null);
         }
 
         int Uid(GameItem item) => items.Uid(item);
@@ -278,7 +294,23 @@ namespace Fence.Mod
 
         public void Confront(string itemId, string confrontType, string outcome)
         {
-            if (Filter.IsHumanClick) Human(HumanActions.Confront, null, new JObject { ["item_id"] = itemId, ["confront_type"] = confrontType, ["outcome"] = outcome });
+            if (!Filter.IsHumanClick) return;
+            var o = new JObject { ["item_id"] = itemId, ["confront_type"] = confrontType, ["outcome"] = outcome };
+            string issue = null;
+            try
+            {
+                issue = InspectVerdictFor?.Invoke(itemId);
+            }
+            catch (Exception)
+            {
+            }
+            if (issue != null) o["issue"] = issue;
+            Human(HumanActions.Confront, null, o, true);
+        }
+
+        public void InspectVerdict(GameItem item, string issue)
+        {
+            if (Filter.IsHumanClick && item != null) Human(HumanActions.InspectVerdict, Uid(item), new JObject { ["item_id"] = GameRecord.Id(item), ["issue"] = issue }, true);
         }
 
         public void DialogueChoice(int index, Dialogue dialog, bool phone)
@@ -309,11 +341,15 @@ namespace Fence.Mod
             RunStat("scavenged", new JObject { ["items"] = list });
         }
 
-        public void Shot(StoreClient client) => Click(HumanActions.Shoot, new JObject { ["name"] = GameRecord.ClientName(client) });
+        // Gun moves attach to the aug_check decision in force, else to the barter one.
+        public void Gun(string action, JObject extra)
+        {
+            if (Filter.IsHumanClick) Human(action, null, extra, aug: true);
+        }
 
         public void AppraisalEstimate(GameItem item, int value)
         {
-            if (Filter.IsHumanClick) Human(HumanActions.AppraisalEstimate, item != null ? Uid(item) : (int?)null, new JObject { ["value"] = value });
+            if (Filter.IsHumanClick) Human(HumanActions.AppraisalEstimate, item != null ? Uid(item) : (int?)null, new JObject { ["value"] = value }, true);
         }
 
         public void AppraisalSent(GameItem item, int sent, int actual) =>

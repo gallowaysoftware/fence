@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fence show</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<div id="stage">
+  <div id="game" aria-hidden="true"><span>game capture</span></div>
+
+  <aside id="column">
+    <section id="card" class="box">
+      <div class="eyebrow"><span id="live-dot"></span><span id="run-label">waiting for a run</span></div>
+      <h1 id="model">—</h1>
+      <div id="persona">no persona</div>
+      <div id="persona-tag" class="sub"></div>
+      <div id="chips" class="chips"></div>
+    </section>
+
+    <section id="clock" class="box">
+      <div class="row between">
+        <div><div class="label">Day</div><div id="day" class="big">—</div></div>
+        <div class="right"><div class="label">Cash</div><div id="cash" class="big money">—</div></div>
+      </div>
+      <div id="rent" class="rent">
+        <div class="row between"><span id="rent-text">rent —</span><span id="rent-days"></span></div>
+        <div id="pips" class="pips"></div>
+      </div>
+      <div id="mortgage" class="sub hidden"></div>
+      <div class="buyout">
+        <div class="row between"><span class="label">Net worth</span><span id="nw" class="num">—</span></div>
+        <div class="bar"><div id="buyout-fill"></div></div>
+        <div class="row between sub"><span id="buyout-text"></span><span id="nw-delta"></span></div>
+        <svg id="spark" viewBox="0 0 500 44" preserveAspectRatio="none"><polyline id="spark-line" points=""/></svg>
+      </div>
+    </section>
+
+    <section id="heat" class="box">
+      <div class="row between"><span class="label">Heat</span><span id="heat-level" class="num">—</span></div>
+      <div class="bar heat"><div id="heat-fill"></div></div>
+      <div id="heat-text" class="sub">no security record yet</div>
+    </section>
+
+    <section id="plan" class="box">
+      <div class="row between"><span class="label" id="plan-title">Today's plan</span><span id="plan-source" class="badge"></span></div>
+      <ul id="plan-lines"></ul>
+      <div id="plan-changes" class="sub accent"></div>
+      <div id="plan-why" class="sub dim"></div>
+    </section>
+
+    <section id="candidates" class="box hidden">
+      <div class="row between"><span class="label">Alternatives considered</span><span id="cand-metric" class="badge"></span></div>
+      <table id="cand-table"></table>
+    </section>
+
+    <section id="moments" class="box">
+      <div class="label">Moments</div>
+      <ol id="moment-list"></ol>
+    </section>
+
+    <section id="about" class="box hidden">
+      <div class="row between"><span class="label">About this AI</span><span class="badge">fair play</span></div>
+      <p id="about-who"></p>
+      <ul id="about-rules">
+        <li>It plays with a player's information only: what is on screen and the game's rules. Never an item's true value, a hidden flag or a roll.</li>
+        <li>Each morning the language model writes the plan; rule-based hands play the day by it; it can change course every morning.</li>
+        <li>The narrator speaks in character; every number it says is checked against the game first.</li>
+        <li id="about-hidden"></li>
+      </ul>
+      <ul id="about-setup"></ul>
+    </section>
+
+    <section id="ticker" class="box">
+      <div class="label">Thinking</div>
+      <ol id="ticker-list"></ol>
+    </section>
+
+    <section id="board" class="box">
+      <div class="label">Runs</div>
+      <table id="board-table"></table>
+    </section>
+  </aside>
+
+  <footer id="lower">
+    <div id="caption" class="caption idle">
+      <div id="speaker"></div>
+      <div id="caption-text"></div>
+    </div>
+  </footer>
+</div>
+<div id="unmute" class="hidden">click to enable narration audio</div>
+<audio id="voice" preload="auto"></audio>
+<script src="panel.js"></script>
+</body>
+</html>

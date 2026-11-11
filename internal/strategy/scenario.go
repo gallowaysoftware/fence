@@ -19,6 +19,8 @@ type Scenario struct {
 	Note      string         `json:"note"`
 	Yesterday *DayPlan       `json:"yesterday,omitempty"`
 	Event     protocol.Event `json:"event"`
+	// Persona is the play style to plan in, set by the caller.
+	Persona string `json:"-"`
 }
 
 // LoadScenarios reads every *.json in dir, sorted by name.
@@ -49,7 +51,7 @@ func LoadScenarios(dir string) ([]Scenario, error) {
 // Input is the plan input the strategist would build for sc. Only the event's data is
 // used: its hidden block never reaches a prompt.
 func (sc Scenario) Input() PlanInput {
-	return PlanInput{Day: sc.Event.GameDay, Snapshot: sc.Event.Data, Yesterday: sc.Yesterday}
+	return PlanInput{Day: sc.Event.GameDay, Snapshot: sc.Event.Data, Yesterday: sc.Yesterday, Persona: sc.Persona}
 }
 
 // PlanResult is one scenario run against a model.
@@ -60,6 +62,9 @@ type PlanResult struct {
 	Model    string
 	Latency  time.Duration
 	Err      error
+	// Directives is the plan as directives; DirectivesLatency the follow-up call's time.
+	Directives        DirectivesResult
+	DirectivesLatency time.Duration
 }
 
 // RunScenarios drafts a plan for each scenario with c, one at a time.
@@ -71,8 +76,15 @@ func RunScenarios(ctx context.Context, c llm.Client, scs []Scenario, maxTokens i
 		r.Prompt, r.Err = BuildPlanPrompt(in)
 		if r.Err == nil {
 			start := time.Now()
-			r.Plan, r.Model, r.Err = DraftPlan(ctx, c, in, maxTokens)
+			var d *PlanDraft
+			d, r.Err = DraftPlanConversation(ctx, c, in, maxTokens)
 			r.Latency = time.Since(start)
+			if r.Err == nil {
+				r.Plan, r.Model = d.Plan, d.Model
+				start = time.Now()
+				r.Directives = DraftDirectives(ctx, c, d)
+				r.DirectivesLatency = time.Since(start)
+			}
 		}
 		out = append(out, r)
 	}

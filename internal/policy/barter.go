@@ -53,9 +53,13 @@ type barterClient struct {
 	NoContraband    *bool    `json:"no_contraband"`
 	RequiresVariety *bool    `json:"requires_variety"`
 	IsSecurity      *bool    `json:"is_security"`
-	OnWantedPoster  *bool    `json:"on_wanted_poster"`
-	AttractedBy     string   `json:"attracted_by"`
-	Wholesale       *struct {
+	// Aug is the customer's aug status, stated by the mod when detection is assumed
+	// perfect (docs/PROTOCOL.md); absent in tells mode, where AugTells lists what shows.
+	Aug            *bool    `json:"aug"`
+	AugTells       []string `json:"aug_tells"`
+	OnWantedPoster *bool    `json:"on_wanted_poster"`
+	AttractedBy    string   `json:"attracted_by"`
+	Wholesale      *struct {
 		Price       *int64 `json:"price"`
 		DiscountPct *int64 `json:"discount_pct"`
 	} `json:"wholesale"`
@@ -134,11 +138,11 @@ var intentText = map[string]string{
 
 // renderBarter writes the context as compact text. Absent fields are left out, never
 // guessed; the model is told so in the system prompt.
-func renderBarter(b *strings.Builder, c *barterCtx) {
+func renderBarter(b *strings.Builder, c *barterCtx, use itemUse) {
 	renderParties(b, c)
 	if c.Counter != nil {
-		renderItems(b, "Their items (you may buy)", c.Counter.Theirs, false)
-		renderItems(b, "Your staged items (you may sell)", c.Counter.YoursStaged, true)
+		renderItems(b, "Their items (you may buy)", c.Counter.Theirs, false, use)
+		renderItems(b, "Your staged items (you may sell)", c.Counter.YoursStaged, true, use)
 		if c.Client != nil && c.Client.Intent == "buy" && len(c.Counter.YoursStaged) == 0 {
 			b.WriteString("Nothing is staged yet, so nothing can be sold until the player stages items: defer.\n")
 		}
@@ -237,6 +241,12 @@ func renderParties(b *strings.Builder, c *barterCtx) {
 		if isTrue(cl.OnWantedPoster) {
 			tags = append(tags, "on a WANTED poster")
 		}
+		if isTrue(cl.Aug) {
+			tags = append(tags, "an AUG (augmented, confirmed)")
+		}
+		for _, t := range cl.AugTells {
+			tags = append(tags, "aug tell: "+t)
+		}
 		if len(tags) > 0 {
 			fmt.Fprintf(b, "- %s\n", strings.Join(tags, "; "))
 		}
@@ -263,7 +273,31 @@ func renderMarket(b *strings.Builder, c *barterCtx) {
 	}
 }
 
-func renderItems(b *strings.Builder, title string, items []barterItem, own bool) {
+// itemUse is the strategist's use-versus-sale note for an item ("" when it knows no use);
+// sale is what the item would sell for.
+type itemUse func(id, name string, sale int64) string
+
+// useNote is use's note for it in brackets: against the counter price for the shop's own
+// items, against the estimate for a seller's.
+func useNote(use itemUse, it barterItem, own bool) string {
+	if use == nil {
+		return ""
+	}
+	sale := it.EstimatedValue
+	if own {
+		sale = it.Price
+	}
+	var v int64
+	if sale != nil {
+		v = *sale
+	}
+	if n := use(it.ID, it.Name, v); n != "" {
+		return " [" + n + "]"
+	}
+	return ""
+}
+
+func renderItems(b *strings.Builder, title string, items []barterItem, own bool, use itemUse) {
 	if len(items) == 0 {
 		fmt.Fprintf(b, "%s: none\n", title)
 		return
@@ -318,7 +352,7 @@ func renderItems(b *strings.Builder, title string, items []barterItem, own bool)
 				b.WriteString(" (serious)")
 			}
 		}
-		b.WriteString("\n")
+		b.WriteString(useNote(use, it, own) + "\n")
 	}
 }
 

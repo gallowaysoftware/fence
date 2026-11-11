@@ -1,0 +1,79 @@
+{
+  "name": "t4-normal-llm",
+  "seeds": [
+    950001,
+    950002,
+    950003,
+    950004,
+    950005,
+    950006,
+    950007,
+    950008,
+    950009,
+    950010,
+    950011,
+    950012,
+    950013,
+    950014,
+    950015,
+    950016,
+    950017,
+    950018,
+    950019,
+    950020,
+    950021,
+    950022,
+    950023,
+    950024
+  ],
+  "starts": [
+    "none"
+  ],
+  "perks": [
+    "none"
+  ],
+  "days": 1000,
+  "difficulty": "normal",
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "bridge-observe",
+      "mode": "heuristic",
+      "bridge_flags": [
+        "-mode",
+        "observe"
+      ]
+    },
+    {
+      "id": "qwen27-delta",
+      "endpoint": "localmodel",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    },
+    {
+      "id": "drift-delta",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "player"
+}

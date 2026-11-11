@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The shared executor alone, under the mod's rules (netstandard2.1, C# 9, the game's own assemblies,
+       ModScanner: no files, reflection, threads). Fence.Mod ships the same files (SharedExecutor.props); this
+       assembly lets the scanner test check them on their own (docs/STREAM.md). -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RootNamespace>Fence.Gym</RootNamespace>
+    <AssemblyName>Fence.Autopilot</AssemblyName>
+    <Version>0.1.0</Version>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <Import Project="SharedExecutor.props" />
+  <ItemGroup>
+    <ProjectReference Include="../Fence.Core/Fence.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp"><HintPath>$(GameManaged)/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(GameManaged)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GameManaged)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="RNGNeeds"><HintPath>$(GameManaged)/RNGNeeds.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(GameManaged)/Newtonsoft.Json.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

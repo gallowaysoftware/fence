@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +17,7 @@ import (
 
 	"github.com/gallowaysoftware/fence/internal/fakemod"
 	"github.com/gallowaysoftware/fence/internal/llm"
+	"github.com/gallowaysoftware/fence/internal/protocol"
 )
 
 func envMap(m map[string]string) func(string) string {
@@ -38,6 +41,10 @@ func TestConfigErrors(t *testing.T) {
 		{"bad thinking", []string{"-policy", "llm", "-base-url", "http://x/v1", "-model", "q", "-thinking", "maybe"}, nil, "-thinking"},
 		{"bad temperature", nil, map[string]string{"FENCE_POLICY": "llm", "FENCE_BASE_URL": "http://x/v1", "FENCE_MODEL": "q", "FENCE_TEMPERATURE": "hot"}, "-temperature"},
 		{"bad flag", []string{"-nope"}, nil, "not defined"},
+		{"unknown persona", []string{"-persona", "zz-no-such-persona"}, nil, "zz-no-such-persona"},
+		{"bad persona id from env", nil, map[string]string{"FENCE_PERSONA": "Not An Id"}, "not an id"},
+		{"bad planner", []string{"-planner", "oracle"}, nil, "unknown planner"},
+		{"llm planner without url", []string{"-planner", "llm", "-model", "q"}, nil, "needs -base-url"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -64,6 +71,8 @@ func TestBuildPolicy(t *testing.T) {
 		{"openai", []string{"-policy", "llm", "-base-url", "http://x/v1", "-model", "q"}, nil, "llm", "q"},
 		{"anthropic", []string{"-policy", "llm", "-provider", "anthropic"}, map[string]string{"ANTHROPIC_API_KEY": "k"}, "llm", llm.AnthropicDefaultModel},
 		{"from env", nil, map[string]string{"FENCE_POLICY": "llm", "FENCE_PROVIDER": "anthropic", "FENCE_MODEL": "m", "ANTHROPIC_API_KEY": "k"}, "llm", "m"},
+		{"heuristic counter, llm planner", []string{"-planner", "llm", "-base-url", "http://x/v1", "-model", "q"}, nil, "heuristic", ""},
+		{"llm planner from env", nil, map[string]string{"FENCE_PLANNER": "llm", "FENCE_BASE_URL": "http://x/v1", "FENCE_MODEL": "q"}, "heuristic", ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -91,7 +100,7 @@ func TestDefaultsBindLoopback(t *testing.T) {
 		t.Fatal(err)
 	}
 	if c.listen != "127.0.0.1:7341" || c.mode != "observe" || c.logDir != "var/log" ||
-		!c.memory || c.memoryDB != "var/memory.db" || !c.carryLessons {
+		!c.memory || c.memoryDB != "var/memory.db" || !c.carryLessons || !c.reflect || c.planner != "" || c.plannerWait != 0 {
 		t.Fatalf("defaults %+v", c)
 	}
 }
@@ -171,6 +180,65 @@ func TestServeAndShutdown(t *testing.T) {
 				if err := db.QueryRow(`SELECT count(*) FROM decisions WHERE session_id = ?`, res.SessionID).Scan(&n); err != nil || n != 1 {
 					t.Fatalf("memory decisions %d, %v", n, err)
 				}
+			}
+		})
+	}
+}
+
+// The mod cannot read files, so hello hands it the appraisal guides when the bridge has them.
+func TestHelloCarriesAppraisalGuides(t *testing.T) {
+	const fixture = "../../internal/policy/testdata/appraisal_guides.fixture.json"
+	for _, tt := range []struct {
+		name, path, logLine string
+		want                bool
+	}{
+		{"configured", fixture, "appraisal guides loaded", true},
+		{"absent", filepath.Join(t.TempDir(), "none.json"), "no appraisal guides", false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			ready, done := make(chan string, 1), make(chan error, 1)
+			var stderr bytes.Buffer
+			env := envMap(map[string]string{"FENCE_APPRAISAL_GUIDES": tt.path})
+			go func() {
+				done <- run(ctx, []string{"-listen", "127.0.0.1:0", "-memory=false", "-log-dir", t.TempDir()}, env, &stderr, ready)
+			}()
+			var addr string
+			select {
+			case addr = <-ready:
+			case err := <-done:
+				t.Fatalf("exited early: %v\n%s", err, stderr.String())
+			case <-time.After(5 * time.Second):
+				t.Fatal("bridge did not start")
+			}
+			hello, err := os.ReadFile("../../protocol/fixtures/hello.request.json")
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp, err := http.Post("http://"+addr+"/v1/hello", "application/json", bytes.NewReader(hello))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			var got protocol.HelloResponse
+			if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
+				t.Fatal(err)
+			}
+			if has := got.AppraisalGuides != nil; has != tt.want {
+				t.Fatalf("hello has appraisal_guides %v, want %v", has, tt.want)
+			}
+			if tt.want {
+				want, _ := os.ReadFile(fixture)
+				var a, b any
+				json.Unmarshal(got.AppraisalGuides, &a)
+				json.Unmarshal(want, &b)
+				if !reflect.DeepEqual(a, b) {
+					t.Fatal("hello's appraisal_guides differ from the file")
+				}
+			}
+			if !strings.Contains(stderr.String(), tt.logLine) {
+				t.Fatalf("startup log lacks %q:\n%s", tt.logLine, stderr.String())
 			}
 		})
 	}

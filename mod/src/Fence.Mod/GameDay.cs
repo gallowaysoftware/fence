@@ -41,11 +41,21 @@ namespace Fence.Mod
                 BusinessPermit = ps.hasBusinessPermit,
                 NewspaperUnlocked = ps.isNewspaperUnlocked,
             };
+            try
+            {
+                s.Difficulty = DifficultyId(ps);
+            }
+            catch (Exception)
+            {
+            }
             var station = StoreStation.Instance;
             if (station != null) s.Day = station.dayCounter;
             if (ps.storeClientManager != null) s.QueueLength = ps.GetClientInQueueCount();
             return s;
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static string DifficultyId(PlayerStore ps) => ps.difficultyId;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public RentDay Rent()
@@ -130,9 +140,73 @@ namespace Fence.Mod
                     Where = inside.HasValue ? "inside:" + inside.Value : root,
                     Root = root,
                     SmugglerBay = ContrabandHelper.IsSmugglerBay(item),
+                    Capacity = TryCapacity(item),
                 });
             }
             return list;
+        }
+
+        bool capacityBroken;
+
+        Capacity TryCapacity(GameItem item)
+        {
+            if (capacityBroken) return null;
+            try
+            {
+                return CapacityOf(item);
+            }
+            catch (Exception)
+            {
+                // A member gone in an update costs the capacity field, not the inventory.
+                capacityBroken = true;
+                return null;
+            }
+        }
+
+        // Grid inventories directly inside the item (GraphUtils.FindChildrenType's walk, stopping at the
+        // first inventory), counted the way GameGridInventory.HasFreeCell does.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static Capacity CapacityOf(GameItem item)
+        {
+            var grids = new List<GameGridInventory>();
+            var queue = new Queue<GraphNodeStorage>();
+            foreach (var c in item.children)
+                if (c != null) queue.Enqueue(c);
+            for (int n = 0; queue.Count > 0 && n < 32; n++)
+            {
+                var node = queue.Dequeue();
+                if (node is GameInventory inv)
+                {
+                    if (inv is GameGridInventory grid) grids.Add(grid);
+                    continue;
+                }
+                if (node is GameItem) continue;
+                foreach (var c in node.children)
+                    if (c != null) queue.Enqueue(c);
+            }
+            if (grids.Count == 0) return null;
+            var cap = new Capacity();
+            foreach (var g in grids)
+            {
+                var shape = g.inventoryShape;
+                if (shape == null) continue;
+                var inside = g.childItems;
+                for (int y = 0; y < shape.height; y++)
+                for (int x = 0; x < shape.width; x++)
+                {
+                    if (shape.Get(x, y) != 0) continue;
+                    cap.Cells++;
+                    bool used = false;
+                    foreach (var it in inside)
+                        if (it != null && it.modifiedShape != null && it.modifiedShape.Intersects(x, y))
+                        {
+                            used = true;
+                            break;
+                        }
+                    if (!used) cap.Free++;
+                }
+            }
+            return cap.Cells > 0 ? cap : null;
         }
 
         static KeyValuePair<GameInventory, string> Root(GameInventory inv, string where) => new KeyValuePair<GameInventory, string>(inv, where);
@@ -283,6 +357,7 @@ namespace Fence.Mod
                     Name = u.GetLocalizedTitle(),
                     Cost = u.GetCost(),
                     State = u.state,
+                    Cooldown = u.cooldownDuration != 0 ? u.cooldownCurrent : 0,
                     Unlocked = u.IsUnlocked(),
                     HasPrerequisite = u.IsHavePrerequisite(),
                     Hidden = u.hidden || NetworkUpgrade.IsHiddenForRun(u.id),
@@ -394,6 +469,17 @@ namespace Fence.Mod
         };
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        public IList<string> StartingPerks()
+        {
+            var list = new List<string>();
+            var perks = PlayerStore.Instance.startingPerks;
+            if (perks == null) return list;
+            foreach (var p in perks)
+                if (p != null && !string.IsNullOrEmpty(p.id)) list.Add(p.id);
+            return list;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public IList<string> NightLog() => PlayerStore.Instance.nightLogs ?? new List<string>();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -433,6 +519,7 @@ namespace Fence.Mod
                 ["skip_intro"] = ps.skipIntro,
                 ["retail_markup"] = ps.retailMarkup,
                 ["perks"] = perks,
+                ["aug_detection"] = Fence.Aug.AugDetection.Current,
             };
             var rules = Difficulty.Rules;
             if (rules != null)

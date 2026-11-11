@@ -31,6 +31,7 @@ var fixtureTypes = []struct {
 	{"decide.*.response.json", "decide.response.schema.json", func() any { return new(DecideResponse) }},
 	{"outcome.request.json", "outcome.request.schema.json", func() any { return new(Outcome) }},
 	{"summary.response.json", "summary.response.schema.json", func() any { return new(SummaryResponse) }},
+	{"directives.json", "directives.schema.json", func() any { return new(Directives) }},
 }
 
 func fixtureType(name string) (schema string, newV func() any, err error) {
@@ -71,14 +72,15 @@ func compileSchemas(t *testing.T) map[string]*jsonschema.Schema {
 		if err != nil {
 			t.Fatalf("%s: %v", e.Name(), err)
 		}
-		if err := c.AddResource(e.Name(), doc); err != nil {
+		// Under its $id, so one schema's relative $ref finds another.
+		if err := c.AddResource(schema.BaseURL+e.Name(), doc); err != nil {
 			t.Fatalf("%s: %v", e.Name(), err)
 		}
 		names = append(names, e.Name())
 	}
 	out := make(map[string]*jsonschema.Schema, len(names))
 	for _, n := range names {
-		s, err := c.Compile(n)
+		s, err := c.Compile(schema.BaseURL + n)
 		if err != nil {
 			t.Fatalf("compile %s: %v", n, err)
 		}
@@ -181,6 +183,13 @@ func TestSchemasReject(t *testing.T) {
 			`{"session_id":"s","seq":1,"kind":"k","game_day":1,"data":{},"hidden":[1]}`},
 		{"summary plan too long", "summary.response.schema.json",
 			`{"session_id":"s","mode":"act","policy":"heuristic","model":"","day":3,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"` + strings.Repeat("x", 2049) + `","plan_day":3}`},
+		{"directives unknown bargain", "directives.schema.json", `{"bargain":"haggle"}`},
+		{"directives negative floor", "directives.schema.json", `{"cash_floor":-1}`},
+		{"directives pct over 200", "directives.schema.json", `{"buy":{"single_max_pct":250}}`},
+		{"directives unknown key", "directives.schema.json", `{"sell":{"min_pct":90,"sell_everything":true}}`},
+		{"directives production without action", "directives.schema.json", `{"production":[{"machine_uid":5}]}`},
+		{"summary with bad directives", "summary.response.schema.json",
+			`{"session_id":"s","mode":"act","policy":"llm","model":"m","day":3,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"x","plan_day":3,"directives":{"augs":"ignore"}}`},
 		{"unknown top-level field", "outcome.request.schema.json",
 			`{"session_id":"s","decision_id":"d","game_day":1,"result":{},"extra":1}`},
 	}
@@ -282,6 +291,9 @@ func TestSchemasAccept(t *testing.T) {
 			`{"session_id":"s","mode":"act","policy":"heuristic","model":"","day":0,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0}`},
 		{"summary with plan", "summary.response.schema.json",
 			`{"session_id":"s","mode":"observe","policy":"heuristic","model":"","day":69,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"Hold the cassettes.","plan_day":69}`},
+		{"summary with directives", "summary.response.schema.json",
+			`{"session_id":"s","mode":"act","policy":"llm","model":"m","day":3,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"x","plan_day":3,"directives":{"day":3,"cash_floor":0,"buy":{"hot_stock_cap":0},"augs":"shoot"}}`},
+		{"empty directives", "directives.schema.json", `{}`},
 		{"empty hash", "hello.request.schema.json",
 			`{"protocol":1,"mod_version":"0.1.0","game":{"version":"x","unity":"y","assembly_sha256":""},"compat":{"ok":true,"missing":[],"disabled_features":[]}}`},
 	}

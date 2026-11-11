@@ -1,0 +1,30 @@
+{
+  "session_id": "8f14e45f-ceea-467f-a0e6-6b7b0c2c8a11",
+  "decision_id": "i-4b1c9e02-3",
+  "kind": "inspect",
+  "game_day": 71,
+  "deadline_ms": 20000,
+  "state_signature": "i3:4120:genuine:r0:",
+  "context": {
+    "mode": "authenticity",
+    "item": {"uid": 4120, "id": "large_purple_injector", "name": "Immunivax", "kind": "injector", "price": 160},
+    "claim": "genuine",
+    "client": {"name": "Clinic Runner", "faction": "lower_levels", "intent": "sell", "aug": false},
+    "reputation": {"faction": "lower_levels", "value": 12.5, "status": "Known"},
+    "text": {"serial": "2514471", "company": "Carmicheal Pharmaceutical", "model": "Immunivax"},
+    "visual": {"indicator": "normal", "body": "intact", "body_colour": "standard"}
+  },
+  "options": [
+    {"id": "confront_indicator", "label": "Confront: indicator issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"},
+    {"id": "confront_label", "label": "Confront: label issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"},
+    {"id": "confront_serial", "label": "Confront: serial issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"},
+    {"id": "confront_body", "label": "Confront: body issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"},
+    {"id": "confront_color", "label": "Confront: colour issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"},
+    {"id": "genuine", "label": "No confront: take it as genuine at 160"}
+  ],
+  "hidden": {
+    "real_condition": "unusableInjector",
+    "issue_tags": ["ISSUE_SERIAL"],
+    "tags": {"INJECTOR_INDICATOR": 0, "INJECTOR_BODY": 0, "INJECTOR_COLOR": -1}
+  }
+}

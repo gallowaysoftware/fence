@@ -113,7 +113,72 @@ namespace Fence.Mod
                         if (known.Contains(t)) info.RestrictionTags.Add(t);
             }
             if (c.isOfferWholesale && PlayerStore.Instance != null) info.WholesalePrice = PlayerStore.Instance.GetWholesalePrice();
+            if (!augBroken)
+            {
+                try
+                {
+                    ReadAug(c, info);
+                }
+                catch (Exception)
+                {
+                    // Members listed under advise.aug; without them the faction stays as read and aug tells are absent.
+                    augBroken = true;
+                }
+            }
             return info;
+        }
+
+        bool augBroken;
+
+        // The bubble and the aug tells (docs/re/AUGS.md §2): what the screen shows, plus hidden labels.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void ReadAug(StoreClient c, ClientInfo info)
+        {
+            info.BubbleColor = c.bubbleColor;
+            var a = new Fence.Aug.AugInfo
+            {
+                Sprite = c.spriteName,
+                Scanned = c.isAugScanned,
+                Tier = c.augTier,
+                IdleTell = c.augIdleTell.ToString().ToLowerInvariant(),
+                Disguised = c.isAug && c.identifier != null && c.identifier.EndsWith("_disguised_aug", StringComparison.Ordinal),
+            };
+            info.Aug = a;
+            try
+            {
+                a.Idle = Idle(c);
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                string name = c.displayName;
+                if (name == LocHelper.GetLocalizedClientName("name_upper_level_citizen")) a.NameClaim = "upper_levels";
+                else if (name == LocHelper.GetLocalizedClientName("name_thief")) a.NameClaim = "black_market";
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        // The aug script's line templates from the installed game's string table (AugLines), once it has them.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool EnsureAugLines()
+        {
+            if (Fence.Aug.AugLines.Installed) return true;
+            return Fence.Aug.AugLines.Install(key => LocHelper.GetLocalizedDialogue(key, Fence.Aug.AugLines.Slot)) > 0;
+        }
+
+        // StoreClientMono's private idle flags, valid only once it decided them for this customer.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static string Idle(StoreClient c)
+        {
+            var mono = StoreClientMono.Instance;
+            if (mono == null || !ReferenceEquals(ModReflect.Get(mono, "idleDecisionClient"), c)) return null;
+            if ((bool)ModReflect.Get(mono, "idleSuppressed")) return Fence.Aug.AugIdle.Still;
+            if ((bool)ModReflect.Get(mono, "idleShakeHorizontal")) return Fence.Aug.AugIdle.Twitch;
+            return Fence.Aug.AugIdle.Normal;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

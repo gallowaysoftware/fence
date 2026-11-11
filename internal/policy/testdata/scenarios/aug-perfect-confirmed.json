@@ -1,0 +1,73 @@
+{
+  "note": "Detection is perfect and the customer is a stated aug with the gun ready: shoot (a good kill pays and lowers presence).",
+  "expect": [
+    "shoot"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "aug-perfect-confirmed",
+    "kind": "aug_check",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:aug-perfect-confirmed",
+    "context": {
+      "detection": "perfect",
+      "client": {
+        "name": "Upper Level Citizen",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "wants": [
+          "medical"
+        ],
+        "budget": 210,
+        "aug": true
+      },
+      "gun_raised": false,
+      "threaten_used": false,
+      "run": {
+        "day": 40,
+        "days_since_intro": 28,
+        "difficulty": "normal",
+        "presence_rise": 10,
+        "kill_presence_drop": 25,
+        "game_over_at_100": false,
+        "aug_menace": false,
+        "kill_reward": 128,
+        "manslaughter_crime": 500
+      }
+    },
+    "options": [
+      {
+        "id": "shoot",
+        "label": "Shoot: if an aug, about +128 cash, rep +2 LL/+2 BM/+2 Rev/+8 Sec, presence -25; if human, MANSLAUGHTER crime 500 and rep -15 LL/-15 Sec/-10 Rev/-10 BM (no game over); the sale is lost either way"
+      },
+      {
+        "id": "probe_markup_10",
+        "label": "Add 10% markup as a probe: an aug always refuses and stays; a human accepts 80%, refuses 8%, walks out 12% (-3 rep)"
+      },
+      {
+        "id": "threaten",
+        "label": "Threaten: an aug accepts (+20% deal) but can no longer be shot and escapes (presence +10); a human denies it: -7 rep, or 50% -10 rep and they leave"
+      },
+      {
+        "id": "serve",
+        "label": "Serve them normally: an aug leaves alive (presence +10)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send them away: an aug leaves alive (presence +10)"
+      }
+    ],
+    "hidden": {
+      "client": {
+        "identifier": "x",
+        "is_aug": true,
+        "stealth_wanted": false,
+        "aug_tier": 3,
+        "aug_idle_tell": "default",
+        "disguised": false
+      },
+      "shoot_result_if_shot": "good_kill"
+    }
+  }
+}

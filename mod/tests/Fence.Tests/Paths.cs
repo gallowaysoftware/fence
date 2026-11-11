@@ -12,6 +12,7 @@ namespace Fence.Tests
         public static string Repo => Path.GetFullPath(Meta("RepoRoot"));
         public static string GameManaged => Meta("GameManaged");
         public static string ModBin => Path.GetFullPath(Meta("ModBinDir"));
+        public static string AutopilotBin => Path.GetFullPath(Meta("AutopilotBinDir"));
         public static string Fixtures => Path.Combine(Repo, "protocol", "fixtures");
         public static string HooksJson => Path.Combine(Repo, "compat", "hooks.json");
         public static string ManifestXml => Path.Combine(Repo, "mod", "src", "Fence.Mod", "manifest.xml");

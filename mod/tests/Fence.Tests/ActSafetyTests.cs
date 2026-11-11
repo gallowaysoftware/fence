@@ -68,11 +68,52 @@ namespace Fence.Tests
         }
     }
 
-    // P2: game actions are pressed only by Fence.Mod.BarterExecutor, and only through an ActGate. Act-only
-    // names may otherwise appear only as Harmony patch-target strings inside FencePatches.
+    // P2: game actions are pressed only by Fence.Mod.BarterExecutor (counter) and Fence.Mod.LiveHands (the
+    // autopilot's other presses), and only through an ActGate. Act-only names may otherwise appear only as
+    // Harmony patch-target strings inside FencePatches. The gym executor's shared files (namespace Fence.Gym)
+    // move items into machines themselves; the mod may not call those engines yet (M2).
     public class ActSafetyTests
     {
         const string Executor = "Fence.Mod.BarterExecutor";
+        const string Hands = "Fence.Mod.LiveHands";
+        const string Driver = "Fence.Mod.AutopilotDriver";
+        const string Shared = "Fence.Gym";
+
+        // The autopilot's presses outside the counter (docs/STREAM.md section 3).
+        static readonly (string type, string member)[] AutopilotOnly =
+        {
+            ("StoreShutterButton", "OnClick"),
+            ("StoreBell", "RingBell"),
+            ("DialogUIManager", "SelectChoice"),
+            ("DialogUIManager", "OnAdvancePressed"),
+            ("StoreBedroll", "OnClick"),
+            ("EndOfDayUIManager", "InitUI"),
+            ("EndOfDayUIManager", "OnEndDayButtonClick"),
+            ("AdvCalendarUIManager", "CloseUI"),
+            ("ModHelper", "MoveItemToBackCounter"),
+            ("ModHelper", "MoveItemToDisplayCase"),
+            ("ModHelper", "MoveItemToInventory"),
+            // M2: the phone, the door and the map, the return prompt, Wild's window, the appraisal panel.
+            ("ModHelper", "MoveItemToAfterhours"),
+            ("ModHelper", "ReturnFromAfterhour"),
+            ("ModHelper", "CloseWildNetwork"),
+            ("PhoneUIManager", "OpenUI"),
+            ("PhoneUIManager", "AutoCall"),
+            ("PhoneUIManager", "CloseUI"),
+            ("DialoguePhoneUIManager", "SelectChoice"),
+            ("DialoguePhoneUIManager", "OnAdvancePressed"),
+            ("StoreDoor", "OnClick"),
+            ("MapUIManager", "OnGoOutsideConfirm"),
+            ("MapUIManager", "Travel"),
+            ("MapUIManager", "ScavengeButtonClick"),
+            ("GenericConfirmationUIManager", "ConfirmButtonPressed"),
+            ("InspectionUIManager", "OnInspectItem"),
+            ("InspectionUIManager", "ChangeAppraisalServicePrice"),
+            ("InspectionUIManager", "OnAppraisalServiceEstimated"),
+            // M3: the gun, on the executor's verdict from the visible tells.
+            ("Shotgun", "OnClick"),
+            ("StoreUIManager", "Shoot"),
+        };
 
         static readonly (string type, string member)[] ActOnly =
         {
@@ -91,13 +132,43 @@ namespace Fence.Tests
         };
 
         // Out of scope for P2a (staging is unverified, exposing features without the tool is cheating).
+        // Inspect and aug advice are advise-only: the mod never confronts, talks, ticks a toggle or estimates,
+        // and never touches the gun.
         static readonly (string type, string member)[] Never =
         {
-            ("GraphUtils", "TryAcceptAll"),
+            ("InspectionUIManager", "OnConfront"),
+            ("InspectionUIManager", "OnCigaretteConfront"),
+            ("InspectionUIManager", "OnStampConfront"),
+            ("InspectionUIManager", "OnInjectorConfront"),
+            ("InspectionUIManager", "OnCigaretteTalk"),
+            ("InspectionUIManager", "OnStampTalk"),
+            ("InspectionUIManager", "FinishEditingAppraisalField"),
+            ("InspectionUIManager", "OnValueChanged"),
+            ("AppraisalServiceHelper", "OnEstimate"),
+            ("InsCigaretteHelper", "CreateConfrontDialogue"),
+            ("InsCigaretteHelper", "CreateTalkDialogue"),
+            ("InsStampHelper", "CreateConfrontDialogue"),
+            ("InsStampHelper", "CreateTalkDialogue"),
+            ("InsInjectorHelper", "CreateConfrontDialogue"),
+            ("UnityEngine.UI.Toggle", "set_isOn"),
+            ("TMPro.TMP_InputField", "set_text"),
             ("ItemFeature", "ExposeFeature"),
             ("PlayerStore", "DismissCurrentClient"),
             ("PlayerStore", "SellItem"),
             ("PlayerStore", "BuyItem"),
+            // aug_check advice never touches the gun; the autopilot raises it (Shotgun.OnClick) and fires (Shoot) only
+            // through the hands, and never lowers it, kills, scans or reports.
+            ("Shotgun", "Unlock"),
+            ("StoreUIManager", "EnterShootingMode"),
+            ("StoreUIManager", "ExitShootingMode"),
+            ("StoreUIManager", "StartShootoutSequence"),
+            ("AugHelper", "OnGoodKill"),
+            ("AugHelper", "CleanupKill"),
+            ("AugHelper", "OnAugLeftAlive"),
+            ("AugHelper", "OnShootoutLeave"),
+            ("PlayerStore", "OnWantedClientShot"),
+            ("PlayerStore", "OnCustomerReported"),
+            ("PowerHelper", "DrawPowerSource"),
         };
 
         static ModuleDefinition ModDll() => ModuleDefinition.ReadModule(Path.Combine(Paths.ModBin, "Fence.Mod.dll"));
@@ -139,14 +210,68 @@ namespace Fence.Tests
         [Fact]
         public void OutOfScopeMembersAreNeverCalled()
         {
-            var hits = Refs(ModDll(), Never, _ => false);
+            var hits = Refs(ModDll(), Never, t => t.Namespace == Shared);
             Assert.True(hits.Count == 0, "out-of-scope game actions referenced:\n" + string.Join("\n", hits));
+        }
+
+        [Fact]
+        public void AutopilotPressesOnlyThroughTheHands()
+        {
+            var m = ModDll();
+            var hits = Refs(m, AutopilotOnly, t => t.FullName == Hands);
+            Assert.True(hits.Count == 0, "autopilot presses outside LiveHands:\n" + string.Join("\n", hits));
+            Assert.Equal(AutopilotOnly.Length, AutopilotOnly.Count(a => Refs(m, new[] { a }, _ => false).Count > 0));
+        }
+
+        // Every press of the hands takes an ActGate first and re-checks it; only the driver calls them, and
+        // the driver opens the autopilot's gate.
+        [Fact]
+        public void TheHandsAreReachableOnlyThroughAnOpenGate()
+        {
+            var m = ModDll();
+            var hands = m.GetType(Hands);
+            Assert.True(hands.NestedTypes.Count == 0, "no closures in the hands: every game call must sit behind the gate check");
+            var entries = hands.Methods.Where(x => x.IsPublic && !x.IsConstructor).ToList();
+            Assert.NotEmpty(entries);
+            foreach (var e in entries)
+            {
+                Assert.Equal("Fence.Barter.ActGate", e.Parameters[0].ParameterType.FullName);
+                Assert.Contains(e.Body.Instructions, i => i.Operand is MethodReference r && r.DeclaringType.Name == "ActGate" && r.Name == "get_StillOpen");
+            }
+            var callers = Instructions(m).Where(x => x.ins.Operand is MethodReference r && r.DeclaringType.FullName == Hands && !r.Name.StartsWith(".ctor"))
+                .Select(x => Outermost(x.type).FullName).Where(t => t != Hands).Distinct().ToList();
+            Assert.Equal(new[] { Driver }, callers);
+            Assert.Contains(Instructions(m), x => Outermost(x.type).FullName == Driver && x.ins.Operand is MethodReference r && r.DeclaringType.Name == "ActGate" && r.Name == "TryOpenAutopilot");
+        }
+
+        // The engines' chores (the shared methods that take an IExecutorHost, and the between-customers stow) run
+        // only from the driver, inside one of its gated actions.
+        [Fact]
+        public void EngineChoresRunOnlyFromTheDriver()
+        {
+            var calls = Instructions(ModDll())
+                .Where(x => Outermost(x.type).Namespace != Shared && x.ins.Operand is MethodReference r && r.DeclaringType.Namespace == Shared
+                            && (r.Parameters.Any(p => p.ParameterType.Name == "IExecutorHost") || (r.DeclaringType.Name == "Production" && r.Name == "Stow")))
+                .ToList();
+            Assert.NotEmpty(calls);
+            var hits = calls.Where(x => Outermost(x.type).FullName != Driver)
+                .Select(x => x.type.FullName + "::" + x.method.Name + " -> " + ((MethodReference)x.ins.Operand).FullName).ToList();
+            Assert.True(hits.Count == 0, "engine chores called outside the driver:\n" + string.Join("\n", hits));
+        }
+
+        // Every item move a shared engine makes goes through Fence.Gym.Chore (live: the gated hands); the raw
+        // move appears only there (its headless branch) and in the hands.
+        [Fact]
+        public void GameMovesGoThroughChoreOrTheHands()
+        {
+            var hits = Refs(ModDll(), new[] { ("GraphUtils", "TryAcceptAll") }, t => t.FullName == Hands || t.FullName == "Fence.Gym.Chore");
+            Assert.True(hits.Count == 0, "raw item moves outside Chore and the hands:\n" + string.Join("\n", hits));
         }
 
         [Fact]
         public void ActOnlyNamesAppearOnlyAsPatchTargets()
         {
-            var names = ActOnly.Concat(Never).Select(a => a.member).ToHashSet();
+            var names = ActOnly.Concat(Never).Concat(AutopilotOnly).Select(a => a.member).ToHashSet();
             var hits = Instructions(ModDll())
                 .Where(x => x.ins.OpCode.Code == Code.Ldstr && names.Contains((string)x.ins.Operand))
                 .Where(x => Outermost(x.type).FullName != "Fence.Mod.FencePatches")

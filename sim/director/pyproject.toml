@@ -1,0 +1,9 @@
+[project]
+name = "fence-director"
+version = "0.1.0"
+description = "Deterministic director policy for the gym's step mode (docs/research/DIRECTOR.md)"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false

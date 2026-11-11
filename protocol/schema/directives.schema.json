@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gallowaysoftware/fence/protocol/schema/directives.schema.json",
+  "title": "directives",
+  "description": "The strategist's plan as machine-readable instructions for an executor (docs/PROTOCOL.md, Directives). Every field is optional; an executor uses its own default for anything missing.",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "pct": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 200
+    },
+    "credits": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "uids": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "properties": {
+    "day": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The day the directives were written for."
+    },
+    "cash_floor": {
+      "$ref": "#/$defs/credits",
+      "description": "Never spend below this."
+    },
+    "buy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "wholesale_max_pct": {
+          "$ref": "#/$defs/pct",
+          "description": "Accept a wholesale lot up to this % of its estimate."
+        },
+        "single_max_pct": {
+          "$ref": "#/$defs/pct",
+          "description": "Accept a single lot up to this % of its estimate."
+        },
+        "max_spend": {
+          "$ref": "#/$defs/credits",
+          "description": "Buying budget today."
+        },
+        "prefer_types": {
+          "$ref": "#/$defs/ids"
+        },
+        "avoid_types": {
+          "$ref": "#/$defs/ids"
+        },
+        "hot_stock_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Stolen items held at most."
+        },
+        "stock_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "gym executor: stop buying above this stock value"
+        }
+      }
+    },
+    "sell": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "min_pct": {
+          "$ref": "#/$defs/pct",
+          "description": "Sell at no less than this % of the estimate."
+        },
+        "sell_down_to_cash": {
+          "$ref": "#/$defs/credits",
+          "description": "Sell stock until cash reaches this (e.g. before rent)."
+        },
+        "hold_uids": {
+          "$ref": "#/$defs/uids"
+        },
+        "sell_hot": {
+          "type": "boolean",
+          "description": "gym executor: stage stolen goods for sale (default false: hold until heat 0)"
+        }
+      }
+    },
+    "bargain": {
+      "enum": [
+        "never",
+        "ev_positive",
+        "aggressive",
+        "discount"
+      ]
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "show_uids": {
+          "$ref": "#/$defs/uids"
+        },
+        "avoid_stolen": {
+          "type": "boolean"
+        }
+      }
+    },
+    "services": {
+      "$ref": "#/$defs/ids",
+      "description": "Service ids to have on tonight."
+    },
+    "upgrades_buy": {
+      "$ref": "#/$defs/ids",
+      "description": "Upgrade ids to buy tonight, in order."
+    },
+    "permit": {
+      "enum": [
+        "buy",
+        "refuse",
+        "bribe"
+      ]
+    },
+    "production": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "machine_uid",
+          "action"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "machine_uid": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          },
+          "items": {
+            "$ref": "#/$defs/uids"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "augs": {
+      "enum": [
+        "shoot",
+        "serve"
+      ]
+    },
+    "scavenge": {
+      "type": "boolean",
+      "description": "Go to the dumping ground tonight."
+    },
+    "engine": {
+      "type": "string",
+      "pattern": "^(none|(wine|water|furnace)(\\+(wine|water|furnace))*)$",
+      "description": "gym executor: which production engines to run, joined by +"
+    },
+    "mortgage": {
+      "enum": [
+        "auto",
+        "take",
+        "later",
+        "decline",
+        "accept_if_rent"
+      ],
+      "description": "gym executor: sign the loan shark's offer by the rule (auto), at the next offer (take), not today (later; he returns next week), never again (decline is final), or to bridge a rent the cash cannot pay"
+    },
+    "buyout_by_day": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "gym executor: answer the loan shark later while the cash buyout projects to be affordable by this day"
+    },
+    "mortgage_margin": {
+      "type": "number",
+      "minimum": 0,
+      "description": "gym executor: auto signs when the projected cover reaches this share of the total payments"
+    },
+    "mortgage_float": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "gym executor: cash beyond 1.5 payments that auto keeps after the down payment"
+    },
+    "mortgage_window": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "gym executor: the game days [from, to] on which auto or take may sign"
+    },
+    "mortgage_save_from_day": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "gym executor: from this day, stop buying and save toward the offer threshold"
+    },
+    "appraisal": {
+      "enum": [
+        "join",
+        "off"
+      ],
+      "description": "gym executor: join the appraisal board and serve its clients, or not"
+    },
+    "mortgage_max_spend": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "gym executor: daily cap on trading purchases while paying the mortgage"
+    }
+  }
+}

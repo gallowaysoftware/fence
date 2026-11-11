@@ -1,0 +1,8 @@
+# Hard levers on the fixed outings (furnace merge). FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-hard.txt -dir var/sim/exp/m1-hard -seeds 30 -days 1000 -parallel 14 -- -difficulty hard -start apprentice
+player | -human player
+conc | -human player -directives sim/lab/scripts/directives/window_conc.json
+furnace | -human player -directives sim/lab/scripts/directives/eng_furnace.json
+furnace_conc | -human player -directives sim/lab/scripts/directives/furnace_conc.json
+permit_buy | -human player -directives sim/lab/scripts/directives/permit_buy.json
+permit_ev10 | -human player -directives sim/lab/scripts/directives/permit_ev10.json
+conc_permit_buy | -human player -directives sim/lab/scripts/directives/conc_permit_buy.json

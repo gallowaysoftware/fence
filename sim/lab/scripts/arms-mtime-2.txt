@@ -1,0 +1,8 @@
+# Mortgage timing, batch 2 (selection seeds 960001-960060, build with mortgage_cover / mortgage_floor_days).
+base       | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/hard_income_mortgage.json
+cov40      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/cov40.json
+cov44      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/cov44.json
+fd2        | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/fd2.json
+fd4        | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/fd4.json
+w105_fd2   | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_fd2.json
+w105_cov40 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_cov40.json

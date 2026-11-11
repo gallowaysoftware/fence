@@ -1,0 +1,44 @@
+{
+  "name": "t7-hard-drift",
+  "players": [
+    {
+      "id": "drift-delta",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "seeds": [
+    2100001,
+    2100002,
+    2100003,
+    2100004,
+    2100005,
+    2100006,
+    2100007,
+    2100008,
+    2100009,
+    2100010,
+    2100011,
+    2100012
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_mortgage_appraisal.json"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

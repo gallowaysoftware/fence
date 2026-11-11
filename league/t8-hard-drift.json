@@ -1,0 +1,38 @@
+{
+  "name": "t8-hard-drift",
+  "players": [
+    {
+      "id": "drift-delta",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "seeds": [
+    2800001,
+    2800002,
+    2800003,
+    2800004,
+    2800005,
+    2800006
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_cash_appraisal.json"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

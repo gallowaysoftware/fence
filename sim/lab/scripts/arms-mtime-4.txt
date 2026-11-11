@@ -1,0 +1,3 @@
+# Mortgage timing, batch 4 (selection seeds): the cash buyout route (mortgage declined).
+cash_asap | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/cash_asap.json
+cash_hold | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/cash_hold.json

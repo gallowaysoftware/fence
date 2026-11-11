@@ -1,0 +1,73 @@
+{
+  "note": "Claimed genuine pack with the wrong logo.",
+  "expect": [
+    "confront_logo"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-cigarettes-wrong-logo",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-cigarettes-wrong-logo",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5029,
+        "id": "packet_red_cigarette",
+        "name": "Red cigarettes",
+        "kind": "cigarettes",
+        "price": 100
+      },
+      "claim": "genuine",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "visual": {
+        "seal": "matches reference",
+        "lettering": "matches reference",
+        "logo": "wrong logo",
+        "box_colour": "matches colour card"
+      }
+    },
+    "options": [
+      {
+        "id": "confront_lettering",
+        "label": "Confront: lettering issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_color",
+        "label": "Confront: colour issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_seal",
+        "label": "Confront: seal issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_logo",
+        "label": "Confront: logo issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_box",
+        "label": "Confront: box issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "genuine",
+        "label": "No confront: take it as genuine at 100"
+      }
+    ],
+    "hidden": {
+      "real_condition": "counterfeitCigarette",
+      "issue_tags": [
+        "CIGARETTE_LOGO_ISSUE"
+      ]
+    }
+  }
+}

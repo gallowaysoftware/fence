@@ -18,6 +18,9 @@ still get checked against the code. Add to it, don't rewrite it.
   no fencing crime (`SecData.CheckSoldContraband` only fires on stolen/contraband). Smuggler
   bays (`smuggler_bay`, `_mod`, `_mini`) block inspection searches
   (`ContrabandHelper.IsBlockSearchContainer`); a stolen item found elsewhere goes back to heat 100.
+  Measured (docs/sim/VERIFIED.md): heat falls 18 every night for **every** stolen item,
+  contraband included (100 → 0 in 6 nights); the 2/4/6/8 contraband slow-down is dead code
+  (it tests tags `CONTRABAND_LEVEL_*`, but the level is the value of tag `CONTRABAND_LEVEL`).
 - **Sell value vs use value.** Sold water filters as household goods, then realised they
   could have been kept to filter water. Many items are inputs to the shop's own production
   (water, wine, fish, hydroponics…), so an item's worth is the better of its sale price and
@@ -33,3 +36,11 @@ still get checked against the code. Add to it, don't rewrite it.
   portable purifier stop at Basewater; the purifying plant spares minerals. Suggested split:
   Basewater → selling, purifier output → berries and wine. Plant analyser "growth score" =
   the health that decides quality. (Not yet verified in play.)
+  Measured (docs/sim/VERIFIED.md, game code headless; supersedes the "Code says" figures
+  above): the farmer start ships both bays with Ghostwater, which drives health far below 0
+  before the first harvest → 100 % bad berries. Health resets to 100 in the same night as the
+  harvest, after the berries roll, so the 100 % reading the morning after is the fresh cycle,
+  never the health the berries got. Basewater → health ≈ 16 at the first harvest, ≈ 44 at
+  later ones → ≈ 75 % bad; HQ → ≈ 56 / ≈ 70 → ≈ 34 % bad, mostly normal/best; Pure alone →
+  ≈ 25–29 % under/over-ripe (no minerals); Pure + ~6 nutrient tablets per 6 L → 0 % bad,
+  62 % best. A bay yields 6 berries per harvest (~21 a week), not 8.

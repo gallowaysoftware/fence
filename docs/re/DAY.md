@@ -59,7 +59,7 @@ All reads are from `PlayerStore.Instance` (`ps`) unless noted.
 
 | Field | Read | Vis. | Note |
 |---|---|---|---|
-| `rent` | `ps.rentValue : System.Int32` | VISIBLE | grows ×`Difficulty.Rules.rentIncreaseMultiplier` after **every** landlord visit, paid or not (1.025 cozy, 1.05 normal, 1.1 hard/challenge) |
+| `rent` | `ps.rentValue : System.Int32` | VISIBLE | grows ×`Difficulty.Rules.rentIncreaseMultiplier` after **every** landlord visit, paid or not (1.025 cozy, 1.05 normal, 1.1 hard/challenge), the product truncated to an int each time: normal 200 → 209 → 219 → 229 → 240 → 251 (+4.5–4.8 %/week), cozy a flat +5/week (205, 210, 215…), hard 220 → 242 → 266 → 292 → 321 (measured, docs/sim/VERIFIED.md; "paid or not" not exercised) |
 | `rent_arrears` | `ps.temporaryRent : System.Int32` | VISIBLE | missed rent carried over; due amount is `rent + rent_arrears` (`CanPayRent()`) |
 | `rent_days_left` | `ps.dayUntilRent : System.Int32` | VISIBLE | what the calendar prints (`OnCalendarButtonClicked`). The morning reminder uses `ps.GetRentDayCounter()` = `(7 − day % 7) % 7` instead; record both, they can disagree after a load |
 | `landlord_grace` | `NetworkUpgrade.IsLandlordGraceUnlocked() : System.Boolean` (static) | VISIBLE (landlord's first line differs) | without it, not paying = game over `rent` |
@@ -95,7 +95,7 @@ members:
 | `showcase` | `showcaseElement : GameGridInventory` | display case; drives forecast customers, and an arriving Security client who sees stolen/contraband in it triggers an inspection |
 | `back_counter` | `backInvinvElement`, `backInvinvElementCounter : GameGridInventory` | staged for the current customer |
 | `front_counter` | `frontInvinvElement : GameGridInventory` | |
-| `hidden` | `hiddenElement : GameGridInventory` | stash behind the poster; only searched when the poster is pulled down (`StorePoster.Instance.isPulled`) |
+| `hidden` | `hiddenElement : GameGridInventory` | stash behind the poster; only searched while the stash is open (`StorePoster.Instance.isPulled`; `PullUp` opens it — measured, docs/re/CONCEALMENT.md) |
 | `trash` | `trashInvElement : GameSlotInventory` | searched by inspectors unless lazy |
 | `docs` | `docInvElement : GameSlotInventory` | |
 | `vending_machine` / `vending_fountain` | `vendingMachineElement` / `vendingFountainElement : GameSlotInventory` | sell overnight (`RunStats.OnVendingSale`, `OnFountainSale`) |
@@ -231,7 +231,7 @@ service checkboxes; `EndOfDayUIManager.OnEndDayButtonClick()`) → `PlayerStore.
 | Dr. Jackson | `dr_jackson` | he is an ordinary seller at the counters (`StoreClientList.PlaceInventorInventory()`); existing barter hooks (`PlayerStore.OnItemBought`) capture purchases | as barter |
 | **Request board** | any time | prefix `StoreRequest.FillRequest()` (instance; called from `StoreRequestElement`) | `fill_request {id, items, reward}` |
 | **Showcase placement** | any time | postfix `PlayerStore.AddedItemToDisplayCase(GameItem)` / `RemovedItemToDisplayCase(GameItem)` | `showcase` / `unshowcase {item_uid}` |
-| **Hide stash** | poster | postfix `StorePoster.PullDown(System.Boolean)` / `PullUp(System.Boolean)` | `poster {down}` — matters for inspections |
+| **Hide stash** | poster | postfix `StorePoster.PullDown(System.Boolean)` / `PullUp(System.Boolean)` | `poster {up|down}` (up = stash open, searched) — matters for inspections |
 | Exchange board | night resolution | prefix `ExchangeManager.HandleExchange()` (reads `itemsBuffer`) | low priority |
 | Vending stock | any time | inventory diff of `vending_*` between snapshots; sales via `RunStats.OnVendingSale(System.Int32)`, `OnFountainSale(System.Int32)` | |
 
@@ -264,7 +264,8 @@ Overnight outcomes worth recording as `night` events (all postfix, all public st
 | `dialogue_choice` | prefix `DialogUIManager.SelectChoice(System.Int32)` | `index`, `label` = `choices[i].Item1.name` (internal, e.g. `"pay rent choice"`, often `""`), `text` = `choices[i].Item2.plainText` (what the player read), `enabled` = `Dialogue.IsChoiceEnabledAt(System.Int32)`, plus all choice texts offered. Read via `DialogUIManager.Instance.GetCurrentDialog() : Dialogue`, field `choices : List<System.ValueTuple<GameItem,Dialogue,System.Action>>` |
 | `phone_choice` | prefix `DialoguePhoneUIManager.SelectChoice(System.Int32)` | same shape |
 | `report_customer` | prefix `PlayerStore.OnCustomerReported()` (security button `StoreSecButton.OnClick()`, also phone) | outcome: `EmporiumAnalytics.TrackCustomerReported(StoreClient)`; wrongful → `RunStats.OnWrongfulReport()` |
-| `shoot` | postfix `PlayerStore.OnWantedClientShot(StoreClient)` | aug kills: `RunStats.OnAugShot()` |
+| `unholster` / `holster` | prefix `StoreUIManager.EnterShootingMode()` / `ExitShootingMode()` (holster only while `isShot` is false: lowering the gun without a shot dismisses the customer) | |
+| `shoot` | prefix `StoreUIManager.Shoot()`: every shot, with the tells on screen. What it hit comes after Security's verdict as an `aug` event: `good_kill` (prefix + postfix `AugHelper.OnGoodKill()`), `wrongful_kill` (prefix + postfix `AugHelper.CleanupKill()`, reading `AugHelper.GetShotClient()` first), `wanted_capture` (postfix `PlayerStore.OnWantedClientShot(StoreClient)`); an aug that leaves any other way is `left_alive` (`AugHelper.OnAugLeftAlive()`) | `RunStats.OnAugShot()` fires only inside `OnGoodKill`, so it misses wrongful kills; `CleanupKill` is the only hook that sees them (`docs/re/AUGS.md` §3.1) |
 | `appraisal_estimate` | prefix `AppraisalServiceHelper.OnEstimate(GameItem, System.Int32 value)` | the player's number; outcome `EmporiumAnalytics.TrackAppraisalSent(GameItem, System.Int32, System.Int32)` (third arg is the true value → `hidden`) |
 | `open_shutter` / `close_shutter` | existing shutter events | |
 | night ids | §2: `services_set`, `sleep`, `upgrade_buy`, `phone_order`, `go_out`, `return`, `scavenge`, `commissary_buy`, `commissary_redeem`, `fill_request`, `poster` | |
@@ -304,7 +305,7 @@ choice texts.
    choice is made (unverified that dragging is unlocked during this dialogue).
 3. Search: `ContrabandHelper.StartInspection(System.Int32 personality, System.Boolean fromShowcase)`
    (public static) searches stock, both counters, showcase, trash (unless lazy) and the poster
-   stash only if the poster is down; stolen items are found with
+   stash only while it is open (poster pulled up, `isPulled`); stolen items are found with
    `StolenHelper.GetFoundChance(GameItem)`; luck can void the search (HIDDEN roll).
 4. Outcome: postfix `EmporiumAnalytics.TrackOnInspected(System.String outcomeType, System.Int32 lostCount, System.Int32 lostValue, System.Boolean usedGrace)`
    — `outcomeType` ∈ `CONTRABAND_LEVEL_NONE/LOW/MID/HIGH/CRITICAL`, `STOLEN_TAG`; then

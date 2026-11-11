@@ -1,0 +1,77 @@
+{
+  "note": "Text is perfect; only the off-colour body gives this counterfeit away.",
+  "expect": [
+    "confront_color"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-injector-off-colour",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-injector-off-colour",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5027,
+        "id": "large_purple_injector",
+        "name": "Immunivax",
+        "kind": "injector",
+        "price": 160
+      },
+      "claim": "genuine",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "text": {
+        "serial": "2879012",
+        "company": "Carmicheal Pharmaceutical",
+        "model": "Immunivax"
+      },
+      "visual": {
+        "indicator": "normal",
+        "body": "intact",
+        "body_colour": "off-colour"
+      }
+    },
+    "options": [
+      {
+        "id": "confront_indicator",
+        "label": "Confront: indicator issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_label",
+        "label": "Confront: label issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_serial",
+        "label": "Confront: serial issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_body",
+        "label": "Confront: body issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_color",
+        "label": "Confront: colour issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "genuine",
+        "label": "No confront: take it as genuine at 160"
+      }
+    ],
+    "hidden": {
+      "real_condition": "counterfeitInjector",
+      "issue_tags": [
+        "ISSUE_COLOR"
+      ]
+    }
+  }
+}

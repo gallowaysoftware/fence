@@ -221,5 +221,83 @@ namespace Fence.Tests
             Assert.Equal(StageOptionIds.NothingFits, t.AnswerFor("s1").OptionId);
             Assert.Null(t.AnswerFor(null));
         }
+
+        static (List<StageCandidate> top, long? left) Ranked(FakeBarterGame g)
+        {
+            var barter = BarterContext.Read(g, 41);
+            StageContext.IsMoment(barter.Client, barter.Items, barter.Ui, out var left, out _);
+            return (StageContext.Rank(barter.Client, Shop(), left, out _), left);
+        }
+
+        [Fact]
+        public void ShortlistKeepsTheRankingAndExplainsEachPick()
+        {
+            var (ranked, left) = Ranked(NothingStaged());
+            var top = ranked.Take(3).ToList();
+            var text = StageShortlist.Text(top, left, null).Split('\n');
+            Assert.Equal(3, text.Length);
+            Assert.Equal(top.Select(x => x.Shop.Item.Name), text.Select(l => l.Substring(2, l.IndexOf(" (") - 2)));
+            Assert.All(text, l => Assert.StartsWith("  ", l));
+            Assert.Contains("Cassette (345, they came for it, heat 22)", text[0]);
+            Assert.Contains("Radio (598, wants electronics, music)", string.Join("\n", ranked.Select(x => StageShortlist.Line(x, left))));
+        }
+
+        [Fact]
+        public void ShortlistMarksCappedPrices()
+        {
+            var item = new ItemInfo { Uid = 1, Id = "synth", Name = "Synth", Price = 1150, Owned = true, ClientWants = true };
+            var x = new StageCandidate { Shop = new ShopItem { Item = item, Where = StageWhere.Stock }, OverBudget = true };
+            Assert.Equal("Synth (900 capped, margin 0)", StageShortlist.Line(x, 900));
+        }
+
+        [Fact]
+        public void ShortlistMarksTheBridgesPickWithoutReplacingTheList()
+        {
+            var (ranked, left) = Ranked(NothingStaged());
+            var top = ranked.Take(3).ToList();
+            int uid = top[1].Shop.Item.Uid;
+            var picked = new Advice { Kind = "stage", OptionId = StageOptionIds.Offer(uid), Label = "x", Signature = "s" };
+            var lines = StageShortlist.Text(top, left, picked).Split('\n');
+            Assert.Equal(3, lines.Length);
+            Assert.Equal(new[] { false, true, false }, lines.Select(l => l.StartsWith("▶ ")).ToArray());
+
+            var outside = new Advice { Kind = "stage", OptionId = StageOptionIds.Offer(99999), Label = "Walkman #99999 (stock)", Signature = "s" };
+            var more = StageShortlist.Text(top, left, outside).Split('\n');
+            Assert.Equal(4, more.Length);
+            Assert.Equal("▶ Walkman #99999 (stock)", more[3]);
+            Assert.DoesNotContain(more.Take(3), l => l.StartsWith("▶"));
+
+            var nothing = new Advice { Kind = "stage", OptionId = StageOptionIds.NothingFits, Label = "n", Signature = "s" };
+            Assert.DoesNotContain("▶", StageShortlist.Text(top, left, nothing));
+        }
+
+        [Fact]
+        public void OverlayShowsTheShortlistBeforeTheBridgeAnswers()
+        {
+            var (ranked, left) = Ranked(NothingStaged());
+            var input = new OverlayInput
+            {
+                Mode = Modes.Advise, Bridge = BridgeStatus.Connected, Client = new FakeBarterGame().ClientState, Ready = true,
+                View = new AdviceView { Status = AdviceStatus.Thinking }, Today = new List<DayEntry>(),
+                Shortlist = ranked.Take(3).ToList(), ShortlistBudgetLeft = left,
+            };
+            var v = OverlayText.Build(input);
+            Assert.StartsWith("offer: Cassette (345", v.Move);
+            Assert.Equal(3, v.Options.Split('\n').Length);
+            Assert.DoesNotContain("▶", v.Options);
+
+            input.Shortlist = null;
+            Assert.Equal("", OverlayText.Build(input).Options);
+        }
+
+        [Theory]
+        [InlineData("3", 3)]
+        [InlineData("0", 0)]
+        [InlineData(" 2 ", 2)]
+        [InlineData("99", 12)]
+        [InlineData("-4", 0)]
+        [InlineData("x", 3)]
+        [InlineData(null, 3)]
+        public void ShortlistSettingParses(string setting, int expected) => Assert.Equal(expected, StageShortlist.Parse(setting));
     }
 }

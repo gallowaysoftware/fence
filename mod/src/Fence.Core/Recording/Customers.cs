@@ -97,26 +97,24 @@ namespace Fence.Recording
             return (data, hidden ?? HiddenClient(c));
         }
 
-        public static JObject MinimalContext(ClientInfo c) => new JObject
+        public static JObject MinimalContext(ClientInfo c)
         {
-            ["client"] = c == null ? new JObject() : new JObject
+            var client = new JObject();
+            if (c != null)
             {
-                ["name"] = c.Name,
-                ["faction"] = Factions.Name(c.FactionId),
-                ["intent"] = c.Intent == ClientIntent.Other ? (c.RawIntent ?? "other").ToLowerInvariant() : CustomerKinds.Of(c) == CustomerKinds.Trade ? Intent(c.Intent) : "dialogue",
-            },
-        };
+                client["name"] = c.Name;
+                client["faction"] = Factions.Visible(c);
+                client["intent"] = c.Intent == ClientIntent.Other ? (c.RawIntent ?? "other").ToLowerInvariant() : CustomerKinds.Of(c) == CustomerKinds.Trade ? Intent(c.Intent) : "dialogue";
+                Fence.Aug.AugDetection.Describe(client, c);
+            }
+            return new JObject { ["client"] = client };
+        }
 
         static string Intent(ClientIntent i) => i == ClientIntent.Buy ? "buy" : i == ClientIntent.Sell ? "sell" : "sell_and_buy";
 
         public static JObject HiddenClient(ClientInfo c) => c == null ? new JObject() : new JObject
         {
-            ["client"] = new JObject
-            {
-                ["identifier"] = c.Identifier,
-                ["is_aug"] = c.IsAug,
-                ["stealth_wanted"] = c.IsStealthWanted,
-            },
+            ["client"] = BarterContext.HiddenClient(c),
         };
     }
 }

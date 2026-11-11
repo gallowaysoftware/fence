@@ -1,0 +1,105 @@
+{
+  "name": "t0-night",
+  "seeds": [
+    90001,
+    90002,
+    90003,
+    90004,
+    90005,
+    90006,
+    90007,
+    90008,
+    90009,
+    90010,
+    90011,
+    90012,
+    90013,
+    90014,
+    90015,
+    90016,
+    90017,
+    90018,
+    90019,
+    90020,
+    90021,
+    90022,
+    90023,
+    90024,
+    90025,
+    90026,
+    90027,
+    90028,
+    90029,
+    90030,
+    90031,
+    90032,
+    90033,
+    90034,
+    90035,
+    90036,
+    90037,
+    90038,
+    90039,
+    90040,
+    90041,
+    90042,
+    90043,
+    90044,
+    90045,
+    90046,
+    90047,
+    90048,
+    90049,
+    90050,
+    90051,
+    90052,
+    90053,
+    90054,
+    90055,
+    90056,
+    90057,
+    90058,
+    90059,
+    90060
+  ],
+  "starts": [
+    "none"
+  ],
+  "difficulty": "hard",
+  "perks": [
+    "none"
+  ],
+  "days": 200,
+  "executor": {
+    "human": "knobs",
+    "knobs": "services=both,bargain=ev,max_heat=101,sell_hot=0,buy_margin=1.05,ws_margin=1.0,reserve=rent2"
+  },
+  "players": [
+    {
+      "id": "heuristic",
+      "mode": "heuristic"
+    },
+    {
+      "id": "drift-qwen-flash",
+      "endpoint": "drift",
+      "mode": "plan"
+    },
+    {
+      "id": "heavy-glm",
+      "endpoint": "heavy",
+      "mode": "plan"
+    },
+    {
+      "id": "local-qwen-27b",
+      "endpoint": "localmodel",
+      "mode": "plan"
+    },
+    {
+      "id": "lab-executor",
+      "mode": "local"
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "heuristic"
+}

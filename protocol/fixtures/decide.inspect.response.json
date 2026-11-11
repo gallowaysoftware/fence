@@ -1,0 +1,16 @@
+{
+  "decision_id": "i-4b1c9e02-3",
+  "choice": {
+    "option": "confront_serial"
+  },
+  "rationale": "Looks unusable: serial 2514471: prefix 251 is recalled.",
+  "source": "heuristic",
+  "option_notes": {
+    "confront_body": "wrong by the rules: no body problem visible (-2 rep)",
+    "confront_color": "wrong by the rules: no color problem visible (-2 rep)",
+    "confront_indicator": "wrong by the rules: no indicator problem visible (-2 rep)",
+    "confront_label": "wrong by the rules: no label problem visible (-2 rep)",
+    "confront_serial": "RIGHT by the rules: serial 2514471: prefix 251 is recalled",
+    "genuine": "wrong by the rules: serial 2514471: prefix 251 is recalled"
+  }
+}

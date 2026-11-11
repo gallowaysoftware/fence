@@ -1,0 +1,9 @@
+# Dr. Jackson as the equipment shop (docs/PROGRESS.md "Dr. Jackson's purchases"), on the build where his purchases buy.
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-jackson.txt -dir DIR -seeds 60 -days 1000 -parallel 10 -- -seed0 1900100
+base        | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/hard_income_mortgage_appraisal.json
+every7      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/every7.json
+sunday      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/sunday.json
+no_sign     | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/no_sign.json
+sign_shown  | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/sign_shown.json
+equip       | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/equip.json
+equip_need3 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/jackson/equip_need3.json

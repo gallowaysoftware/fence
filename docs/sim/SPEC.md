@@ -258,7 +258,8 @@ budget ranges on day 1 and day 30.
 
 Acceptance (`StoreClient.IsClientBuyingThisItem`): refused for `NOT_FOR_RESALE`, black ids/tags,
 contraband when `noAcceptingContraband` (forced for security; `Roll(25 − LL/4)` for scavs,
-`Roll(35)` for LL citizens; only BUY/SELLNBUY keep it), the variety rule, chemical grade below
+`Roll(35)` for LL citizens, rolled at client generation in `CompleteClientCreation`, not in the
+factory — measured 38 % of LL buyers, docs/sim/VERIFIED.md; only BUY/SELLNBUY keep it), the variety rule, chemical grade below
 `acceptedChemicalProductGrade`, hazardous waste, luxury to a non-UL water buyer, a refused child;
 then accepted by `ALL_TYPE`, the id list, `ALL_TYPE_EXCEPT_CONTRABAND`, any buying tag, or the
 `willAcceptItem` predicate. BUY and SELLNBUY buy; SELL and SELLNBUY sell; other intents are their
@@ -385,8 +386,10 @@ per-type formula (hand, ribwich, plasma fuel). Not read; appraisal is advise-onl
 ### 6.1 Stolen goods (`StolenHelper`)
 
 Heat (tag `STOLEN_VALUE_INT`) from `GetBaseValue`: ≤ 17 not stolen, < 50 → 25, < 85 → 50, < 140 →
-75, else 100 (`InitStolenItem`). Nightly −18, less 2/4/6/8 for contraband low/mid/high/critical;
-at 0 the item is clean (`UpdateStolenItem`). Found chance = heat %. Buying a stolen item
+75, else 100 (`InitStolenItem`). Nightly −18 for every stolen item, contraband included: the
+contraband slow-down (2/4/6/8 for low/mid/high/critical) is dead code — `UpdateStolenItem` tests
+tags `CONTRABAND_LEVEL_*`, but the level is the value of tag `CONTRABAND_LEVEL`, so the branch never
+fires (measured, docs/sim/VERIFIED.md: 100 → 0 in 6 nights at every level). At 0 the item is clean. Found chance = heat %. Buying a stolen item
 multiplies the rep gain by 1.5/2/2.5/3 (heat ≤ 25/50/75/else). Selling one commits FENCING crime
 (§6.4). A security client rolls `Roll(heat)` for stolen items on the counters or showcase; a hit
 sets heat 100 and starts an inspection. **Fidelity:** exact port.
@@ -401,7 +404,9 @@ per item in `items.json`.
 ### 6.3 Inspections
 
 Scheduled (`HandleInspectionClient`): inactive with `SEC_VIP` or total trafficking crime < 50;
-otherwise a countdown drawn uniformly from `ComputeInspectionCooldownRange` by trafficking: ≥ 750
+"trafficking" here includes FENCING, not FRAUD (measured, docs/sim/VERIFIED.md: FENCING 200 →
+3–4 days; FRAUD 800 → never); otherwise a countdown drawn uniformly from
+`ComputeInspectionCooldownRange` by trafficking: ≥ 750
 → 1–2, ≥ 600 → 2, ≥ 450 → 2–3, ≥ 300 → 3, ≥ 150 → 3–4, else 3–5; `SEC_TRUSTED` +2/+4,
 `SEC_THOROUGH_INSPECTION` −1; min ≥ 1, max ≥ 2. Plus the showcase inspection (§4.1 step 1) and
 security clients reacting to contraband on the counter.
@@ -489,7 +494,9 @@ On `d%7==0` the landlord (not dismissable) offers: **pay** (`CanPayRent`: cash �
 pays both, `RentIncrease`); **don't pay** — with `LANDLORD_GRACE` owned (state 2) the grace is
 consumed, arrears += rent, rent increases; without it, **game over `rent`**; **buy out** when
 `CanBuyOutStore`. Rent × `rentIncreaseMultiplier` (1.025/1.05/1.1/1.1) on **every** landlord
-visit, truncated. Start 200 (+40/+50 by start, +40 Bad Lease, +75 Prime Real Estate).
+visit, truncated to an int each time (measured, docs/sim/VERIFIED.md): normal 200 → 209 → 219 →
+229 → 240 → 251 (+4.5–4.8 % a week), cozy 200 → 205 → 210 → 215 → 220 → 225 (a flat +5), hard
+220 → 242 → 266 → 292 → 321. Start 200 (+40/+50 by start, +40 Bad Lease, +75 Prime Real Estate).
 
 ### 8.2 Mortgage and buyout
 Buyout price `GetStoreBuyPrice` = `propertyBasePrice` + min((day − 50) × perDay, cap) after day
@@ -561,7 +568,8 @@ flashlight, voidable by luck; one loot item from `SpawnDumpingGroundLoot` plus s
 extras. Wounds: minor +2, major +5, > 5 blocks outings, heal −4/night when stable. Expeditions
 (`ExpeditionData`) were not read. **Fidelity:** exact port of the schedule and wound math; loot
 tables **approximated** until extracted (a `SpawnDumpingGroundLoot` sampler is a small addition
-to `sim/extract`).
+to `sim/extract`). Measured in the real game (docs/sim/VERIFIED.md, 95 796 searches): 1.02 items
+and 12.9 cr a search on average, junk 54 %, then ~2 % each of ~20 items, never stolen.
 
 ## 11. Difficulty and starting perks
 
@@ -615,16 +623,23 @@ free janitor (Sawyer crew); never burgled (alert); crime ×0.67/×1.33; luck ±1
 
 1. **Dialogue-choice flows headless.** Rent, inspections, bribes, reports and story choices go
    through `Dialogue.AddChoice`; the extractor cannot click them yet. Until it can, those rules
-   are ported from reading, and only validated against recorded play.
-2. **Seller stock vs reputation.** Stock is sampled at rep 0; BM/LL scaling is ported but not yet
-   checked against the real draw at high rep.
+   are ported from reading, and only validated against recorded play. *Resolved for the gym*
+   (measured, docs/sim/VERIFIED.md): landlord rent choices, the inspector flow and the mentor's
+   day-12 shotgun dialogue run headless.
+2. **Seller stock vs reputation.** *Measured* (docs/sim/VERIFIED.md, 300 visits per point): Lower
+   Levels rep does **not** change `scavGeneral` (≈ 8.9 items / ≈ 350 cr) or `scavHaul` (≈ 7.0 /
+   105 cr) stock at LL −50/0/50/100; Black Market rep does raise `foodThief` stock, 3.0 → 3.0 →
+   3.4 → 5.9 items (42 → 90 cr) at BM −50/0/50/100 (≈ 2× at 100), always stolen.
 3. **Night production.** Chemistry, hydroponics, hoppers and machines are item closures; the Go
    sim ignores them, which under-values production-heavy starts (moonshiner, farmer, chemist).
+   The headless game runs wine, rack, hydroponics, furnace and purifier nights on its own
+   `EndNight` once the machine panels are attached (docs/sim/VERIFIED.md).
 4. **Human-policy realism of the idle baseline.** `days.json` is an idle player; the real queue
    depends on attractiveness, perks and story flags the player changes. The comparison that
    matters is against recorded runs (phase D).
 5. **Unread code:** `Expedition.ExecuteExpedition`, `StoreOperationManager` cadence,
-   `StoreEventActionDict` event clients, `AugHelper` presence growth, `LotteryHelper`, appraisal
+   `StoreEventActionDict` event clients (measured since: they arrive, first in the queue on the
+   event's day — foodBuyer, pharmacist, foreman, miner), `AugHelper` presence growth, `LotteryHelper`, appraisal
    helpers, `StoreClientData.Can*` story predicates.
 6. **Patch churn.** The game patches often; every table records the Assembly-CSharp hash, and
    `extract stats` refuses mixed builds. Rules in Go need a per-build review of the cited methods
@@ -688,7 +703,10 @@ learned policies.
 
 **Decided 2026-11-09: the real game is the primary backend.** `sim/gym` (see its README) plays the
 installed game's own code headless through the mod's side of the protocol; the Go port below is
-no longer the plan of record. The original note follows.
+no longer the plan of record. Its fidelity status (footprints, loot, localization and machine
+wiring read from the install; per-second item callbacks on a play clock calibrated from live
+sessions; Wild's Network purchases; what is still faked) is kept in `sim/gym/README.md`. The original
+note follows.
 
 **Alternative worth keeping open: drive the real game.** The headless game already does 340 000
 idle days/min and real trades. Making it fully playable means a small action API over

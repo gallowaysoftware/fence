@@ -1,0 +1,62 @@
+{
+  "note": "A high-quality sealed cell: estimate from the rule value.",
+  "expect": [
+    "estimate"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-plasma-ignition-lab",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-plasma-ignition-lab",
+    "context": {
+      "mode": "appraisal",
+      "item": {
+        "uid": 6027,
+        "id": "plasma_cell",
+        "name": "Plasma cell",
+        "kind": "plasma_cell"
+      },
+      "client": {
+        "name": "Collector",
+        "faction": "upper_levels",
+        "intent": "appraisal"
+      },
+      "visual": {
+        "colour": "high quality",
+        "seal_brand": "Ignition Lab",
+        "casing_wear": "none",
+        "crack": "none",
+        "screw": "covered",
+        "reinforcement": "no"
+      },
+      "appraisal": {
+        "their_figure": 600,
+        "rank": "senior",
+        "base_fee": 60,
+        "fee_pct": {
+          "perfect": 21,
+          "excellent": 18,
+          "good": 15,
+          "mediocre": 0,
+          "awful": 0
+        },
+        "refusals": 0
+      }
+    },
+    "options": [
+      {
+        "id": "estimate",
+        "label": "Submit an estimate: fee 60 + the grade's share of your estimate; refused under 50% or over 150% of the true value",
+        "params": {
+          "value": {
+            "type": "int",
+            "min": 1,
+            "max": 5000
+          }
+        }
+      }
+    ]
+  }
+}

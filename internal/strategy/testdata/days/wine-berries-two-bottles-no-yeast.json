@@ -1,5 +1,5 @@
 {
- "note": "Berries harvested (3 best, 2 normal, 1 under-ripe, 1 over-ripe, 1 moldy), 2 empty bottles, no yeast, 8 more berries tomorrow morning; rent 600 tomorrow, cash 1500. With bottles scarce, fill each bottle with two good berries tonight (best+best -> Reserve 150, best+normal -> Production 125 without yeast, 4 nights), or buy yeast first (Winemaker upgrade 200: 3 yeast + 3 bottles; with yeast Master 175 / Reserve 150 in 2 nights). Bottles and yeast are the constraint: get more before tomorrow's harvest. Moldy to food; under/over-ripe kept for the next bottles rather than sold as food (a suggestion). Hold the finished Production wine: it ages +3.75 a night and no event touches it. Pay rent.",
+ "note": "Berries harvested (3 best, 2 normal, 1 under-ripe, 1 over-ripe, 1 moldy), 2 empty bottles, no yeast, 6 more berries tomorrow morning; rent 600 tomorrow, cash 1500. With bottles scarce, fill each bottle with two good berries tonight (best+best -> Reserve 150, best+normal -> Production 125 without yeast, 4 nights), or buy yeast first (Winemaker upgrade 200: 3 yeast + 3 bottles; with yeast Master 175 / Reserve 150 in 2 nights). Bottles and yeast are the constraint: get more before tomorrow's harvest. Moldy to food; under/over-ripe kept for the next bottles rather than sold as food (a suggestion). Hold the finished Production wine: it ages +3.75 a night and no event touches it. Pay rent.",
  "event": {
   "session_id": "scenario",
   "seq": 3,
@@ -463,7 +463,7 @@
       "battery_charge": 30,
       "state": "working",
       "progress": 2,
-      "target": 10,
+      "target": 12,
       "speed": 8,
       "eta_nights": 1
      }
@@ -478,9 +478,9 @@
        "established": true
       },
       "progress": 2,
-      "target": 10,
+      "target": 12,
       "eta_nights": 1,
-      "harvest_count": 8,
+      "harvest_count": 6,
       "water_ml": 400,
       "water_use": 100,
       "status": "growing",

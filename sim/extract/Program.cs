@@ -18,15 +18,16 @@ namespace Fence.Extract
             string mode = args.Length > 0 ? args[0] : "extract";
 
             if (mode == "stats") return Stats.Print(outDir);
-            if (mode != "extract" && mode != "probe" && mode != "bench")
+            if (mode != "extract" && mode != "chem" && mode != "probe" && mode != "bench")
             {
-                Console.Error.WriteLine("usage: extract [extract|stats|probe|bench]");
+                Console.Error.WriteLine("usage: extract [extract|chem|stats|probe|bench]");
                 return 2;
             }
 
             string managed = Path.Combine(gameDir, "Probably Stolen_Data", "Managed");
             Headless.Build(managed, Path.Combine(outDir, ".headless"));
             Headless.Install();
+            GameAssets.EnsureExtracted(gameDir, outDir);
             var build = BuildInfo.Read(gameDir, managed);
             return Run(mode, outDir, build);
         }
@@ -36,8 +37,12 @@ namespace Fence.Extract
         {
             Headless.Seed(1);
             var game = new Game();
+            // Seller stock rolls loot tables and lands on counters with real footprints; names stay keys.
+            Loot.Install(GameAssets.LootPath(outDir));
+            Shapes.Load(GameAssets.ShapesPath(outDir));
             if (mode == "probe") return game.Probe();
             if (mode == "bench") return Extractor.Bench(1000);
+            if (mode == "chem") return Extractor.ChemOnly(game, outDir, build);
             return Extractor.All(game, outDir, build);
         }
 

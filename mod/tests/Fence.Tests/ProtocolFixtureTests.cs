@@ -20,12 +20,20 @@ namespace Fence.Tests
             ["event.day_snapshot"] = typeof(EventRequest),
             ["event.customer_observed"] = typeof(EventRequest),
             ["event.human_action"] = typeof(EventRequest),
+            ["event.autopilot"] = typeof(EventRequest),
+            ["event.autopilot_fault"] = typeof(EventRequest),
             ["decide.request"] = typeof(DecideRequest),
             ["decide.response"] = typeof(DecideResponse),
             ["decide.stage.request"] = typeof(DecideRequest),
             ["decide.stage.response"] = typeof(DecideResponse),
+            ["decide.inspect.request"] = typeof(DecideRequest),
+            ["decide.inspect.response"] = typeof(DecideResponse),
+            ["decide.aug_check.request"] = typeof(DecideRequest),
+            ["decide.aug_check.response"] = typeof(DecideResponse),
             ["outcome.request"] = typeof(OutcomeRequest),
             ["summary.response"] = typeof(SummaryResponse),
+            // The mod doesn't follow directives yet (the gym's executor does); round-trip them untyped.
+            ["directives"] = typeof(Newtonsoft.Json.Linq.JObject),
         };
 
         static Type TypeFor(string file)

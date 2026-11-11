@@ -1,0 +1,14 @@
+# The directives executor (-human player). Horizon: buyout or game over, capped at 1000 days.
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-player.txt -dir var/sim/exp/player-normal -seeds 30 -days 1000 -- -difficulty normal
+base | -human knobs
+player | -human player
+georgio25 | -human player -directives sim/lab/scripts/directives/georgio25.json
+mm125 | -human player -directives sim/lab/scripts/directives/mm125.json
+mort_no | -human player -directives sim/lab/scripts/directives/mort_no.json
+svc_both | -human player -directives sim/lab/scripts/directives/svc_both.json
+no_restock_missed | -human player -directives sim/lab/scripts/directives/norestock_missed.json
+growth_ref | -human player -directives sim/lab/scripts/directives/growth_ref.json
+nowine | -human player -directives sim/lab/scripts/directives/nowine.json
+farmer_start | -human player -start farmer
+fence_start | -human player -start fence
+wm_water | -human player -start water_merchant -perks working_pipes -directives sim/lab/scripts/directives/eng_water.json

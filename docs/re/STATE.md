@@ -87,7 +87,7 @@ Own stock: `EmporiumEntry.invElement : GameGridInventory`, showcase `showcaseEle
 | True condition | `ItemFeature.realCondition : ItemCondition`, `GetActualValueModifier()`, `IsFeatureMatch()` | **HIDDEN until exposed** (`IsExposed()`), then `GetExposedString()` is shown | the price uses the **fake** modifier until exposure (`GetCurrentValueMod`) — so `GetNegociatedValue` does not leak truth |
 | Tool needed to expose | `ItemFeature.GetToolNeeded() : System.String` | HIDDEN as data; learned by the player through play | `ItemFeatureUI.OnFeatureUIClick` |
 | Will a buyer catch a fake | `StoreClient.CanClientExposeAnyFeatureDeep(GameItem) : System.Boolean` | HIDDEN | depends on `realCondition`; do not send |
-| Stolen + heat | `StolenHelper.IsStolenItem(GameItem) : System.Boolean`; heat `STOLEN_VALUE_INT` tag (0–100, decays 18/day, `UpdateStolenItem`) | VISIBLE | tooltip `mech_stolen_tooltip` with the number (`StolenHelper.CreateStolenItemTooltip`); also a stolen discount feature when buying (`ApplyStolenDiscount`) |
+| Stolen + heat | `StolenHelper.IsStolenItem(GameItem) : System.Boolean`; heat `STOLEN_VALUE_INT` tag (0–100, decays 18/night for every stolen item, contraband included — the contraband slow-down in `UpdateStolenItem` never fires; measured, docs/sim/VERIFIED.md) | VISIBLE | tooltip `mech_stolen_tooltip` with the number (`StolenHelper.CreateStolenItemTooltip`); also a stolen discount feature when buying (`ApplyStolenDiscount`) |
 | Contraband | `ContrabandHelper.IsContraband(GameItem)`, `IsSeriousContraband(GameItem) : System.Boolean`, `GetContrabandLevelInInt(GameItem) : System.Int32` | VISIBLE | tooltip `ContrabandHelper.CreateContrabandItemTooltip` |
 | Appraisal true value | `AppraisalHelper.GetCorrectBaseValue(GameItem) : System.Int32` | **HIDDEN** ("TRUE VALUE" line is dev-tooltip only) | `AppraisalHelper.CreateAppraisalTooltip` |
 | Market events | `StoreStation.storeEventManager.GetActiveEvents()` → `StoreEvent.negociationDatas : List<NegociationData>` (`itemType`, `value`) | VISIBLE (news / Market section) | `GameItem.GetCurrentValue` |
@@ -98,7 +98,7 @@ Own stock: `EmporiumEntry.invElement : GameGridInventory`, showcase `showcaseEle
 |---|---|---|
 | Crimes, evidence, projected sentence | `PlayerStore.secData : SecData`; `GetTotalTraffickingCrimes()`, `GetEvidenceLevelDisplay()`, `GetSuspectedCrimeDisplay()`, `GetProjectedSentence() : System.String` | VISIBLE in the record UI (`RecordUIManager.OpenUI`) — raw `crimeAmount` lists HIDDEN |
 | Days to next inspection | `StoreClientManager.dayUntilInspection : System.Int32`, `IsInspectionCountdownActive()` | HIDDEN; announced 3/2/1 days ahead only with the early-warning service (`PlayerStore.HandleInspectionEarlyWarning`) |
-| Inspection cadence | `ComputeInspectionCooldownRange` (private): 3–5 days below 150 trafficking, down to 1–2 at ≥750; none below 50 or with SEC_VIP | HIDDEN (rule) |
+| Inspection cadence | `ComputeInspectionCooldownRange` (private): 3–5 days below 150 trafficking, down to 1–2 at ≥750; none below 50 or with SEC_VIP. "Trafficking" includes FENCING; FRAUD does not count (measured, docs/sim/VERIFIED.md) | HIDDEN (rule) |
 | Fine on found contraband | `PlayerStore.GenerateContrabandFineFromItem(List<GameItem>) : System.Int32` | VISIBLE at inspection |
 
 ## Recommendation

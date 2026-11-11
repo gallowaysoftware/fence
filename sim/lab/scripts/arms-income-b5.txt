@@ -1,0 +1,7 @@
+# Hard income, batch 5: mortgage tuning on vs2 + mortgage auto (first hard wins).
+vs2_ma_m125 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m125.json -perks vending+short_sleeper
+vs2_ma_m08 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m08.json -perks vending+short_sleeper
+vs2_ma_w100 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_w100.json -perks vending+short_sleeper
+vs2_ma_float2k | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_float2k.json -perks vending+short_sleeper
+vs2_ma_repo25 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_repo25.json -perks vending+short_sleeper
+vs2_ma_spend300 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_spend300.json -perks vending+short_sleeper

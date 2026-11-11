@@ -24,11 +24,13 @@ namespace Fence.Barter
     public sealed class Advice
     {
         public string DecisionId;
-        // The decide kind: "barter" or StageContext.Kind.
+        // The decide kind: "barter", StageContext.Kind or InspectContext.Kind.
         public string Kind;
         public string Signature;
         public bool Deferred;
         public string OptionId;
+        // The chosen option's params (an inspect estimate), or null.
+        public Newtonsoft.Json.Linq.JObject Params;
         public string Label;
         public string Rationale;
         public long ReceivedMs;

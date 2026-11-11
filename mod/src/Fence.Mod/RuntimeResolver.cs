@@ -90,6 +90,54 @@ namespace Fence.Mod
                 case "StoreReputationPerk": found = StoreReputationPerkMembers(member); break;
                 case "StoreRequest": found = StoreRequestMembers(member); break;
                 case "StoreService": found = StoreServiceMembers(member); break;
+                case "ItemCondition": found = ItemConditionMembers(member); break;
+                case "MachineAlarm": found = MachineAlarmMembers(member); break;
+                case "MachineProjector": found = MachineProjectorMembers(member); break;
+                case "AppraisalRankHelper": found = AppraisalRankHelperMembers(member); break;
+                case "AugHelper": found = AugHelperMembers(member); break;
+                case "LocHelper": found = LocHelperMembers(member); break;
+                case "GraphNodeStorage": found = GraphNodeStorageMembers(member); break;
+                case "GameGridInventory": found = GameGridInventoryMembers(member); break;
+                case "GridShape": found = GridShapeMembers(member); break;
+                case "AdvCalendarUIManager": found = AdvCalendarUIManagerMembers(member); break;
+                case "ChemicalHelper": found = ChemicalHelperMembers(member); break;
+                case "CurrentConverterHelper": found = CurrentConverterHelperMembers(member); break;
+                case "DirectoryMaster": found = DirectoryMasterMembers(member); break;
+                case "DurabilityHelper": found = DurabilityHelperMembers(member); break;
+                case "GameItemFunc": found = GameItemFuncMembers(member); break;
+                case "GameSlotInventory": found = GameSlotInventoryMembers(member); break;
+                case "GraphUtils": found = GraphUtilsMembers(member); break;
+                case "HydroponicHelper": found = HydroponicHelperMembers(member); break;
+                case "Interactable": found = InteractableMembers(member); break;
+                case "MachineBottlePrinter": found = MachineBottlePrinterMembers(member); break;
+                case "MachineHelper": found = MachineHelperMembers(member); break;
+                case "MachineHydroponic": found = MachineHydroponicMembers(member); break;
+                case "MachineryHelper": found = MachineryHelperMembers(member); break;
+                case "PowerHelper": found = PowerHelperMembers(member); break;
+                case "StoreBedroll": found = StoreBedrollMembers(member); break;
+                case "StoreClientData": found = StoreClientDataMembers(member); break;
+                case "StorePhoneClient": found = StorePhoneClientMembers(member); break;
+                case "StoreShutterButton": found = StoreShutterButtonMembers(member); break;
+                case "VendingMachineHelper": found = VendingMachineHelperMembers(member); break;
+                case "WaterFeatureHelper": found = WaterFeatureHelperMembers(member); break;
+                case "WaterHelper": found = WaterHelperMembers(member); break;
+                case "WineHelper": found = WineHelperMembers(member); break;
+                case "InsInjectorHelper": found = InsInjectorHelperMembers(member); break;
+                case "LabelerHelper": found = LabelerHelperMembers(member); break;
+                case "ItemConditionList": found = ItemConditionListMembers(member); break;
+                case "MachineDnaManipulator": found = MachineDnaManipulatorMembers(member); break;
+                case "MachineProgressHelper": found = MachineProgressHelperMembers(member); break;
+                case "PlantGeneticsHelper": found = PlantGeneticsHelperMembers(member); break;
+                case "PlantTrait": found = PlantTraitMembers(member); break;
+                case "PlantTraitRegistry": found = PlantTraitRegistryMembers(member); break;
+                case "GenericConfirmationUIManager": found = GenericConfirmationUIManagerMembers(member); break;
+                case "PhoneUIManager": found = PhoneUIManagerMembers(member); break;
+                case "PixelWindow": found = PixelWindowMembers(member); break;
+                case "StartingPerkContent": found = StartingPerkContentMembers(member); break;
+                case "StoreDoor": found = StoreDoorMembers(member); break;
+                case "Shotgun": found = ShotgunMembers(member); break;
+                case "TransitUI": found = TransitUIMembers(member); break;
+                case "WildNetworkUI": found = WildNetworkUIMembers(member); break;
                 // A guard type: reflecting on it is a scanner hard refusal, so it stays unchecked at runtime
                 // (Fence.Compat still checks it offline).
                 case "ModReflect": return TypeLookup.Unsupported();
@@ -98,6 +146,14 @@ namespace Fence.Mod
             return new TypeLookup { TypeFound = true, Members = found.Select(Describe).Where(m => m != null).ToList() };
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GenericConfirmationUIManagerMembers(string m) => typeof(GenericConfirmationUIManager).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PhoneUIManagerMembers(string m) => typeof(PhoneUIManager).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PixelWindowMembers(string m) => typeof(PixelWindow).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StartingPerkContentMembers(string m) => typeof(StartingPerkContent).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreDoorMembers(string m) => typeof(StoreDoor).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ShotgunMembers(string m) => typeof(Shotgun).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] TransitUIMembers(string m) => typeof(TransitUI).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WildNetworkUIMembers(string m) => typeof(WildNetworkUI).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IModMembers(string m) => typeof(IMod).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ModManifestMembers(string m) => typeof(ModManifest).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ModLogMembers(string m) => typeof(ModLog).GetMember(m, All);
@@ -168,6 +224,48 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreReputationPerkMembers(string m) => typeof(StoreReputationPerk).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreRequestMembers(string m) => typeof(StoreRequest).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreServiceMembers(string m) => typeof(StoreService).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ItemConditionMembers(string m) => typeof(ItemCondition).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineAlarmMembers(string m) => typeof(MachineAlarm).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineProjectorMembers(string m) => typeof(MachineProjector).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AppraisalRankHelperMembers(string m) => typeof(AppraisalRankHelper).GetMember(m, All);
+
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AugHelperMembers(string m) => typeof(AugHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] LocHelperMembers(string m) => typeof(LocHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GraphNodeStorageMembers(string m) => typeof(GraphNodeStorage).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameGridInventoryMembers(string m) => typeof(GameGridInventory).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GridShapeMembers(string m) => typeof(GridShape).GetMember(m, All);
+
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AdvCalendarUIManagerMembers(string m) => typeof(AdvCalendarUIManager).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ChemicalHelperMembers(string m) => typeof(ChemicalHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] CurrentConverterHelperMembers(string m) => typeof(CurrentConverterHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] DirectoryMasterMembers(string m) => typeof(DirectoryMaster).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] DurabilityHelperMembers(string m) => typeof(DurabilityHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameItemFuncMembers(string m) => typeof(GameItemFunc).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameSlotInventoryMembers(string m) => typeof(GameSlotInventory).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GraphUtilsMembers(string m) => typeof(GraphUtils).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HydroponicHelperMembers(string m) => typeof(HydroponicHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InteractableMembers(string m) => typeof(Interactable).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineBottlePrinterMembers(string m) => typeof(MachineBottlePrinter).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineHelperMembers(string m) => typeof(MachineHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineHydroponicMembers(string m) => typeof(MachineHydroponic).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineryHelperMembers(string m) => typeof(MachineryHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PowerHelperMembers(string m) => typeof(PowerHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreBedrollMembers(string m) => typeof(StoreBedroll).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreClientDataMembers(string m) => typeof(StoreClientData).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StorePhoneClientMembers(string m) => typeof(StorePhoneClient).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] StoreShutterButtonMembers(string m) => typeof(StoreShutterButton).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] VendingMachineHelperMembers(string m) => typeof(VendingMachineHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WaterFeatureHelperMembers(string m) => typeof(WaterFeatureHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WaterHelperMembers(string m) => typeof(WaterHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WineHelperMembers(string m) => typeof(WineHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InsInjectorHelperMembers(string m) => typeof(InsInjectorHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] LabelerHelperMembers(string m) => typeof(LabelerHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ItemConditionListMembers(string m) => typeof(ItemConditionList).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineDnaManipulatorMembers(string m) => typeof(MachineDnaManipulator).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineProgressHelperMembers(string m) => typeof(MachineProgressHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantGeneticsHelperMembers(string m) => typeof(PlantGeneticsHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantTraitMembers(string m) => typeof(PlantTrait).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantTraitRegistryMembers(string m) => typeof(PlantTraitRegistry).GetMember(m, All);
 
         static MemberSignature Describe(MemberInfo m)
         {

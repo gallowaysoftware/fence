@@ -106,6 +106,23 @@ namespace Fence.Tests
             }
         }
 
+        // The gym executor's files the live autopilot will share (mod/src/Fence.Autopilot) may not need any
+        // capability: a file read, a reflection walk or a thread there would be refused in the game.
+        [Fact]
+        public void GameScannerFindsNoCapabilityInTheSharedExecutor()
+        {
+            if (!Paths.GameInstalled) return;
+            var game = Game.Value;
+            var dlls = new List<string> { Path.Combine(Paths.AutopilotBin, "Fence.Autopilot.dll"), Path.Combine(Paths.AutopilotBin, "Fence.Core.dll") };
+            var allowed = dlls.Select(Path.GetFileNameWithoutExtension).ToList();
+            var result = game.GetType("ModScanner")!.GetMethod("Scan")!.Invoke(null, new object[] { dlls, allowed, Paths.AutopilotBin, true })!;
+            var detected = ((IEnumerable<string>)result.GetType().GetField("Capabilities")!.GetValue(result)!).ToList();
+            var all = Findings(result, "HardFlags").Concat(Findings(result, "Pending")).Concat(Findings(result, "Findings")).ToList();
+            Assert.Null((string)result.GetType().GetField("Error")!.GetValue(result));
+            Assert.True(all.Count == 0, "findings in the shared executor:\n" + string.Join("\n", all));
+            Assert.Empty(detected);
+        }
+
         [Fact]
         public void GameScannerAcceptsTheModWithNetworkOnly()
         {

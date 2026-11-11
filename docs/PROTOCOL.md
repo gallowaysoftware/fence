@@ -25,10 +25,14 @@ build `make compat` has not recorded yet.
   "compat": {"ok": false, "missing": ["StoreClientManager::HandleSkipClient()"], "disabled_features": ["act.barter"]}
 }
 ```
-→ `200 {"session_id": "…", "protocol": 1, "mode": "observe" | "advise" | "act"}`
+→ `200 {"session_id": "…", "protocol": 1, "mode": "observe" | "advise" | "act", "appraisal_guides": {…}}`
 
 `mode` is the bridge's choice. `observe`: events only. `advise`: decisions are requested
 and the answer is shown to the player, never executed. `act`: the answer is executed.
+
+`appraisal_guides` (optional): the appraisal guides' value tables when the bridge has them locally
+(`local/appraisal_guides.json` or `FENCE_APPRAISAL_GUIDES`; `docs/re/APPRAISAL.md`, "The value
+table"). The mod has no file access; the autopilot joins the appraisal board only with them.
 
 ## `POST /v1/event`
 Fire-and-forget. The mod never waits on the response and drops events if the bridge is
@@ -49,9 +53,12 @@ for evaluation and training, never reaching a prompt, memory recall or reflectio
 
 | kind | when | `data` |
 |---|---|---|
-| `day_snapshot` | `phase: morning` after `waking_up`, `phase: close` after `shutter_closed` | `store`, `reputation` (with `next_perk`), `inventory` (barter item shape + `where` ∈ stock/showcase/counter), `security`, `upgrades`, `services`, `market_events`. Example: `protocol/fixtures/event.day_snapshot.json` |
+| `day_snapshot` | `phase: morning` after `waking_up`, `phase: close` after `shutter_closed` | `store` (with `difficulty` and the mod's `aug_detection`), `reputation` (with `next_perk`), `perks` (`{starting: [ids], reputation: [ids]}`: the run's starting perks and every reputation perk unlocked now), `inventory` (barter item shape + `where` ∈ stock/showcase/counter; a container — smuggler bay, bag, machine — adds `capacity: {cells, free}`, its grid cells and those no item covers), `security`, `upgrades`, `services`, `market_events`. Example: `protocol/fixtures/event.day_snapshot.json` |
 | `customer_observed` | once per customer when the counter first becomes ready, **covered or not** | `client_seq`, `covered`, `reason`, `context` (barter context v1, as much as applies), `options`. Example: `event.customer_observed.json` |
-| `human_action` | every move the player makes at the counter or in the night phase | `client_seq`, `action` (a barter option id, or `stage`/`unstage`/`expose_feature`/`showcase`/…, see `docs/re/DAY.md`), `item_uid`, the `decision_id` and `advised` option in force at the time, if any. Example: `event.human_action.json` |
+| `human_action` | every move the player makes at the counter or in the night phase | `client_seq`, `action` (a barter option id, or `stage`/`unstage`/`expose_feature`/`showcase`/…, see `docs/re/DAY.md`; the gun: `unholster`, `holster`, `shoot` with the customer's `name` and its `aug` / `aug_tells` at the shot), `item_uid`, the `decision_id` and `advised` option in force at the time (the aug_check decision for gun moves), if any; `actor: "autopilot"` (with its `rule`) when the autopilot made the move, absent for the player's own. Example: `event.human_action.json` |
+| `autopilot` | every action of the live autopilot (docs/STREAM.md), and the player pausing (`pause`) or resuming (`resume`) it | `day`, `phase` (morning/open/customer/night), `action` (`plan_day`, `close_morning_report`, `plan_window`, `showcase`, `unshowcase`, `open_shutter`, `ring_bell`, `dialogue_choice`, `plan_stage`, `stage`, `plan_stage_seller`, `stage_theirs`, `counter` with the option in `detail`, `dismiss`, `plan_unstage`, `unstage`, `close_shutter`, `open_tablet`, `services`, `sleep`), `target` (`uid`, `name`) for item moves, `why` (the executor's reason), `rule` (its rule key), `detail`, `plan_day`, `client_seq`/`client` at the counter, `hidden_used` (names of hidden values the rule read, never the values; `[]` when none). Example: `event.autopilot.json` |
+| `autopilot_fault` | the autopilot stops and needs the human | `state` (`faulted`: an error, an action that did not take, a stall; `handover`: a customer or screen it has no handler for), `reason`, `message` (the overlay's banner), `action` (the last one taken), `client`, `client_kind`. Resume is manual. Example: `event.autopilot_fault.json` |
+| `aug` | a shot resolves, or an aug leaves alive | `event` ∈ `good_kill` (cash and rep deltas), `wrongful_kill` (`crime: {id: MANSLAUGHTER, amount}`, rep delta), `wanted_capture`, `left_alive` (`cause` ∈ served/dismissed/reported/threatened/holstered); `client_seq`, `name`. `hidden`: `is_aug`, `presence_before`/`after`. Sent whether or not an aug_check was asked; the strategist counts kills from it |
 
 Recording does not depend on the mode or the policy: in `observe` mode, and with the model
 down, these still flow. The mod keeps a bounded in-memory buffer while the bridge is
@@ -75,7 +82,18 @@ is in `docs/re/STATE.md`.
 perfect perception of everything on screen and full knowledge of the game's rules.
 Visual tells are described as what they depict ("seal: missing", "logo: off-centre"), never
 as raw sprite/variant indices; rule knowledge (serial prefixes, recalls, stamp amounts,
-appraisal formulas) is not gated on owning in-game guides. Truth flags (`realCondition`,
+appraisal formulas) is not gated on owning in-game guides. **Aug detection reads the visible
+tells** (`tells`, the default since 2026-11-10, M3; the stream's "visible + hidden, flagged" rule):
+`client.aug` is absent and `client.aug_tells` lists the zero-false-positive tells on screen, in
+words (perfectly still, twitching, aug portrait, aug-only lines, a generic "Upper Level
+Citizen"/"Thief" in a plain bubble). The aug-only lines are recognised by their displayed text
+against the game's own aug script, read from its string table at run time (`AugLines`; only the
+keys are in the repo), and only where the customer's lines are at hand (aug_check). In the gym this
+detector flags every aug and no human (docs/re/AUGS.md §6). The mod setting `aug_detection: perfect`
+(and the gym's `-aug-detection perfect`) still states each customer's status directly
+(`client.aug`, a bool) for analysis; it was the assumption from 2026-11-09 to M3 and never runs on
+stream. The truth stays in
+`hidden.client.is_aug` either way (plus `aug_tier`, `aug_idle_tell`, `disguised` for an aug). Truth flags (`realCondition`,
 `*_ISSUE*` tags, true values) stay hidden.
 
 `state_signature` is an opaque string the mod derives from the state it sent (client,
@@ -102,7 +120,8 @@ Canonical example: `protocol/fixtures/decide.request.json`. Every field is playe
 | `store` | `cash`, `day`, `retail_markup`, `rent_due`, `rent_days_left` |
 | `reputation` | faction → `{value, status}`, factions with a rep bar only (`lower_levels`, `upper_levels`, `security`, `black_market`, `revolution`, `cartel`) |
 | `client.intent` | what the **client** wants: `buy` (shop sells), `sell` (shop buys), `sell_and_buy` |
-| `client.faction` | as above, or `tourist`/`church`/`middle` (no rep bar). Shown in-game only as bubble colour; we name it |
+| `client.faction` | as above, or `tourist`/`church`/`middle` (no rep bar). Shown in-game only as bubble colour; we name it. A customer with no faction (every undisguised aug) talks in the plain bubble the Lower Levels use, so it is sent as the faction its bubble implies (`lower_levels`), never `none` |
+| `client.aug` / `client.aug_tells` | see Perception standard: the status (perfect detection) or the visible tells (tells mode) |
 | `client.budget` | remaining budget when the client is buying; `null` otherwise |
 | `client.interests` / `restrictions` | the tablet's Interests / Restrictions tags |
 | `client.wholesale` | `{price, discount_pct}` when a seller offers wholesale, else `null` |
@@ -127,6 +146,51 @@ The mod excludes, and the server refuses (`policy.CheckChoice`), stolen or contr
 for security and contraband for customers who refuse it. Signature: `s<barter sig>:g<budget>`.
 
 Deadlines: 20 s in advise mode (the human plays in parallel), 10 s in act mode.
+
+### Inspect decisions (`kind: "inspect"`)
+Asked when the player inspects an item and the game offers a verdict (confront panel for
+cigarettes, food stamps, injectors; appraisal-service estimates for hands, Ribwiches,
+plasma cells). Example: `protocol/fixtures/decide.inspect.request.json` / `.response.json`;
+rules and cues in `docs/re/INSPECT.md`, vocabulary in `internal/policy/testdata/inspect_cues.json`.
+Context: item kind, the customer's claim, printed text verbatim, and every visual cue in
+words (never sprite indices); `hidden` holds the real condition, issue tags and true value.
+Options mirror the game: `confront_<issue>` per panel toggle plus `genuine` for a claimed-
+genuine item; `genuine` / `counterfeit` for a claimed fake; `estimate` with an int `value`
+for appraisals. Labels state the consequences (wrong confront −2 rep with that faction).
+The bridge adds a deterministic rule check; `CheckChoice` refuses confronting an item whose
+cues are all fine. Advise-only. Verdicts are recorded as `inspect_verdict` / `confront` /
+`appraisal_estimate` human actions linked to the decision; outcomes `confront` and `appraisal`.
+
+### Aug checks (`kind: "aug_check"`)
+Asked when augs are active (introduced, no all-clear yet), a customer is at the counter, the gun
+can be raised (`Shotgun.CanPickup`'s conditions, or it is raised already) and the customer is an
+aug (`perfect`) or suspected (`tells`: a zero-false-positive tell, a scanner verdict of aug, a
+refused probe, or a buyer of medical supplies or materials). The trigger never reads the truth in
+`tells` mode. Example: `protocol/fixtures/decide.aug_check.request.json` / `.response.json`; rules
+in `docs/re/AUGS.md`.
+
+Context: `detection`, `client` (`name`, `faction`, `intent`, `wants`, `budget`; `aug` in perfect
+mode; in tells mode `aug_tells`, `portrait` and `idle` in words and the last dialogue `lines`;
+`haggle` when a markup or demanded discount was refused and they stayed; `scan` once the scanner
+showed its verdict), `gun_raised`, `threaten_used`, `run` (`day`, `days_since_intro`, `difficulty`,
+`presence_rise`, `kill_presence_drop`, `game_over_at_100`, `aug_menace`, `kill_reward`,
+`manslaughter_crime`). `hidden`: `client` (with the aug labels), `shoot_result_if_shot`
+(`good_kill`/`wrongful_kill`/`wanted_capture`), `aug_presence`.
+
+Options, as the UI allows, each label stating the consequences: `shoot` (aug: about +100–250
+cash, rep +2 LL/BM/Rev and +8 Sec, presence − drop; human: MANSLAUGHTER 250/500/750 by day, rep
+−15 LL/−15 Sec/−10 Rev/−10 BM, no game over; the sale is lost), `scan` (scanner owned, customer
+not scanned), `probe_markup_10` / `probe_discount_10` (the open bargain side, with the tablet's
+odds for a human), `threaten` (exact, but forfeits the shot: an aug escapes), `serve`, `dismiss`
+(an aug leaves alive: presence + rise). No `report`: against an aug it never beats `serve`.
+
+Advise-only in every mode: the mod never raises, fires or lowers the gun, scans, probes or
+threatens on this kind (`ActSafetyTests` checks the shotgun, kill, report and scan members are
+never called). `policy.CheckChoice` refuses `shoot` for a customer stated or scanned human, and
+for one with no tell, no scanner verdict and no refused probe. Signature:
+`a<client seq>:<A|H in perfect mode, else the tells>:s<scan>:h<refusals>:g<gun raised>:o<option ids>`.
+Results: the `aug` event above, and the same object as an outcome (`kind: "aug"`, `result` = the
+event) to the customer's latest aug_check decision when there is one.
 
 ### Barter option ids
 The mod offers only options the game's UI would enable right now (`docs/re/BARTER.md`,
@@ -164,6 +228,69 @@ The day (meta-turn) view for the overlay. Example: `protocol/fixtures/summary.re
 `lessons_day` the day that produced it. `plan` / `plan_day` (optional, ≤ 2 KB) are the
 strategist's plan for the day and the day it was written; absent before the first plan. The mod fetches it on `client_arrived`,
 `waking_up`, after each outcome, and at most every 5 s. `404` for an unknown session.
+
+## Directives (structured plan)
+The strategist's plan as machine-readable directives, so an executor (the gym's player today,
+the mod's autopilot later) can follow it. Served in `/v1/summary` as `directives` alongside the
+prose `plan`, and absent when there is no plan. Every field is optional; an executor uses its
+own default for anything missing, and a present `0` is an instruction (no floor, no hot stock).
+Schema: `protocol/schema/directives.schema.json`; example: `protocol/fixtures/directives.json`.
+
+The bridge writes them with the plan: after the prose plan, the same conversation asks the
+model for the directives as one JSON object (the prompt is then served from cache, so the
+prose plan is unchanged by it). What the model gives is validated against the state (unknown
+uids, services and upgrades dropped, names mapped to ids, percentages clamped to 0–100 for
+buying); keys it leaves out or gets wrong are derived in code from the prose plan and the state.
+Then the lints hold them to the plan's rules: the floor covers rent plus the services' nights
+from two days before rent day and never exceeds cash; `max_spend` and `upgrades_buy` stay within
+cash above the floor (Wild favor first; landlord grace may use the rent reserve); short of rent,
+`sell_down_to_cash` reaches it and only kept or cooling items are held; from trafficking 40
+`hot_stock_cap` is at most the hot items in smuggler bays plus their free cells; a type both
+preferred and avoided is neither; no stolen,
+contraband or kept item is shown; the permit is always named while not held: `buy` once cash
+covers the fee, the rent due and 500, else `bribe` (a `refuse` becomes one of them);
+augs are shot where presence ends the run; the open dumping ground is scavenged unless wounded.
+From Claude agents' gym games (`docs/research/CLAUDE-PLAY.md`): `upgrades_buy` starts with the
+upgrades of the Wild favor order not yet bought (the executor buys each when favor or spare cash
+covers it); power is off while nothing draws store power, and insurance and janitorial are on;
+`sell.min_pct` is dropped while selling down; finished wine is held while cash covers rent, a
+week of services and 1 000 (Homebrew and better), otherwise only Reserve and Master Vintage;
+`engine` is `none` once no new finished wine has appeared for 5 days; `bargain` is `never`
+while Lower Levels is below -10. Upgrades the snapshot lists
+with `state` 1 are Wild's, not the shop's: only `state` 2 is owned.
+
+With the bridge's `-directives delta` the directives are instead only the changes to the
+executor's own defaults that the model gives a one-line reason for (`{}` plays the executor
+alone); the lints revert the deviations that have cost runs: a cash floor or spending cap on
+supplier day (day % 7 = 5), an upgrade that neither favor pays nor leaves rent + 1 200, a bribe
+when the permit is affordable, a refusal, aggressive bargaining, `engine: none` before the wine
+engine stalls, insurance or janitorial off, power on with nothing drawing it. When the gym
+plays a base policy (its `-directives FILE`; a league's `executor.directives`), the bridge's
+`-base-directives FILE` shows the model that base; the fields it sends override the base's,
+except an engine that names only part of the base's (a restated `wine` would stop its furnace).
+
+| Field | Meaning |
+|---|---|
+| `day` | the day the directives were written for |
+| `cash_floor` | never spend below this |
+| `buy` | `wholesale_max_pct` / `single_max_pct` of estimate to accept, `max_spend` today, `prefer_types` / `avoid_types`, `hot_stock_cap` (stolen items held) |
+| `sell` | `min_pct` of estimate, `sell_down_to_cash` (sell stock until cash reaches this, e.g. before rent), `hold_uids` |
+| `bargain` | `never` / `ev_positive` / `aggressive` |
+| `window` | `show_uids`, `avoid_stolen` |
+| `services` | service ids to have on tonight |
+| `upgrades_buy` | upgrade ids to buy tonight, in order |
+| `permit` | `buy` / `refuse` / `bribe` |
+| `production` | `[{machine_uid, action, items, note}]` |
+| `augs` | `shoot` / `serve` |
+| `scavenge` | go to the dumping ground tonight |
+| `engine` | gym executor: the production engines to run, `wine`, `water`, `furnace` joined by `+`, or `none` |
+| `mortgage` | gym executor: sign the loan shark's offer by its rule (`auto`), at the next offer (`take`), not today (`later`: he returns next week), never again (`decline` is final), or only to bridge a rent (`accept_if_rent`). The delta lint turns a `decline` into `later` unless the cash buyout projects within 4 weeks |
+| `buyout_by_day` | gym executor: answer the loan shark `later` while the cash buyout projects to be affordable by this day |
+| `mortgage_margin`, `mortgage_float` | gym executor: the `auto` rule's cover share of all payments and the cash it keeps beyond 1.5 payments |
+| `mortgage_window` | gym executor: `[from, to]`, the days on which it may sign |
+| `mortgage_save_from_day` | gym executor: from this day, stop buying and save toward the offer |
+| `mortgage_max_spend` | gym executor: daily buying cap while paying the mortgage |
+| `appraisal` | gym executor: `join` the appraisal board and serve its clients, or `off` |
 
 ## `POST /v1/outcome`
 Sent when the game resolves something a decision started. Fire-and-forget; a decision may

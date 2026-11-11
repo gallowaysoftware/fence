@@ -28,6 +28,7 @@
     "lessons": {"type": "string", "maxLength": 2048, "description": "The run's current lessons; empty before the first reflection."},
     "lessons_day": {"type": "integer", "minimum": 0, "description": "The day that produced lessons; 0 when there are none."},
     "plan": {"type": "string", "maxLength": 2048, "description": "The strategist's plan for the day; absent when there is none."},
-    "plan_day": {"type": "integer", "minimum": 0, "description": "The day the plan was written for; absent when there is no plan."}
+    "plan_day": {"type": "integer", "minimum": 0, "description": "The day the plan was written for; absent when there is no plan."},
+    "directives": {"$ref": "directives.schema.json", "description": "The plan as machine-readable directives for an executor; absent when there is no plan."}
   }
 }

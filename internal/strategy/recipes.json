@@ -1,0 +1,218 @@
+{
+  "source": {
+    "steam_buildid": "26525552",
+    "docs": ["docs/re/CHEMISTRY.md", "docs/re/RECIPES.md", "docs/re/PRODUCTION.md", "docs/sim/VERIFIED.md"],
+    "tables": ["var/gamedata/chemistry.json", "var/gamedata/recipes.json"],
+    "lab": "sim/lab/ChemExps.cs"
+  },
+  "about": "Production procedures for the strategist, our summary of the docs above. value_base is the game's unitValue x grade modifier per unit; value_market adds the contraband markup (+35/+70/+100/+150 % at levels 1-4) before retail markup, events and haggling. yield is per batch as measured in the lab (lab: true) or computed from code. time counts store days (real-time steps take seconds; 'nights' are evaporator/printer nights). risk: contraband level of inputs/outputs, the crime a sale writes, and the failure modes that ruin a batch.",
+  "rules": {
+    "grades": [
+      {"grade": "lab_pure", "min_purity": 99, "value_pct": 135},
+      {"grade": "pharma_grade", "min_purity": 90, "value_pct": 85},
+      {"grade": "near_pharma", "min_purity": 80, "value_pct": 40},
+      {"grade": "street_standard", "min_purity": 60, "value_pct": 0},
+      {"grade": "cut_product", "min_purity": 45, "value_pct": -45},
+      {"grade": "junk_grade", "min_purity": 30, "value_pct": -75},
+      {"grade": "starch_grade", "min_purity": 0, "value_pct": -95}
+    ],
+    "finisher_purity_cap_by_chem_modules": [88, 94, 97, 99, 100],
+    "blender_loss_pct_by_chem_modules": [35, 20, 10, 5, 0],
+    "plate_target_by_chem_modules": ["fixed 99 C", "fixed 160 C", "settable", "settable, 4x speed", "settable, 16x speed"],
+    "max_chem_modules_per_machine": 4,
+    "evaporator_ml_per_night": 300,
+    "night_chemistry_seconds": 360,
+    "buyers_refuse": "junk and starch always; cut product for grade-2 buyers (worn-out spacer, upper-level hedonist); judged on the label until a scanner-carrying buyer exposes it (-4 faction rep if over-labelled)",
+    "dont_cut_for_value": "value per ml of active ingredient rises with purity for every product except Phanta; cut (with starch) only to stretch a cartel quota count or to keep Phanta below 75 %",
+    "temperature_windows": {
+      "dream_extraction": "set 45 C (40 <= T < 50); a 40 C target settles at 39.9 and does nothing; mush rots from 50, extract dies from 60",
+      "nightmare_extraction": "set 45 C; extract dies 5 %/s per degree above 50",
+      "coffee_extraction": ">= 50 C with alcohol (any heat is safe), >= 80 C with water (1/6 the yield)",
+      "nomore": "50-55 C (fast) or 45-50 (half speed); lipobond boils above 55; alcohol must be <= 10 % of the mix",
+      "phanta": "120-129 C (15 %/s); 110-119 is 6x slower; >= 130 destroys 2 %/s; a 1-module plate is fixed at 160 and ruins it",
+      "lipobond": "add below 55 C or it boils off before binding fat"
+    }
+  },
+  "recipes": [
+    {
+      "id": "dream_dust_lab_pure",
+      "product": "dream_dust",
+      "category": "drug",
+      "grade": "lab_pure",
+      "machines": ["blender (4 chem modules)", "heating_plate (>= 2 modules)", "water_pitcher + kotton_fabric + water_filter", "evaporator + battery (+ solvent recovery module)", "chem_finisher (4 modules; 3 only from a perfectly clean residue)"],
+      "inputs": [
+        {"id": "dream_cap", "count": 6},
+        {"id": "mini alcohol bottle (common_chemical)", "count": 4, "note": "alcohol >= 5x mush; 2 per common_chemical pack (50)"},
+        {"id": "acid (common_chemical bottle)", "ml": 12.6, "note": "equal to the protein: 2 ml per cap"},
+        {"id": "base (common_chemical bottle)", "ml": "equal to any acid left"}
+      ],
+      "steps": [
+        "Blend the caps into the pitcher (0 % loss at 4 modules).",
+        "Pour 4 mini alcohol bottles (ratio >= 5; ratio 1-2 gives more extract per ml of solvent if caps are cheap and evaporator time is short).",
+        "Heat to 45 C and hold 2 minutes (or heat on an unmodded plate, lift it off at 45 C and let it react on the shelf). Never leave it on the plate at night.",
+        "Add acid equal to the protein by dropper; wait a minute; neutralise leftover acid with base.",
+        "Pour through kotton fabric, then through the water filter.",
+        "Evaporate until dry (about 1 night per 300 ml of solvent: 4 nights here; a turbo booster adds a night).",
+        "Finisher on Dream Dust; press Output until it stops. Press only when a buyer or the cartel is due."
+      ],
+      "yield": {"units": 33, "purity_pct": 99.2, "per_input": "5.5 units per cap", "lab": true},
+      "time": "1 day of work + 4 evaporator nights",
+      "value_base_each": 42,
+      "value_market_each": 72,
+      "expected_value_batch": {"base": 1386, "market": 2370},
+      "input_cost": "6 caps (138 at 23, or free from the cartel/own bay) + 2 common_chemical (100) + power",
+      "risk": {"contraband": {"dream_cap": 2, "dream_dust": 2}, "sale_crime": "DRUG_TRAFFICKING (BM buyers halve it; cartel clients 0)", "failure": ["extract left on an unmodded plate overnight is destroyed", "plate target 40 C extracts nothing", "no filtering gives junk grade (36 %)"]}
+    },
+    {
+      "id": "dream_dust_cartel_quota",
+      "product": "dream_dust",
+      "category": "drug",
+      "grade": "mean purity = required + 10",
+      "machines": ["blender", "heating_plate", "water_pitcher + kotton_fabric", "evaporator", "chem_finisher"],
+      "inputs": [{"id": "dream_cap", "count": "count x (req+10)/100 x 2 ml / 11 ml per cap"}, {"id": "starch (dried nutrifruit) or less filtering", "note": "to dilute to the target"}],
+      "steps": [
+        "Weekly visit is on days 8, 15, 22... (day % 7 == 1). Terms start at 10 units at 40 % and grow +5 units and +5 % (cap 70 %) each week.",
+        "Aim the batch mean at exactly required + 10 (rep = +(mean - req) up to that, only a quarter above it) and deliver at least the count: rep + the whole count.",
+        "Make extract as for lab pure, then dilute with starch (or skip the water filter: kotton-only gives ~62 %) to the target; mix extracts of known purity by volume.",
+        "Put every dream dust you want delivered on the counters; the handler takes all of it, surplus included. Keep sale stock off the counters (smuggler's bay)."
+      ],
+      "yield": {"note": "week 1 needs 10 ml of extract (one cap) at 50 %"},
+      "time": "same pipeline; deliver on the weekly day",
+      "value_base_each": 10,
+      "expected_value_batch": {"rep_per_week_week1": "+10 count +10 purity", "cash": "150 stipend (+4 x cartel rep with Increased Stipend), 3 caps + 1 common_chemical, + 1 chem_module when count and purity both pass"},
+      "risk": {"failure": ["no dust delivered: game over", "mean purity <= required/4: game over", "short count: -4 rep per missing unit", "mean <= required - 5: rep -(req - mean)"], "exit": "authorized exit at rep 100 only starts it; the threshold rises 25 per weekly visit to 200"}
+    },
+    {
+      "id": "caffeine_pill_lab_pure",
+      "product": "caffeine_pill",
+      "category": "medical (legal)",
+      "grade": "lab_pure",
+      "machines": ["blender (4 chem modules)", "heating_plate", "water_pitcher + water_filter", "evaporator", "chem_finisher (4 modules; 3 only from a perfectly clean residue)"],
+      "inputs": [{"id": "coffee_bean", "count": 3}, {"id": "mini alcohol bottle", "count": 1}, {"id": "lipobond", "ml": 3, "note": "1 per 8 fat; 1 ml per bean"}, {"id": "acid", "ml": 24, "note": "equal to protein; 8 ml per bean"}],
+      "steps": [
+        "Blend the beans into the pitcher.",
+        "Add one mini alcohol bottle per ~3 beans (alcohol >= 1.3x the mush gives the full 75 %).",
+        "Heat to >= 50 C for 2 minutes (caffeine never degrades).",
+        "Let it cool below 55 C, then add lipobond (1 per 8 fat) and acid equal to the protein; wait 90 s; neutralise leftover acid with base.",
+        "Water filter; evaporate (1 night).",
+        "Finisher on Caffeine Pill (5 ml per pill)."
+      ],
+      "yield": {"units": 25, "purity_pct": 99.1, "per_input": "~8 pills per bean", "lab": true},
+      "time": "1 day + 1 evaporator night",
+      "value_base_each": 24,
+      "value_market_each": 24,
+      "expected_value_batch": {"base": 600},
+      "input_cost": "3 beans (84, or grown: 8 beans per 3 nights per bay) + about half a common_chemical",
+      "risk": {"contraband": {}, "sale_crime": "none; bad legal product feeds FRAUD/ENDANGERMENT (1 point per 300 of price)", "failure": ["lipobond added hot boils away: pharma 95.7 % instead of lab pure", "water extraction converts 1/6 as much"]}
+    },
+    {
+      "id": "phanta_pill_street",
+      "product": "fanta_pill",
+      "category": "drug",
+      "grade": "street_standard (60-74 %)",
+      "machines": ["water_pitcher + water_filter", "heating_plate (>= 2 modules; 3-4 to hold 120-129 C)", "chem_finisher"],
+      "inputs": [{"id": "precursor bottle (restricted_chemical)", "count": 1}, {"id": "acid", "ml": 30, "note": "a quarter of the stabiliser"}, {"id": "base", "ml": "equal to leftover acid"}, {"id": "reducing agent (restricted_chemical)", "ml": 90, "note": "0.75 x methylol"}],
+      "steps": [
+        "Pour the precursor into the pitcher; add acid at a quarter of the stabiliser; wait a minute (stabiliser goes to debris).",
+        "Neutralise the leftover acid with base; water filter.",
+        "Add reducing agent at 0.75 x the methylol.",
+        "Heat to 120-129 C (4-module plate at 128 C: done in ~40 s). Never use a 1-module plate (fixed 160 C).",
+        "Finisher on Phanta Pill (0.5 ml each). Keep the product below 75 % (cut with starch if needed): 75 %+ is toxic, 100 % lethal."
+      ],
+      "yield": {"units": 39, "purity_pct": 61.6, "per_input": "~12 ml Phanta per precursor bottle; ~80 pills per restricted pack", "lab": true},
+      "time": "1 day, no evaporator night",
+      "value_base_each": 12,
+      "value_market_each": 24,
+      "expected_value_batch": {"base": 468, "market": 936},
+      "input_cost": "restricted_chemical 100 per 2 bottles + a little common_chemical",
+      "risk": {"contraband": {"restricted_chemical": 2, "fanta_pill": 3}, "sale_crime": "DRUG_TRAFFICKING", "failure": ["toxic at >= 75 % purity: -7 rep and refund demands; lethal at 100 %: -17 rep", "whole acid bottle: junk grade", "plate below 120 C: 6x slower; >= 130 C destroys it"]}
+    },
+    {
+      "id": "nomore_injector",
+      "product": "pink_alt_injector",
+      "category": "medical (legal), narcotic relief",
+      "grade": "lab_pure possible",
+      "machines": ["heating_plate (>= 2 modules)", "water filter", "evaporator", "chem_finisher"],
+      "inputs": [{"id": "dream extract", "ml": 40, "note": "dried of alcohol first"}, {"id": "reducing agent", "ml": 40}, {"id": "lipobond", "ml": 10, "note": ">= 1/4 of the extract, not consumed"}],
+      "steps": [
+        "Start from dried dream extract (alcohol must be <= 10 % of the mix); add water, reducing agent 1:1, lipobond >= 1/4 of the extract.",
+        "Hold 52 C for a minute (60 % of the extract becomes nomore, 40 % debris).",
+        "Filter, evaporate water and lipobond, finisher (4 ml per injector)."
+      ],
+      "yield": {"units": 6, "per_input": "40 ml extract -> 24 ml nomore -> 6 injectors", "lab": "reaction only"},
+      "time": "1 day + 1 night",
+      "value_base_each": 117,
+      "expected_value_batch": {"base": 705},
+      "risk": {"contraband": {}, "note": "worth less than the 20 lab-pure dream dusts the same extract makes (840 base) but legal"}
+    },
+    {
+      "id": "nightmare_dust",
+      "product": "nightmare_dust",
+      "category": "poison",
+      "grade": "any (always lethal)",
+      "machines": ["as dream dust"],
+      "inputs": [{"id": "nightmare_cap", "note": "15 ml mush each"}],
+      "steps": ["As dream dust, holding 45 C strictly (never 50+), 4 ml per unit."],
+      "yield": {"per_input": "~1.9 units per cap at ratio 5 (computed)"},
+      "value_base_each": 85,
+      "value_market_each": 169,
+      "risk": {"contraband": {"nightmare_cap": 3, "nightmare_dust": 3}, "sale_crime": "CONTRABAND_TRAFFICKING", "buyers": "Odin, shady merchant only"}
+    },
+    {
+      "id": "printer_combat_machete",
+      "product": "combat_machete",
+      "category": "printer",
+      "machines": ["printer + printer_module_metal"],
+      "inputs": [{"id": "metal_ingot", "count": 3}, {"id": "printer_chip_combat_machete", "count": 1, "note": "kept"}],
+      "steps": ["Seat the chip and metal module, load 3 ingots (any purity), power; 5 nights."],
+      "yield": {"units": 3},
+      "time": "5 nights, 60 power",
+      "expected_value_batch": {"base": 456, "margin": 246},
+      "risk": {"contraband": {}}
+    },
+    {
+      "id": "printer_combat_knife",
+      "product": "combat_knife",
+      "category": "printer",
+      "machines": ["printer + printer_module_metal"],
+      "inputs": [{"id": "metal_ingot", "count": 2}],
+      "steps": ["Chip + metal module, 2 ingots; 5 nights."],
+      "yield": {"units": 5},
+      "time": "5 nights, 60 power",
+      "expected_value_batch": {"margin": 148}
+    },
+    {
+      "id": "printer_kitchen_cleaver",
+      "product": "kitchen_cleaver",
+      "category": "printer",
+      "machines": ["printer"],
+      "inputs": [{"id": "scrap_metal", "count": 5}, {"id": "printer_plastic", "count": 2}],
+      "steps": ["Chip, 5 scrap + 2 plastic; 4 nights."],
+      "yield": {"units": 4},
+      "time": "4 nights, 32 power",
+      "expected_value_batch": {"margin": 107}
+    },
+    {
+      "id": "printer_hatchet",
+      "product": "hatchet",
+      "category": "printer",
+      "machines": ["printer"],
+      "inputs": [{"id": "scrap_metal", "count": 4}, {"id": "printer_plastic", "count": 1}],
+      "steps": ["Chip, 4 scrap + 1 plastic; 4 nights."],
+      "yield": {"units": 4},
+      "time": "4 nights, 32 power",
+      "expected_value_batch": {"margin": 97}
+    },
+    {
+      "id": "printer_kitchen_knife",
+      "product": "kitchen_knife",
+      "category": "printer",
+      "machines": ["printer"],
+      "inputs": [{"id": "scrap_metal", "count": 3}, {"id": "printer_plastic", "count": 1}],
+      "steps": ["Chip, 3 scrap + 1 plastic; 3 nights."],
+      "yield": {"units": 4},
+      "time": "3 nights, 24 power",
+      "expected_value_batch": {"margin": 82}
+    }
+  ]
+}

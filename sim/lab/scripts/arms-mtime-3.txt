@@ -1,0 +1,9 @@
+# Mortgage timing, batch 3 (selection seeds): sign-by deadline x mortgage_cover.
+# Stopped after w105_cov36 (the other arms were not run): cover delayed signing in batch 2.
+w105_cov36 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_cov36.json
+w105_cov42 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_cov42.json
+w105_cov46 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_cov46.json
+w112_cov36 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w112_cov36.json
+w112_cov42 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w112_cov42.json
+w112_cov46 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w112_cov46.json
+w119_cov42 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w119_cov42.json

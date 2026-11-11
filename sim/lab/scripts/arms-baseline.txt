@@ -1,0 +1,3 @@
+# Re-baseline: the best hard policy and the normal defaults (run once per build; seeds 1900001-060 for the Jackson fix).
+hard   | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/hard_income_mortgage_appraisal.json
+normal | -human player -difficulty normal -start none

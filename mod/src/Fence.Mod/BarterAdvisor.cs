@@ -59,12 +59,28 @@ namespace Fence.Mod
         string stageSig;
         BarterSnapshot stageSnap;
         int stageCandidates;
+        IList<StageCandidate> stageAll;
+        IList<StageCandidate> stageTop;
+        long? stageBudget;
 
         public bool AdviseEnabled { get; set; }
         // Staging advice for buying customers (advise.stage); barter advice works without it.
         public bool StageEnabled { get; set; }
+        // Size of the instant shortlist (stage_shortlist setting); 0 disables it.
+        public Func<int> ShortlistSize { get; set; } = () => StageShortlist.DefaultSize;
         public bool DisplayEnabled { get; set; }
+        // The inspect advice line for the overlay; set by FenceMod.
+        public Func<string> InspectLine { get; set; }
+        // aug_check advice for the customer at the counter; set by FenceMod.
+        public AugAdvisor Augs { get; set; }
         public bool OverlayEnabled { get => overlay.Enabled; set => overlay.Enabled = value; }
+        // The autopilot's overlay line and its pause toggle; set by FenceMod.
+        public Func<(string line, bool alert, string pause)> AutopilotStatus { get; set; }
+        // Toggles the autopilot; true when it now runs.
+        public Func<string, bool> AutopilotToggle { get; set; }
+        // Every trade the game books (sold: true when the shop sold), for the autopilot's day ledger.
+        public Action<bool, GameItem, int> Traded { get; set; }
+        public SummaryResponse LatestSummary => summary;
 
         public BarterAdvisor(FenceLog log, BridgeSession session, BridgeClient client, Func<IEnumerator, bool> startCoroutine, Action<string, JObject> emitEvent, Recorder.Emit recordSink,
             Func<bool> actSetting, Func<string, bool> hookUsable, Recorder recorder)
@@ -154,6 +170,7 @@ namespace Fence.Mod
             }
             if (!ReferenceEquals(snap.Client.Key, tracker.ClientKey)) StartClient(snap.Client, false);
             if (observer.Pending && CounterReady(snap) && observer.Ready(tracker.ClientSeq)) Observe("ready", snap);
+            Augs?.Tick(snap.Client, tracker.ClientSeq, now);
 
             covered = snap.CoverageGap == null;
             if (!covered)
@@ -169,6 +186,7 @@ namespace Fence.Mod
             var pending = tracker.PendingAct;
             if (pending != null) holdAsks = HandlePending(pending, snap, now);
 
+            stageTop = null;
             var question = snap.Ready && StageEnabled ? StageQuestion(snap) ?? snap : snap;
             string signature = question.Ready ? question.Signature : null;
             bool mayAsk = canAsk && !holdAsks && !limiter.Settling(now) && question.Options != null && question.Options.Count > 0;
@@ -207,8 +225,13 @@ namespace Fence.Mod
                 stageSig = sig;
                 stageSnap = StageContext.Build(snap, candidates, total, budgetLeft, suitable);
                 stageCandidates = candidates.Count;
+                stageAll = candidates;
             }
-            return StageContext.Ask(suitable, stageCandidates, tracker.AnswerFor(sig)) ? stageSnap : null;
+            if (!StageContext.Ask(suitable, stageCandidates, tracker.AnswerFor(sig))) return null;
+            int n = SafeShortlistSize();
+            stageTop = n > 0 ? stageAll.Take(n).ToList() : null;
+            stageBudget = budgetLeft;
+            return stageSnap;
         }
 
         void ForgetStage()
@@ -216,6 +239,20 @@ namespace Fence.Mod
             stageSig = null;
             stageSnap = null;
             stageCandidates = 0;
+            stageAll = null;
+            stageTop = null;
+        }
+
+        int SafeShortlistSize()
+        {
+            try
+            {
+                return ShortlistSize?.Invoke() ?? 0;
+            }
+            catch (Exception)
+            {
+                return StageShortlist.DefaultSize;
+            }
         }
 
         // ---- act (P2) ----
@@ -254,8 +291,7 @@ namespace Fence.Mod
                     return false;
             }
 
-            var gate = ActGate.TryOpen(() => session.Mode, ActSettingOn, actSwitch);
-            if (gate == null)
+            if (!ActGate.Allows(session.Mode, ActSettingOn(), actSwitch))
             {
                 pending.Act = ActState.Blocked;
                 pending.ActNote = "acting off";
@@ -263,11 +299,9 @@ namespace Fence.Mod
             }
             var command = ActCommands.Parse(pending.OptionId);
             limiter.Record(now);
-            attribution.BeginMod(pending.DecisionId);
-            recorder?.Filter.EnterExecutor();
             try
             {
-                bool done = executor.Execute(gate, command);
+                bool done = RunExecutor(command, pending.DecisionId, null);
                 pending.Act = done ? ActState.Executed : ActState.Blocked;
                 if (!done) pending.ActNote = "acting off";
                 log.Info("act " + pending.DecisionId + " [" + pending.Signature + "]: " + (done ? "executed " : "skipped ") + pending.OptionId);
@@ -279,16 +313,61 @@ namespace Fence.Mod
                 pending.ActNote = "error, acting off";
                 log.Error("act " + pending.DecisionId + " failed, acting off for this session: " + e);
             }
+            return true;
+        }
+
+        // The autopilot's counter move (docs/STREAM.md): the executor's own pick, attributed to the decision
+        // the bridge logged for this counter state. Exceptions propagate to the autopilot, which stops.
+        public bool ExecuteForAutopilot(ActCommand command, Func<bool> running)
+        {
+            if (command == null) return false;
+            playerDismissing = command.Kind == ActKind.Dismiss;
+            try
+            {
+                return RunExecutor(command, tracker.LastDecisionId, running);
+            }
+            finally
+            {
+                playerDismissing = false;
+            }
+        }
+
+        // The only call of BarterExecutor, through a gate opened here: the bridge's act mode (P2a) or, with
+        // `autopilotRunning`, the autopilot.
+        bool RunExecutor(ActCommand command, string decisionId, Func<bool> autopilotRunning)
+        {
+            var gate = autopilotRunning != null ? ActGate.TryOpenAutopilot(autopilotRunning) : ActGate.TryOpen(() => session.Mode, ActSettingOn, actSwitch);
+            if (gate == null) return false;
+            attribution.BeginMod(decisionId, autopilotRunning != null ? Actors.Autopilot : Actors.Mod);
+            recorder?.Filter.EnterExecutor();
+            try
+            {
+                return executor.Execute(gate, command);
+            }
             finally
             {
                 attribution.EndMod();
                 recorder?.Filter.ExitExecutor();
             }
-            return true;
+        }
+
+        // In act mode with acting on, the bridge's model plays the counter (P2a) while it is thinking or has a
+        // move pending; the autopilot waits for it and plays its own pick only after a defer.
+        public bool CounterLeftToBridge()
+        {
+            if (session.Mode != Modes.Act || !ActSettingOn() || actSwitch.Paused || actSwitch.Faulted) return false;
+            return tracker.PendingAct != null || tracker.InFlight;
         }
 
         void TogglePause()
         {
+            if (AutopilotStatus?.Invoke().pause != null && AutopilotToggle != null)
+            {
+                // One brake for both: a paused autopilot pauses the bridge's counter moves too.
+                if (AutopilotToggle("overlay")) actSwitch.Resume();
+                else actSwitch.Pause();
+                return;
+            }
             if (actSwitch.Faulted) return;
             if (actSwitch.Paused)
             {
@@ -333,6 +412,14 @@ namespace Fence.Mod
             if (!overlay.Enabled) return;
             var snap = lastSnap;
             bool hasClient = snap?.Client != null && ReferenceEquals(snap.Client.Key, tracker.ClientKey);
+            (string line, bool alert, string pause) auto = (null, false, null);
+            try
+            {
+                if (AutopilotStatus != null) auto = AutopilotStatus();
+            }
+            catch (Exception)
+            {
+            }
             var view = OverlayText.Build(new OverlayInput
             {
                 Mode = session.Mode,
@@ -348,8 +435,33 @@ namespace Fence.Mod
                 SummaryFailed = summaryPoller.LastFailed,
                 Recording = RecordingStatus.Of(session, now),
                 BeforeOpen = beforeOpen,
+                Inspect = InspectLineNow(),
+                Shortlist = hasClient ? stageTop : null,
+                ShortlistBudgetLeft = stageBudget,
+                Autopilot = auto.line,
+                AutopilotAlert = auto.alert,
+                AutopilotPause = auto.pause,
             });
             overlay.Update(view, now);
+        }
+
+        string InspectLineNow()
+        {
+            try
+            {
+                return InspectLine?.Invoke() ?? "";
+            }
+            catch (Exception)
+            {
+                return "";
+            }
+        }
+
+        // A result line for today's log from another advisor (inspect).
+        public void NoteOutcome(string text)
+        {
+            today.Note(text);
+            summaryPoller.Want();
         }
 
         public void OnGameEvent(string kind)
@@ -399,7 +511,7 @@ namespace Fence.Mod
                 emitEvent("client_arrived", new JObject
                 {
                     ["name"] = info.Name,
-                    ["faction"] = Factions.Name(info.FactionId),
+                    ["faction"] = Factions.Visible(info),
                     ["intent"] = IntentName(info),
                 });
             }
@@ -590,6 +702,7 @@ namespace Fence.Mod
 
         public void AfterTrade(string side, object storeClient, GameItem item, int amount)
         {
+            Traded?.Invoke(side == TradeBatch.Sold, item, amount);
             if (!IsTrackedClient(storeClient ?? GameBarter.CurrentClient()) || trades.Side != side || trades.RepBefore == null) return;
             trades.Add(game.Uid(item), amount);
             lastTradeMs = Now();
@@ -653,6 +766,11 @@ namespace Fence.Mod
             if (!CurrentIsTracked() || !GameReflect.OnCounter(item)) return;
             var act = ActNow();
             if (act == ActDisplay.Paused || act == ActDisplay.Faulted) GameReflect.TooltipLine(builder, "fence: act paused", true);
+            if (stageTop != null && stageTop.Count > 0)
+            {
+                GameReflect.TooltipLine(builder, "fence suggests offer: " + StageShortlist.Line(stageTop[0], stageBudget), false);
+                return;
+            }
             var view = tracker.View(canAsk && covered);
             switch (view.Status)
             {

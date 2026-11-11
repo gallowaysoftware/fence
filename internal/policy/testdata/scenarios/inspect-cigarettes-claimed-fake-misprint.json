@@ -1,0 +1,57 @@
+{
+  "note": "Sold as counterfeit and the lettering is misprinted: agree.",
+  "expect": [
+    "counterfeit"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-cigarettes-claimed-fake-misprint",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-cigarettes-claimed-fake-misprint",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5040,
+        "id": "packet_red_cigarette",
+        "name": "Red cigarettes",
+        "kind": "cigarettes",
+        "price": 50
+      },
+      "claim": "counterfeit",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "visual": {
+        "seal": "matches reference",
+        "lettering": "misprinted",
+        "logo": "matches reference",
+        "box_colour": "matches colour card"
+      }
+    },
+    "options": [
+      {
+        "id": "genuine",
+        "label": "Tell them it is genuine. Right: +2 rep with them, price rises to the genuine price less 15%. Wrong: they deny it, no penalty"
+      },
+      {
+        "id": "counterfeit",
+        "label": "Agree it is counterfeit: price stays 50"
+      }
+    ],
+    "hidden": {
+      "real_condition": "counterfeitCigarette",
+      "issue_tags": [
+        "CIGARETTE_LETTERING_ISSUE"
+      ]
+    }
+  }
+}

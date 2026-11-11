@@ -26,7 +26,8 @@
       "is_security": false,
       "on_wanted_poster": false,
       "attracted_by": "cassette2",
-      "wholesale": null
+      "wholesale": null,
+      "aug": false
     },
     "counter": {"theirs": [], "yours_staged": []},
     "market_events": [{"item_type": "electronics", "value_pct": 10}],

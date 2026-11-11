@@ -1,0 +1,77 @@
+{
+  "note": "Every printed text passes, but the indicator shows the expired warning: confront the indicator.",
+  "expect": [
+    "confront_indicator"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-injector-expired-text-clean",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-injector-expired-text-clean",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5035,
+        "id": "large_purple_injector",
+        "name": "Immunivax",
+        "kind": "injector",
+        "price": 160
+      },
+      "claim": "genuine",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "text": {
+        "serial": "3127764",
+        "company": "Carmicheal Pharmaceutical",
+        "model": "Immunivax"
+      },
+      "visual": {
+        "indicator": "expired warning",
+        "body": "intact",
+        "body_colour": "standard"
+      }
+    },
+    "options": [
+      {
+        "id": "confront_indicator",
+        "label": "Confront: indicator issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_label",
+        "label": "Confront: label issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_serial",
+        "label": "Confront: serial issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_body",
+        "label": "Confront: body issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_color",
+        "label": "Confront: colour issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "genuine",
+        "label": "No confront: take it as genuine at 160"
+      }
+    ],
+    "hidden": {
+      "real_condition": "expiredInjector",
+      "issue_tags": [
+        "ISSUE_INDICATOR"
+      ]
+    }
+  }
+}

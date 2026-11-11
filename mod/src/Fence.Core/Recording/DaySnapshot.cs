@@ -11,6 +11,8 @@ namespace Fence.Recording
     public sealed class StoreDay
     {
         public int? Cash, Day, WildFavor, NetWorth, Attractiveness, TrashPenalty, ProjectorBonus, QueueLength, CommissaryTokens, RetailMarkup;
+        // PlayerStore.difficultyId: cozy, normal, hard, challenge (shown on the new-game screen).
+        public string Difficulty;
         public bool StampIntroduced;
         public bool? BusinessPermit, NewspaperUnlocked;
     }
@@ -57,6 +59,14 @@ namespace Fence.Recording
         public string Root;
         // ContrabandHelper.IsSmugglerBay: inspections do not search its contents.
         public bool SmugglerBay;
+        // The grid inside a container (a bay, bag or machine); null for an item that holds nothing.
+        public Capacity Capacity;
+    }
+
+    // Grid cells inside a container: every cell the shape allows, and those no item covers.
+    public sealed class Capacity
+    {
+        public int Cells, Free;
     }
 
     public sealed class Prediction
@@ -100,7 +110,7 @@ namespace Fence.Recording
     {
         public string Id, Name;
         public int? Cost;
-        public int State;
+        public int State, Cooldown;
         public bool Unlocked, HasPrerequisite, Hidden;
     }
 
@@ -167,6 +177,8 @@ namespace Fence.Recording
         IList<AfterhourDay> Afterhours();
         IList<RequestDay> Requests();
         IList<string> NightLog();
+        // The run's starting perk ids (PlayerStore.startingPerks).
+        IList<string> StartingPerks();
         HiddenDay Hidden();
     }
 
@@ -195,7 +207,7 @@ namespace Fence.Recording
         public static readonly string[] Sections =
         {
             "store", "rent", "property", "reputation", "inventory", "clientele", "security", "upgrades", "services",
-            "market_events", "afterhours", "requests", "night_log", "hidden",
+            "market_events", "afterhours", "requests", "night_log", "perks", "hidden",
         };
 
         public const int CalendarDays = 14;
@@ -207,6 +219,7 @@ namespace Fence.Recording
             var unavailable = new JArray();
             StoreDay store = null;
             List<OwnedItem> inventory = null;
+            IList<RepDay> reps = null;
 
             void Section(string name, Action fill)
             {
@@ -233,7 +246,11 @@ namespace Fence.Recording
             });
             Section("rent", () => r.Data["rent"] = Rent(g.Rent(), store?.Day));
             Section("property", () => r.Data["property"] = Property(g.Property()));
-            Section("reputation", () => r.Data["reputation"] = Reputation(g.Reputation()));
+            Section("reputation", () =>
+            {
+                reps = g.Reputation();
+                r.Data["reputation"] = Reputation(reps);
+            });
             Section("inventory", () =>
             {
                 inventory = (g.Inventory() ?? new List<OwnedItem>()).Where(i => i?.Item != null).ToList();
@@ -250,6 +267,7 @@ namespace Fence.Recording
             // The start-of-day panel clears the night log right after the morning hook.
             if (phase == SnapshotPhases.Morning)
                 Section("night_log", () => r.Data["night_log"] = new JArray((g.NightLog() ?? new List<string>()).Select(FeatureText.Plain).Where(s => s.Length > 0).Cast<object>().ToArray()));
+            Section("perks", () => r.Data["perks"] = Perks(g.StartingPerks(), reps ?? g.Reputation()));
             Section("hidden", () => HiddenValues(g.Hidden(), r.Hidden));
 
             if (unavailable.Count > 0) r.Data["unavailable"] = unavailable;
@@ -261,6 +279,7 @@ namespace Fence.Recording
             var o = BarterContext.VisibleItem(i.Item, false, i.Where);
             if (i.Root != null && i.Root != i.Where) o["root"] = i.Root;
             if (i.SmugglerBay) o["smuggler_bay"] = true;
+            if (i.Capacity != null) o["capacity"] = new JObject { ["cells"] = i.Capacity.Cells, ["free"] = i.Capacity.Free };
             return o;
         }
 
@@ -282,6 +301,8 @@ namespace Fence.Recording
             Put(o, "queue_length", s.QueueLength);
             if (s.StampIntroduced) Put(o, "commissary_tokens", s.CommissaryTokens);
             Put(o, "retail_markup", s.RetailMarkup);
+            if (!string.IsNullOrEmpty(s.Difficulty)) o["difficulty"] = s.Difficulty;
+            o["aug_detection"] = Fence.Aug.AugDetection.Current;
             Put(o, "business_permit", s.BusinessPermit);
             Put(o, "newspaper_unlocked", s.NewspaperUnlocked);
             return o;
@@ -334,6 +355,21 @@ namespace Fence.Recording
                 };
             }
             return o;
+        }
+
+        // Starting perks, and every reputation perk unlocked now (any faction): what is in force today.
+        public static JObject Perks(IList<string> starting, IList<RepDay> reps)
+        {
+            var unlocked = (reps ?? new List<RepDay>())
+                .Where(r => r != null && Factions.WithRepBar.Contains(Factions.Name(r.FactionId) ?? ""))
+                .SelectMany(r => r.Perks ?? new List<PerkDay>())
+                .Where(p => p != null && p.Unlocked && !string.IsNullOrEmpty(p.Id))
+                .Select(p => p.Id).Distinct().OrderBy(id => id, StringComparer.Ordinal);
+            return new JObject
+            {
+                ["starting"] = new JArray((starting ?? new List<string>()).Where(id => !string.IsNullOrEmpty(id)).Cast<object>().ToArray()),
+                ["reputation"] = new JArray(unlocked.Cast<object>().ToArray()),
+            };
         }
 
         // The next perk up (the lowest non-negative threshold above the value) and the next one down
@@ -405,9 +441,12 @@ namespace Fence.Recording
             var list = (ups ?? new List<UpgradeDay>()).Where(u => u != null && !u.Hidden).OrderBy(u => u.Id, StringComparer.Ordinal).ToList();
             return new JObject
             {
-                ["owned"] = new JArray(list.Where(u => u.Unlocked || u.State > 0).Select(u => (object)new JObject { ["id"] = u.Id, ["name"] = u.Name, ["state"] = u.State }).ToArray()),
-                ["available"] = new JArray(list.Where(u => !u.Unlocked && u.State == 0 && u.HasPrerequisite)
+                // NetworkUpgrade.state: 0 not offered, 1 for sale, 2 owned (or armed, for a held grace).
+                ["owned"] = new JArray(list.Where(u => u.State == 2).Select(u => (object)new JObject { ["id"] = u.Id, ["name"] = u.Name }).ToArray()),
+                ["available"] = new JArray(list.Where(u => u.State == 1 && u.HasPrerequisite && u.Cooldown == 0)
                     .Select(u => (object)new JObject { ["id"] = u.Id, ["name"] = u.Name, ["cost"] = u.Cost }).ToArray()),
+                ["cooling"] = new JArray(list.Where(u => u.State == 1 && u.HasPrerequisite && u.Cooldown > 0)
+                    .Select(u => (object)new JObject { ["id"] = u.Id, ["name"] = u.Name, ["cost"] = u.Cost, ["days"] = u.Cooldown }).ToArray()),
             };
         }
 

@@ -29,7 +29,7 @@ namespace Fence.Extract
 
     // Writes var/gamedata/*.json. Every table is produced by running the game's own code headless
     // (factories, initializers, generators) and reading the objects it builds.
-    static class Extractor
+    static partial class Extractor
     {
         public const int Version = 1;
         const int ItemSamples = 24;
@@ -61,6 +61,8 @@ namespace Fence.Extract
             Step("days", () => { PlayerStore.Instance.StartNewGame(); Days(); });
             Step("normal mix", () => { PlayerStore.Instance.StartNewGame(); NormalMix(); });
             Step("clients", () => { PlayerStore.Instance.StartNewGame(); Clients(game); });
+            Step("chemistry", () => { PlayerStore.Instance.StartNewGame(); Chemistry(game); });
+            Step("recipes", () => { PlayerStore.Instance.StartNewGame(); Recipes(game); });
 
             Write("extract_report", w =>
             {

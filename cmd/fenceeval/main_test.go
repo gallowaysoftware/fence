@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gallowaysoftware/fence/internal/policy"
 	"github.com/gallowaysoftware/fence/internal/protocol"
 	"github.com/gallowaysoftware/fence/protocol/schema"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -22,6 +24,20 @@ const (
 	scenarios = "../../internal/policy/testdata/scenarios"
 	fixtures  = "../../protocol/fixtures"
 )
+
+// The appraisal scenarios are valued with the policy tests' fictional table, so the run does not
+// depend on the uncommitted local one.
+func TestMain(m *testing.M) {
+	raw, err := policy.ReadAppraisalGuides("../../internal/policy/testdata/appraisal_guides.fixture.json")
+	if err == nil {
+		err = policy.UseAppraisalGuides(raw)
+	}
+	if err != nil || raw == nil {
+		fmt.Fprintln(os.Stderr, "appraisal fixture:", err)
+		os.Exit(1)
+	}
+	os.Exit(m.Run())
+}
 
 func TestScenariosAreValid(t *testing.T) {
 	raw, err := schema.FS.ReadFile("decide.request.schema.json")

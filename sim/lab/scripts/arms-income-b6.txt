@@ -1,0 +1,4 @@
+# Hard income, batch 6: lower mortgage margins.
+vs2_ma_m06 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m06.json -perks vending+short_sleeper
+vs2_ma_m04 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m04.json -perks vending+short_sleeper
+vs2_ma_m07_f2k | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_ma_m07_f2k.json -perks vending+short_sleeper

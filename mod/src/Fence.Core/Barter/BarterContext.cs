@@ -95,7 +95,7 @@ namespace Fence.Barter
             var client = new JObject
             {
                 ["name"] = c.Name,
-                ["faction"] = Factions.Name(c.FactionId),
+                ["faction"] = Factions.Visible(c),
                 ["intent"] = Intent(c.Intent),
                 ["budget"] = buying && c.UsesBudget ? new JValue(c.Budget) : JValue.CreateNull(),
                 ["interests"] = new JArray((buying ? c.InterestTags : new List<string>()).Select(TypeTags.Name).Cast<object>().ToArray()),
@@ -111,6 +111,7 @@ namespace Fence.Barter
                     ? new JObject { ["price"] = c.WholesalePrice.Value, ["discount_pct"] = Math.Abs(c.WholesaleDiscount) }
                     : (JToken)JValue.CreateNull(),
             };
+            Fence.Aug.AugDetection.Describe(client, c);
 
             var counter = new JObject
             {
@@ -165,16 +166,23 @@ namespace Fence.Barter
             return o;
         }
 
+        public static JObject HiddenClient(ClientInfo c)
+        {
+            var o = new JObject
+            {
+                ["identifier"] = c.Identifier,
+                ["is_aug"] = c.IsAug,
+                ["stealth_wanted"] = c.IsStealthWanted,
+            };
+            Fence.Aug.AugDetection.Hidden(o, c);
+            return o;
+        }
+
         public static JObject Hidden(ClientInfo c, IList<ItemInfo> items, int? daysToInspection)
         {
             var hidden = new JObject
             {
-                ["client"] = new JObject
-                {
-                    ["identifier"] = c.Identifier,
-                    ["is_aug"] = c.IsAug,
-                    ["stealth_wanted"] = c.IsStealthWanted,
-                },
+                ["client"] = HiddenClient(c),
                 ["items"] = new JArray(items.Where(i => !i.Owned || i.OnBack).Select(HiddenItem).Cast<object>().ToArray()),
             };
             if (daysToInspection.HasValue) hidden["days_to_inspection"] = daysToInspection.Value;

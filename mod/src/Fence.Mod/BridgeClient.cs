@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Text;
 using Fence.Bridge;
+using Fence.Gym;
 using Fence.Protocol;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -113,7 +114,11 @@ namespace Fence.Mod
                 }
                 session.HelloSucceeded(response);
                 if (session.State == SessionState.Active)
-                    log.Info("bridge session " + session.SessionId + ", mode " + session.Mode);
+                {
+                    Appraisal.Guides = response.AppraisalGuides;
+                    log.Info("bridge session " + session.SessionId + ", mode " + session.Mode
+                        + (Appraisal.Guides == null ? "; no appraisal guides: the autopilot will not join the appraisal board" : "; appraisal guides loaded"));
+                }
                 else
                     LogVanilla();
             }

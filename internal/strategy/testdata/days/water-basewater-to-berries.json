@@ -647,9 +647,9 @@
        "established": true
       },
       "progress": 2,
-      "target": 10,
+      "target": 12,
       "eta_nights": 1,
-      "harvest_count": 8,
+      "harvest_count": 6,
       "water_ml": 5200,
       "water_use": 100,
       "status": "growing",

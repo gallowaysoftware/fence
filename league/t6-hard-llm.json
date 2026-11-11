@@ -1,0 +1,69 @@
+{
+  "name": "t6-hard-llm",
+  "players": [
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "bridge-observe",
+      "mode": "heuristic",
+      "bridge_flags": [
+        "-mode",
+        "observe"
+      ]
+    },
+    {
+      "id": "qwen27-delta",
+      "endpoint": "localmodel",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "baseline": "player",
+  "seeds": [
+    1200001,
+    1200002,
+    1200003,
+    1200004,
+    1200005,
+    1200006,
+    1200007,
+    1200008,
+    1200009,
+    1200010,
+    1200011,
+    1200012,
+    1200013,
+    1200014,
+    1200015,
+    1200016,
+    1200017,
+    1200018,
+    1200019,
+    1200020,
+    1200021,
+    1200022,
+    1200023,
+    1200024
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_mortgage.json"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

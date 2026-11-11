@@ -1,0 +1,39 @@
+# v2 strategy arms (docs/research/EXPERIMENTS.md, "v2 (faithful gym)").
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-v2.txt -dir var/sim/exp/v2-hard -seeds 40 -days 200 -- -difficulty hard
+# G = the v1 combined policy: bargain=ev,max_heat=101,sell_hot=0,window=concentrate (services and upgrades are now the default role's).
+base | -human knobs 
+svc_tablet | -human knobs -knobs services=tablet
+svc_none | -human knobs -knobs services=none
+svc_ins | -human knobs -knobs services=ins
+svc_jan | -human knobs -knobs services=jan
+svc_both7 | -human knobs -knobs services=both,svc_nights=7
+bg_never | -human knobs -knobs bargain=never
+bg_ev | -human knobs -knobs bargain=ev
+bg_aggr10 | -human knobs -knobs bargain=aggr,bargain_pct=10
+st_avoid | -human knobs -knobs max_heat=1
+st_hot | -human knobs -knobs max_heat=101
+st_hold | -human knobs -knobs max_heat=101,sell_hot=0
+st_contra | -human knobs -knobs max_heat=101,buy_contraband=1
+win_conc | -human knobs -knobs window=concentrate
+win_conc8 | -human knobs -knobs window=concentrate,window_n=8
+win_top | -human knobs -knobs window=top
+win_empty | -human knobs -knobs window=empty
+ws_never | -human knobs -knobs ws_margin=99
+ws_only | -human knobs -knobs buy_margin=1.1,ws_margin=1.0
+up_none | -human knobs -upgrades none
+up_growth | -human knobs -upgrades growth
+up_grace | -human knobs -upgrades LANDLORD_GRACE
+pm_refuse | -human knobs -permit refuse
+pm_save30 | -human knobs -knobs save_permit=30
+pm_save45 | -human knobs -knobs save_permit=45
+scav_never | -human knobs -knobs scav=never
+G | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate
+G_up_none | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate -upgrades none
+G_up_growth | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate -upgrades growth
+G_refuse | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate -permit refuse
+G_save45 | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate,save_permit=45
+G_wsonly | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate,buy_margin=1.1,ws_margin=1.0
+G_wsonly_save45 | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate,buy_margin=1.1,ws_margin=1.0,save_permit=45
+G_wsonly_save45_growth | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0,window=concentrate,buy_margin=1.1,ws_margin=1.0,save_permit=45 -upgrades growth
+G_avoid | -human knobs -knobs bargain=ev,max_heat=1,window=concentrate
+G_types | -human knobs -knobs bargain=ev,max_heat=101,sell_hot=0

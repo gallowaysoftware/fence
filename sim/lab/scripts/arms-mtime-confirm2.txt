@@ -1,0 +1,3 @@
+# Mortgage timing, confirmation on fresh hard seeds 980061-980120 (never used before) (a second block).
+d_base      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980060 -directives sim/lab/scripts/directives/hard_income_mortgage.json
+d_w105      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980060 -directives sim/lab/scripts/directives/mt/w105.json

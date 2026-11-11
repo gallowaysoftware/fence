@@ -51,7 +51,9 @@ type Config struct {
 	Summarizer Summarizer
 	// Planner, if set, supplies the day's plan for /v1/summary (the strategist).
 	Planner Planner
-	Logger  *slog.Logger
+	// AppraisalGuides, if set, go to the mod in every hello (policy.ReadAppraisalGuides).
+	AppraisalGuides json.RawMessage
+	Logger          *slog.Logger
 	// MaxBodyBytes caps request bodies; larger ones get 413.
 	MaxBodyBytes int64
 	Now          func() time.Time
@@ -78,6 +80,12 @@ type Summarizer interface {
 // /v1/summary path under the same deadline as the Summarizer.
 type Planner interface {
 	CurrentPlan(session string) (text string, day int, ok bool)
+}
+
+// DirectivesPlanner is a Planner that also has the plan as directives (docs/PROTOCOL.md,
+// "Directives"); /v1/summary serves them when the Planner implements it.
+type DirectivesPlanner interface {
+	CurrentDirectives(session string) (directives json.RawMessage, day int, ok bool)
 }
 
 type Server struct {
@@ -189,7 +197,7 @@ func (s *Server) hello(w http.ResponseWriter, r *http.Request) {
 		"game", req.Game.Version, "compat_ok", req.Compat.OK, "missing", req.Compat.Missing)
 	s.record(func(r Recorder) { r.Hello(sess.id, req) })
 	s.cfg.Log.Write(sess.id, helloRecord{header: s.header("hello", sess.id), Mode: sess.mode, Policy: s.cfg.Policy.Name(), Hello: req})
-	writeJSON(w, http.StatusOK, protocol.HelloResponse{SessionID: sess.id, Protocol: protocol.Version, Mode: sess.mode})
+	writeJSON(w, http.StatusOK, protocol.HelloResponse{SessionID: sess.id, Protocol: protocol.Version, Mode: sess.mode, AppraisalGuides: s.cfg.AppraisalGuides})
 }
 
 func (s *Server) event(w http.ResponseWriter, r *http.Request) {
@@ -384,7 +392,7 @@ func (s *Server) summary(w http.ResponseWriter, r *http.Request) {
 	resp := protocol.SummaryResponse{
 		SessionID: sess.id, Mode: sess.mode, Policy: s.cfg.Policy.Name(), Model: s.cfg.Model,
 		Day: day.Day, Today: day.Today, Lessons: day.Lessons, LessonsDay: day.LessonsDay,
-		Plan: p.text, PlanDay: p.day,
+		Plan: p.text, PlanDay: p.day, Directives: p.directives,
 	}
 	if resp.Today.RepDelta == nil {
 		resp.Today.RepDelta = map[string]float64{}
@@ -403,8 +411,9 @@ func (s *Server) daySummary(ctx context.Context, session string) protocol.Summar
 }
 
 type plan struct {
-	text string
-	day  int
+	text       string
+	day        int
+	directives *protocol.Directives
 }
 
 // currentPlan is the planner's plan cut to MaxPlanBytes; none when it is late, panics or
@@ -418,7 +427,9 @@ func (s *Server) currentPlan(ctx context.Context, session string) plan {
 		if !ok {
 			return plan{}, nil
 		}
-		return plan{text: clipText(strings.TrimSpace(text), protocol.MaxPlanBytes), day: max(day, 0)}, nil
+		p := plan{text: clipText(strings.TrimSpace(text), protocol.MaxPlanBytes), day: max(day, 0)}
+		p.directives = s.directives(session)
+		return p, nil
 	})
 	if err != nil {
 		s.log.Warn("plan unavailable", "session", session, "err", err)
@@ -428,6 +439,28 @@ func (s *Server) currentPlan(ctx context.Context, session string) plan {
 		return plan{}
 	}
 	return p
+}
+
+// directives are the planner's directives when it has valid ones; their day defaults to
+// the plan's.
+func (s *Server) directives(session string) *protocol.Directives {
+	dp, ok := s.cfg.Planner.(DirectivesPlanner)
+	if !ok {
+		return nil
+	}
+	raw, day, ok := dp.CurrentDirectives(session)
+	if !ok || len(raw) == 0 {
+		return nil
+	}
+	var d protocol.Directives
+	if err := json.Unmarshal(raw, &d); err != nil {
+		s.log.Warn("directives unreadable", "session", session, "err", err)
+		return nil
+	}
+	if d.Day == 0 {
+		d.Day = max(day, 0)
+	}
+	return &d
 }
 
 // bounded runs f, returning at ctx's deadline even if f ignores it; a panic in f becomes

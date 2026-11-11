@@ -1,0 +1,68 @@
+{
+  "note": "Looks like a premium double meat, but its year is between the production runs: invalid, worth only the guide's invalid value.",
+  "expect": [
+    "estimate"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-ribwich-fake-year",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-ribwich-fake-year",
+    "context": {
+      "mode": "appraisal",
+      "item": {
+        "uid": 6025,
+        "id": "ribwich",
+        "name": "Ribwich",
+        "kind": "ribwich"
+      },
+      "client": {
+        "name": "Collector",
+        "faction": "upper_levels",
+        "intent": "appraisal"
+      },
+      "text": {
+        "production_date": "4/ 617",
+        "facility": "#3"
+      },
+      "visual": {
+        "meat": "double",
+        "top_bun": "hidden under double meat",
+        "pickles": "hidden under double meat",
+        "wrap": "sealed",
+        "davre_logo": "matches reference",
+        "ribwich_logo": "present",
+        "barcode_stamp": "present",
+        "facility_stamp": "present"
+      },
+      "appraisal": {
+        "their_figure": 900,
+        "rank": "appraiser",
+        "base_fee": 40,
+        "fee_pct": {
+          "perfect": 18,
+          "excellent": 15,
+          "good": 12,
+          "mediocre": 10,
+          "awful": 0
+        },
+        "refusals": 0
+      }
+    },
+    "options": [
+      {
+        "id": "estimate",
+        "label": "Submit an estimate: fee 40 + the grade's share of your estimate; refused under 50% or over 150% of the true value",
+        "params": {
+          "value": {
+            "type": "int",
+            "min": 1,
+            "max": 5000
+          }
+        }
+      }
+    ]
+  }
+}

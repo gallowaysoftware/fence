@@ -186,7 +186,7 @@ namespace Fence.Tests
         });
         public IList<OwnedItem> Inventory() => Maybe("inventory", () => (IList<OwnedItem>)new List<OwnedItem>
         {
-            new OwnedItem { Item = Item(1, "smuggler_bay"), Where = "stock", Root = "stock", SmugglerBay = true },
+            new OwnedItem { Item = Item(1, "smuggler_bay"), Where = "stock", Root = "stock", SmugglerBay = true, Capacity = new Capacity { Cells = 12, Free = 9 } },
             new OwnedItem { Item = Item(2, "pills"), Where = "inside:1", Root = "stock" },
             new OwnedItem { Item = Item(3, "sign_food"), Where = "showcase", Root = "showcase" },
         });
@@ -203,8 +203,10 @@ namespace Fence.Tests
         public IList<UpgradeDay> Upgrades() => Maybe("upgrades", () => (IList<UpgradeDay>)new List<UpgradeDay>
         {
             new UpgradeDay { Id = "A", Name = "Owned", State = 2, Unlocked = true },
-            new UpgradeDay { Id = "B", Name = "Buyable", Cost = 300, HasPrerequisite = true },
-            new UpgradeDay { Id = "C", Name = "Locked", Cost = 900 },
+            new UpgradeDay { Id = "B", Name = "Buyable", Cost = 300, State = 1, HasPrerequisite = true },
+            new UpgradeDay { Id = "C", Name = "Locked", Cost = 900, State = 1 },
+            new UpgradeDay { Id = "E", Name = "Cooling", Cost = 400, State = 1, HasPrerequisite = true, Cooldown = 5 },
+            new UpgradeDay { Id = "F", Name = "Not offered", Cost = 100, HasPrerequisite = true },
             new UpgradeDay { Id = "D", Name = SentinelText, Cost = 1, HasPrerequisite = true, Hidden = true },
         });
         public IList<ServiceDay> Services() => Maybe("services", () => (IList<ServiceDay>)new List<ServiceDay> { new ServiceDay { Id = "POWER_SERVICE", Cost = 60, Unlocked = true, Using = true } });
@@ -214,6 +216,7 @@ namespace Fence.Tests
         public IList<AfterhourDay> Afterhours() => Maybe("afterhours", () => (IList<AfterhourDay>)new List<AfterhourDay> { new AfterhourDay { Id = "dumping_ground", Available = true } });
         public IList<RequestDay> Requests() => Maybe("requests", () => (IList<RequestDay>)new List<RequestDay>());
         public IList<string> NightLog() => new List<string> { "<color=red>Burglary</color> took 2 items" };
+        public IList<string> StartingPerks() => Maybe("perks", () => (IList<string>)new List<string> { "aug_menace" });
         public HiddenDay Hidden() => Maybe("hidden", () => new HiddenDay { DaysToInspection = Sentinel, AugPresence = Sentinel, Luck = Sentinel, InspectionCountdownActive = true });
     }
 
@@ -277,6 +280,7 @@ namespace Fence.Tests
             Assert.Equal("lowtech", (string)d["clientele"]["display_buyers"][0]);
             Assert.Equal(new[] { "A" }, d["upgrades"]["owned"].Select(u => (string)u["id"]));
             Assert.Equal(new[] { "B" }, d["upgrades"]["available"].Select(u => (string)u["id"]));
+            Assert.Equal(5, (int)d["upgrades"]["cooling"].Single()["days"]);
             Assert.Equal(71, (int)d["market_events"]["calendar"][0]["day"]);
             Assert.Equal("Burglary took 2 items", (string)d["night_log"][0]);
             Assert.Null(d["unavailable"]);
@@ -621,7 +625,7 @@ namespace Fence.Tests
             var handlers = patches.Methods.Where(x => x.IsStatic && (x.Name.EndsWith("Prefix") || x.Name.EndsWith("Postfix") || x.Name.StartsWith("GameScope"))).ToList();
             Assert.True(handlers.Count > 60);
             foreach (var h in handlers)
-                Assert.True(h.Body.Instructions.Any(i => i.Operand is MethodReference r && (r.Name == "Rec" || r.Name == "Guard" || r.Name == "Money" || r.Name == "After")),
+                Assert.True(h.Body.Instructions.Any(i => i.Operand is MethodReference r && (r.Name == "Rec" || r.Name == "Guard" || r.Name == "Inspect" || r.Name == "Aug" || r.Name == "Money" || r.Name == "After")),
                     h.Name + " calls neither Rec nor Guard");
         }
     }

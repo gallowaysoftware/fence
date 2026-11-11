@@ -1,0 +1,21 @@
+# Stock breadth (docs/PROGRESS.md "Stock breadth"): demand-weighted stock targets on the best hard policy.
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-breadth.txt -dir DIR -seeds 60 -days 1000 -parallel 12 -- -seed0 1400000 (selection; 1400100 fresh; normal on 1400400). FENCE_DEMAND_TRACE=DIR adds the per-buyer trace.
+base      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_income_mortgage.json -perks vending+short_sleeper
+b_k2      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/b_k2.json -perks vending+short_sleeper
+b_q       | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/b_q.json -perks vending+short_sleeper
+b_k2_100  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/b_k2_100.json -perks vending+short_sleeper
+b_q_100   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/b_q_100.json -perks vending+short_sleeper
+b_t10_k3  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/b_t10_k3.json -perks vending+short_sleeper
+signs4    | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/signs4.json -perks vending+short_sleeper
+signs_med | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/signs_med.json -perks vending+short_sleeper
+insp      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/insp.json -perks vending+short_sleeper
+variety   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/variety.json -perks vending+short_sleeper
+combo     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/combo.json -perks vending+short_sleeper
+combo_ev  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/combo_ev.json -perks vending+short_sleeper
+normal    | -human player -difficulty normal -start none
+mfs05       | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/mfs05.json -perks vending+short_sleeper
+mfs10       | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/mfs10.json -perks vending+short_sleeper
+combo_mfs05 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/combo_mfs05.json -perks vending+short_sleeper
+hold3       | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/hold3.json -perks vending+short_sleeper
+bays        | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/bays.json -perks vending+short_sleeper
+bays_hold3  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/breadth/bays_hold3.json -perks vending+short_sleeper

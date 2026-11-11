@@ -116,10 +116,11 @@ func TestUseNote(t *testing.T) {
 		snap               json.RawMessage
 		want               string
 	}{
-		{"open use", "water_filter", "Water Filter", water, "use value ≈ 324 (water: "},
+		{"open use", "water_filter", "Water Filter", water, "use ≈ 324 vs sale 140 (water: "},
 		{"closed use", "water_filter", "", dry, "no use in this shop now (needs dirty water or a tap to clean"},
-		{"no snapshot", "water_filter", "", nil, "use value ≈ 324"},
-		{"berry grade from name", "wine_berry", "Moldy Bloomberry", nil, "use value ≈ 0"},
+		{"no snapshot", "water_filter", "", nil, "use ≈ 324 vs sale 140"},
+		{"berry grade from name", "wine_berry", "Moldy Bloomberry", nil, "use ≈ 0 vs sale 140"},
+		{"module valued by what it enables", "furnace_module_blast", "", nil, "use ≈ 32 a night (448 over 14 nights) vs sale 140 (furnace: "},
 		{"unknown item", "desk_lamp", "", water, ""},
 	}
 	for _, tt := range tests {
@@ -131,8 +132,8 @@ func TestUseNote(t *testing.T) {
 				}
 				return
 			}
-			if !strings.Contains(got, tt.want) || !strings.HasSuffix(got, "sale ≈ 140") {
-				t.Fatalf("got %q, want containing %q and the sale", got, tt.want)
+			if !strings.Contains(got, tt.want) {
+				t.Fatalf("got %q, want containing %q", got, tt.want)
 			}
 		})
 	}
@@ -145,7 +146,7 @@ func TestStrategistUseNote(t *testing.T) {
 	if got := s.UseNote("s1", "scrap_metal", "Scrap Metal", 10); !strings.Contains(got, "no use in this shop now (needs a furnace)") {
 		t.Fatalf("got %q", got)
 	}
-	if got := s.UseNote("nobody", "scrap_metal", "", 10); !strings.HasPrefix(got, "use value ≈ 21") {
+	if got := s.UseNote("nobody", "scrap_metal", "", 10); !strings.HasPrefix(got, "use ≈ 21 vs sale 10") {
 		t.Fatalf("unknown session: %q", got)
 	}
 }

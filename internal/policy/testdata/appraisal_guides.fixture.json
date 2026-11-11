@@ -1,0 +1,57 @@
+{
+  "_note": "FICTIONAL value tables for tests, in the format of local/appraisal_guides.json (docs/re/APPRAISAL.md, 'The value table'). Every number and combination here is made up; the real tables are not committed.",
+  "hand": {
+    "base": 1000, "min": 980,
+    "add": [
+      {"when": {"material": "gold"}, "add": 11, "why": "gold"},
+      {"when": {"material": "carbon"}, "add": 7, "why": "carbon"},
+      {"when": {"interface": "neural"}, "add": 13, "why": "neural"},
+      {"when": {"interface": "emg_plus"}, "add": 5},
+      {"when": {"interface": "none"}, "add": -17},
+      {"when": {"condition": "wear"}, "add": -3},
+      {"when": {"condition": "damage"}, "add": -9},
+      {"when": {"armored": true}, "add": 19},
+      {"when": {"bladed": true}, "add": 23},
+      {"when": {"material": "carbon", "armored": true, "bladed": true}, "add": 29, "why": "fixture combo A"},
+      {"when": {"material": "gold", "interface": "neural", "condition": "intact"}, "add": 31, "why": "fixture combo B"}
+    ]
+  },
+  "ribwich": {
+    "base": 2000, "min": 300, "invalid": 300,
+    "invalid_when": [
+      {"wrap": "open"},
+      {"month": {"not": {"range": [1, 12]}}},
+      {"year": {"not": [{"range": [610, 614]}, {"range": [620, 626]}]}},
+      {"facility": {"not": {"range": [1, 20]}}},
+      {"davre_logo": {"not": "reference"}},
+      {"year": {"range": [620, 626]}, "ribwich_logo": {"not": "reference"}},
+      {"year": {"range": [610, 614]}, "ribwich_logo": {"not": "absent"}},
+      {"bun": "deluxe", "pickles": {"not": "extra"}},
+      {"bun": {"not": "deluxe"}, "pickles": "extra"}
+    ],
+    "add": [
+      {"when": {"meat": "double"}, "add": 401, "why": "fixture double"},
+      {"when": {"bun": "deluxe", "pickles": "extra"}, "add": 203},
+      {"when": {"month": 1, "year": 610}, "add": 17},
+      {"when": {"year": {"range": [610, 614]}}, "add": 29},
+      {"when": {"facility": [3, 4]}, "add": 11},
+      {"when": {"facility": [9, 10]}, "add": -13}
+    ]
+  },
+  "plasma": {
+    "base": 3000, "min": 2900,
+    "add": [
+      {"when": {"wear": "wear"}, "add": -4},
+      {"when": {"wear": "heavy"}, "add": -8},
+      {"when": {"crack": true}, "add": -16},
+      {"when": {"uncovered": true}, "add": -2},
+      {"when": {"reinforced": true}, "add": 6},
+      {"when": {"color": "poor"}, "add": -96},
+      {"when": {"color": "high"}, "add": 32},
+      {"group": "seal", "when": {"seal": "ll", "color": "poor"}, "add": 1, "why": "fixture seal A"},
+      {"group": "seal", "when": {"seal": "zhonghua", "crack": false}, "add": 3, "why": "fixture seal B"},
+      {"group": "seal", "when": {"seal": ["zhonghua", "republic"]}, "add": 5, "why": "fixture seal C"},
+      {"group": "seal", "when": {"seal": "ignition_lab", "reinforced": false, "color": "high"}, "add": 7, "why": "fixture seal D"}
+    ]
+  }
+}

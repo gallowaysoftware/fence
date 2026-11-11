@@ -18,9 +18,17 @@ customer is a small, mostly obvious decision, and coercion is rarely used. So:
 - **The simulator is the game itself.** `sim/extract` runs the real Assembly-CSharp headless
   (~340k idle days/min); `sim/gym` drives it through the same protocol as the live mod, so
   every bridge policy plays the real rules. Validated against recorded real play.
+- **Nobody's play is ground truth.** Kyle's sessions, YouTube experts and the model all
+  produce hypotheses; the gym decides by outcome. Disagreements between them become paired
+  gym experiments, not training labels.
 - **Every session is data.** Kyle's own play is the best demonstration data we will get.
   Whenever the game runs, everything a player could observe and every decision (human or
   model) is recorded with its outcome, whether or not the model is advising.
+
+- **Paths, not starts, and luck matters.** A start only seeds the run; any engine can be
+  bought later with favor/credits, and a lucky seller, module or machine can make another
+  path the best one. Plans commit to a path but stay opportunistic: windfalls are valued by
+  what they enable (item-use catalogue), and a windfall triggers a mid-day re-plan.
 
 ## Phases
 | Phase | Deliverable | Exit criterion |
@@ -29,9 +37,24 @@ customer is a small, mostly obvious decision, and coercion is rarely used. So:
 | **P1 Advisor + overlay** (built, awaiting `docs/CHECKLIST.md`) | Per-customer advice in a turn-based overlay | Context matches the screen for a full day |
 | **P2a Actor** (built, off by default) | Guarded execution of counter moves | A day of standard trades, human only staging |
 | **D Always recording** | Bridge as a user service that is up whenever the game is; mod buffers while it is down and the overlay shouts when it is not recording; observation of the whole day: every customer (covered or not), the human's moves, daily state snapshots (inventory, showcase, cash, rent, reputations and perks, security record, upgrades, services, market), the night phase and after-hours choices; `fencedata` export of per-run trajectories with hidden values as labels; `make data-status` | Every session since D landed appears in the export with no gaps |
+| **A Autopilot** | The gym executor plays the live game unattended at a watchable pace, for the stream (`docs/STREAM.md`) | A whole hard run without the keyboard (STREAM.md M3) |
 | **S Strategist** | Morning plan from the day snapshot + memory (goals, cash floor, faction targets, stock to move or hold, heat limits); plan shown in the overlay and fed to every customer prompt; nightly reflection scores the day against the plan | Plans are specific and visibly change advice; reflection cites them |
 | **N Night phase** | Advice for suppliers, upgrades, services and after-hours locations (advise first) | A week of night advice Kyle agrees with or overrides for stated reasons |
 | **L Learning from play** | From the recorded runs: what Kyle does that the model doesn't (imitation), what worked (outcome-labelled), lessons and price/odds priors; later a distilled local model | Measurably closer to Kyle's choices and results on held-out days |
+
+## Training path (decided 2026-11-09)
+Everything else is quality of life or information gathering; this is the path to an LLM
+that "wins".
+| Stage | What | Cost |
+|---|---|---|
+| **T0 Scoreboard** | A league: fixed held-out seeds × starts × archetypes, 200 days or buyout, run in the gym across all local nodes (drift, heavy, localmodel) in parallel. Metrics: buyout rate and day, survival, ending mix, net worth curve. The LLM writes the daily plan; a fast plan-following executor plays the counter, so a game costs ~200 LLM calls | days |
+| **T1 Prompt learning** | A strong model reads batches of trajectories and rewrites the strategist's primer, lessons and archetype briefs; a change is kept only if the held-out scoreboard improves | days, no weights |
+| **T2 Search distillation** | Replay a game to a decision point, branch every alternative, roll futures with the current policy; the best-scoring choice becomes a training target. LoRA a local model on thousands of these plus Kyle's demonstrations and overrides; repeat (expert iteration) | weeks; needs the Sparks |
+| **T3 RL** (optional) | Plan-level reward over short horizons if T2 plateaus | — |
+Evaluation horizon (owner, 2026-11-09): **win (buyout) or fail, capped at 1000 days**;
+"alive at day N" is not a result.
+Training is archetype-conditioned so styles stay distinct. Real sessions are the check
+against habits learnt from the gym's remaining fakes.
 
 Models: drift's Qwen3.8-Flash-Next (`make bridge-drift`); the bridge also speaks Anthropic
 and any OpenAI-compatible endpoint.

@@ -1,0 +1,75 @@
+{
+  "note": "Genuine Immunivax that looks suspicious: serial prefix 455 is the last valid one and 'Carmicheal' is the game's own spelling.",
+  "expect": [
+    "genuine"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-injector-genuine-edge-serial",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-injector-genuine-edge-serial",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5036,
+        "id": "large_purple_injector",
+        "name": "Immunivax",
+        "kind": "injector",
+        "price": 160
+      },
+      "claim": "genuine",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "text": {
+        "serial": "4559999",
+        "company": "Carmicheal Pharmaceutical",
+        "model": "Immunivax"
+      },
+      "visual": {
+        "indicator": "normal",
+        "body": "intact",
+        "body_colour": "standard"
+      }
+    },
+    "options": [
+      {
+        "id": "confront_indicator",
+        "label": "Confront: indicator issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_label",
+        "label": "Confront: label issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_serial",
+        "label": "Confront: serial issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_body",
+        "label": "Confront: body issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "confront_color",
+        "label": "Confront: colour issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with lower_levels, retry allowed"
+      },
+      {
+        "id": "genuine",
+        "label": "No confront: take it as genuine at 160"
+      }
+    ],
+    "hidden": {
+      "real_condition": "genuineInjector",
+      "issue_tags": []
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "name": "t1-llm",
+  "seeds": [
+    90001,
+    90002,
+    90003,
+    90004,
+    90005,
+    90006,
+    90007,
+    90008,
+    90009,
+    90010,
+    90011,
+    90012,
+    90013,
+    90014,
+    90015,
+    90016,
+    90017,
+    90018,
+    90019,
+    90020,
+    90021,
+    90022,
+    90023,
+    90024,
+    90025,
+    90026,
+    90027,
+    90028,
+    90029,
+    90030
+  ],
+  "starts": [
+    "none"
+  ],
+  "perks": [
+    "none"
+  ],
+  "days": 200,
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "heuristic",
+      "mode": "heuristic"
+    },
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "drift-qwen-flash-llm",
+      "endpoint": "drift",
+      "mode": "llm"
+    },
+    {
+      "id": "local-qwen-27b-llm",
+      "endpoint": "localmodel",
+      "mode": "llm"
+    },
+    {
+      "id": "lab-executor",
+      "mode": "local",
+      "executor": {
+        "human": "knobs",
+        "knobs": "services=both,bargain=ev,max_heat=101,sell_hot=0,buy_margin=1.05,ws_margin=1.0,reserve=rent2"
+      }
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "heuristic",
+  "difficulties": [
+    "normal",
+    "hard"
+  ]
+}

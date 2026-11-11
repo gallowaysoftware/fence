@@ -12,6 +12,7 @@ settings, `ModLog` for logging.
 |---|---|
 | `src/Fence.Core` | netstandard2.0, no Unity: protocol DTOs, `BridgeSession` (hello/event/decide state, bounded event queue, circuit breaker, deadlines), `ChoiceValidator`, the hook manifest and `CompatChecker`; `Barter/` builds the v1 barter context, gates the options like the game's UI, tracks advice per customer and shapes outcomes, all against the `IBarterGame` interface. Embeds `compat/hooks.json` and `compat/versions/*.json`. |
 | `src/Fence.Mod` | netstandard2.1, the `IMod`. `HookBindings` (one method per event), `RuntimeResolver` (reflection on the loaded game for `hello.compat`), `BridgeClient` (UnityWebRequest coroutines), `GameBarter` (`IBarterGame` over the live game), `BarterAdvisor` (4 Hz poll, decide, act, outcomes), `BarterExecutor` (the only class that presses game buttons, behind an `ActGate`), `FenceOverlay` (the `fence.overlay` CustomUI window), `FencePatches` (observation-only Harmony patches, id `mod.fence`, each applied on its own). |
+| `src/Fence.Autopilot` | netstandard2.1, not shipped yet: the gym executor's decision files (`sim/gym`, listed in the project) compiled under the mod's rules, so the live autopilot can share them (`docs/STREAM.md`). A scanner test fails on any capability they would need. |
 | `tools/Fence.Compat` | net10 console, Mono.Cecil: checks a hook manifest against the installed game and writes the build snapshot. |
 | `tests/Fence.Tests` | xUnit: fixtures, breaker/deadline/session, compat checker, manifest, and the game's own `ModScanner` run against the built DLLs. |
 
@@ -40,7 +41,8 @@ MVID and report its sha256 in `hello` (it cannot hash the DLL itself without `fi
    "Access the internet" prompt. Restart (enabling takes effect on the next launch).
 2. For development, turn on **Developer mode** in fence's detail pane, so a rebuild loads
    without a new approval. Without it, every rebuild changes the hashes and asks again.
-3. Settings: gear button on fence in the Mods menu (`enabled`, `bridge_url`, `act_enabled` — off by default). They live in
+3. Settings: gear button on fence in the Mods menu (`enabled`, `bridge_url`, `act_enabled` and `autopilot` — both off
+   by default — `autopilot_pace_ms`, `autopilot_hold_ms`, `autopilot_directives`). They live in
    `…/LocalLow/Questing Goose Studio/Probably Stolen/ModConfigs/fence.json`.
 4. Logs: lines prefixed `[fence]:` in `Player.log` and the F8 console.
 
@@ -65,6 +67,24 @@ it re-reads the counter: a different `state_signature` (you clicked first), a cl
 option no longer offered drops the action as stale. At most 4 actions per customer and 12 per
 minute, with a 1.5 s settle after each. Any exception turns acting off for the session. Outcomes
 carry `result.actor` (`mod` / `human`). `make backup-saves` first.
+
+## Autopilot (docs/STREAM.md, M1)
+
+Off unless the `autopilot` setting is on, and then paused until you press **Resume autopilot** in the
+overlay (or the key bind, default F10, Options → Mods). Running, it plays the day by the gym executor's
+rules (`sim/gym/PlayerRole.cs`, compiled into Fence.Mod): closes the morning report, arranges the display
+case, opens the shutter, rings for each customer, clicks through dialogue and picks choices it has a rule
+for, stages items, plays the counter (`PlayerPolicy`, or the bridge's model in `act` mode), unstages
+leftovers, dismisses uncovered customers it may, closes, sets tonight's services and sleeps. No outings,
+phone, machines or gun yet (M2/M3). One action per tick, only when the game is still, `autopilot_pace_ms`
+apart (moves at half that); every action is re-read and logged as an `autopilot` event with its reason.
+
+It stops when you press Pause or the key, when you move or click anything yourself, on any error or
+action that did not take, after 60 s without progress, and on a customer it cannot handle (a story,
+security, info dealer, appraisal or barter customer it cannot dismiss, a dialogue choice it has no rule
+for): the overlay shows a red banner, an `autopilot_fault` event goes to the bridge, and you play on by
+hand until you press Resume. In-game presses outside the counter live in `LiveHands` only
+(`ActSafetyTests`). `make backup-saves` first.
 
 ## Recording (phase D)
 

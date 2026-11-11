@@ -75,7 +75,7 @@
       "threads"
     ]
   },
-  "hooks_sha256": "556f6791230254b38feb0d7e50b02afba6062365ba95a335b99d1c176fc061dc",
+  "hooks_sha256": "540bd60785ff8ed1e5b535382820c7e10c5a3c31b2300113bbc53b6146a35ae9",
   "hooks_ok": true,
   "required_ok": true,
   "hooks": [
@@ -1817,6 +1817,258 @@
     },
     {
       "id": "run.rule_upgradePriceMultiplier",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.open",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.ui_instance",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.confront_panel",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.current_item",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.toggle1",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.toggle2",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.toggle3",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.toggle4",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.toggle5",
+      "status": "Ok"
+    },
+    {
+      "id": "human.inspect_verdict",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.confront_result",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.estimate",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.appraisal_too_high",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.appraisal_too_low",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.appraisal_accepted",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.appraisal_walkout",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.tag_string",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.find_feature",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.shown_condition",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.real_condition",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.condition_id",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.appraiser_level",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.base_fee",
+      "status": "Ok"
+    },
+    {
+      "id": "inspect.fee_percent",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.shooting_enter",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.shooting_exit",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.shoot",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.is_shooting_mode",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.is_shot",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.shooting_unlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.good_kill",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.wrongful_kill",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.left_alive",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.shot_client",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.idle_suppressed",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.idle_shake",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.idle_decision_client",
+      "status": "Ok"
+    },
+    {
+      "id": "client.sprite_name",
+      "status": "Ok"
+    },
+    {
+      "id": "client.bubble_color",
+      "status": "Ok"
+    },
+    {
+      "id": "client.aug_tier",
+      "status": "Ok"
+    },
+    {
+      "id": "client.aug_idle_tell",
+      "status": "Ok"
+    },
+    {
+      "id": "client.aug_scanned",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.introduced_day",
+      "status": "Ok"
+    },
+    {
+      "id": "hidden.aug_ended",
+      "status": "Ok"
+    },
+    {
+      "id": "perk.aug_menace",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_augKillPresenceDrop",
+      "status": "Ok"
+    },
+    {
+      "id": "run.rule_augLeftAlivePresenceRise",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.being_arrested",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.handling_shootout",
+      "status": "Ok"
+    },
+    {
+      "id": "client.arrestable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.force_shootable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.non_shootable",
+      "status": "Ok"
+    },
+    {
+      "id": "client.shot_counts_as_capture",
+      "status": "Ok"
+    },
+    {
+      "id": "aug.client_name",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.item_children",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.node_children",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.grid_shape",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.inventory_items",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.item_shape",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.shape_width",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.shape_height",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.shape_get",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.shape_intersects",
       "status": "Ok"
     }
   ]

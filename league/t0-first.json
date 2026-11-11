@@ -1,0 +1,51 @@
+{
+  "name": "t0-first",
+  "seeds": [
+    90001,
+    90002,
+    90003,
+    90004,
+    90005,
+    90006
+  ],
+  "starts": [
+    "none"
+  ],
+  "difficulty": "hard",
+  "perks": [
+    "none"
+  ],
+  "days": 200,
+  "executor": {
+    "human": "knobs",
+    "knobs": "services=both,bargain=ev,max_heat=101,sell_hot=0,buy_margin=1.05,ws_margin=1.0,reserve=rent2"
+  },
+  "players": [
+    {
+      "id": "heuristic",
+      "mode": "heuristic"
+    },
+    {
+      "id": "drift-qwen-flash",
+      "endpoint": "drift",
+      "mode": "plan"
+    },
+    {
+      "id": "heavy-glm",
+      "endpoint": "heavy",
+      "mode": "plan"
+    },
+    {
+      "id": "local-qwen-27b",
+      "endpoint": "localmodel",
+      "mode": "plan"
+    },
+    {
+      "id": "lab-executor",
+      "mode": "local"
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "heuristic"
+}

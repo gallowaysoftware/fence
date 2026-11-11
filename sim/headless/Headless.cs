@@ -22,7 +22,7 @@ namespace Fence.Sim
     // the player. Every body-less method in a Unity/third-party assembly is rewritten to return
     // default, so engine calls become no-ops; a handful of Assembly-CSharp members that need real
     // engine data (sprites, localization) get small replacement bodies; UnityEngine.Random is
-    // backed by a seedable System.Random. The patched copies live under var/gamedata/.headless and
+    // backed by a seedable System.Random. The patched copies live under var/gamedata/.headless[-gym]-<key> and
     // are derived game binaries: never commit them.
     public enum Variant
     {
@@ -44,13 +44,18 @@ namespace Fence.Sim
         public static void Build(string gameManaged, string outDir, Variant variant = Variant.Extract)
         {
             Managed = gameManaged;
-            OutDir = outDir;
             Current = variant;
-            string stamp = Path.Combine(outDir, ".stamp");
-            // The patch code itself is part of the key: a rebuilt Fence.Headless rebuilds the copies.
+            // The patch code itself is part of the key: a rebuilt Fence.Headless gets its own copies, in its
+            // own directory, so builds running side by side (a league, an experiment, an agent's game) never
+            // rewrite assemblies another process has loaded.
             string want = Sha256(Path.Combine(gameManaged, "Assembly-CSharp.dll")) + "|" + Version + "|" + variant + "|" + Sha256(typeof(Headless).Assembly.Location);
+            outDir = outDir + "-" + Convert.ToHexString(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(want))).Substring(0, 12).ToLowerInvariant();
+            OutDir = outDir;
+            string stamp = Path.Combine(outDir, ".stamp");
             if (File.Exists(stamp) && File.ReadAllText(stamp) == want) return;
-
+            // Built in a private directory, then renamed into place: a parallel start never reads a half-written copy.
+            string final = outDir;
+            outDir = final + ".tmp-" + Environment.ProcessId;
             IODir.CreateDirectory(outDir);
             var resolver = new DefaultAssemblyResolver();
             resolver.AddSearchDirectory(gameManaged);
@@ -73,11 +78,21 @@ namespace Fence.Sim
                 if (game) PatchGame(asm.MainModule, variant);
                 asm.Write(Path.Combine(outDir, name + ".dll"));
             }
-            File.WriteAllText(stamp, want);
+            File.WriteAllText(Path.Combine(outDir, ".stamp"), want);
+            try
+            {
+                IODir.Move(outDir, final);
+            }
+            catch (IOException)
+            {
+                // Another process won the race; its copy is identical.
+                try { IODir.Delete(outDir, true); } catch (IOException) { }
+            }
+            OutDir = final;
         }
 
         // Bump when the patch set changes so stale headless copies are rebuilt.
-        const string Version = "25";
+        const string Version = "31";
 
         public static string Sha256(string path)
         {
@@ -298,31 +313,42 @@ namespace Fence.Sim
                     else if (variant == Variant.Gym && Playable.KeepsReal(t, md)) continue;
                     else if (!(md.IsStatic && md.IsSetter)) ReturnDefault(md);
                 }
-            var fluent = new[] { "With", "Set", "Add" };
+            // Only their drawing is stubbed: Machinery fluent setters (SetContent, Add, SetCallback, radio groups) are
+            // how a machine's storages, buttons and modes are wired (MachineHelper.GetBodyStorage).
+            var draws = new[] { "Hide", "Show", "SetMachineryStyle", "HideBorder", "ShowBorder", "WithInfoLink", "ApplyStyle" };
             foreach (var t in AllTypes(m).Where(t => t.Name.StartsWith("Machinery") || t.Name == "PixelWindow" || t.Name.StartsWith("GameSlotInventory") || t.Name == "GameGridInventory"))
-                foreach (var md in t.Methods.Where(x => x.HasBody && !x.IsConstructor && !x.IsStatic))
+                foreach (var md in t.Methods.Where(x => x.HasBody && !x.IsConstructor && !x.IsStatic && draws.Any(d => x.Name.StartsWith(d))))
                 {
-                    bool draws = new[] { "Hide", "Show", "SetMachineryStyle", "HideBorder", "ShowBorder", "WithInfoLink", "ApplyStyle" }.Any(d => md.Name.StartsWith(d));
-                    if (!draws && !t.Name.StartsWith("Machinery")) continue;
-                    if (t.Name.StartsWith("Machinery") && !draws && !fluent.Any(f => md.Name.StartsWith(f))) continue;
                     if (md.ReturnType.FullName == t.FullName) Replace(md, il => { il.Emit(OpCodes.Ldarg_0); il.Emit(OpCodes.Ret); });
                     else if (md.ReturnType.MetadataType == MetadataType.Void) ReturnDefault(md);
                 }
 
-            var shape = Method(m, "GameItem", "BuildShapeFromSprite", 2);
-            var shapeCtor = m.GetType("GridShapeBuilder").Methods.Single(x => x.IsConstructor && x.Parameters.Count == 2
-                && x.Parameters.All(p => p.ParameterType.MetadataType == MetadataType.Int32));
-            Replace(shape, il =>
+            // Footprints from the installed game's sprites (Shapes), 1x1 when they are not loaded.
+            Replace(Method(m, "GameItem", "BuildShapeFromSprite", 2), il =>
             {
-                il.Emit(OpCodes.Ldc_I4_1);
-                il.Emit(OpCodes.Ldc_I4_1);
-                il.Emit(OpCodes.Newobj, shapeCtor);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Call, m.ImportReference(typeof(Shapes).GetMethod(nameof(Shapes.Build))));
+                il.Emit(OpCodes.Castclass, m.GetType("GridShapeBuilder"));
                 il.Emit(OpCodes.Ret);
             });
 
-            // Localization returns the key: ids are what the extractor wants anyway.
-            Replace(Method(m, "LocHelper", "Get", 3), il => { il.Emit(OpCodes.Ldarg_1); il.Emit(OpCodes.Ret); });
-            Replace(Method(m, "LocHelper", "HasEntry", 2), il => { il.Emit(OpCodes.Ldc_I4_0); il.Emit(OpCodes.Ret); });
+            // English from the installed game's string tables (Loc); the key when they are not loaded.
+            Replace(Method(m, "LocHelper", "Get", 3), il =>
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Ldarg_2);
+                il.Emit(OpCodes.Call, m.ImportReference(typeof(Loc).GetMethod(nameof(Loc.Get))));
+                il.Emit(OpCodes.Ret);
+            });
+            Replace(Method(m, "LocHelper", "HasEntry", 2), il =>
+            {
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldarg_1);
+                il.Emit(OpCodes.Call, m.ImportReference(typeof(Loc).GetMethod(nameof(Loc.HasEntry))));
+                il.Emit(OpCodes.Ret);
+            });
 
             // Sprites are unattached objects too: rect and friends read back as zero.
             var sprite = m.ImportReference(m.GetType("RenderHandler").Methods.First(x => x.Name == "LoadFromAtlas").ReturnType);

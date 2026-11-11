@@ -9,6 +9,7 @@
   "properties": {
     "session_id": {"type": "string", "minLength": 1},
     "protocol": {"type": "integer", "minimum": 1},
-    "mode": {"enum": ["observe", "advise", "act"]}
+    "mode": {"enum": ["observe", "advise", "act"]},
+    "appraisal_guides": {"type": "object", "description": "The appraisal guides' value tables (local/appraisal_guides.json) when the bridge has them; absent otherwise."}
   }
 }

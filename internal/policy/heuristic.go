@@ -28,6 +28,10 @@ func (h Heuristic) Decide(_ context.Context, req *protocol.DecideRequest) Decisi
 	case "stage":
 		plan, _ := recentPlan(h.Plan, req)
 		d = stageHeuristic(req, plan)
+	case inspectKind:
+		d = inspectHeuristic(req)
+	case augCheckKind:
+		d = augHeuristic(req)
 	default:
 		return heuristicDefer("unknown decision kind " + strconv.Quote(req.Kind))
 	}

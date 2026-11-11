@@ -1,0 +1,63 @@
+{
+  "cigarettes": {
+    "text": [],
+    "visual": {
+      "seal": ["matches reference", "broken", "missing"],
+      "lettering": ["matches reference", "misprinted", "missing"],
+      "logo": ["matches reference", "wrong logo", "missing"],
+      "box_colour": ["matches colour card", "off-shade"]
+    }
+  },
+  "food_stamp": {
+    "text": ["amount"],
+    "visual": {
+      "seal": ["present", "missing"],
+      "lettering": ["matches reference", "misprinted", "missing"],
+      "logo": ["matches reference", "wrong logo", "missing"],
+      "chip": ["matches reference", "wrong chip", "missing"]
+    }
+  },
+  "injector": {
+    "text": ["serial", "company", "model"],
+    "visual": {
+      "indicator": ["normal", "expired warning", "fault warning", "blank", "unrecognised"],
+      "body": ["intact", "cracked"],
+      "body_colour": ["standard", "off-colour"]
+    }
+  },
+  "ribwich": {
+    "text": ["production_date", "facility"],
+    "visual": {
+      "meat": ["single", "double"],
+      "top_bun": ["regular", "deluxe", "hidden under double meat"],
+      "pickles": ["regular", "extra", "hidden under double meat"],
+      "wrap": ["sealed", "opened"],
+      "davre_logo": ["matches reference", "wrong logo", "missing"],
+      "ribwich_logo": ["present", "wrong logo", "absent"],
+      "barcode_stamp": ["present", "missing"],
+      "facility_stamp": ["present", "missing"]
+    }
+  },
+  "prosthetic_hand": {
+    "text": [],
+    "visual": {
+      "material": ["aluminium alloy", "carbon composite", "gold plated"],
+      "interface_marking": ["EMG", "EMG+", "Neural", "none"],
+      "marking_style": ["full label", "symbol"],
+      "condition": ["pristine", "worn", "damaged"],
+      "armor_plating": ["fitted", "none"],
+      "blade": ["fitted", "none"]
+    }
+  },
+  "plasma_cell": {
+    "text": [],
+    "visual": {
+      "colour": ["standard", "high quality", "poor"],
+      "seal_brand": ["LL", "Zhonghua", "Republic", "Ignition Lab", "none"],
+      "casing_wear": ["none", "worn", "heavily worn"],
+      "crack": ["none", "cracked"],
+      "screw": ["covered", "uncovered"],
+      "reinforcement": ["no", "reinforced"]
+    }
+  }
+}

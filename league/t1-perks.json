@@ -1,0 +1,146 @@
+{
+  "name": "t1-perks",
+  "seeds": [
+    91001,
+    91002,
+    91003,
+    91004,
+    91005,
+    91006,
+    91007,
+    91008,
+    91009,
+    91010,
+    91011,
+    91012,
+    91013,
+    91014,
+    91015,
+    91016,
+    91017,
+    91018,
+    91019,
+    91020,
+    91021,
+    91022,
+    91023,
+    91024,
+    91025,
+    91026,
+    91027,
+    91028,
+    91029,
+    91030,
+    91031,
+    91032,
+    91033,
+    91034,
+    91035,
+    91036,
+    91037,
+    91038,
+    91039,
+    91040,
+    91041,
+    91042,
+    91043,
+    91044,
+    91045,
+    91046,
+    91047,
+    91048,
+    91049,
+    91050,
+    91051,
+    91052,
+    91053,
+    91054,
+    91055,
+    91056,
+    91057,
+    91058,
+    91059,
+    91060
+  ],
+  "starts": [
+    "none",
+    "apprentice",
+    "scav",
+    "gunsmith"
+  ],
+  "difficulty": "hard",
+  "days": 200,
+  "perk_sample": {
+    "catalogue": "internal/strategy/perks.json",
+    "none_share": 0.3,
+    "curated_share": 0.2,
+    "curated": [
+      "sentinel+aug_menace",
+      "awful_negotiator+alcohol_addiction",
+      "ascetic+vending+working_pipes",
+      "maimed+makeshift_reactor",
+      "lucky+gambling_addiction+intimidating",
+      "proficient_scavenger+careful_scavenger",
+      "sycophant+well_connected",
+      "model_citizen+well_connected",
+      "convict"
+    ],
+    "rule_changing": [
+      "awful_negotiator",
+      "sentinel",
+      "aug_menace",
+      "makeshift_reactor",
+      "alcohol_addiction",
+      "narcotic_addiction",
+      "nicotine_addiction",
+      "lucky",
+      "intimidating",
+      "blabbermouth",
+      "vending",
+      "working_pipes",
+      "known_snitch",
+      "maimed",
+      "banned_commissary",
+      "ascetic",
+      "agoraphobia",
+      "blackmail"
+    ],
+    "rule_weight": 4.5,
+    "weights": {
+      "colorful_character": 0.15,
+      "lucky": 5.5,
+      "intimidating": 6.5,
+      "blackmail": 4.5,
+      "agoraphobia": 4.5,
+      "narcotic_addiction": 4.5,
+      "banned_commissary": 4.5
+    },
+    "held_out": {
+      "perks": [
+        "blabbermouth",
+        "nicotine_addiction"
+      ],
+      "combos": [
+        "lucky+gambling_addiction+intimidating",
+        "proficient_scavenger+careful_scavenger"
+      ]
+    },
+    "salt": "t1"
+  },
+  "executor": {
+    "human": "knobs",
+    "knobs": "services=both,bargain=ev,max_heat=101,sell_hot=0,buy_margin=1.05,ws_margin=1.0,reserve=rent2"
+  },
+  "players": [
+    {
+      "id": "heuristic",
+      "mode": "heuristic"
+    },
+    {
+      "id": "drift-qwen-flash",
+      "endpoint": "drift",
+      "mode": "plan"
+    }
+  ],
+  "baseline": "heuristic"
+}

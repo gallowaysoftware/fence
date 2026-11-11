@@ -1,0 +1,3 @@
+# Hard income, batch 10: water as infrastructure. Both arms buy the taps; only infra_tap treats tap water for the bays and bottles.
+infra_notap | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/infra_notap.json -perks vending+short_sleeper
+infra_tap   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/infra_tap.json -perks vending+short_sleeper

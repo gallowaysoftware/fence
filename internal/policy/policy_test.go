@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -542,10 +543,21 @@ func (p *recordingPlanner) CurrentPlan(session string) (string, int, bool) {
 	return p.text, p.day, p.text != "" || p.ok
 }
 
+const useSentinel = "zz_use_sentinel"
+
+// echoUse echoes every argument it gets into the note, so anything hidden handed to the
+// strategist's use lookup shows up in the prompt.
+type echoUse struct{ calls int }
+
+func (u *echoUse) note(session, id, name string, sale int64) string {
+	u.calls++
+	return fmt.Sprintf("%s %s %s %s %d", useSentinel, session, id, name, sale)
+}
+
 // TestHiddenNeverInPrompt enforces the information boundary in docs/PROTOCOL.md: nothing
 // from "hidden" may reach the model, through the first prompt or the repair round.
 func TestHiddenNeverInPrompt(t *testing.T) {
-	for _, fx := range []string{"decide.request.json", "decide.stage.request.json"} {
+	for _, fx := range []string{"decide.request.json", "decide.stage.request.json", "decide.inspect.request.json", "decide.aug_check.request.json"} {
 		t.Run(fx, func(t *testing.T) {
 			hiddenNeverInPrompt(t, func(t *testing.T) *protocol.DecideRequest { return fixtureNamed(t, fx) })
 		})
@@ -579,7 +591,11 @@ func hiddenNeverInPrompt(t *testing.T, fixtureRequest func(*testing.T) *protocol
 				req.Hidden = json.RawMessage(hidden)
 				rec := &echoRecall{}
 				pl := &recordingPlanner{text: planSentinel, day: req.GameDay}
-				d := (&LLM{Client: client, Recall: rec, Plan: pl}).Decide(context.Background(), req)
+				use := &echoUse{}
+				d := (&LLM{Client: client, Recall: rec, Plan: pl, Use: use.note, StageLLM: true}).Decide(context.Background(), req)
+				if req.Kind != inspectKind && req.Kind != augCheckKind && use.calls == 0 {
+					t.Fatal("use lookup never called; the leak check would not cover it")
+				}
 				if rec.calls != 1 {
 					t.Fatalf("recall called %d times", rec.calls)
 				}
@@ -606,6 +622,9 @@ func hiddenNeverInPrompt(t *testing.T, fixtureRequest func(*testing.T) *protocol
 			if !strings.Contains(with[0].Messages[0].Content, recallSentinel) || !strings.Contains(with[1].Messages[0].Content, recallSentinel) {
 				t.Fatalf("recall brief missing from the prompt")
 			}
+			if k := fixtureRequest(t).Kind; k != inspectKind && k != augCheckKind && !strings.Contains(with[0].Messages[0].Content, useSentinel) {
+				t.Fatalf("use note missing from the prompt")
+			}
 			if !strings.HasPrefix(with[0].Messages[0].Content, "TODAY'S PLAN") || !strings.Contains(with[1].Messages[0].Content, planSentinel) {
 				t.Fatalf("plan missing from the prompt")
 			}
@@ -627,7 +646,9 @@ func hiddenNeverInPrompt(t *testing.T, fixtureRequest func(*testing.T) *protocol
 			leaves(ctx, visible)
 			texts := make([]string, 0, len(with)+1)
 			for _, req := range with {
-				text := req.System + string(req.Schema)
+				// The system prompt is fixed per kind, so it cannot carry hidden values; its
+				// rule text ("counterfeit") would match short sentinel keys ("counter").
+				text := string(req.Schema)
 				for _, m := range req.Messages {
 					text += m.Content
 				}
@@ -916,5 +937,66 @@ func TestBarterSystemServesThePlan(t *testing.T) {
 		if !strings.Contains(barterSystem, w) {
 			t.Errorf("barter system prompt lacks %q", w)
 		}
+	}
+}
+
+func TestUseNotesInPrompt(t *testing.T) {
+	tests := []struct {
+		fixture string
+		want    []string
+	}{
+		{"decide.request.json", []string{"you paid 180; claims: Worn (condition); STOLEN heat 22 [use ≈ 1 of cassette2 vs sale 340]"}},
+		{"decide.stage.request.json", []string{"; [use ≈ 1 of "}},
+		{"decide.inspect.request.json", nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.fixture, func(t *testing.T) {
+			req := fixtureNamed(t, tt.fixture)
+			client := &scripted{replies: []reply{{text: "nope"}, {text: "nope"}}}
+			var sessions []string
+			use := func(session, id, _ string, sale int64) string {
+				sessions = append(sessions, session)
+				return fmt.Sprintf("use ≈ 1 of %s vs sale %d", id, sale)
+			}
+			NewLLM(client, WithUse(use), WithStageLLM(true)).Decide(context.Background(), req)
+			prompt := client.got[0].Messages[0].Content
+			for _, w := range tt.want {
+				if !strings.Contains(prompt, w) {
+					t.Errorf("prompt missing %q:\n%s", w, prompt)
+				}
+			}
+			if tt.want == nil && strings.Contains(prompt, "use ≈") {
+				t.Errorf("inspect prompt carries a use note:\n%s", prompt)
+			}
+			for _, s := range sessions {
+				if s != req.SessionID {
+					t.Errorf("use asked for session %q, want %q", s, req.SessionID)
+				}
+			}
+		})
+	}
+}
+
+func TestClientAugRendered(t *testing.T) {
+	tests := []struct {
+		name, aug string
+		want      bool
+	}{
+		{"perfect detection: aug", `"aug":true,`, true},
+		{"perfect detection: human", `"aug":false,`, false},
+		{"tells mode: absent", ``, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := parseBarter(json.RawMessage(`{"client":{` + tt.aug + `"name":"Vex","faction":"lower_levels","intent":"buy"}}`))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var b strings.Builder
+			renderBarter(&b, c, nil)
+			if got := strings.Contains(b.String(), "an AUG"); got != tt.want {
+				t.Fatalf("aug tag %v, want %v:\n%s", got, tt.want, b.String())
+			}
+		})
 	}
 }

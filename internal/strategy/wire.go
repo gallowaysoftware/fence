@@ -32,12 +32,14 @@ type snapshot struct {
 	Clientele      *clientele
 	Security       *security
 	UpgradesOwned  []string
-	UpgradesOffer  []string
-	Services       []service
-	Active         []marketEvent
-	Calendar       []calendarDay
-	NightLog       []string
-	Requests       []string
+	UpgradesOffer  []upgradeOffer
+	// ownedIDs are the owned upgrades' ids, which UpgradesOwned (display names) hides.
+	ownedIDs []string
+	Services []service
+	Active   []marketEvent
+	Calendar []calendarDay
+	NightLog []string
+	Requests []string
 	// requestAsks is each request's wanted item, count and credit reward, parallel to
 	// Requests.
 	requestAsks []requestAsk
@@ -51,6 +53,16 @@ type snapshot struct {
 	prod                    *prodState
 	// scavOpen: the afterhours list offers the dumping ground tonight.
 	scavOpen bool
+	// aug is the aug presence the strategist rebuilt from the run's history; nil unknown.
+	aug *AugTrack
+	// wineIdle is the days since a new finished wine appeared; nil unknown or none yet.
+	wineIdle *int
+	// weekGain is net worth now less a week ago; nil unknown.
+	weekGain *int64
+	// StartingPerks and RepPerks are the perks block (perk ids); RepPerks nil when absent.
+	StartingPerks, RepPerks []string
+	// Permit: the business permit is held; nil when the mod does not say.
+	Permit *bool
 }
 
 type rentInfo struct {
@@ -135,6 +147,8 @@ type service struct {
 	Cost     *int64
 	// Using is nil when the mod sends a bare id list, which means in use.
 	Using *bool
+	// Unlocked is nil when the mod does not say.
+	Unlocked *bool
 }
 
 func (s service) inUse() bool { return s.Using == nil || *s.Using }
@@ -175,6 +189,11 @@ type item struct {
 	StolenHeat        *int64 `json:"stolen_heat"`
 	ContrabandLevel   *int64 `json:"contraband_level"`
 	SeriousContraband *bool  `json:"serious_contraband"`
+	// Capacity is the grid inside a container (smuggler bay, bag, machine), in cells.
+	Capacity *struct {
+		Cells *int64 `json:"cells"`
+		Free  *int64 `json:"free"`
+	} `json:"capacity"`
 }
 
 // types are the item's lower-cased types; the mod may send type, item_type or types.
@@ -235,11 +254,15 @@ type wire struct {
 	MarketEvents json.RawMessage            `json:"market_events"`
 	NightLog     []string                   `json:"night_log"`
 	Requests     []map[string]any           `json:"requests"`
+	Perks        *struct {
+		Starting   []string `json:"starting"`
+		Reputation []string `json:"reputation"`
+	} `json:"perks"`
 }
 
 // knownTop are the data keys parseSnapshot reads; any other key (production, machines,
 // afterhours…) is rendered generically until its shape is settled.
-var knownTop = []string{"phase", "store", "rent", "property", "reputation", "inventory", "clientele", "security", "upgrades", "services", "market_events", "night_log", "requests", "production", "water"}
+var knownTop = []string{"phase", "store", "rent", "property", "reputation", "inventory", "clientele", "security", "upgrades", "services", "market_events", "night_log", "requests", "production", "water", "perks"}
 
 var knownStore = []string{"cash", "day", "weekday", "wild_favor", "net_worth", "attractiveness", "retail_markup", "queue_length", "rent_due", "rent_days_left", "commissary_tokens", "business_permit", "newspaper_unlocked"}
 
@@ -249,12 +272,20 @@ func parseSnapshot(raw json.RawMessage) (*snapshot, error) {
 		return nil, err
 	}
 	s := &snapshot{Phase: w.Phase, Reputation: w.Reputation, Inventory: w.Inventory, Clientele: w.Clientele, NightLog: w.NightLog}
+	if p := w.Perks; p != nil {
+		s.StartingPerks = p.Starting
+		s.RepPerks = p.Reputation
+		if s.RepPerks == nil {
+			s.RepPerks = []string{}
+		}
+	}
 
 	st := w.Store
 	s.Day, s.Cash = intField(st, "day"), intField(st, "cash")
 	s.Weekday = strField(st, "weekday")
 	s.NetWorth, s.WildFavor = intField(st, "net_worth"), intField(st, "wild_favor")
 	s.RetailMarkup, s.Queue = intField(st, "retail_markup"), intField(st, "queue_length")
+	s.Permit = boolField(st, "business_permit")
 	if a := intField(st, "attractiveness"); a != nil {
 		s.Attractiveness = a
 	} else if obj := objField(st, "attractiveness"); obj != nil {
@@ -294,7 +325,7 @@ func parseSnapshot(raw json.RawMessage) (*snapshot, error) {
 		}
 	}
 	s.Security = parseSecurity(w.Security)
-	s.UpgradesOwned, s.UpgradesOffer = parseUpgrades(w.Upgrades)
+	s.UpgradesOwned, s.UpgradesOffer, s.ownedIDs = parseUpgrades(w.Upgrades)
 	s.Services = parseServices(w.Services)
 	s.Active, s.Calendar = parseMarket(w.MarketEvents)
 	for _, r := range w.Requests {
@@ -362,34 +393,58 @@ func parseSecurity(m map[string]json.RawMessage) *security {
 	return sec
 }
 
+type upgradeOffer struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Cost *int64 `json:"cost"`
+}
+
+func (u upgradeOffer) name() string { return nonEmpty(u.Name, u.ID) }
+
+func (u upgradeOffer) text() string {
+	if u.Cost != nil {
+		return fmt.Sprintf("%s (%d)", u.name(), *u.Cost)
+	}
+	return u.name()
+}
+
 // parseUpgrades accepts ["counter_lamp"] or {owned:[{id,name}], available:[{id,name,cost}]}.
-func parseUpgrades(raw json.RawMessage) (owned, offer []string) {
+// parseUpgrades reads the upgrades block. Snapshots recorded before the mod's fix
+// (5bcd757) listed for-sale upgrades (state 1) under owned; those are skipped.
+func parseUpgrades(raw json.RawMessage) (owned []string, offer []upgradeOffer, ids []string) {
 	if len(raw) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
 	var list []json.RawMessage
 	if json.Unmarshal(raw, &list) == nil {
-		return names(raw), nil
+		return names(raw), nil, nil
 	}
 	var obj struct {
-		Owned     json.RawMessage `json:"owned"`
-		Available []struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-			Cost *int64 `json:"cost"`
-		} `json:"available"`
+		Owned     []json.RawMessage `json:"owned"`
+		Available []upgradeOffer    `json:"available"`
 	}
 	if json.Unmarshal(raw, &obj) != nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 	for _, a := range obj.Available {
-		t := nonEmpty(a.Name, a.ID)
-		if a.Cost != nil {
-			t += fmt.Sprintf(" (%d)", *a.Cost)
+		if a.name() != "" {
+			offer = append(offer, a)
 		}
-		offer = append(offer, t)
 	}
-	return names(obj.Owned), offer
+	for _, e := range obj.Owned {
+		var o struct {
+			ID    string `json:"id"`
+			State *int64 `json:"state"`
+		}
+		if json.Unmarshal(e, &o) == nil && o.State != nil && *o.State == 1 {
+			continue
+		}
+		if o.ID != "" {
+			ids = append(ids, o.ID)
+		}
+		owned = append(owned, names(json.RawMessage("["+string(e)+"]"))...)
+	}
+	return owned, offer, ids
 }
 
 // parseServices accepts ["early_warning"] or [{id, name, cost, using, …}].
@@ -406,10 +461,11 @@ func parseServices(raw json.RawMessage) []service {
 			continue
 		}
 		var o struct {
-			ID    string `json:"id"`
-			Name  string `json:"name"`
-			Cost  *int64 `json:"cost"`
-			Using *bool  `json:"using"`
+			ID       string `json:"id"`
+			Name     string `json:"name"`
+			Cost     *int64 `json:"cost"`
+			Using    *bool  `json:"using"`
+			Unlocked *bool  `json:"unlocked"`
 		}
 		if json.Unmarshal(e, &o) == nil && (o.ID != "" || o.Name != "") {
 			using := o.Using
@@ -417,7 +473,7 @@ func parseServices(raw json.RawMessage) []service {
 				f := false
 				using = &f
 			}
-			out = append(out, service{ID: o.ID, Name: o.Name, Cost: o.Cost, Using: using})
+			out = append(out, service{ID: o.ID, Name: o.Name, Cost: o.Cost, Using: using, Unlocked: o.Unlocked})
 		}
 	}
 	return out

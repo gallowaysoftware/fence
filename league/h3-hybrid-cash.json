@@ -1,0 +1,41 @@
+{
+  "name": "h3-hybrid-cash",
+  "players": [
+    {
+      "id": "executor",
+      "mode": "local"
+    },
+    {
+      "id": "hybrid-qwen27",
+      "mode": "hybrid",
+      "endpoint": "localmodel",
+      "rollout_flags": [
+        "-samples",
+        "4",
+        "-par",
+        "4"
+      ]
+    }
+  ],
+  "baseline": "executor",
+  "seeds": [
+    2310001,
+    2310002,
+    2310003,
+    2310004,
+    2310005,
+    2310006
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_income_cash_appraisal.json"
+  }
+}

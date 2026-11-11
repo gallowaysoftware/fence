@@ -89,11 +89,21 @@ func stageUnsafe(cl *barterClient, it stageItem) string {
 
 // CheckChoice rejects a choice that the options allow but the visible state rules out:
 // offering a candidate that is not listed, or stolen or contraband goods to a customer who
-// must never get them. Every policy's answer passes through it.
+// must never get them; a confront or estimate the visible cues prove wrong. Every policy's
+// answer passes through it.
 func CheckChoice(req *protocol.DecideRequest, choice protocol.Choice) error {
-	if req.Kind != "stage" {
-		return nil
+	switch req.Kind {
+	case "stage":
+		return checkStageChoice(req, choice)
+	case inspectKind:
+		return checkInspectChoice(req, choice)
+	case augCheckKind:
+		return checkAugChoice(req, choice)
 	}
+	return nil
+}
+
+func checkStageChoice(req *protocol.DecideRequest, choice protocol.Choice) error {
 	uid, ok := offerUID(choice.Option)
 	if !ok {
 		return nil
@@ -185,10 +195,38 @@ func stageNotes(c *stageCtx) func(id, label string) string {
 	}
 }
 
-func renderStage(b *strings.Builder, c *stageCtx) {
+// stageUseNotes is stageNotes with each candidate's use against what offering it brings in.
+func stageUseNotes(c *stageCtx, use itemUse) func(id, label string) string {
+	note := stageNotes(c)
+	if use == nil {
+		return note
+	}
+	return func(id, label string) string {
+		n := note(id, label)
+		uid, ok := offerUID(id)
+		if !ok {
+			return n
+		}
+		it, ok := c.candidate(uid)
+		if !ok {
+			return n
+		}
+		recv, _ := c.received(it)
+		u := use(it.ID, it.Name, recv)
+		if u == "" {
+			return n
+		}
+		if n == "" {
+			return "[" + u + "]"
+		}
+		return n + "; [" + u + "]"
+	}
+}
+
+func renderStage(b *strings.Builder, c *stageCtx, use itemUse) {
 	renderParties(b, &c.barterCtx)
 	if c.Counter != nil {
-		renderItems(b, "Already staged for them", c.Counter.YoursStaged, true)
+		renderItems(b, "Already staged for them", c.Counter.YoursStaged, true, use)
 	}
 	if c.BudgetLeft != nil {
 		fmt.Fprintf(b, "Budget left after the staged items: %d\n", *c.BudgetLeft)

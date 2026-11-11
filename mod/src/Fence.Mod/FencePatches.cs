@@ -112,12 +112,12 @@ namespace Fence.Mod
 
         public static IEnumerable<string> HookIds()
         {
-            foreach (var s in Specs.Concat(RecordSpecs)) yield return s.HookId;
+            foreach (var s in Specs.Concat(RecordSpecs).Concat(InspectSpecs).Concat(AugSpecs)) yield return s.HookId;
         }
 
         public static void Apply(Harmony harmony, CompatReport compat, FenceLog log)
         {
-            foreach (var spec in Specs.Concat(RecordSpecs))
+            foreach (var spec in Specs.Concat(RecordSpecs).Concat(InspectSpecs).Concat(AugSpecs))
             {
                 if (!compat.IsUsable(spec.HookId)) continue;
                 try
@@ -169,10 +169,15 @@ namespace Fence.Mod
         static void PlayerDismissPrefix()
         {
             Guard(() => Advisor.PlayerDismissing(true));
+            Aug(a => a.Dismissing(true));
             Rec("dismiss", r => r.Click(OptionIds.Dismiss));
         }
 
-        static void PlayerDismissPostfix() => Guard(() => Advisor.PlayerDismissing(false));
+        static void PlayerDismissPostfix()
+        {
+            Guard(() => Advisor.PlayerDismissing(false));
+            Aug(a => a.Dismissing(false));
+        }
 
         static void BargainPrefix(out object __state)
         {

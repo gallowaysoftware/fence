@@ -1,0 +1,51 @@
+{
+  "name": "t9-challenge-llm",
+  "seeds": [
+    3300001,
+    3300002,
+    3300003,
+    3300004,
+    3300005,
+    3300006
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "short_sleeper+vending"
+  ],
+  "days": 1000,
+  "difficulty": "challenge",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/challenge_best.json"
+  },
+  "players": [
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "bridge-observe",
+      "mode": "heuristic",
+      "bridge_flags": [
+        "-mode",
+        "observe"
+      ]
+    },
+    {
+      "id": "qwen27-delta",
+      "endpoint": "localmodel",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "player"
+}

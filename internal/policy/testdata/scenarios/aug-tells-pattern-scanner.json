@@ -1,0 +1,79 @@
+{
+  "note": "Tells mode: a materials buyer with no visible tell, and the shop owns a scanner. Scan first: it is exact and keeps the shot.",
+  "expect": [
+    "scan"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "aug-tells-pattern-scanner",
+    "kind": "aug_check",
+    "game_day": 40,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:aug-tells-pattern-scanner",
+    "context": {
+      "detection": "tells",
+      "client": {
+        "name": "Lower Level Citizen",
+        "faction": "lower_levels",
+        "intent": "buy",
+        "wants": [
+          "material",
+          "energy_cell"
+        ],
+        "budget": 190,
+        "portrait": "lower-level clothes",
+        "idle": "bobs normally",
+        "lines": [
+          "Need some scrap metal and a cell, if you have them."
+        ]
+      },
+      "gun_raised": false,
+      "threaten_used": false,
+      "run": {
+        "day": 40,
+        "days_since_intro": 28,
+        "difficulty": "normal",
+        "presence_rise": 10,
+        "kill_presence_drop": 25,
+        "game_over_at_100": false,
+        "aug_menace": false,
+        "kill_reward": 128,
+        "manslaughter_crime": 500
+      }
+    },
+    "options": [
+      {
+        "id": "shoot",
+        "label": "Shoot: if an aug, about +128 cash, rep +2 LL/+2 BM/+2 Rev/+8 Sec, presence -25; if human, MANSLAUGHTER crime 500 and rep -15 LL/-15 Sec/-10 Rev/-10 BM (no game over); the sale is lost either way"
+      },
+      {
+        "id": "scan",
+        "label": "Scan with the aug scanner (25 energy from its battery): an exact answer, and the gun stays available"
+      },
+      {
+        "id": "probe_markup_10",
+        "label": "Add 10% markup as a probe: an aug always refuses and stays; a human accepts 80%, refuses 8%, walks out 12% (-3 rep)"
+      },
+      {
+        "id": "threaten",
+        "label": "Threaten: an aug accepts (+20% deal) but can no longer be shot and escapes (presence +10); a human denies it: -7 rep, or 50% -10 rep and they leave"
+      },
+      {
+        "id": "serve",
+        "label": "Serve them normally: an aug leaves alive (presence +10)"
+      },
+      {
+        "id": "dismiss",
+        "label": "Send them away: an aug leaves alive (presence +10)"
+      }
+    ],
+    "hidden": {
+      "client": {
+        "identifier": "x",
+        "is_aug": false,
+        "stealth_wanted": false
+      },
+      "shoot_result_if_shot": "wrongful_kill"
+    }
+  }
+}

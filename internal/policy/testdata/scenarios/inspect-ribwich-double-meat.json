@@ -1,0 +1,68 @@
+{
+  "note": "Double-meat first-run Ribwich from a listed facility: estimate from the rule value.",
+  "expect": [
+    "estimate"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-ribwich-double-meat",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-ribwich-double-meat",
+    "context": {
+      "mode": "appraisal",
+      "item": {
+        "uid": 6027,
+        "id": "ribwich",
+        "name": "Ribwich",
+        "kind": "ribwich"
+      },
+      "client": {
+        "name": "Collector",
+        "faction": "upper_levels",
+        "intent": "appraisal"
+      },
+      "text": {
+        "production_date": "6/ 612",
+        "facility": "#4"
+      },
+      "visual": {
+        "meat": "double",
+        "top_bun": "hidden under double meat",
+        "pickles": "hidden under double meat",
+        "wrap": "sealed",
+        "davre_logo": "matches reference",
+        "ribwich_logo": "absent",
+        "barcode_stamp": "present",
+        "facility_stamp": "present"
+      },
+      "appraisal": {
+        "their_figure": 300,
+        "rank": "appraiser",
+        "base_fee": 40,
+        "fee_pct": {
+          "perfect": 18,
+          "excellent": 15,
+          "good": 12,
+          "mediocre": 10,
+          "awful": 0
+        },
+        "refusals": 0
+      }
+    },
+    "options": [
+      {
+        "id": "estimate",
+        "label": "Submit an estimate: fee 40 + the grade's share of your estimate; refused under 50% or over 150% of the true value",
+        "params": {
+          "value": {
+            "type": "int",
+            "min": 1,
+            "max": 5000
+          }
+        }
+      }
+    ]
+  }
+}

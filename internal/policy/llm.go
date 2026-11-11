@@ -48,7 +48,12 @@ type LLM struct {
 	RecallTimeout time.Duration
 	// Plan supplies the day's plan from the strategist; nil means none.
 	Plan Planner
-	Now  func() time.Time
+	// Use notes what an item at the counter is worth used in the shop; nil means none.
+	Use UseFunc
+	// StageLLM sends stage decisions to the model; off, the fast rules answer them, because
+	// staging is time-critical and the model's single pick came too late and too narrow.
+	StageLLM bool
+	Now      func() time.Time
 }
 
 type LLMOption func(*LLM)
@@ -75,10 +80,19 @@ type Planner interface {
 
 func WithRecall(r Recall) LLMOption { return func(p *LLM) { p.Recall = r } }
 
+// UseFunc is the strategist's use-versus-sale note for an item in session's shop ("" when
+// it knows no use); sale is what the item would sell for, 0 if unknown.
+type UseFunc func(session, id, name string, sale int64) string
+
+// WithUse notes each item's use value next to it in barter and stage prompts, so an item
+// is weighed by what it enables in the shop, not only by its price.
+func WithUse(u UseFunc) LLMOption { return func(p *LLM) { p.Use = u } }
+
 // WithPlan puts the strategist's plan for the day at the top of every prompt.
-func WithPlan(pl Planner) LLMOption { return func(p *LLM) { p.Plan = pl } }
-func WithBounds(b bool) LLMOption   { return func(p *LLM) { p.Bounds = b } }
-func WithMaxTokens(n int) LLMOption { return func(p *LLM) { p.MaxTokens = n } }
+func WithPlan(pl Planner) LLMOption  { return func(p *LLM) { p.Plan = pl } }
+func WithStageLLM(on bool) LLMOption { return func(p *LLM) { p.StageLLM = on } }
+func WithBounds(b bool) LLMOption    { return func(p *LLM) { p.Bounds = b } }
+func WithMaxTokens(n int) LLMOption  { return func(p *LLM) { p.MaxTokens = n } }
 
 func (p *LLM) Name() string { return "llm" }
 
@@ -86,6 +100,9 @@ func (p *LLM) Name() string { return "llm" }
 func (p *LLM) Decide(ctx context.Context, req *protocol.DecideRequest) Decision {
 	// The server already strips hidden; this keeps the guarantee local to the prompt.
 	req = req.PolicyView()
+	if req.Kind == "stage" && !p.StageLLM {
+		return Heuristic{Plan: p.Plan}.Decide(ctx, req)
+	}
 	d := p.decide(ctx, req)
 	if err := CheckChoice(req, d.Choice); err != nil {
 		trace := d.Trace
@@ -101,6 +118,9 @@ func (p *LLM) decide(ctx context.Context, req *protocol.DecideRequest) Decision 
 	if !ok {
 		return Fallback("unknown decision kind " + fmt.Sprintf("%q", req.Kind))
 	}
+	if req.Kind == inspectKind {
+		_, spec.System = currentGuides()
+	}
 	maxCtx := p.MaxContextBytes
 	if maxCtx <= 0 {
 		maxCtx = DefaultMaxContextBytes
@@ -108,7 +128,7 @@ func (p *LLM) decide(ctx context.Context, req *protocol.DecideRequest) Decision 
 	if len(req.Context) > maxCtx {
 		return Fallback(fmt.Sprintf("context is %d bytes, over the %d-byte prompt limit", len(req.Context), maxCtx))
 	}
-	prompt, err := buildPrompt(req, spec, p.plan(req), p.brief(ctx, req))
+	prompt, err := buildPrompt(req, spec, p.plan(req), p.brief(ctx, req), p.itemUse(req))
 	if err != nil {
 		return Fallback("cannot build prompt: " + err.Error())
 	}
@@ -214,6 +234,13 @@ func (p *LLM) plan(req *protocol.DecideRequest) string {
 	return fmt.Sprintf("LATEST PLAN (written for day %d; today's is not ready, so adjust its dates):\n%s", day, text)
 }
 
+func (p *LLM) itemUse(req *protocol.DecideRequest) itemUse {
+	if p.Use == nil {
+		return nil
+	}
+	return func(id, name string, sale int64) string { return p.Use(req.SessionID, id, name, sale) }
+}
+
 func (p *LLM) brief(ctx context.Context, req *protocol.DecideRequest) string {
 	if p.Recall == nil {
 		return ""
@@ -312,7 +339,7 @@ func clipRationale(s string) string {
 	return strings.TrimRight(s[:cut], " ") + "…"
 }
 
-func buildPrompt(req *protocol.DecideRequest, spec kindSpec, plan, brief string) (string, error) {
+func buildPrompt(req *protocol.DecideRequest, spec kindSpec, plan, brief string, use itemUse) (string, error) {
 	var b strings.Builder
 	if plan != "" {
 		b.WriteString(plan + "\n\n")
@@ -321,7 +348,7 @@ func buildPrompt(req *protocol.DecideRequest, spec kindSpec, plan, brief string)
 	var note func(id, label string) string
 	ok := false
 	if len(req.Context) > 0 {
-		note, ok = spec.Render(&b, req.Context)
+		note, ok = spec.Render(&b, req.Context, use)
 	}
 	if !ok {
 		var c bytes.Buffer

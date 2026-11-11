@@ -22,8 +22,21 @@ namespace Fence.Gym
             string managed = Path.Combine(GameDir, "Probably Stolen_Data", "Managed");
             Headless.Build(managed, Path.Combine(Repo, "var", "gamedata", ".headless-gym"), Variant.Gym);
             Headless.Install();
-            Loot.EnsureExtracted(GameDir);
+            GameAssets.EnsureExtracted(GameDir, Var("gamedata"));
+            string guides = Environment.GetEnvironmentVariable("FENCE_APPRAISAL_GUIDES");
+            if (string.IsNullOrEmpty(guides)) guides = Path.Combine(MainCheckout(Repo), "local", "appraisal_guides.json");
+            if (File.Exists(guides)) Appraisal.Guides = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(guides));
             done = true;
+        }
+
+        // A git worktree's local/ is empty; its .git file names the main checkout ("gitdir: <main>/.git/worktrees/<name>").
+        static string MainCheckout(string repo)
+        {
+            string dotGit = Path.Combine(repo, ".git");
+            if (!File.Exists(dotGit)) return repo;
+            string line = File.ReadAllText(dotGit).Trim();
+            int at = line.IndexOf("/.git/worktrees/", StringComparison.Ordinal);
+            return line.StartsWith("gitdir: ", StringComparison.Ordinal) && at > 0 ? line.Substring(8, at - 8) : repo;
         }
 
         public static string FindRepo()

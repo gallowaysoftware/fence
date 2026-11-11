@@ -1,0 +1,49 @@
+{
+  "name": "r1-routes-drift",
+  "players": [
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "drift-delta",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "baseline": "player",
+  "seeds": [
+    2610003
+  ],
+  "routes": [
+    {
+      "route": "smelter",
+      "persona": "smelter"
+    },
+    {
+      "route": "vintner",
+      "persona": "vintner"
+    },
+    {
+      "route": "outlaw",
+      "persona": "fence"
+    },
+    {
+      "route": "rock_bottom",
+      "persona": "shark"
+    }
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

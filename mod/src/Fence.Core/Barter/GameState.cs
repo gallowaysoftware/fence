@@ -69,6 +69,10 @@ namespace Fence.Barter
         public bool IsWanted;
         public bool IsStealthWanted;
         public bool IsAug;
+        // StoreClient.bubbleColor: "DEFAULT" means the bubble follows the faction (Fence.Aug.Bubbles).
+        public string BubbleColor;
+        // Aug-detection reads; null when they could not be read.
+        public Fence.Aug.AugInfo Aug;
         public string AttractedItemId;
         public string AttractedType;
         public bool OffersWholesale;

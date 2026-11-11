@@ -71,6 +71,8 @@ namespace Fence.Recording
         public const string ExposeFeature = "expose_feature";
         public const string InspectItem = "inspect_item";
         public const string Confront = "confront";
+        // The issue the player submits on the confront panel ("genuine" for a talk), before the answer.
+        public const string InspectVerdict = "inspect_verdict";
         public const string ConfirmOverBudget = "confirm_over_budget";
         public const string AcceptOffer = "accept_offer";
         public const string RingBell = "ring_bell";
@@ -78,6 +80,8 @@ namespace Fence.Recording
         public const string PhoneChoice = "phone_choice";
         public const string Report = "report_customer";
         public const string Shoot = "shoot";
+        public const string Unholster = "unholster";
+        public const string Holster = "holster";
         public const string AppraisalEstimate = "appraisal_estimate";
         public const string ServicesSet = "services_set";
         public const string Sleep = "sleep";

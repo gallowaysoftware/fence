@@ -13,6 +13,11 @@ namespace Fence.Recording
         public const string RunEnd = "run_end";
         public const string Inspection = "inspection";
         public const string RunStat = "run_stat";
+        // Shots, kills, captures and augs that left alive (Fence.Aug.AugEvents).
+        public const string Aug = "aug";
+        // Fence.Autopilot.AutopilotEvents: every autopilot action, and its stops.
+        public const string Autopilot = "autopilot";
+        public const string AutopilotFault = "autopilot_fault";
 
         // What a full queue gives up first: forwarded ModHook events are context, the recording
         // kinds are the training data.
@@ -28,6 +33,9 @@ namespace Fence.Recording
                 case RunEnd:
                 case Inspection:
                 case RunStat:
+                case Aug:
+                case Autopilot:
+                case AutopilotFault:
                     return EventPriority.High;
                 case "client_arrived":
                 case "shutter_opened":

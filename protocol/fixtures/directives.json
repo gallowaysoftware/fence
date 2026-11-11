@@ -1,0 +1,14 @@
+{
+  "day": 69,
+  "cash_floor": 600,
+  "buy": {"wholesale_max_pct": 70, "single_max_pct": 80, "max_spend": 1500, "prefer_types": ["electronics"], "avoid_types": ["narcotic"], "hot_stock_cap": 4},
+  "sell": {"min_pct": 100, "sell_down_to_cash": 1350, "hold_uids": [2231]},
+  "bargain": "ev_positive",
+  "window": {"show_uids": [2240, 2260], "avoid_stolen": true},
+  "services": ["INSURANCE", "JANITORIAL"],
+  "upgrades_buy": ["LANDLORD_GRACE"],
+  "permit": "buy",
+  "production": [{"machine_uid": 500, "action": "fill_wine", "items": [510, 511], "note": "1 berry + yeast per bottle"}],
+  "augs": "shoot",
+  "scavenge": true
+}

@@ -1,0 +1,28 @@
+[project]
+name = "fence-distill"
+version = "0.1.0"
+description = "LoRA distillation of strong play into the strategist (docs/research/DISTILL.md)"
+requires-python = "==3.12.*"
+dependencies = [
+    "torch==2.14.1",
+    "transformers==5.20.2",
+    "peft==0.21.2",
+    "accelerate==1.15.0",
+    "bitsandbytes==0.50.2",
+    "safetensors>=0.6",
+    "sentencepiece>=0.2",
+    "gguf==0.19.0",
+    "numpy>=2",
+]
+
+[tool.uv]
+package = false
+
+# CUDA 13 wheels for both the 5090 (x86_64) and the Sparks' GB10 (aarch64).
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true

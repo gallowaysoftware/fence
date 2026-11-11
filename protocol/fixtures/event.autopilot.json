@@ -1,0 +1,4 @@
+{"session_id": "s-0001", "seq": 6, "kind": "autopilot", "game_day": 69,
+ "data": {"day": 69, "phase": "customer", "action": "stage", "target": {"uid": 2231, "name": "Canned beans"},
+          "why": "what Mara wants, within the budget", "rule": "player:stage_for_buyer", "plan_day": 69,
+          "client_seq": 41, "client": "Mara", "hidden_used": ["item_exposable", "water_purity"]}}

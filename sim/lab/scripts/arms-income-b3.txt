@@ -1,0 +1,12 @@
+# Hard income, batch 3: one-lever variants on the best hard policy with the vending + short_sleeper perks.
+vs_loose_buy    | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_loose_buy.json -perks vending+short_sleeper
+vs_buy_default  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_buy_default.json -perks vending+short_sleeper
+vs_buy_full     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_buy_full.json -perks vending+short_sleeper
+vs_bargain_ev   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_bargain_ev.json -perks vending+short_sleeper
+vs_permit_auto  | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_permit_auto.json -perks vending+short_sleeper
+vs_bays3        | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_bays3.json -perks vending+short_sleeper
+vs_age10        | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_age10.json -perks vending+short_sleeper
+vs_water        | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_water.json -perks vending+short_sleeper
+vs_jackson7     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_jackson7.json -perks vending+short_sleeper
+vs_phone2f      | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs_phone2f.json -perks vending+short_sleeper
+vbuy_ss         | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_vending_buy.json -perks short_sleeper+proficient_scavenger

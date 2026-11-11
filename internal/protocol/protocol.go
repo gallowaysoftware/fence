@@ -68,6 +68,9 @@ type HelloResponse struct {
 	SessionID string `json:"session_id"`
 	Protocol  int    `json:"protocol"`
 	Mode      Mode   `json:"mode"`
+	// AppraisalGuides are the appraisal guides' value tables when the bridge has them locally
+	// (local/appraisal_guides.json, never committed); the mod has no file access.
+	AppraisalGuides json.RawMessage `json:"appraisal_guides,omitempty"`
 }
 
 type Event struct {
@@ -168,10 +171,85 @@ type SummaryResponse struct {
 	// was written for. Both are absent when there is no plan.
 	Plan    string `json:"plan,omitempty"`
 	PlanDay int    `json:"plan_day,omitempty"`
+	// Directives is the plan as machine-readable instructions for an executor; absent
+	// when there is no plan.
+	Directives *Directives `json:"directives,omitempty"`
 }
 
 // MaxPlanBytes bounds SummaryResponse.Plan.
 const MaxPlanBytes = 2048
+
+// Directives is the strategist's plan for an executor (docs/PROTOCOL.md, "Directives").
+// Every field is optional and an executor uses its own default for one that is absent,
+// so numbers are pointers: 0 (no floor, no hot stock) is an instruction, absent is not.
+type Directives struct {
+	Day         int                   `json:"day,omitempty"`
+	CashFloor   *int64                `json:"cash_floor,omitempty"`
+	Buy         *BuyDirectives        `json:"buy,omitempty"`
+	Sell        *SellDirectives       `json:"sell,omitempty"`
+	Bargain     string                `json:"bargain,omitempty"`
+	Window      *WindowDirectives     `json:"window,omitempty"`
+	Services    []string              `json:"services,omitempty"`
+	UpgradesBuy []string              `json:"upgrades_buy,omitempty"`
+	Permit      string                `json:"permit,omitempty"`
+	Production  []ProductionDirective `json:"production,omitempty"`
+	Augs        string                `json:"augs,omitempty"`
+	Scavenge    *bool                 `json:"scavenge,omitempty"`
+	// Engine is the production engine the gym's executor runs: wine, water and furnace joined
+	// by "+", or none.
+	Engine string `json:"engine,omitempty"`
+	// Mortgage levers of the gym's executor (sim/gym/PlayerRole.cs): when to sign the loan
+	// shark's offer and how to play while paying it.
+	Mortgage            string   `json:"mortgage,omitempty"`
+	MortgageMargin      *float64 `json:"mortgage_margin,omitempty"`
+	MortgageFloat       *int64   `json:"mortgage_float,omitempty"`
+	MortgageWindow      []int64  `json:"mortgage_window,omitempty"`
+	MortgageSaveFromDay *int64   `json:"mortgage_save_from_day,omitempty"`
+	MortgageMaxSpend    *int64   `json:"mortgage_max_spend,omitempty"`
+	// BuyoutByDay: answer the loan shark "later" while the cash buyout projects by this day.
+	BuyoutByDay *int64 `json:"buyout_by_day,omitempty"`
+	// Appraisal is the gym's appraisal board lever: join, or off.
+	Appraisal string `json:"appraisal,omitempty"`
+}
+
+type BuyDirectives struct {
+	WholesaleMaxPct *int64   `json:"wholesale_max_pct,omitempty"`
+	SingleMaxPct    *int64   `json:"single_max_pct,omitempty"`
+	MaxSpend        *int64   `json:"max_spend,omitempty"`
+	PreferTypes     []string `json:"prefer_types,omitempty"`
+	AvoidTypes      []string `json:"avoid_types,omitempty"`
+	HotStockCap     *int64   `json:"hot_stock_cap,omitempty"`
+}
+
+type SellDirectives struct {
+	MinPct         *int64  `json:"min_pct,omitempty"`
+	SellDownToCash *int64  `json:"sell_down_to_cash,omitempty"`
+	HoldUIDs       []int64 `json:"hold_uids,omitempty"`
+}
+
+type WindowDirectives struct {
+	ShowUIDs    []int64 `json:"show_uids,omitempty"`
+	AvoidStolen *bool   `json:"avoid_stolen,omitempty"`
+}
+
+type ProductionDirective struct {
+	MachineUID int64   `json:"machine_uid"`
+	Action     string  `json:"action"`
+	Items      []int64 `json:"items,omitempty"`
+	Note       string  `json:"note,omitempty"`
+}
+
+// The enumerated directive values, as in protocol/schema/directives.schema.json.
+var (
+	BargainModes = []string{"never", "ev_positive", "aggressive"}
+	PermitModes  = []string{"buy", "refuse", "bribe"}
+	AugModes     = []string{"shoot", "serve"}
+	EngineModes  = []string{"wine", "none"}
+	// EngineParts join with "+" into an engine; EngineModes are the contract's original values.
+	EngineParts    = []string{"wine", "water", "furnace"}
+	MortgageModes  = []string{"auto", "take", "later", "decline", "accept_if_rent"}
+	AppraisalModes = []string{"join", "off"}
+)
 
 type DayStats struct {
 	Decisions int64 `json:"decisions"`

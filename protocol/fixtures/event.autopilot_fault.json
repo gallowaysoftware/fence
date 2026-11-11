@@ -1,0 +1,5 @@
+{"session_id": "s-0001", "seq": 7, "kind": "autopilot_fault", "game_day": 69,
+ "data": {"day": 69, "phase": "customer", "state": "handover",
+          "reason": "Ivo: appraisal customer, not dismissable",
+          "message": "AUTOPILOT PAUSED — your turn: Ivo: appraisal customer, not dismissable. Play it by hand, then press Resume.",
+          "client": "Ivo", "client_kind": "appraisal"}}

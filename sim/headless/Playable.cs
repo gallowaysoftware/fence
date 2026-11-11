@@ -69,7 +69,9 @@ namespace Fence.Sim
             "PlayerStore::RemovedItemToWeightedArea", "PlayerStore::AddedItemToDisplayCase", "PlayerStore::RemovedItemToDisplayCase",
             "PlayerStore::QueueFuturClient", "DialogUIManager::SelectChoice", "DialogUIManager::StartDialogue",
             "ContrabandHelper::StartInspection", "PlayerStore::OnShutterOpened", "PlayerStore::EndDay", "PlayerStore::EndNight",
-            "PlayerStore::BeginDay",
+            "PlayerStore::BeginDay", "AugHelper::OnGoodKill", "AugHelper::CleanupKill", "AugHelper::OnAugLeftAlive",
+            // SpriteDict is presentation (stubbed): which pool an aug's portrait came from is seen here instead.
+            "AugHelper::SetRandomAugFaction", "AugHelper::MakeDisguisedAug", "AugHelper::GetRandomAugSprite",
         };
 
         public static void PatchGame(ModuleDefinition m)
@@ -98,9 +100,30 @@ namespace Fence.Sim
                     il.Create(OpCodes.Call, later),
                 });
 
+            // Wild's Network is a prefab window headless (CustomUIManager.networkUIPrefab is null, so Open
+            // bails out). The host gets the open instead and plays the browse and the close (sim/gym WildNetwork).
+            var openWild = Headless.Method(m, "WildNetworkUI", "Open", 1);
+            Headless.Replace(openWild, il =>
+            {
+                il.Emit(OpCodes.Ldstr, "WildNetworkUI::Open");
+                il.Emit(OpCodes.Ldnull);
+                il.Emit(OpCodes.Ldc_I4_1);
+                il.Emit(OpCodes.Newarr, m.TypeSystem.Object);
+                il.Emit(OpCodes.Dup);
+                il.Emit(OpCodes.Ldc_I4_0);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Box, m.TypeSystem.Boolean);
+                il.Emit(OpCodes.Stelem_Ref);
+                il.Emit(OpCodes.Call, enter);
+                il.Emit(OpCodes.Ret);
+            });
+
             // Canvas layout and machinery labels only.
             foreach (var md in m.GetType("EmporiumEntry").Methods.Where(x => x.Name == "Validate" && x.HasBody)) Headless.ReturnDefault(md);
             Headless.ReturnDefault(Headless.Method(m, "ToolboxHelper", "RefreshSlots"));
+            // Hides the store's windows on going out (null headless). Its throw, swallowed by the travel's
+            // blackscreen callback, left every outing unarrived, so scavenging attempts never reset.
+            Headless.ReturnDefault(Headless.Method(m, "EmporiumEntry", "OnLeaveStore"));
 
             // OnConfirmPanelYes returns early without the tablet's frame; this is its logic without the panel.
             var nego = m.GetType("NegociationUIManager");

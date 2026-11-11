@@ -1,0 +1,5 @@
+# Hard income, batch 4: on vs2 (best + bargain_buy ev_positive, vending + short_sleeper perks); the mortgage retest.
+vs2             | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2.json -perks vending+short_sleeper
+vs2_cells12     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_cells12.json -perks vending+short_sleeper
+vs2_mort_auto   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_mort_auto.json -perks vending+short_sleeper
+vs2_mort_take   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/vs2_mort_take.json -perks vending+short_sleeper

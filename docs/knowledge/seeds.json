@@ -1,0 +1,298 @@
+{
+  "sources": [
+    {
+      "type": "player_notes",
+      "url": "docs/knowledge/PLAYER-NOTES.md",
+      "quality": 4,
+      "title": "Player notes (Kyle)",
+      "channel": "Kyle",
+      "notes": "owner's own runs"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.thegamer.com/probably-stolen-beginner-tips-tricks-guide",
+      "quality": 2,
+      "title": "TheGamer beginner tips"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.ign.com/wikis/probably-stolen/Beginner_Tips_and_Tricks",
+      "quality": 2,
+      "title": "IGN beginner tips"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.ign.com/wikis/probably-stolen/Factions_and_NPC_Guide",
+      "quality": 2,
+      "title": "IGN factions and NPCs"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.ign.com/wikis/probably-stolen/Winemaking_Guide",
+      "quality": 2,
+      "title": "IGN winemaking"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.keengamer.com/articles/guides/probably-stolen-complete-walkthrough-beginner-tips",
+      "quality": 1,
+      "title": "KeenGamer complete walkthrough"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.whisperofthehouse.com/probably-stolen",
+      "quality": 1,
+      "title": "Whisper of the House beginner guide"
+    },
+    {
+      "type": "guide",
+      "url": "https://tposegaming.com/probably-stolen-guide",
+      "quality": 1,
+      "title": "TPoseGaming guide"
+    },
+    {
+      "type": "guide",
+      "url": "https://tposegaming.com/probably-stolen-furnace",
+      "quality": 1,
+      "title": "TPoseGaming furnace"
+    },
+    {
+      "type": "guide",
+      "url": "https://raiderking.com/probably-stolen-events-guideline",
+      "quality": 2,
+      "title": "RaiderKing all events"
+    },
+    {
+      "type": "guide",
+      "url": "https://intoindiegames.com/walkthroughs/probably-stolen-walkthrough-week-1",
+      "quality": 2,
+      "title": "Into Indie Games week 1"
+    },
+    {
+      "type": "guide",
+      "url": "https://intoindiegames.com/walkthroughs/probably-stolen-walkthrough-week-2",
+      "quality": 2,
+      "title": "Into Indie Games week 2"
+    },
+    {
+      "type": "guide",
+      "url": "https://www.destructoid.com/complete-probably-stolen-walkthrough",
+      "quality": 2,
+      "title": "Destructoid week one"
+    },
+    {
+      "type": "guide",
+      "url": "https://bonus-action.com/guides/all-trades-how-to-unlock-them-in-probably-stolen",
+      "quality": 2,
+      "title": "Bonus Action all trades"
+    },
+    {
+      "type": "guide",
+      "url": "https://gamerblurb.com/guides/probably-stolen-tips-and-tricks",
+      "quality": 1,
+      "title": "Gamerblurb tips"
+    },
+    {
+      "type": "guide",
+      "url": "https://probablystolen.gamertw.com",
+      "quality": 1,
+      "title": "gamertw wiki/guide hub"
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1xi5byd/general_strategy_question",
+      "quality": 2,
+      "title": "General strategy question"
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1xjn2qu/is_this_game_difficult",
+      "quality": 2,
+      "title": "Is this game difficult?"
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1vkho8f/how_to_make_money",
+      "quality": 2,
+      "title": "How to make money?"
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1xq5acv/filters_shmilters",
+      "quality": 2,
+      "title": "Filters? Shmilters..."
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1vn5bln/any_way_to_automate_getting_junk",
+      "quality": 2,
+      "title": "Any way to automate getting junk?"
+    },
+    {
+      "type": "reddit",
+      "url": "https://www.reddit.com/r/ProbablyStolen/comments/1xi0r6i/probably_stolen_review_one_of_those_games_that",
+      "quality": 2,
+      "title": "Review thread"
+    },
+    {
+      "type": "forum",
+      "url": "https://steamcommunity.com/app/4348910/discussions/0/589560334633869752",
+      "quality": 2,
+      "title": "Dried BloomBerry / wine tiers thread"
+    },
+    {
+      "type": "forum",
+      "url": "https://steamcommunity.com/app/4348910/discussions/0/573805072990969681",
+      "quality": 2,
+      "title": "Overnight Furnace? thread"
+    },
+    {
+      "type": "steam_guide",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3828856121",
+      "quality": 2
+    },
+    {
+      "type": "steam_guide",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3830313918",
+      "quality": 2
+    },
+    {
+      "type": "steam_guide",
+      "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3831346037",
+      "quality": 2
+    },
+    {
+      "type": "modding",
+      "url": "https://raw.githubusercontent.com/dragonpan2/probably-stolen-modding/main/APIChanges.md",
+      "quality": 3,
+      "title": "Official modding APIChanges",
+      "channel": "dragonpan2"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=za-C7jyypWU",
+      "quality": 3,
+      "notes": "HumbleSeal plays hardest settings"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=BtiFxjECQHo",
+      "quality": 3,
+      "notes": "28h playtest tips"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=pLfq4q9NFvU",
+      "quality": 2
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=55kOpHB4pAk",
+      "quality": 2,
+      "notes": "water start strategy"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=Qdw0HPmI_q4",
+      "quality": 2,
+      "notes": "$0 hard start"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=rgq6Y0Y7di8",
+      "quality": 3,
+      "notes": "wine guide"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=csNgQCpouNg",
+      "quality": 2,
+      "notes": "wine tutorial (playtest)"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=vEeYnTDzm-g",
+      "quality": 2,
+      "notes": "furnace guide"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=kefyLwyxdqc",
+      "quality": 2,
+      "notes": "makeshift reactor + scavenging"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=eA1wqB0gVE8",
+      "quality": 2,
+      "notes": "Rock Bottom hard long run"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=qZCFLZYaKio",
+      "quality": 2,
+      "notes": "water trader hardcore, Georgio investment"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=PSVn3Ia6HWM",
+      "quality": 2,
+      "notes": "Rock Bottom revolutionary run"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=fRWeiL-Ny9Q",
+      "quality": 2,
+      "notes": "Rock Bottom hard, furnace"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=tfAT_rbX9WQ",
+      "quality": 2,
+      "notes": "water money"
+    },
+    {
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=2jko4K5TqIM",
+      "quality": 2,
+      "notes": "inspection/storage week 4"
+    },
+    {
+      "type": "patch_notes",
+      "url": "https://steamcommunity.com/games/4348910/announcements/",
+      "title": "Steam announcements (patch notes)",
+      "quality": 3,
+      "channel": "Questing Goose / tinyBuild"
+    },
+    {
+      "type": "patch_notes",
+      "url": "https://gamewikistation.com/games/probably-stolen/patch-notes/",
+      "title": "GameWikiStation patch notes digest",
+      "quality": 3
+    }
+  ],
+  "expand": [
+    {
+      "kind": "sitemap",
+      "url": "https://wikily.gg/probably-stolen/sitemap.xml?part=pages-0",
+      "type": "wiki",
+      "quality": 3,
+      "max": 24,
+      "include": "/probably-stolen/(stolen-goods|prices-and-selling|dumping-ground|commissary|dr-jackson|price-modifiers|starting-perks|rent-and-buying-the-store|events|haggling|security-and-evidence|reputation|joe-wild-network|nightly-services|display-case|store-attractiveness|wine|plants/bloomberry|machines/furnace|difficulty|starting-scenarios|store-requests|luck|endings)$"
+    },
+    {
+      "kind": "sitemap",
+      "url": "https://gamewikistation.com/games/probably-stolen/sitemap-index.xml",
+      "type": "wiki",
+      "quality": 3,
+      "max": 16,
+      "include": "/probably-stolen/(systems/(bargaining|contraband|events|factions|afterhours|shop-and-rent|trading|progression|perks|hydroponics|water)|guides/(wine|metallurgy)|stores/(dumping-grounds|supplier|black-market))/$"
+    },
+    {
+      "kind": "steam_guides",
+      "url": "https://steamcommunity.com/app/4348910/guides/?browsefilter=toprated&p=1",
+      "quality": 2,
+      "max": 10
+    }
+  ]
+}

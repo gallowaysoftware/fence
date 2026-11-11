@@ -269,6 +269,7 @@ namespace Fence.Mod
             {
                 HookId = "human.shoot",
                 Target = () => AccessTools.Method(typeof(PlayerStore), "OnWantedClientShot", new[] { typeof(StoreClient) }),
+                Prefix = () => AccessTools.Method(typeof(FencePatches), nameof(AugResultPrefix)),
                 Postfix = () => AccessTools.Method(typeof(FencePatches), nameof(ShotPostfix)),
             },
             new Spec
@@ -616,7 +617,11 @@ namespace Fence.Mod
 
         static void QueueClientPostfix(string storeClientId, int day) => Rec("phone_order", r => r.CourierQueued(storeClientId, day));
 
-        static void ReportPrefix() => Rec("report", r => r.Report());
+        static void ReportPrefix()
+        {
+            Rec("report", r => r.Report());
+            Aug(a => a.Reported());
+        }
 
         static void ReportedPostfix(StoreClient storeClient) => Rec("reported", r => r.RunStat("customer_reported", new JObject { ["name"] = GameRecord.ClientName(storeClient) }));
 
@@ -624,7 +629,7 @@ namespace Fence.Mod
 
         static void WantedNotReportedPostfix() => Rec("wanted_not_reported", r => r.RunStat("wanted_not_reported"));
 
-        static void ShotPostfix(StoreClient storeClient) => Rec("shoot", r => r.Shot(storeClient));
+        static void ShotPostfix(StoreClient storeClient) => Aug(a => a.WantedCapture(GameRecord.ClientName(storeClient)));
 
         static void AugShotPostfix() => Rec("aug_shot", r => r.RunStat("aug_shot"));
 

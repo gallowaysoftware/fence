@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -21,6 +22,7 @@ import (
 	"github.com/gallowaysoftware/fence/internal/memory"
 	"github.com/gallowaysoftware/fence/internal/policy"
 	"github.com/gallowaysoftware/fence/internal/protocol"
+	"github.com/gallowaysoftware/fence/internal/route"
 	"github.com/gallowaysoftware/fence/internal/server"
 	"github.com/gallowaysoftware/fence/internal/strategy"
 )
@@ -42,8 +44,21 @@ type config struct {
 	thinking, temperature string
 	noSchema              bool
 
-	memory, carryLessons bool
-	memoryDB             string
+	memory, carryLessons, reflect bool
+	memoryDB                      string
+
+	persona string
+	// exemplars is an index from fenceexemplars; "" shows the plan none.
+	exemplars string
+	// directives is full (every field) or delta (changes to the executor's defaults).
+	directives string
+	// baseDirectives is a directives file the gym plays over its defaults (gym -directives).
+	baseDirectives string
+	// route is a docs/research/ROUTES.md route by name or path.
+	route string
+
+	planner     string
+	plannerWait time.Duration
 }
 
 func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (config, error) {
@@ -72,6 +87,14 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.BoolVar(&c.memory, "memory", env("FENCE_MEMORY", "true") == "true", "record play and give the model a price ledger, history and lessons (env FENCE_MEMORY)")
 	fs.StringVar(&c.memoryDB, "memory-db", env("FENCE_MEMORY_DB", "var/memory.db"), "memory SQLite database (env FENCE_MEMORY_DB)")
 	fs.BoolVar(&c.carryLessons, "memory-carry-lessons", env("FENCE_MEMORY_CARRY_LESSONS", "true") == "true", "start a new run with the previous run's lessons (env FENCE_MEMORY_CARRY_LESSONS)")
+	fs.BoolVar(&c.reflect, "memory-reflect", env("FENCE_MEMORY_REFLECT", "true") == "true", "rewrite the lessons with the model at the end of each day (env FENCE_MEMORY_REFLECT)")
+	fs.StringVar(&c.exemplars, "exemplars", env("FENCE_EXEMPLARS", ""), "strong-play index (fenceexemplars) whose nearest days the morning plan is shown; empty: off (env FENCE_EXEMPLARS)")
+	fs.StringVar(&c.directives, "directives", env("FENCE_DIRECTIVES", "delta"), "full: the plan as every directive; delta: only changes to the executor's defaults (env FENCE_DIRECTIVES)")
+	fs.StringVar(&c.baseDirectives, "base-directives", env("FENCE_BASE_DIRECTIVES", ""), "the directives file the gym plays over its defaults (its -directives), shown to delta plans; empty: none (env FENCE_BASE_DIRECTIVES)")
+	fs.StringVar(&c.route, "route", env("FENCE_ROUTE", ""), "the run's route ("+route.DefaultDir+" name or a file path): the morning plans are written as that shop, and its directives are the base unless -base-directives is set (env FENCE_ROUTE)")
+	fs.StringVar(&c.persona, "persona", env("FENCE_PERSONA", ""), "play style for the morning plans: an id in "+strategy.DefaultPersonaDir+" or a file path (env FENCE_PERSONA)")
+	fs.StringVar(&c.planner, "planner", env("FENCE_PLANNER", ""), "llm: the model writes the morning plans under any -policy, so -policy heuristic follows LLM plans; empty: plans only with -policy llm (env FENCE_PLANNER)")
+	fs.DurationVar(&c.plannerWait, "planner-wait", 0, "hold a day's first decision up to this long for that day's plan; for the gym, which outruns the model")
 	if err := fs.Parse(args); err != nil {
 		return c, err
 	}
@@ -84,9 +107,16 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 // buildClient returns the model client for -policy llm, nil for the heuristic, and
 // whether the provider accepts numeric bounds in the output schema.
 func buildClient(c config, getenv func(string) string) (llm.Client, bool, error) {
+	switch c.planner {
+	case "", "llm":
+	default:
+		return nil, false, fmt.Errorf("unknown planner %q (want llm or empty)", c.planner)
+	}
 	switch c.policy {
 	case "heuristic":
-		return nil, false, nil
+		if c.planner != "llm" {
+			return nil, false, nil
+		}
 	case "llm":
 	default:
 		return nil, false, fmt.Errorf("unknown policy %q (want heuristic or llm)", c.policy)
@@ -114,8 +144,8 @@ func buildClient(c config, getenv func(string) string) (llm.Client, bool, error)
 
 // buildPolicy wraps client (nil: the heuristic) into a policy; recall may be nil.
 func buildPolicy(c config, client llm.Client, bounds bool, recall policy.Recall, plan policy.Planner) policy.Policy {
-	if client == nil {
-		return policy.Heuristic{}
+	if c.policy != "llm" {
+		return gatePlans(policy.Heuristic{Plan: plan}, plan, c.plannerWait)
 	}
 	opts := []policy.LLMOption{policy.WithMaxTokens(c.maxTokens), policy.WithBounds(bounds)}
 	if recall != nil {
@@ -123,14 +153,19 @@ func buildPolicy(c config, client llm.Client, bounds bool, recall policy.Recall,
 	}
 	if plan != nil {
 		opts = append(opts, policy.WithPlan(plan))
+		if u, ok := plan.(interface {
+			UseNote(session, id, name string, sale int64) string
+		}); ok {
+			opts = append(opts, policy.WithUse(u.UseNote))
+		}
 	}
-	return policy.NewLLM(client, opts...)
+	return gatePlans(policy.NewLLM(client, opts...), plan, c.plannerWait)
 }
 
 // modelName is the model the overlay reports: none for the heuristic.
 func modelName(c config, client llm.Client) string {
 	switch {
-	case client == nil:
+	case client == nil, c.policy != "llm":
 		return ""
 	case c.model == "" && c.provider == "anthropic":
 		return llm.AnthropicDefaultModel
@@ -163,12 +198,36 @@ func openMemory(c config, client llm.Client, log *slog.Logger) *memory.Store {
 	if !c.memory {
 		return nil
 	}
+	if !c.reflect {
+		client = nil
+	}
 	st, err := memory.Open(c.memoryDB, memory.Options{LLM: client, ReflectMaxTokens: c.maxTokens, CarryLessons: c.carryLessons, Logger: log})
 	if err != nil {
 		log.Error("memory unavailable; continuing without it", "db", c.memoryDB, "err", err)
 		return nil
 	}
 	return st
+}
+
+// loadAppraisalGuides reads the value tables the inspect policy and the mod (through hello) use.
+// Without them the bridge still runs: appraisals are deferred and the autopilot skips the board.
+func loadAppraisalGuides(getenv func(string) string, log *slog.Logger) json.RawMessage {
+	path := policy.AppraisalGuidesPath(getenv)
+	raw, err := policy.ReadAppraisalGuides(path)
+	if err != nil {
+		raw = nil
+	}
+	// ReadAppraisalGuides has parsed it, so this only installs it.
+	_ = policy.UseAppraisalGuides(raw)
+	switch {
+	case err != nil:
+		log.Warn("appraisal guides unreadable: appraisals are deferred and the autopilot will not join the appraisal board", "path", path, "err", err)
+	case raw == nil:
+		log.Info("no appraisal guides: appraisals are deferred and the autopilot will not join the appraisal board", "path", path)
+	default:
+		log.Info("appraisal guides loaded", "path", path)
+	}
+	return raw
 }
 
 // run serves until ctx is done. ready, if set, receives the bound address.
@@ -185,7 +244,37 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 	if err != nil {
 		return err
 	}
+	var persona string
+	if c.persona != "" {
+		if persona, err = strategy.LoadPersona(strategy.DefaultPersonaDir, c.persona); err != nil {
+			return err
+		}
+	}
+	var exemplars strategy.Exemplars
+	if c.exemplars != "" {
+		if exemplars, err = strategy.LoadExemplars(c.exemplars); err != nil {
+			return err
+		}
+	}
+	var base, routeText string
+	if c.route != "" {
+		r, err := route.Load("", c.route)
+		if err != nil {
+			return err
+		}
+		base, routeText = r.Base, r.Text()
+	}
+	if c.baseDirectives != "" {
+		b, err := os.ReadFile(c.baseDirectives)
+		if err != nil {
+			return err
+		}
+		if base, err = route.StripMeta(b); err != nil {
+			return fmt.Errorf("-base-directives %s: %w", c.baseDirectives, err)
+		}
+	}
 	log := slog.New(slog.NewTextHandler(stderr, nil))
+	guides := loadAppraisalGuides(getenv, log)
 	mem := openMemory(c, client, log)
 	var recs []server.Recorder
 	var recall policy.Recall
@@ -202,8 +291,13 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 	// The strategist needs a model; it is closed after the server, which drains into it.
 	var plan policy.Planner
 	var planner server.Planner
+	var watch *modelWatch
 	if client != nil {
-		so := strategy.Options{LLM: client, Logger: log, MaxTokens: c.maxTokens}
+		if c.directives != "full" && c.directives != "delta" {
+			return fmt.Errorf("-directives %q: want full or delta", c.directives)
+		}
+		watch = &modelWatch{Client: client}
+		so := strategy.Options{LLM: watch, Logger: log, MaxTokens: c.maxTokens, Persona: persona, DeltaDirectives: c.directives == "delta", BaseDirectives: base, Route: routeText, Exemplars: exemplars}
 		if mem != nil {
 			so.Recall = mem
 		}
@@ -212,6 +306,10 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		recs, plan, planner = append(recs, strat), strat, strat
 	}
 	pol := buildPolicy(c, client, bounds, recall, plan)
+	if g, ok := pol.(*planGate); ok {
+		recs = append(recs, g)
+		g.modelIdle = watch.idleFor
+	}
 	dlog, err := decisionlog.New(c.logDir, decisionlog.DefaultQueue, log)
 	if err != nil {
 		return fmt.Errorf("decision log: %w", err)
@@ -231,7 +329,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		log.Warn("listening beyond loopback; the bridge has no authentication", "addr", ln.Addr().String())
 	}
 	bridge := server.New(server.Config{Mode: mode, Policy: pol, Model: modelName(c, client), Log: dlog,
-		Recorders: recs, Summarizer: sum, Planner: planner, Logger: log})
+		Recorders: recs, Summarizer: sum, Planner: planner, AppraisalGuides: guides, Logger: log})
 	// Runs before the memory and decision log close: recorders drain into memory first.
 	defer func() {
 		bridge.Close()
@@ -239,15 +337,19 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 			log.Warn("recorder records lost", "count", n)
 		}
 	}()
+	handler := bridge.Handler()
+	if g, ok := pol.(*planGate); ok {
+		handler = g.holdSummary(handler)
+	}
 	srv := &http.Server{
-		Handler:           bridge.Handler(),
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		IdleTimeout:       2 * time.Minute,
 		// No WriteTimeout: a decide legitimately holds the response for up to deadline_ms.
 	}
 	log.Info("bridge listening", "addr", ln.Addr().String(), "mode", mode, "policy", pol.Name(),
-		"provider", c.provider, "model", c.model, "log_dir", c.logDir, "memory", mem != nil, "memory_db", c.memoryDB)
+		"provider", c.provider, "model", c.model, "log_dir", c.logDir, "memory", mem != nil, "memory_db", c.memoryDB, "persona", c.persona, "route", c.route, "planner", c.planner)
 	if ready != nil {
 		ready <- ln.Addr().String()
 	}

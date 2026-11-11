@@ -44,6 +44,22 @@ type PlanInput struct {
 	Yesterday *DayPlan
 	// Lessons is memory's brief of earlier play, if any.
 	Lessons string
+	// Persona is the shop's play style (docs/personas), "" for none.
+	Persona string
+	// Augs is the aug presence rebuilt from the run's history, nil when unknown.
+	Augs *AugTrack
+	// WineIdle is the days since a new finished wine appeared, nil when unknown or none yet.
+	WineIdle *int
+	// WeekGain is net worth now less a week ago, nil when unknown.
+	WeekGain *int64
+	// Exemplars is the SIMILAR SITUATIONS block (Exemplars.Similar), "" for none.
+	Exemplars string
+	// Delta asks for directives as changes to the executor's defaults (DraftDeltaDirectives).
+	Delta bool
+	// BaseDirectives is the policy the executor plays over its defaults; "" for none.
+	BaseDirectives string
+	// Route is the run's route (route.Route.Text), "" for none.
+	Route string
 }
 
 // planSystem states only mechanics from docs/re/STATE.md, docs/re/BARTER.md and
@@ -51,30 +67,46 @@ type PlanInput struct {
 var planSystem = strings.TrimSpace(`
 You are the morning strategist of a pawnshop in the cyberpunk game "Probably Stolen". Each in-game morning you write the plan for the day. An advisor reads your plan before every customer and serves it; tonight the day is scored goal by goal against it.
 
-HOW THE RUN IS WON: buy the shop out (the state gives the buyout price; it is 12,000 at the start on normal difficulty, more on harder ones, and rises daily after day 50), or take the landlord's mortgage and pay every week. Lose: arrested, any faction except the Black Market at -100, or rent refused without landlord grace. There are no loans; the only debts are rent arrears and the mortgage. Profit comes from buying from sellers below the estimated value and reselling near the estimate plus the fixed retail markup, so cash above the floor is for stock, and an empty shop earns nothing. The run is won across days: which factions to push past a perk or keep off a penalty, what to sell, hold or buy, how much heat and criminal record to carry toward the next inspection.
+HOW THE RUN IS WON: buy the shop out (the state gives the buyout price; it is 12,000 at the start on normal difficulty, more on harder ones, and rises daily after day 50), or take the landlord's mortgage and pay every week. Lose: arrested, any faction except the Black Market at -100, or rent refused without landlord grace. The only debts are rent arrears, the mortgage and Georgio's loan (pay back 4x: take it only to bridge a rent day). Profit comes from buying from sellers below the estimated value and reselling near the estimate plus the fixed retail markup, so cash above the floor is for stock, and an empty shop earns nothing. The run is won across days: which factions to push past a perk or keep off a penalty, what to sell, hold or buy, how much heat and criminal record to carry toward the next inspection.
 
 MECHANICS
 - Rent is due every 7 days and grows after every landlord visit. Unpaid rent becomes arrears only with landlord grace; without it, refusing ends the run.
 - Reputation runs -200..200 per faction; the state gives each faction's next perk and next penalty with the distance. Lower Levels 20 Referral sends one more customer every day for the rest of the run. Penalties grow as rep falls. A faction within 20 of a run-ending -100 comes first: raise it with generous deals to its customers and risk no walk-out with them.
 - A trade moves the customer's faction by about 1 point per 400 credits of value (Lower Levels x0.66, Upper Levels x1.2, buying stolen x1.5-3), so a day moves a faction a few points at most; a gap of more than about 5 is a multi-day goal. Generous deals (a discount when selling, a markup when buying) add rep at a cash cost; hard bargains cost rep; a walk-out costs 3. Black Market rep losses count double, so be fair with Black Market customers rather than avoid them. Tourist, Church and Middle customers have no bar. Customers arrive at random; you choose only how to treat them.
 - The window (display case) must be set before the shop opens: the forecast is fixed at opening. At opening the top N item types by displayed value each bring one guaranteed buyer (N is in the state); a type that is not in the top N draws no one, so concentrate value in the types you want buyers for and keep matching stock in the back. A type's total displayed value sets the buyer's tier: tier 2 from 145, tier 3 from 350 (household 300) from day 14; richer tiers have bigger budgets. Displayed items have no price of their own; buyers pay the normal counter price. Special visitors from signs or certificates are rolls that use up regular customer slots. The discerning shopper needs a luxury item displayed. Never display stolen or contraband goods: contraband guarantees an inspection at every opening, and a stolen item triggers one at its heat percentage; that inspection searches the whole store and gives no Security rep. The calendar is the backbone of the plan: it shows the next two weeks of market events (a type's value up or down by a percentage), THREAT events, rent and mortgage days and cartel visits. Buy a type before its rise (in bulk when cash allows), sell into it, sell before a fall; before a THREAT, clear what it would hurt (hot stock, contraband, spare cash at risk) and keep cash in hand. STOCK, WINDOW, PRODUCTION and RISK name the calendar day they serve.
-- Production (the state's PRODUCTION block has the shop's own numbers; use them): machines, plants and bottles advance only while you sleep, one step a night, and a night without sleep is simply lost. Wine ferments in the bottle: 749+ ml of water, berries and yeast; 2 nights with yeast (superyeast 1, none 4). Score = berries (best +2, normal +1, under- or over-ripe 0, moldy -1) +1 for two or more berries +1 for yeast + water (tested High Quality or Pure +1, Basewater or a ration 0, worse -1 to -3): 1 Bucket brew 85, 2 Homebrew 100, 3-4 Production 125, 5 Reserve 150, 6+ Master Vintage 175, 0 or less undrinkable. Bottles and yeast are the limit, not berries: with bottles to spare one berry per bottle, with more berries than bottles two good berries per bottle (the state gives the best fill). Every berry but a moldy one is worth 85+ in a bottle with yeast against 14 as food, so only moldy berries go to food unless no bottle or yeast can be had. Finished wine ages anywhere with no cap (+3 to +5.25 a night by grade) and no market event ever moves alcohol or luxury prices: hold it unless cash is needed. Furnace: one smelt a night, 2 scrap or ore -> 1 ingot (blast module 3 -> 2), 8 power; ore and flux each lift purity a level (2 scrap Low 42.5, with flux Fair 50, 2 ore + flux Very high 75): about 18 a night on scrap, about 93 with the blast module on ore. Ingots are MATERIAL. Scavenge the dumping ground every night it is open (one free outing after closing; a welder in the bag adds scrap, a flashlight halves wound odds); skip it only when wounded.
-- Water: grades by purity: Pure, High Quality, Basewater, Ghostwater, Rustwater, Gutterflow. Buyers pay for the LABEL; bottles and plants get the TRUE grade. Filtering, purifying, tablets and heat change the water but not the label, and pouring into a non-empty container keeps that container's label, so test (strip, or AquaScan Match) and relabel before selling treated water: under-labelled water sells too cheap; over-labelled water is exposed by checking customers (-1 rep) and builds a hidden fraud or endangerment record. Never raise a label with the labeler. A filter in the pitcher plus a chlorine tablet a litre turns free rust tap water into Basewater (one filter ≈ 10.8 L ≈ +324); the purifier machine takes one container a night up to High Quality. Route water by grade: Basewater to selling, High Quality or Pure to the hydroponic bay and wine. A bloomberry plant on Basewater falls to health ~0 and gives mostly moldy berries; on High Quality plus nutrient tablets (added after filtering, minerals 200 ± 75 bp) about 78, on Pure 100; the plant analyser's growth score shows it.
+- Production (the state's PRODUCTION block has the shop's own numbers; use them): machines, plants and bottles advance only while you sleep, one step a night, and a night without sleep is simply lost. Wine ferments in the bottle: 749+ ml of water, berries and yeast; 2 nights with yeast (superyeast 1, none 4). Score = berries (best +2, normal +1, under- or over-ripe 0, moldy -1) +1 for two or more berries +1 for yeast + water (tested High Quality or Pure +1, Basewater or a ration 0, worse -1 to -3): 1 Bucket brew 85, 2 Homebrew 100, 3-4 Production 125, 5 Reserve 150, 6+ Master Vintage 175, 0 or less undrinkable. Bottles and yeast are the limit, not berries: with bottles to spare one berry per bottle, with more berries than bottles two good berries per bottle (the state gives the best fill). Every berry but a moldy one is worth 85+ in a bottle with yeast against 14 as food, so only moldy berries go to food unless no bottle or yeast can be had. Finished wine ages anywhere with no cap (+3 to +5.25 a night by grade) and no market event ever moves alcohol or luxury prices: hold it only while the shop is liquid (WHAT WINS). A bloomberry bay gives 6 berries every 2 nights after a 3-night start (about 21 a week). Furnace: one smelt a night, 2 scrap or ore -> 1 ingot (blast module 3 -> 2), 8 power (16 with the blast module); ore and flux each lift purity a level (2 scrap Low 42.5, with flux Fair 50, 2 ore + flux Very high 75): about 18 a night on scrap, about 85 with the blast module on ore. Ingots are MATERIAL. Scavenge the dumping ground every night it is open (one free outing after closing; a welder in the bag adds scrap, a flashlight halves wound odds); skip it only when wounded.
+- Water: grades by purity: Pure, High Quality, Basewater, Ghostwater, Rustwater, Gutterflow. Buyers pay for the LABEL; bottles and plants get the TRUE grade. Filtering, purifying, tablets and heat change the water but not the label, and pouring into a non-empty container keeps that container's label, so test (strip, or AquaScan Match) and relabel before selling treated water: under-labelled water sells too cheap; over-labelled water is exposed by checking customers (-1 rep) and builds a hidden fraud or endangerment record. Never raise a label with the labeler. A filter in the pitcher plus a chlorine tablet a litre turns free rust tap water into Basewater (one filter ≈ 10.8 L ≈ +324); the purifier machine takes one container a night up to High Quality. Route water by grade: Basewater to selling, High Quality or Pure to the hydroponic bay and wine. Berries roll on the plant's health at harvest (measured): Pure water with about 6 nutrient tablets per 6 L (added after filtering or purifying, which strip minerals) keeps it at 100: no bad berries, 62% best; Pure alone about a quarter bad; High Quality about 56-70, a third bad; Basewater about 16-44, three quarters bad; Ghostwater or worse all bad. Health resets to 100 in the harvest night after the berries roll, so a 100 reading the morning after a harvest is the new cycle, not the berries just picked.
 - USE VALUE: an item is worth the better of its sale price and its use here. The state's USE VALUE lines come from a catalogue of the game's code: KEEP lines beat their sale price now; "no use in this shop now" items are safe to sell.
 - Events: random market events start without warning; only an information dealer's tip (1-4 days ahead) or the Lower Levels rumour perk (2-3 days) shows one early, so the calendar is all you can plan on. Speculate with FOOD and MATERIAL stock, never with wine.
-- Stolen goods: heat 0-100 falls 18 a night wherever the item is (2-8 less for contraband). At heat 0 the item is no longer stolen and sells clean, with no crime; selling it hot is a fencing crime that grows with its heat, and selling it does not clear any risk. Buying stolen is not a crime and earns extra rep. Inspections do not search a smuggler bay; a stolen item they find anywhere else goes back to heat 100. So keep hot items in the smuggler bay (or at least out of the window and counters) and sell each on the day the state says it sells clean; sell hot only when rent cannot be met any other way before then. A security officer who sees stolen or contraband goods on a counter or in the window sets heat to 100 and starts an inspection. Clean items are never at risk.
+- Stolen goods: heat 0-100 falls 18 a night wherever the item is, contraband too (100 -> clean in 6 nights). At heat 0 the item is no longer stolen and sells clean, with no crime; selling it hot is a fencing crime that grows with its heat, and selling it does not clear any risk. Buying stolen is not a crime and earns extra rep. Inspections do not search a smuggler bay; anywhere else each hot item is found with chance = its heat %, confiscated (a total loss) and costs Security 2-5 rep (Security -80 brings thorough inspections, -100 arrest). Buying hot is good business only while the trafficking record (fencing included) is under 50, where no inspection is scheduled, and the goods stay off the counters and window: as the record nears 50 or an inspection is announced, hold no more hot stock than the smuggler bays' free cells take (the state gives them); never hold hot stock outside a bay before a THREAT day; never hold high or critical contraband you cannot hide (critical found = arrest, a high-contraband fine you cannot pay = arrest). Sell each hot item on the day the state says it sells clean; sell hot only when rent cannot be met any other way before then. A security officer who sees stolen or contraband goods on a counter or in the window sets heat to 100 and starts an inspection. Clean items are never at risk.
 - Contraband: selling it is a trafficking crime. Some Lower Levels customers refuse it.
-- Inspections search stock, counters, showcase and the trash (a Lazy inspector skips the trash); the hidden stash only when the poster is down. Stolen items may be found; high-level contraband found is fined (arrest if the fine cannot be paid), critical contraband means arrest. A Shady inspector takes a bribe if you have the cash. A clean inspection gives Security +3. Inspections come more often as the trafficking record grows; the early-warning service announces them in the night log.
+- Inspections search stock, counters, showcase and the trash (a Lazy inspector skips the trash); the hidden stash only when the poster is down. Stolen items may be found; high-level contraband found is fined (arrest if the fine cannot be paid), critical contraband means arrest. A Shady inspector takes a bribe if you have the cash. A clean inspection gives Security +3. None is scheduled while the trafficking record (fencing included) is under 50; above it they come every 3-5 days, down to 1-2 at 750. The early-warning service announces them in the night log.
 - The security record: crime amounts fall 20 a day while evidence is below 80/100; at 100 evidence a sentencing officer comes. Projected sentence: fine below 300 total crime, prison below 1500, execution above.
 - Security officers: clean trades with them are safe and raise Security rep. Never sell them stolen or contraband goods.
+
+WHAT WINS ("gym": the real game run headless, n runs per arm, docs/research/EXPERIMENTS.md; "Claude play": a Claude agent's normal game that lived to day 200 where the executor alone died on day 175, docs/research/CLAUDE-PLAY.md; "Claude play 2"-"5": further Claude agents' normal games):
+- Spend Wild favor the day it covers an upgrade; unspent favor earns nothing. Order: Landlord Grace whenever it is not armed, Winemaker, Water Trading, Showcase I, Buy Referral, Sell Referral, Showcase II, Renovation I-III, and turn each referral service on once bought (Claude play); never supplier contacts or shareholdings, which take working capital a trading shop needs (Claude play 2). On hard only Grace, Winemaker, Buy Referral: the showcase cost days there (gym v2 hard, n=40).
+- Liquidity before aging: hold finished wine only while cash covers the rent, a week of services and about 1,000 for buying; short of that sell the lowest grades first (Claude play: held wine left cash near 100 twice, so nothing was bought and the counter emptied).
+- Name the permit every day: buy it once cash covers the fee (1,500 normal, 2,000 hard), the rent and 500 more; bribe (donated goods, from day 45) only while it is unaffordable, since a bribed permit keeps logging unlicensed crime; refusing it from day 38 ends in arrest on day 79-80 (gym, 2,252 of 2,310 arrests; Claude play 2).
+- Power service off while nothing the shop owns draws store power; engine none once no new wine has started for about 5 days or no bloomberry seeds are left, freeing the cash in its inputs (Claude play, Claude play 2).
+- Insurance and janitorial on every night: +21 days (gym v2, n=40). On hard keep janitorial on even when cash is tight: switched off, trash halved attractiveness and sales fell to zero for 22 days (Claude play, hard). On hard (retail markup 0) volume is not profit: grace, scavenging and janitorial first.
+- Wholesale is the main buying channel: take every wholesale lot whose estimate covers the price (none: -24 days, gym v2 n=40); never buy single lots at full estimate, demand a discount.
+- Bargain only when the label's odds make it pay, and never while Lower Levels is below -10 (Claude play 2); on normal with Lower Levels below -20 also serve augs: presence does not end a normal run and each shot Lower Levels aug costs about 5 rep (Claude play 4); reflex markups cost 13-19 days and drive Lower Levels toward -100 (gym v1 n=60, v2 n=40).
+- Buy hot cheap, sell at heat 0, within the inspection limits above: +4 days (gym v2, n=40); selling serious contraband: -14 days, arrests (gym v2, n=40).
+- No fixed cash floor: floors of 150-600 cost 2-36 days (gym, n=60). Hold the rent due only from 2 days before rent day; on supplier day (day % 7 = 5) spend down to the bare rent (Claude play 3).
+- Upgrades paid partly in cash must leave the rent plus about 1,200; once the favor order is done, favor (never cash) may go to supplier shareholders (Claude play 2, 3).
+- Do not buy faction rep with discounts: -15 days for Lower Levels, rep no higher (gym, n=60).
+- Never leave the window empty (-4 to -6 days, gym); scavenge every night it is open (free).
+- Trading alone falls behind the compounding rent (gym, 8,080 runs): upgrades, favor and the wine engine buy time, and the mortgage is the realistic win: it is offered on rent mornings once cash is twice a 15% down payment (about 4,000 to day ~114, 5,000 after); take it only if the weekly gain plus the rent it replaces covers the payment (about 1,000-1,350) and the services and cash after the down payment keeps 1.5 payments plus about 1,000 for buying, else decline: the shop is worth more alive. Lend Georgio about a quarter of cash around day 43 (4x back around day 70) and take the offer on the first rent day after; while paying it, buy the permit only with cash for the fee plus 2 payments; alarm when trading stock falls under one payment (Claude play 2-5; play 5 won by mortgage on day 154).
 
 WRITE THE PLAN in plain text, at most 1700 characters, short lines, in exactly this layout (ten headings in this order, each on its own line, each followed by lines starting with "- "):
 CALENDAR
 - <the next 7 days from the state's calendar, one line per relevant day: "day N: <event> -> <what it means for us>" (a price rise to buy ahead of or sell into, a threat to prepare for, rent or mortgage day, a cartel visit); "nothing in 7 days" if empty>
 GOALS
 - <2 to 4 goals, one per line, each reachable today and checkable tonight from closing cash, reputation values, or which named items were sold, kept or bought; each with its target number>
+- BUY tonight: <upgrade> (<cost>: favor F + cash C; why: the loss condition it pushes back, the style's buy order, or the favor order) — one line per upgrade a near LOSS CONDITION, the state's BUY ORDER or the FAVOR ORDER names that favor or spare cash covers (mitigations first); none when nothing qualifies>
 CASH
-- <the floor: the least cash to hold at any moment today, never above current cash; usually the rent due if it falls within 3 days, else lower. Free to spend = cash minus the floor.>
+- <the floor: the least cash to hold at any moment today, never above current cash: the rent due when rent day is 2 days away or less, else 0 (no fixed floor). Free to spend = cash minus the floor.>
 FACTIONS
 - <which faction to push toward which threshold and how; which to protect, how far it is from its next penalty, and how>
 WINDOW
@@ -87,19 +119,22 @@ KEEP
 PRODUCTION
 - <one line per machine, plant, bottle batch and water container that needs a move, from the PRODUCTION block: "<thing #uid>: tonight <action>; tomorrow <action>" with the numbers (nights, grade, value, day it is ready); water: what to test or relabel before selling and which water feeds the bay and the bottles; what to buy for production (bottles, yeast, flux, filters); tonight's scavenging; "none" if the state shows no production>
 RISK
-- <hot items not in a smuggler bay (exposed to an inspection), contraband, the security record, and what to move or clear before each THREAT day; what not to sell or buy, and to whom>
+- <one short line per LOSS CONDITIONS entry, closest first, at most 4 (every IMMINENT one): "<condition>: <distance now> -> <today's move; its mitigation: buy tonight or keep ready>">
+- <hot stock: the state's expected loss per inspection (credits and Security rep), what goes into the smuggler bay, what to clear before each THREAT day; what not to sell or buy, and to whom>
 CUSTOMERS
-- <whom to prioritise, whom to treat generously for rep, whom to turn away>
+- <whom to prioritise, whose customers must never walk out, whom to turn away>
 Use the state's own numbers: name items, factions, amounts and days. No generic advice ("be careful", "maximize profit"). Do not invent facts or effects the state and these rules do not give. If yesterday missed a goal, say what changes today. No preamble, no markdown.`)
 
 // BuildPlanPrompt renders in as the morning prompt: yesterday's scorecard first, then
-// yesterday's plan, memory's lessons and today's state.
+// yesterday's plan, memory's lessons, today's state and last the style, where a small
+// model weighs it most.
 func BuildPlanPrompt(in PlanInput) (string, error) {
 	s, err := parseSnapshot(in.Snapshot)
 	if err != nil {
 		return "", fmt.Errorf("day snapshot: %w", err)
 	}
 	day := s.day(in.Day)
+	s.aug, s.wineIdle = in.Augs, in.WineIdle
 	var b strings.Builder
 	if y := in.Yesterday; y != nil {
 		if y.Facts != "" {
@@ -120,6 +155,10 @@ func BuildPlanPrompt(in PlanInput) (string, error) {
 	}
 	fmt.Fprintf(&b, "TODAY: day %d, morning.\n", day)
 	s.render(&b, day)
+	b.WriteString(in.Exemplars)
+	renderRoute(&b, in.Route)
+	renderStyle(&b, in.style())
+	s.renderBuyOrder(&b, in.style())
 	fmt.Fprintf(&b, "\nWrite the plan for day %d.", day)
 	return b.String(), nil
 }
@@ -127,35 +166,66 @@ func BuildPlanPrompt(in PlanInput) (string, error) {
 // DraftPlan asks c for the day's plan and returns it tidied to the plan headings within
 // MaxPlanBytes. A plan missing a heading gets one repair round.
 func DraftPlan(ctx context.Context, c llm.Client, in PlanInput, maxTokens int) (plan, model string, err error) {
-	prompt, err := BuildPlanPrompt(in)
+	d, err := DraftPlanConversation(ctx, c, in, maxTokens)
 	if err != nil {
 		return "", "", err
 	}
+	return d.Plan, d.Model, nil
+}
+
+// PlanDraft is a written plan and the conversation that wrote it, which the directives
+// continue.
+type PlanDraft struct {
+	Plan, Model string
+	system      string
+	messages    []llm.Message
+	snap        *snapshot
+	persona     string
+	day         int
+	delta       bool
+	base        string
+}
+
+// DraftPlanConversation is DraftPlan, keeping the conversation for DraftDirectives.
+func DraftPlanConversation(ctx context.Context, c llm.Client, in PlanInput, maxTokens int) (*PlanDraft, error) {
+	prompt, err := BuildPlanPrompt(in)
+	if err != nil {
+		return nil, err
+	}
 	snap, _ := parseSnapshot(in.Snapshot)
+	snap.aug, snap.wineIdle, snap.weekGain = in.Augs, in.WineIdle, in.WeekGain
 	day := snap.day(in.Day)
 	if maxTokens <= 0 {
 		maxTokens = defaultMaxTokens
 	}
+	system := planSystem
+	if strings.TrimSpace(in.Route) != "" {
+		system += "\n" + routeRule
+	}
+	if strings.TrimSpace(in.style()) != "" {
+		system += "\n" + styleRule
+	}
 	msgs := []llm.Message{{Role: llm.RoleUser, Content: prompt}}
 	for attempt := 0; attempt < 2; attempt++ {
-		resp, cerr := c.Complete(ctx, llm.Request{System: planSystem, Messages: msgs, MaxTokens: maxTokens})
+		resp, cerr := c.Complete(ctx, llm.Request{System: system, Messages: msgs, MaxTokens: maxTokens})
 		if cerr != nil {
-			return "", "", cerr
+			return nil, cerr
 		}
+		var plan string
 		plan, err = TidyPlan(resp.Text)
 		if err == nil && attempt == 0 {
-			err = errors.Join(goalsCheck(plan), lintPlan(plan, snap, day))
+			err = errors.Join(goalsCheck(plan), lintPlan(plan, snap, day), lintUpgrades(plan, snap, in.style(), day))
 		}
+		answer := llm.Message{Role: llm.RoleAssistant, Content: nonEmpty(strings.TrimSpace(resp.Text), "(empty)")}
 		if err == nil {
-			return plan, resp.Model, nil
+			return &PlanDraft{Plan: plan, Model: resp.Model, system: system, messages: append(msgs, answer), snap: snap, persona: in.style(), day: day, delta: in.Delta, base: in.BaseDirectives}, nil
 		}
-		msgs = append(msgs,
-			llm.Message{Role: llm.RoleAssistant, Content: nonEmpty(strings.TrimSpace(resp.Text), "(empty)")},
+		msgs = append(msgs, answer,
 			llm.Message{Role: llm.RoleUser, Content: "That plan is unusable: " + err.Error() +
-				". Rewrite it with the seven headings " + strings.Join(Headings, ", ") + ", each on its own line followed by lines starting with \"- \"."},
+				". Rewrite it with the ten headings " + strings.Join(Headings, ", ") + ", each on its own line followed by lines starting with \"- \"."},
 		)
 	}
-	return "", "", err
+	return nil, err
 }
 
 // lintPlan catches the plan errors a small model keeps making against rules it was given:
@@ -190,7 +260,43 @@ func lintPlan(plan string, s *snapshot, day int) error {
 		}
 	}
 	errs = append(errs, lintProduction(plan, s)...)
+	errs = append(errs, lintLoss(plan, s, day)...)
+	errs = append(errs, lintRepDiscounts(plan, s)...)
 	return errors.Join(errs...)
+}
+
+// repEmergency is the rep at or below which a faction is one bad week from -100, the only
+// case where paying for rep is the plan's business.
+const repEmergency = -80
+
+var (
+	concessionWords = []string{"discount", "generous", "nice bargain", "offer markup", "offer_markup", "offer_discount", "price concession"}
+	refusalWords    = []string{"no discount", "not discount", "never discount", "don't discount", "do not discount", "avoid", "never", "no generous", "not buy rep", "don't buy", "do not buy"}
+)
+
+var repWord = regexp.MustCompile(`\b(rep|reputation|goodwill|standing|perks?|referral)\b`)
+
+// lintRepDiscounts flags a plan that buys faction rep with price concessions: the gym
+// measured it losing (docs/research/EXPERIMENTS.md §6: Lower Levels -15 days and -753 net
+// worth by day 60, with no rep gained). A faction at or below repEmergency is exempt.
+func lintRepDiscounts(plan string, s *snapshot) []error {
+	var errs []error
+	for _, line := range strings.Split(strings.ToLower(plan), "\n") {
+		if !mentionsAny(line, concessionWords) || !repWord.MatchString(line) || mentionsAny(line, refusalWords) {
+			continue
+		}
+		emergency := false
+		for id, name := range factionNames {
+			if v, ok := s.rep(id); ok && v <= repEmergency && strings.Contains(line, strings.ToLower(name)) {
+				emergency = true
+			}
+		}
+		if emergency {
+			continue
+		}
+		errs = append(errs, fmt.Errorf("%q buys reputation with price concessions; the gym measured that losing (Lower Levels: -15 days and -753 net worth by day 60, rep no higher): rep comes from trade volume and hot buys, so drop it unless a faction is at %d or below", strings.TrimPrefix(strings.TrimSpace(line), "- "), repEmergency))
+	}
+	return errs
 }
 
 var negations = []string{"do not sell", "don't sell", "never sell", "not sell", "hold", "until", "keep"}

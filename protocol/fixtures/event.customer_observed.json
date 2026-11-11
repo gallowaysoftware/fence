@@ -2,7 +2,7 @@
   "session_id": "s-0001", "seq": 4, "kind": "customer_observed", "game_day": 69,
   "data": {
     "client_seq": 41, "covered": false, "reason": "story client",
-    "context": {"client": {"name": "Dr. Jackson", "faction": "upper_levels", "intent": "sell"}, "counter": {"theirs": [], "yours_staged": []}},
+    "context": {"client": {"name": "Dr. Jackson", "faction": "upper_levels", "intent": "sell", "aug": false}, "counter": {"theirs": [], "yours_staged": []}},
     "options": []
   },
   "hidden": {"client": {"identifier": "dr_jackson", "is_aug": false, "stealth_wanted": false}}

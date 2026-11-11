@@ -17,7 +17,7 @@ namespace Fence.Mod
 
         static readonly string[] Body =
         {
-            "h_customer", "customer", "status", "move", "rationale", "options", "outcome", "h_today", "summary", "today", "lessons",
+            "h_customer", "customer", "status", "move", "inspect", "rationale", "options", "outcome", "h_today", "summary", "today", "lessons",
         };
 
         static readonly string[] PlanBody = { "h_plan", "plan_window", "plan_toggle", "plan" };
@@ -64,6 +64,14 @@ namespace Fence.Mod
                     OverlayUi.SetVisible(window, "not_recording", view.NotRecording);
                     OverlayUi.SetVisible(window, "recording", !view.NotRecording);
                 }
+                // The autopilot's state, collapsed or not: a stop that needs the human must be seen.
+                string auto = view.Autopilot ?? "";
+                if (Changed("autopilot", auto + view.AutopilotAlert))
+                {
+                    if (auto.Length > 0) OverlayUi.SetText(window, view.AutopilotAlert ? "autopilot_alert" : "autopilot", auto);
+                    OverlayUi.SetVisible(window, "autopilot_alert", auto.Length > 0 && view.AutopilotAlert);
+                    OverlayUi.SetVisible(window, "autopilot", auto.Length > 0 && !view.AutopilotAlert);
+                }
                 bool hasPlan = !string.IsNullOrEmpty(view.Plan) && !collapsed;
                 bool hasWindow = hasPlan && !string.IsNullOrEmpty(view.PlanWindow);
                 if (Changed("plan_vis", hasPlan + "|" + hasWindow + "|" + planHidden))
@@ -83,6 +91,7 @@ namespace Fence.Mod
                 Set("customer", view.Customer);
                 Set("status", "Status: " + view.Status);
                 Set("move", view.Move);
+                Set("inspect", view.Inspect);
                 Set("rationale", view.Rationale);
                 Set("options", view.Options);
                 Set("outcome", view.Outcome);
@@ -196,6 +205,8 @@ namespace Fence.Mod
                 .SetDraggable(true)
                 .AddWarning("", "not_recording")
                 .AddLabel("", "recording")
+                .AddWarning("", "autopilot_alert")
+                .AddLabel("", "autopilot")
                 .AddLabel("", "header")
                 .BeginRow()
                     .AddButton("Ask again", askAgain, "ask")
@@ -212,6 +223,7 @@ namespace Fence.Mod
                 .AddLabel("", "customer")
                 .AddLabel("", "status")
                 .AddLabel("", "move")
+                .AddLabel("", "inspect")
                 .AddLabel("", "rationale")
                 .AddLabel("", "options")
                 .AddLabel("", "outcome")

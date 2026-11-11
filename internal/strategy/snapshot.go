@@ -8,7 +8,8 @@ import (
 	"strings"
 )
 
-// HeatDecayPerDay is how much a stolen item's heat falls each night (docs/re/STATE.md).
+// HeatDecayPerDay is how much a stolen item's heat falls each night, contraband included:
+// UpdateStolenItem's contraband slow-down never fires (measured, docs/sim/VERIFIED.md).
 const HeatDecayPerDay = 18
 
 var factionNames = map[string]string{
@@ -90,26 +91,13 @@ func signed(v float64) string {
 	return fmtNum(v)
 }
 
-// contrabandSlowdown is how much less heat a contraband item loses a night, by level
-// (StolenHelper.UpdateStolenItem: low/mid/high/critical).
-var contrabandSlowdown = map[int64]int64{1: 2, 2: 4, 3: 6, 4: 8}
-
-func (it item) heatDecay() int64 {
-	d := int64(HeatDecayPerDay)
-	if it.ContrabandLevel != nil {
-		d -= contrabandSlowdown[min(*it.ContrabandLevel, 4)]
-	}
-	return d
-}
-
 // coolDays is the nights until it's heat reaches 0, when it stops being stolen and sells
 // clean (no fencing crime).
 func (it item) coolDays() int64 {
 	if it.StolenHeat == nil || *it.StolenHeat <= 0 {
 		return 0
 	}
-	d := it.heatDecay()
-	return (*it.StolenHeat + d - 1) / d
+	return (*it.StolenHeat + HeatDecayPerDay - 1) / HeatDecayPerDay
 }
 
 // inBay reports whether it sits inside a smuggler bay, which inspections do not search.
@@ -178,13 +166,17 @@ func (s *snapshot) render(b *strings.Builder, day int) {
 	s.renderRent(b, day)
 	s.renderProperty(b)
 	s.renderReputation(b)
+	s.renderPerks(b)
 	s.renderInventory(b, day)
 	s.renderClientele(b)
 	s.renderWindowMath(b, day)
 	s.renderProduction(b, day)
 	s.renderUseValues(b, s.production())
 	s.renderSecurity(b)
+	s.renderHotExposure(b)
 	s.renderServices(b)
+	s.renderAugs(b, day)
+	s.renderLossConditions(b, day)
 	s.renderMarket(b, day)
 	for _, k := range sortedKeys(s.other) {
 		fmt.Fprintf(b, "%s: %s\n", strings.ReplaceAll(k, "_", " "), s.other[k])
@@ -452,11 +444,33 @@ func (s *snapshot) renderServices(b *strings.Builder) {
 		fmt.Fprintf(b, "Upgrades owned: %s.\n", strings.Join(s.UpgradesOwned, ", "))
 	}
 	if len(s.UpgradesOffer) > 0 {
-		offer := s.UpgradesOffer
-		if len(offer) > 6 {
-			offer = offer[:6]
+		var offer []string
+		for i, u := range s.UpgradesOffer {
+			if i == 10 {
+				offer = append(offer, "…")
+				break
+			}
+			t := u.text()
+			if a := s.affordText(u); a != "" {
+				t += " affordable: " + a
+			}
+			offer = append(offer, t)
 		}
-		fmt.Fprintf(b, "Upgrades available: %s.\n", strings.Join(offer, ", "))
+		fav := ""
+		if s.WildFavor != nil {
+			fav = fmt.Sprintf(", %d favor on hand", *s.WildFavor)
+		}
+		fmt.Fprintf(b, "Upgrades available (paid from Wild favor first, then cash%s): %s.\n", fav, strings.Join(offer, ", "))
+	}
+	if f := s.favorText(); f != "" {
+		fav := ""
+		if s.WildFavor != nil {
+			fav = fmt.Sprintf(" (%d favor on hand)", *s.WildFavor)
+		}
+		fmt.Fprintf(b, "FAVOR ORDER, not yet bought%s: %s.\n", fav, f)
+	}
+	if s.wineIdle != nil {
+		fmt.Fprintf(b, "Wine engine: last new finished wine %d day(s) ago.\n", *s.wineIdle)
 	}
 	var using []string
 	for _, v := range s.Services {
@@ -634,7 +648,7 @@ func (s *snapshot) renderInventory(b *strings.Builder, day int) {
 
 	slices.SortStableFunc(stolen, func(a, c item) int { return int(*c.StolenHeat - *a.StolenHeat) })
 	if len(stolen) > 0 {
-		fmt.Fprintf(b, "Stolen (heat falls %d a night, less for contraband; at heat 0 it is no longer stolen and sells clean; selling it hot is a fencing crime that grows with its heat):\n", HeatDecayPerDay)
+		fmt.Fprintf(b, "Stolen (heat falls %d a night, contraband too; at heat 0 it is no longer stolen and sells clean; selling it hot is a fencing crime that grows with its heat):\n", HeatDecayPerDay)
 		for _, it := range stolen {
 			b.WriteString("- " + s.itemLine(it))
 			h := *it.StolenHeat
@@ -650,7 +664,7 @@ func (s *snapshot) renderInventory(b *strings.Builder, day int) {
 				b.WriteString(", also " + contraText(it))
 			}
 			if h > 0 && !s.inBay(it) {
-				b.WriteString(" [EXPOSED: not in a smuggler bay; an inspection that finds it resets heat to 100]")
+				b.WriteString(" [EXPOSED: not in a smuggler bay; an inspection finds it with chance = its heat % and confiscates it]")
 			}
 			if it.seenBySecurity() {
 				fmt.Fprintf(b, " [ON %s: visible to security]", strings.ToUpper(strings.ReplaceAll(it.Where, "_", " ")))

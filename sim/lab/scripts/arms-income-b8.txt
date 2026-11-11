@@ -1,0 +1,10 @@
+# Hard income, batch 8: water engine and the Red Imp beer phone/shareholder on vs2; water on normal (fidelity).
+w_water | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/w_water.json -perks vending+short_sleeper
+w_wine_water | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/w_wine_water.json -perks vending+short_sleeper
+w_all | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/w_all.json -perks vending+short_sleeper
+beer | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/beer.json -perks vending+short_sleeper
+beer_sh | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/beer_sh.json -perks vending+short_sleeper
+n_default | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_default.json
+n_water | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_water.json
+n_wine_water | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_wine_water.json
+n_beer_sh | -human player -difficulty normal -start none -directives sim/lab/scripts/directives/inc/n_beer_sh.json

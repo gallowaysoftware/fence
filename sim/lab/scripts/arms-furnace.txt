@@ -1,0 +1,8 @@
+# The furnace engine (sim/gym/Furnace.cs) against the executor's defaults, paired seeds, horizon buyout or game over (1000 days).
+# FENCE_GYM_DLL=... python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-furnace.txt -dir var/sim/exp/furnace -seeds 30 -days 1000 -parallel 6
+hard_player | -human player -difficulty hard -start apprentice
+hard_furnace | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/eng_furnace.json
+hard_wine_furnace | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/eng_wine_furnace.json
+normal_player | -human player -difficulty normal
+normal_wine_furnace | -human player -difficulty normal -directives sim/lab/scripts/directives/eng_wine_furnace.json
+hard_none | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/nowine.json

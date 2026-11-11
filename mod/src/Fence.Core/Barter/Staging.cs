@@ -184,4 +184,47 @@ namespace Fence.Barter
 
         static string N(long n) => n.ToString(CultureInfo.InvariantCulture);
     }
+
+    // The instant shortlist: the top of StageContext.Rank, shown at once without waiting for the bridge.
+    public static class StageShortlist
+    {
+        public const int DefaultSize = 3;
+
+        // The `stage_shortlist` setting: a count, 0 disables; anything unreadable keeps the default.
+        public static int Parse(string setting)
+        {
+            if (!int.TryParse(setting?.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int n)) return DefaultSize;
+            return Math.Max(0, Math.Min(StageContext.MaxCandidates, n));
+        }
+
+        // "Radio (598, wants electronics)", "Synth (900 capped)", "Cassette (345, heat 22)".
+        public static string Line(StageCandidate x, long? budgetLeft)
+        {
+            var i = x.Shop.Item;
+            var parts = new List<string>();
+            parts.Add(x.OverBudget && budgetLeft.HasValue ? N(budgetLeft.Value) + " capped" : N(i.Price));
+            if (x.Attracted) parts.Add("they came for it");
+            else if (x.Shop.Matches.Count > 0) parts.Add("wants " + string.Join(", ", x.Shop.Matches.Select(TypeTags.Name)));
+            else parts.Add("margin " + Signed(i.Price - (i.BoughtAt.HasValue && i.BoughtAt.Value > 0 ? i.BoughtAt.Value : i.EstimatedValue ?? i.Price)));
+            if (i.StolenHeat.HasValue) parts.Add("heat " + N(i.StolenHeat.Value));
+            if (i.ContrabandLevel > 0) parts.Add("contraband " + N(i.ContrabandLevel));
+            return FeatureText.Truncate(i.Name ?? i.Id, 24) + " (" + string.Join(", ", parts) + ")";
+        }
+
+        // One line per candidate; the bridge's pick (offer_<uid>) is marked with the arrow, and appended
+        // when it is not among them.
+        public static string Text(IList<StageCandidate> top, long? budgetLeft, Advice advice)
+        {
+            if (top == null || top.Count == 0) return "";
+            string picked = OverlayText.IsStageOffer(advice) ? advice.OptionId : null;
+            var lines = top.Select(x => (StageOptionIds.Offer(x.Shop.Item.Uid) == picked ? "▶ " : "  ") + Line(x, budgetLeft)).ToList();
+            if (picked != null && !top.Any(x => StageOptionIds.Offer(x.Shop.Item.Uid) == picked))
+                lines.Add("▶ " + OverlayText.Clean(advice.Label ?? picked, 90));
+            return string.Join("\n", lines);
+        }
+
+        static string N(long n) => n.ToString(CultureInfo.InvariantCulture);
+
+        static string Signed(long n) => n.ToString("+0;-0;0", CultureInfo.InvariantCulture);
+    }
 }

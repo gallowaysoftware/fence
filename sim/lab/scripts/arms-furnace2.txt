@@ -1,0 +1,8 @@
+# Scaling the furnace engine on hard (sim/gym/Furnace.cs); paired seeds, buyout or game over within 1000 days.
+# FENCE_GYM_DLL=... python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-furnace2.txt -dir DIR -seeds 30 -days 1000 -parallel 16
+furnace_conc | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_conc.json
+furnace_phone | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_phone.json
+furnace_phone_2f | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_phone_2f.json
+furnace_phone_m30 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_phone_m30.json
+furnace_phone_3f | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_phone_3f.json
+furnace_phone_2f_m15 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/furnace_phone_2f_m15.json

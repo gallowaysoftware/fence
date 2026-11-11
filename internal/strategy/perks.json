@@ -1,0 +1,2723 @@
+{
+ "source": {
+  "steam_buildid": "26525552",
+  "doc": "docs/re/PERKS.md",
+  "tables": [
+   "var/gamedata/starting_perks.json",
+   "var/gamedata/reputation.json"
+  ]
+ },
+ "selection": {
+  "points": 3,
+  "base_slots": 4,
+  "rule": "sum(cost) <= 3 and count <= 4 + extra_slots; incompatible pairs excluded; perks blocked on a save's first run",
+  "starting_rep_is_raw": true,
+  "applied_after_start_kit": true,
+  "mid_run_changes": "addictions cure after 20 clean days; blackmail ends on refusal/capture; the hypertech smuggler's mind reprogrammer can add a non-negative mind_editable perk or remove any mind_editable perk (charge |cost|, cooldown 5 days per point)"
+ },
+ "reputation_rules": {
+  "range": [
+   -200,
+   200
+  ],
+  "unlock": "positive perk active while rep >= threshold; negative while rep <= threshold; re-evaluated on every change (perks relock)",
+  "always_active": [
+   "BM_HONOR"
+  ],
+  "active_at_start": [
+   "UL_DISCERNING_TASTE",
+   "SEC_REQUISITION",
+   "BM_HONOR"
+  ],
+  "game_over_floors": {
+   "FACTION_LOWER_LEVEL": -100,
+   "FACTION_SECURITY": -100,
+   "FACTION_REVOLUTION": -100,
+   "FACTION_CARTEL": -100
+  }
+ },
+ "archetypes": [
+  "honest-broker",
+  "water-baron",
+  "vintner",
+  "smelter",
+  "fence",
+  "cook",
+  "armourer",
+  "rancher",
+  "shark",
+  "magnate"
+ ],
+ "perks": [
+  {
+   "id": "agoraphobia",
+   "kind": "starting",
+   "name": "Agoraphobia",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "scavenging",
+   "effect": "After any after-hours outing you must stay in for 2 nights: one outing every third night at most.",
+   "numbers": {
+    "rest_nights": 2
+   },
+   "strategy": "Cuts dumping-ground and commissary trips to a third. Harmless to shop-only and production runs; crippling for scavenging lines.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "water-baron",
+    "honest-broker",
+    "armourer"
+   ],
+   "avoid": [
+    "smelter",
+    "shark"
+   ],
+   "sites": [
+    "StartingPerkContent.IsAgoraphobiaResting",
+    "StartingPerkContent.GetAgoraphobiaReadyDay"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "alcohol_addiction",
+   "kind": "starting",
+   "name": "Alcohol Addiction",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "obligation",
+   "effect": "Withdrawal from day 1 (counter starts at 3): every counter trade is 8 % worse (pay 8 % more, receive 8 % less) until you drink or 20 sober days cure it (perk removed).",
+   "numbers": {
+    "trade_penalty_pct": 8,
+    "debuff_after_days": 3,
+    "cure_after_days": 20,
+    "starting_item": "nudka"
+   },
+   "strategy": "Choice: go cold turkey (≈17 days of −8 % on every trade, then free) or keep a supply (each dose resets the cure clock). Cold turkey is usually right early; stacking two addictions doubles the hit.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "smelter"
+   ],
+   "avoid": [
+    "honest-broker",
+    "shark"
+   ],
+   "sites": [
+    "HealthData.GetTotalAddictionPenalty",
+    "HealthData (nightly addiction tick)",
+    "GameItem.OnAddedToClientArea",
+    "ItemFeatureList.AddictionBuyPenalty/AddictionSellPenalty"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "alert",
+   "kind": "starting",
+   "name": "Vigilant",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "theft",
+   "effect": "Night burglary never happens: the uninsured break-in roll is skipped entirely.",
+   "numbers": {
+    "burglary_chance": 0
+   },
+   "strategy": "Insurance becomes pure waste; drop it and bank (net worth/400 + 3) a night. Big for stock-heavy runs.",
+   "fit": [
+    "magnate",
+    "fence",
+    "vintner",
+    "honest-broker"
+   ],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.HandleInsurance"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "ascetic",
+   "kind": "starting",
+   "name": "Ascetic",
+   "polarity": "negative",
+   "cost": -4,
+   "incompatible": [
+    "minimalist"
+   ],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "major",
+   "cluster": "capacity",
+   "effect": "Main stock grid shrinks from 24x10 to 16x10 (−33 %).",
+   "numbers": {
+    "inventory_width": 16,
+    "default_width": 24
+   },
+   "strategy": "Forces fast turnover and small machines; production footprints and stockpiling for market events suffer badly. 4 points back.",
+   "fit": [
+    "honest-broker",
+    "shark"
+   ],
+   "avoid": [
+    "magnate",
+    "vintner",
+    "rancher",
+    "smelter",
+    "water-baron"
+   ],
+   "sites": [
+    "EmporiumEntry.SetSmallInv",
+    "PlayerStore (load/new game)"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "aug_menace",
+   "kind": "starting",
+   "name": "Aug Menace",
+   "polarity": "neutral",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "obligation",
+   "effect": "Augs start on day 1 (shotgun and aug guide given, first aug in 2-4 days), never end (no all-clear), and aug presence >= 100 is game over on every difficulty. Aug kill cash ×1.25.",
+   "numbers": {
+    "aug_intro_day": 1,
+    "first_aug_days": [
+     2,
+     4
+    ],
+    "kill_reward_mult": 1.25,
+    "game_over_presence": 100
+   },
+   "strategy": "Adds a permanent identify-and-shoot task from day 1. Every aug that leaves raises presence; kills lower it. Profitable only for a policy that reads tells well.",
+   "fit": [
+    "armourer",
+    "shark"
+   ],
+   "avoid": [
+    "honest-broker",
+    "vintner"
+   ],
+   "sites": [
+    "PlayerStore.GetAugIntroducedDay",
+    "PlayerStore.IsAugAllClearDue",
+    "EndOfDayUIManager (aug game over)",
+    "AugHelper (kill reward)",
+    "StartingPerkContent.UnlockAugMenace"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "awful_negotiator",
+   "kind": "starting",
+   "name": "Awful Negotiator",
+   "polarity": "negative",
+   "cost": -3,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "major",
+   "cluster": "price",
+   "effect": "Bargain panel is never offered, and every counter trade gets a permanent 5 % penalty (pay 5 % more buying, receive 5 % less selling).",
+   "numbers": {
+    "trade_penalty_pct": 5,
+    "bargaining": false
+   },
+   "strategy": "Removes the whole haggling action family. Policy must win on sourcing, markup setting and production instead. 3 points back.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "smelter",
+    "water-baron"
+   ],
+   "avoid": [
+    "shark",
+    "honest-broker",
+    "fence"
+   ],
+   "sites": [
+    "NegociationUIManager.RefreshBargainControl",
+    "GameItem.OnAddedToClientArea",
+    "ItemFeatureList.AwfulNegotiatorBuyPenalty/SellPenalty"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "bad_lease",
+   "kind": "starting",
+   "name": "Bad Lease",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "cash_rent",
+   "effect": "Starting rent +40; it compounds with every landlord increase.",
+   "numbers": {
+    "rent_delta": 40
+   },
+   "strategy": "≈ +40-60 a week for the run (≈ +500 over ten weeks on normal). Cheap point for engines that clear rent easily.",
+   "fit": [
+    "vintner",
+    "magnate",
+    "water-baron"
+   ],
+   "avoid": [
+    "shark"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "banned_commissary",
+   "kind": "starting",
+   "name": "Banned from the Commissary",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "welfare_program"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "content_removal",
+   "effect": "Commissary never opens, food stamps are never introduced (no stamp guide, no stamp sellers, no stamps from the exchange).",
+   "numbers": {},
+   "strategy": "Deletes the stamp inspection trade and commissary purchases. Small cost for production lines, real cost for the Honest Broker.",
+   "fit": [
+    "vintner",
+    "smelter",
+    "rancher",
+    "armourer"
+   ],
+   "avoid": [
+    "honest-broker"
+   ],
+   "sites": [
+    "CommissaryLocation",
+    "StoreClientManager.IsClientBlockedByBannedCommissary",
+    "ExchangeList",
+    "StoreShutterButton.OnShutterDoorOpenMorning",
+    "PlayerStore.HandleSkipIntro"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "blabbermouth",
+   "kind": "starting",
+   "name": "Blabbermouth",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "major",
+   "cluster": "crime",
+   "effect": "Every committed crime ×1.33; rep gains with Black Market and Revolution halved.",
+   "numbers": {
+    "crime_mult": 1.33,
+    "bm_rev_gain_mult": 0.5
+   },
+   "strategy": "Shrinks the crime budget by a quarter and slows BM/REV perks. Honest runs barely feel it (2 points back); fence/cook runs should not take it.",
+   "fit": [
+    "honest-broker",
+    "vintner",
+    "rancher",
+    "armourer",
+    "water-baron"
+   ],
+   "avoid": [
+    "fence",
+    "cook",
+    "shark"
+   ],
+   "sites": [
+    "SecData.CommitCrime",
+    "StoreReputation.ModReputation"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "blackmail",
+   "kind": "starting",
+   "name": "Blackmail",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "obligation",
+   "effect": "A blackmailer visits on day 1 and every day with day%7==1 demanding 40 + day credits. Refusing (or having him arrested: he is stealth-wanted, reward 150) costs −30 rep (scaled by the difficulty loss multiplier) with Lower Levels, Revolution, Security and Upper Levels, then the perk is gone.",
+   "numbers": {
+    "fee": "40 + day",
+    "cadence": "day 1, then day%7==1",
+    "refuse_rep": -30
+   },
+   "strategy": "Pay-or-refuse decision. Refusing on day 1 trades ≈1300 credits of fees for −30 rep (LL Poor Reviews and SEC Watchlist at once) while rep is cheapest to rebuild; arresting him instead also pays the 150 bounty.",
+   "fit": [
+    "shark",
+    "fence",
+    "smelter"
+   ],
+   "avoid": [
+    "armourer",
+    "honest-broker"
+   ],
+   "sites": [
+    "StoreClientManager.HandleBlackmailClient",
+    "StoreClientListSpec.CreateBlackmailer",
+    "StoreClientListSpec.GetBlackmailCost",
+    "StoreClientListSpec.TriggerBlackmailerCapture"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "careful_scavenger",
+   "kind": "starting",
+   "name": "Careful Scavenger",
+   "polarity": "neutral",
+   "cost": 0,
+   "incompatible": [
+    "maimed"
+   ],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "scavenging",
+   "effect": "Dumping ground: 2 fewer search attempts (3 instead of 5) but zero wound chance.",
+   "numbers": {
+    "attempt_delta": -2,
+    "wound_chance": 0
+   },
+   "strategy": "Trades 40 % of finds for never being wounded (no lost outings). With Proficient Scavenger: 5 safe attempts.",
+   "fit": [
+    "smelter",
+    "shark"
+   ],
+   "avoid": [],
+   "sites": [
+    "ScavHelper.GetMaxScavAttempts",
+    "ScavHelper.GetMinorWoundChance",
+    "ScavHelper.GetMajorWoundChance"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "colorful_character",
+   "kind": "starting",
+   "name": "Colorful Character",
+   "polarity": "neutral",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 3,
+   "mind_editable": false,
+   "impact": "minor",
+   "cluster": "meta",
+   "effect": "+3 perk slots (max 7 perks); does nothing in play.",
+   "numbers": {
+    "extra_slots": 3
+   },
+   "strategy": "Only lets a loadout stack more negatives for points. Its presence is a signal that the loadout is wide.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "NewGamePerksUI.MaxPerkCount"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "convict",
+   "kind": "starting",
+   "name": "Convict",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "model_citizen"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "start_rep",
+   "effect": "Security −30 at start (raw, unscaled). Report, capture and aug-kill rewards (cash and the Security rep they give) ×0.75.",
+   "numbers": {
+    "sec_rep": -30,
+    "report_reward_mult": 0.75
+   },
+   "strategy": "Starts at SEC Watchlist (evidence ×1.2); −10 more is Alarm Ignored. With the Fence start (SEC −30 × loss multiplier) Security sits at −60 or worse: Most Wanted from day 1.",
+   "fit": [
+    "fence",
+    "cook",
+    "shark"
+   ],
+   "avoid": [
+    "armourer",
+    "honest-broker"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "StartingPerkContent.HandleReportRewardConvict",
+    "PlayerStore (report/capture rewards)",
+    "AugHelper"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "degenerative_osteoarthritis",
+   "kind": "starting",
+   "name": "Degenerative Osteoarthritis",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "maimed"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "scavenging",
+   "effect": "Search attempts drop by 1 each week after the first (5,4,3, then none once below 3 — from day 22). Start with 2 bandages.",
+   "numbers": {
+    "attempts_by_week": [
+     5,
+     4,
+     3,
+     0
+    ],
+    "min_attempts": 3,
+    "bandages": 2
+   },
+   "strategy": "Scavenging is a 3-week asset. With Proficient Scavenger it lasts to day 35.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "honest-broker",
+    "water-baron"
+   ],
+   "avoid": [
+    "smelter",
+    "shark"
+   ],
+   "sites": [
+    "ScavHelper.GetMaxScavAttempts",
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "diplomatic",
+   "kind": "starting",
+   "name": "Diplomatic",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "rep_rate",
+   "effect": "Trade-generated rep ×1.33 (positive gains only).",
+   "numbers": {
+    "trade_rep_mult": 1.33
+   },
+   "strategy": "Reaches every positive rep perk a third sooner. Strong for perk-driven paths (Security 80/100 budgets and no inspections, UL Tips, LL Referral).",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "vintner",
+    "rancher",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreReputation.OnItemTraded",
+    "BargainUIManager (rep preview)"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "gambling_addiction",
+   "kind": "starting",
+   "name": "Gambling Addiction",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "luck",
+   "effect": "Lottery unlocked from day 1 (normally after day 14); start with a scratcher and the gambler's coin (+5 luck while carried). When a seller offers lottery tickets/scratchers you are forced to buy some (first one whenever affordable, more with falling odds).",
+   "numbers": {
+    "forced_buy_prices": {
+     "lottery_ticket": 25,
+     "scratcher": 20,
+     "scratcher_stack": 100
+    },
+    "coin_luck": 5
+   },
+   "strategy": "Gives a point AND +5 luck (5 % inspection-save chance). Forced buys are small. With Lucky: 20 % luck.",
+   "fit": [
+    "fence",
+    "cook",
+    "shark"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleGamblingAddictionItemAdded",
+    "LotteryHelper.IsLotteryUnlocked",
+    "LotteryHelper.GetCarriedLuckBonus",
+    "NewGameData.HandleInitialItem"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "handy",
+   "kind": "starting",
+   "name": "Handy",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "engine_grant",
+   "effect": "Start with a shabby toolbox (4 slots) holding shabby screwdriver, wire cutter, crowbar and welder.",
+   "numbers": {
+    "items": [
+     "toolbox",
+     "screwdriver",
+     "wire_cutter",
+     "crowbar",
+     "welder"
+    ],
+    "base_value_tools": 220
+   },
+   "strategy": "Tools expose hidden item features in barter, open tool-gated dumping-ground extras and clear Hoarder's tool pile. Cheap kit for appraisal and scavenging lines.",
+   "fit": [
+    "honest-broker",
+    "smelter",
+    "shark",
+    "fence"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.AddHandyToolbox"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "hoarder",
+   "kind": "starting",
+   "name": "Hoarder",
+   "polarity": "neutral",
+   "cost": 0,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "capacity",
+   "effect": "Three immovable debris piles along the bottom of the stock grid. One clears after 10 rest nights, one with crowbar/wire cutter/welder (each tool yields loot), one via a paid 50-credit service over 10 nights.",
+   "numbers": {
+    "piles": 3,
+    "rest_nights": 10,
+    "service_cost": 50,
+    "service_nights": 10
+   },
+   "strategy": "Temporary capacity loss with a small salvage payoff. Free (cost 0); pairs with Handy.",
+   "fit": [
+    "honest-broker",
+    "shark",
+    "smelter"
+   ],
+   "avoid": [
+    "magnate",
+    "rancher"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerkBeforeItems",
+    "DebrisHelper.PlaceHoarderPiles"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "illiterate",
+   "kind": "starting",
+   "name": "Illiterate",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "minor",
+   "cluster": "content_removal",
+   "effect": "No guide/manual can be read.",
+   "numbers": {},
+   "strategy": "Major for a human, minor for our agent: the strategist injects the rules regardless. Check that the bridge does not gate knowledge on reading a guide.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "HealthData.CanRead",
+    "MiscItemDirectory (guide slot activation)"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "intimidating",
+   "kind": "starting",
+   "name": "Intimidating",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "major",
+   "cluster": "crime",
+   "effect": "Every committed crime ×0.67.",
+   "numbers": {
+    "crime_mult": 0.67
+   },
+   "strategy": "Widens the crime budget by half: slower evidence, later inspections and sentencing. The defining perk for fence/cook runs.",
+   "fit": [
+    "fence",
+    "cook",
+    "shark",
+    "water-baron"
+   ],
+   "avoid": [],
+   "sites": [
+    "SecData.CommitCrime"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "known_snitch",
+   "kind": "starting",
+   "name": "Known Snitch",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "content_removal",
+   "effect": "Wanted-poster customers never visit (no wanted list, no random wanted client); Revolution and Black Market −10 at start.",
+   "numbers": {
+    "rev_rep": -10,
+    "bm_rep": -10
+   },
+   "strategy": "Removes bounty/capture income (100-1500 + Security +5 each) and a Security rep source. Hurts Armourer/Honest Broker; BM −10 cuts BM client chance.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "smelter",
+    "water-baron"
+   ],
+   "avoid": [
+    "armourer",
+    "honest-broker",
+    "fence"
+   ],
+   "sites": [
+    "StoreClientManager.IsClientBlockedByKnownSnitch",
+    "StoreClientManager.GetRandomValidWantedClient",
+    "PlayerStore.HandleSkipIntro",
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "lucky",
+   "kind": "starting",
+   "name": "Lucky",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [
+    "unlucky"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "luck",
+   "effect": "Luck +15: 15 % chance an inspection that finds something overlooks everything; 15 % chance to dodge each scavenging wound; better lottery/crate odds.",
+   "numbers": {
+    "luck": 15
+   },
+   "strategy": "A hidden 15 % 'free pass' on every bad inspection changes the contraband calculus. Stack with the gambler's coin for 20 %.",
+   "fit": [
+    "fence",
+    "cook",
+    "shark",
+    "smelter"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "HealthData.RollLuck",
+    "ContrabandHelper (inspection)",
+    "ScavHelper",
+    "LotteryHelper"
+   ],
+   "visible": "perk VISIBLE; luck value and rolls HIDDEN"
+  },
+  {
+   "id": "maimed",
+   "kind": "starting",
+   "name": "Maimed",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [
+    "proficient_scavenger",
+    "degenerative_osteoarthritis",
+    "careful_scavenger"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "scavenging",
+   "effect": "Dumping ground unavailable: no scavenging at all (some story beats that need it are skipped).",
+   "numbers": {
+    "attempts": 0
+   },
+   "strategy": "Removes the night scavenging action. 2 points back for runs that never scavenge.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "honest-broker",
+    "armourer",
+    "water-baron"
+   ],
+   "avoid": [
+    "smelter",
+    "shark"
+   ],
+   "sites": [
+    "ScavHelper.GetMaxScavAttempts",
+    "DumpingGroundLocation",
+    "StoreClientManager (story)",
+    "SerpicoStoryline"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "makeshift_reactor",
+   "kind": "starting",
+   "name": "Makeshift Reactor",
+   "polarity": "neutral",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "obligation",
+   "effect": "Off the grid: no power bill, no blackouts, power-hijack upgrades hidden. A reactor powers the store while integrity > 25; it decays ~18/night and must be repaired (scrap +60, junk +30). At 0 it explodes: game over.",
+   "numbers": {
+    "start_integrity": 100,
+    "base_decay": 18,
+    "power_above": 25,
+    "repair_scrap": 60,
+    "repair_junk": 30
+   },
+   "strategy": "Saves day/10 + 5 a night of power and blackout losses, but adds a must-not-forget maintenance loop with a run-ending failure. Scrap supply is the constraint.",
+   "fit": [
+    "smelter",
+    "magnate"
+   ],
+   "avoid": [
+    "honest-broker"
+   ],
+   "sites": [
+    "ReactorHelper.OnNight",
+    "ReactorHelper.ConsumeExplosion",
+    "EndOfDayUIManager",
+    "PlayerStore.UpdatePowerState",
+    "StoreService",
+    "StoreEventManager.CheckBlackOutEvent",
+    "NetworkUpgrade.IsHiddenForRun"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "minimalist",
+   "kind": "starting",
+   "name": "Minimalist",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [
+    "ascetic"
+   ],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "capacity",
+   "effect": "Main stock grid shrinks from 24x10 to 20x10 (−17 %).",
+   "numbers": {
+    "inventory_width": 20,
+    "default_width": 24
+   },
+   "strategy": "Milder Ascetic. 2 points back; acceptable for counter traders.",
+   "fit": [
+    "honest-broker",
+    "shark",
+    "armourer"
+   ],
+   "avoid": [
+    "magnate",
+    "rancher"
+   ],
+   "sites": [
+    "EmporiumEntry.SetSmallInv"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "model_citizen",
+   "kind": "starting",
+   "name": "Model Citizen",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [
+    "convict"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "start_rep",
+   "effect": "Security +30 at start (raw). Report, capture and aug-kill rewards (cash and Security rep) ×1.5.",
+   "numbers": {
+    "sec_rep": 30,
+    "report_reward_mult": 1.5
+   },
+   "strategy": "Security Surplus merchant from day 1 (SEC 20) and a fast road to 40/60/80. Gunsmith start (+25 Sec) + this = 55; + Well Connected = 70 (Trusted).",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [
+    "fence",
+    "cook"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "StartingPerkContent.HandleReportRewardModelCitizen",
+    "PlayerStore (report/capture rewards)",
+    "AugHelper"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "narcotic_addiction",
+   "kind": "starting",
+   "name": "Narcotic Addiction",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "obligation",
+   "effect": "Same as Alcohol Addiction but for narcotics (relief items also suppress it). −8 % on every trade while in withdrawal; cured after 20 clean days.",
+   "numbers": {
+    "trade_penalty_pct": 8,
+    "debuff_after_days": 3,
+    "cure_after_days": 20,
+    "starting_item": "pink_injector"
+   },
+   "strategy": "A Cook can feed it from its own product, but each dose delays the cure.",
+   "fit": [
+    "cook",
+    "vintner",
+    "rancher"
+   ],
+   "avoid": [
+    "honest-broker",
+    "shark"
+   ],
+   "sites": [
+    "HealthData.GetTotalAddictionPenalty",
+    "HealthData.HasNarcoticDebuff"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "nicotine_addiction",
+   "kind": "starting",
+   "name": "Nicotine Addiction",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "obligation",
+   "effect": "Same as Alcohol Addiction but for nicotine. Starts with a counterfeit cigarette.",
+   "numbers": {
+    "trade_penalty_pct": 8,
+    "debuff_after_days": 3,
+    "cure_after_days": 20
+   },
+   "strategy": "Same choice as the other addictions.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "smelter"
+   ],
+   "avoid": [
+    "honest-broker",
+    "shark"
+   ],
+   "sites": [
+    "HealthData.GetTotalAddictionPenalty"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "prime_real_estate",
+   "kind": "starting",
+   "name": "Prime Real Estate",
+   "polarity": "neutral",
+   "cost": 0,
+   "incompatible": [
+    "side_street"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "traffic",
+   "effect": "+1 normal customer every day (clamp 0-6); starting rent +75 (compounds).",
+   "numbers": {
+    "customers_per_day": 1,
+    "rent_delta": 75
+   },
+   "strategy": "Worth it once a marginal customer clears ~12-20 credits a day of profit; it also speeds rep from trade. Hard on Rock Bottom's first rent.",
+   "fit": [
+    "honest-broker",
+    "magnate",
+    "vintner",
+    "water-baron"
+   ],
+   "avoid": [
+    "shark"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "StoreClientManager.GetNormalCustomerCount"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "proficient_scavenger",
+   "kind": "starting",
+   "name": "Proficient Scavenger",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [
+    "maimed"
+   ],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "scavenging",
+   "effect": "+2 dumping-ground search attempts per outing (7 instead of 5).",
+   "numbers": {
+    "attempt_delta": 2
+   },
+   "strategy": "+40 % scavenging yield (and wound exposure). Core for Smelter/Shark.",
+   "fit": [
+    "smelter",
+    "shark"
+   ],
+   "avoid": [],
+   "sites": [
+    "ScavHelper.GetMaxScavAttempts"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "public_enemy",
+   "kind": "starting",
+   "name": "Public Enemy",
+   "polarity": "negative",
+   "cost": -2,
+   "incompatible": [
+    "well_connected"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "start_rep",
+   "effect": "−15 rep with every faction at start (raw).",
+   "numbers": {
+    "all_rep": -15
+   },
+   "strategy": "No perk triggers at −15, but every faction is one bad trade from its −20 perk (LL Poor Reviews, SEC Watchlist); BM below 0 lowers BM client odds. 2 points back.",
+   "fit": [
+    "vintner",
+    "smelter",
+    "rancher"
+   ],
+   "avoid": [
+    "armourer",
+    "fence"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "revolution_sympathizer",
+   "kind": "starting",
+   "name": "Revolution Sympathizer",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "start_rep",
+   "effect": "Revolution +25 at start (raw); with REV_REQUEST unlocked, an extra Revolution marketplace request on day%7==1.",
+   "numbers": {
+    "rev_rep": 25
+   },
+   "strategy": "REV Request is live from day 1 (needs the Marketplace Requests upgrade, 250) and REV client chance rises to 6. Quartermaster at 40 is close.",
+   "fit": [
+    "smelter",
+    "armourer",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "StoreRequest.StartDay"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "saving",
+   "kind": "starting",
+   "name": "Savings",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "cash_rent",
+   "effect": "+150 starting cash.",
+   "numbers": {
+    "cash": 150
+   },
+   "strategy": "One early purchase sooner (Showcase I, Winemaker). Biggest relative effect on Rock Bottom, Gunsmith and Aquafarmer starts.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "sawyer_crew",
+   "kind": "starting",
+   "name": "Sawyer's Crew",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "engine_grant",
+   "effect": "Underground Exchange from day 1 (normally day 25 unless Fence start); janitorial service always free (vandalized: day/5 + 30 instead of day/10 + 75).",
+   "numbers": {
+    "janitor_cost": 0
+   },
+   "strategy": "Exchange barters from day 1 matter to fence/shark lines; the janitor saving is ~5-13 a night. Redundant exchange on the Fence start.",
+   "fit": [
+    "fence",
+    "shark",
+    "smelter"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreService (JANITORIAL_SERVICE)",
+    "StoreClientManager.HandleSawyerCrewClient"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "secret_admirer",
+   "kind": "starting",
+   "name": "Secret Admirer",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "minor",
+   "cluster": "windfall",
+   "effect": "At shutter open, a gift arrives with chance 3 % rising 6 %/day after 3 dry days (certain by 12): mostly cheap goods, sometimes bandages, a black injector if addicted, one Immunivax if Sentinel.",
+   "numbers": {
+    "chance": "3 %, +6 %/day after day 3, 100 % at 12"
+   },
+   "strategy": "Roughly a small free item a week; the Sentinel/addiction gifts are its real value.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleSecretAdmirerOnOpenShutter",
+    "StartingPerkContent.GetSecretAdmirerChance"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "sentinel",
+   "kind": "starting",
+   "name": "Sentinel Collapse Disorder",
+   "polarity": "negative",
+   "cost": -3,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "obligation",
+   "effect": "Must inject Immunivax weekly: from 6 days late warnings, from 7 days damage accumulates (1/2/3 a night at 7/10/14 days); damage 20 = death (game over). Starts with one genuine Immunivax and the injector guide; a scalper sells Immunivax on day%7==6 at a markup that grows each day.",
+   "numbers": {
+    "warning_day": 6,
+    "overdue_day": 7,
+    "death_pool": 20,
+    "scalper_cadence": "day%7==6"
+   },
+   "strategy": "A hard weekly purchase that also forces the player to tell genuine from fake injectors. Cash floor must always cover one injector.",
+   "fit": [
+    "honest-broker",
+    "cook"
+   ],
+   "avoid": [
+    "shark"
+   ],
+   "sites": [
+    "HealthData (nightly Sentinel tick)",
+    "StoreClientManager.HandleScalperClient",
+    "StoreClientListSpec.GetScalperMarkup",
+    "NewGameData.HandleInitialItem"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "short_sleeper",
+   "kind": "starting",
+   "name": "Short Sleeper",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": true,
+   "impact": "moderate",
+   "cluster": "traffic",
+   "effect": "An after-hours outing no longer costs one normal customer the next day.",
+   "numbers": {
+    "customers_saved_after_outing": 1
+   },
+   "strategy": "Makes nightly scavenging or commissary trips free in customers. Worth ~1 customer a night for a nightly scavenger.",
+   "fit": [
+    "smelter",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.GetNormalCustomerCount",
+    "PlayerStore.HandleAfterhourDebuff"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "side_street",
+   "kind": "starting",
+   "name": "Side Street",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "prime_real_estate"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "traffic",
+   "effect": "−1 normal customer every day.",
+   "numbers": {
+    "customers_per_day": -1
+   },
+   "strategy": "Costs ~15-20 % of base traffic; production runs selling through window and suppliers feel it least.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "smelter",
+    "cook"
+   ],
+   "avoid": [
+    "honest-broker",
+    "shark",
+    "magnate"
+   ],
+   "sites": [
+    "StoreClientManager.GetNormalCustomerCount"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "sycophant",
+   "kind": "starting",
+   "name": "Sycophant",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "start_rep",
+   "effect": "Upper Levels +15 at start (raw); UL rep gains ×1.25; UL customer budgets +10 %.",
+   "numbers": {
+    "ul_rep": 15,
+    "ul_gain_mult": 1.25,
+    "ul_budget_pct": 10
+   },
+   "strategy": "One trade from UL Tips (+15 % on UL sales). With Well Connected UL starts at 30 (Tips plus +4 UL client chance).",
+   "fit": [
+    "vintner",
+    "water-baron",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [
+    "shark"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "StoreReputation.ModReputation",
+    "StoreClient.ApplyBudgetModifier"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "tapehead",
+   "kind": "starting",
+   "name": "Tapehead",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "minor",
+   "cluster": "windfall",
+   "effect": "The cassette player starts with all 7 standard cassettes (shabby) instead of 4 degraded ones.",
+   "numbers": {
+    "cassettes": 7,
+    "base_value_each": 150,
+    "types": [
+     "ART",
+     "LUXURY_ITEM"
+    ]
+   },
+   "strategy": "Cosmetic for music, but the tapes are luxury items worth up to 150 base each: possible cash and discerning-shopper bait if sold or shown (sellability unverified).",
+   "fit": [
+    "vintner",
+    "honest-broker",
+    "shark"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.AddTapeheadCassettes",
+    "NewGameData.HandleInitialItem"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "tinkerer",
+   "kind": "starting",
+   "name": "Tinkerer",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "minor",
+   "cluster": "engine_grant",
+   "effect": "Item upgrades keep their material 20 % of the time.",
+   "numbers": {
+    "keep_chance_pct": 20
+   },
+   "strategy": "A 20 % discount on upgrade materials; only matters to runs that upgrade lots of gear.",
+   "fit": [
+    "armourer",
+    "smelter",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.ConsumeUpgradeMaterial"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "unlucky",
+   "kind": "starting",
+   "name": "Unlucky",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "lucky"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "luck",
+   "effect": "Luck −15: no luck saves, and 15 % of scavenging searches come back empty.",
+   "numbers": {
+    "luck": -15
+   },
+   "strategy": "Small for shop runs (1 point back); bad for contraband runs (no saves) and scavengers.",
+   "fit": [
+    "vintner",
+    "rancher",
+    "honest-broker",
+    "armourer",
+    "water-baron"
+   ],
+   "avoid": [
+    "fence",
+    "cook",
+    "smelter",
+    "shark"
+   ],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "HealthData.RollBadLuck",
+    "ScavHelper"
+   ],
+   "visible": "perk VISIBLE; luck value HIDDEN"
+  },
+  {
+   "id": "vending",
+   "kind": "starting",
+   "name": "Vending Machine",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "engine_grant",
+   "effect": "Vending machine installed from day 1 (the 1200 upgrade, marked unlocked).",
+   "numbers": {
+    "replaces_upgrade": "VENDING_MACHINE",
+    "upgrade_cost": 1200
+   },
+   "strategy": "An after-hours sales engine (~70/night of cheap food) for 2 points; pays back fastest of any perk. Stock must be honest (mislabelled/stolen = crime).",
+   "fit": [
+    "magnate",
+    "rancher",
+    "vintner",
+    "honest-broker",
+    "water-baron"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk",
+    "VendingMachineHelper.UnlockVendingMachine"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "welfare_program",
+   "kind": "starting",
+   "name": "Welfare Program",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [
+    "banned_commissary"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "windfall",
+   "effect": "Commissary and stamps available from day 1; on day 1 and every day%7==1 a genuine food stamp worth 160/160/120/80/40 if adjusted wealth (cash + (stock estimate − cash)/3) ≤ 600/1200/1800/2400/3000, nothing above.",
+   "numbers": {
+    "stamp_values": [
+     160,
+     160,
+     120,
+     80,
+     40
+    ],
+    "wealth_caps": [
+     600,
+     1200,
+     1800,
+     2400,
+     3000
+    ]
+   },
+   "strategy": "≈ 160 a week of stamps early; fades as you get rich. A cash-poor start's lifeline.",
+   "fit": [
+    "shark",
+    "honest-broker",
+    "rancher"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.InitWelfareProgram",
+    "StartingPerkContent.HandleWelfareProgram"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "well_connected",
+   "kind": "starting",
+   "name": "Well Connected",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [
+    "public_enemy"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "start_rep",
+   "effect": "+15 rep with every faction at start (raw).",
+   "numbers": {
+    "all_rep": 15
+   },
+   "strategy": "Puts every faction within one or two trades of its 20 perk (LL Referral, UL Tips, SEC Surplus, BM Broker, REV Request). Best stacked with a faction-specific offset to cross 20/40/60 on day 1.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "wild_bad_side",
+   "kind": "starting",
+   "name": "On Wild's Bad Side",
+   "polarity": "negative",
+   "cost": -1,
+   "incompatible": [
+    "wild_favorite"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "cash_rent",
+   "effect": "Wild's network upgrades ×1.1, insurance ×1.5.",
+   "numbers": {
+    "upgrade_mult": 1.1,
+    "insurance_mult": 1.5
+   },
+   "strategy": "A tax on growth; ~+10 % on every engine purchase. Low impact for runs that buy few upgrades.",
+   "fit": [
+    "shark",
+    "honest-broker"
+   ],
+   "avoid": [
+    "magnate"
+   ],
+   "sites": [
+    "NetworkUpgrade (cost)",
+    "StoreService (insurance)"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "wild_favorite",
+   "kind": "starting",
+   "name": "Wild's Favorite",
+   "polarity": "positive",
+   "cost": 1,
+   "incompatible": [
+    "wild_bad_side"
+   ],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "moderate",
+   "cluster": "cash_rent",
+   "effect": "Wild's network upgrades ×0.9, insurance ×0.5.",
+   "numbers": {
+    "upgrade_mult": 0.9,
+    "insurance_mult": 0.5
+   },
+   "strategy": "−10 % on every engine purchase; multiplies with LL Pillar (×0.85) and difficulty.",
+   "fit": [
+    "magnate",
+    "vintner",
+    "water-baron",
+    "rancher"
+   ],
+   "avoid": [],
+   "sites": [
+    "NetworkUpgrade (cost)",
+    "StoreService (insurance)"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "working_pipes",
+   "kind": "starting",
+   "name": "Working Pipes",
+   "polarity": "positive",
+   "cost": 2,
+   "incompatible": [],
+   "extra_slots": 0,
+   "mind_editable": false,
+   "impact": "major",
+   "cluster": "engine_grant",
+   "effect": "Gutterflow and Rustwater taps unlocked from day 1: unlimited rust water.",
+   "numbers": {
+    "replaces_upgrades": [
+     "GUTTERFLOW_TAP",
+     "RUSTWATER_TAP"
+    ],
+    "upgrade_cost": 600
+   },
+   "strategy": "Starts the water engine without the 600 of taps; also free water for crops, wine and fish.",
+   "fit": [
+    "water-baron",
+    "vintner",
+    "rancher",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StartingPerkContent.HandleNewGamePerk"
+   ],
+   "visible": "name+description in calendar Status; numbers in the description"
+  },
+  {
+   "id": "LLREFERAL",
+   "kind": "reputation",
+   "name": "Referral",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": 20,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "traffic",
+   "effect": "+1 normal customer every day (the 100 % roll always hits).",
+   "numbers": {
+    "customers_per_day": 1
+   },
+   "strategy": "The cheapest perk to reach (LL trades) and worth ~15-20 % traffic. First rep goal for counter traders.",
+   "fit": [
+    "honest-broker",
+    "shark",
+    "magnate",
+    "rancher"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.GetNormalCustomerCount"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLRAREGOOD",
+   "kind": "reputation",
+   "name": "Rare Goods",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": 40,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "On day%7 in {1,5}: 50 % rare merchant, else 25 % gunsmith, else 25 % chemist visit (rare/contraband stock).",
+   "numbers": {
+    "cadence": "day%7 in {1,5}"
+   },
+   "strategy": "Source of turbo boosters, rare parts and contraband supply.",
+   "fit": [
+    "smelter",
+    "fence",
+    "cook",
+    "armourer"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLTIPS",
+   "kind": "reputation",
+   "name": "Word on the Street",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": 60,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "information",
+   "effect": "4 % a morning to learn a future market event 2-3 days ahead; Lower Levels operations become visible.",
+   "numbers": {
+    "rumor_chance_pct": 4
+   },
+   "strategy": "Information only; worth it for event speculators.",
+   "fit": [
+    "water-baron",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.OnLateShutterOpen",
+    "StoreOperationManager.CanPlayerKnowFactionOperation"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLTIGHTLIPS",
+   "kind": "reputation",
+   "name": "Tight Lips",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": 80,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "crime",
+   "effect": "Crime from selling contraband to Lower Levels customers halved.",
+   "numbers": {
+    "ll_sale_crime_mult": 0.5
+   },
+   "strategy": "Makes LL the safe outlet for contraband (BM already ½, REV ⅓).",
+   "fit": [
+    "cook",
+    "fence"
+   ],
+   "avoid": [],
+   "sites": [
+    "SecData.ApplyCrimeModifier"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLPILLAR",
+   "kind": "reputation",
+   "name": "Pillar of the Lower Levels",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": 100,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "cash_rent",
+   "effect": "Wild's upgrades ×0.85 and the inventor's stock (both lists) −15 %.",
+   "numbers": {
+    "upgrade_mult": 0.85,
+    "inventor_discount_pct": 15
+   },
+   "strategy": "Late-game discount; stacks with Wild's Favorite. (The in-game text also names Dr. Jackson; the code discounts the inventor.)",
+   "fit": [
+    "rancher",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "NetworkUpgrade (cost)",
+    "StoreClientList.CreateInventor",
+    "StoreClientList.CreateInventorStorage"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLPOORREVIEWS",
+   "kind": "reputation",
+   "name": "Poor Reviews",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": -20,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "traffic",
+   "effect": "−1 normal customer every day.",
+   "numbers": {
+    "customers_per_day": -1
+   },
+   "strategy": "Reached by one blackmail refusal or a few reports; cancels Referral's value.",
+   "fit": [],
+   "avoid": [
+    "honest-broker",
+    "shark"
+   ],
+   "sites": [
+    "StoreClientManager.GetNormalCustomerCount"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLDISTRUSTED",
+   "kind": "reputation",
+   "name": "Mistrusted",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": -40,
+   "polarity": "negative",
+   "impact": "moderate",
+   "cluster": "supply",
+   "effect": "Lower Levels customers stop offering contraband.",
+   "numbers": {},
+   "strategy": "Cuts the cheap contraband supply.",
+   "fit": [],
+   "avoid": [
+    "fence",
+    "cook"
+   ],
+   "sites": [
+    "PlayerStore.TryAddDirectSellingItemToTable"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLTARGET",
+   "kind": "reputation",
+   "name": "Marked",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": -60,
+   "polarity": "negative",
+   "impact": "moderate",
+   "cluster": "theft",
+   "effect": "Uninsured burglary chance +33; insurance ×2.",
+   "numbers": {
+    "burglary_delta": 33,
+    "insurance_mult": 2
+   },
+   "strategy": "Insurance or Vigilant becomes mandatory.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.HandleInsurance",
+    "StoreService (insurance)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLAVOIDED",
+   "kind": "reputation",
+   "name": "Shunned",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": -80,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "supply",
+   "effect": "Suppliers will not answer the phone, the inventor stops visiting, Dr. Jackson closes (bar special cases).",
+   "numbers": {},
+   "strategy": "Cuts machine and module supply; near-fatal for production runs.",
+   "fit": [],
+   "avoid": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "sites": [
+    "PhoneUIManager",
+    "StoreClientManager.HandleInventorClient",
+    "DrJacksonLocation.IsDiscovered"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "LLLYNCH",
+   "kind": "reputation",
+   "name": "Mob Justice",
+   "faction": "FACTION_LOWER_LEVEL",
+   "threshold": -100,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "game_over",
+   "effect": "A mob is queued at the next shutter open: game over.",
+   "numbers": {},
+   "strategy": "Hard floor at −100 Lower Levels.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.OnLateShutterOpen"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_DISCERNING_TASTE",
+   "kind": "reputation",
+   "name": "Discerning Taste",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 0,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "From day 14 (no day gate on skip-intro starts), while a luxury item is in the showcase: 1 + ULrep/5 % (UL≥0) a morning for a luxury buyer, 5-day cooldown.",
+   "numbers": {
+    "chance": "1 + max(0,UL)/5 %",
+    "cooldown_days": 5
+   },
+   "strategy": "Active from the start (threshold 0). Keep one luxury item in the window; scales with UL rep.",
+   "fit": [
+    "vintner",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "ShowcaseHelper.GetDiscerningShopperChance",
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_TIPS",
+   "kind": "reputation",
+   "name": "Pourboire",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 20,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "price",
+   "effect": "+15 % on every sale to an Upper Levels customer.",
+   "numbers": {
+    "ul_sale_bonus_pct": 15
+   },
+   "strategy": "The best price perk in the game for luxury/wine sellers; reachable at 20.",
+   "fit": [
+    "vintner",
+    "water-baron",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "GameItem.OnAddedToClientArea",
+    "ItemFeatureList.Pourboire"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_CHARITY",
+   "kind": "reputation",
+   "name": "Upper Level Charity",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 40,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "windfall",
+   "effect": "A benefactor donates goods when the commissary's FOOD, ENERGY_CELL or WEAPON price modifier is ≥ 66 (cooldown).",
+   "numbers": {},
+   "strategy": "Free goods during shortages.",
+   "fit": [
+    "honest-broker",
+    "water-baron",
+    "vintner",
+    "smelter",
+    "fence",
+    "cook",
+    "armourer",
+    "rancher",
+    "shark",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient",
+    "StoreClientManager.IsCharityComing"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_GOSSIP",
+   "kind": "reputation",
+   "name": "Gossipmonger",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 60,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "information",
+   "effect": "Upper Levels operations become visible ahead.",
+   "numbers": {},
+   "strategy": "Information only.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreOperationManager.CanPlayerKnowFactionOperation"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_HOUSEHOLD_NAME",
+   "kind": "reputation",
+   "name": "Household Name",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 80,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "traffic",
+   "effect": "20 % a day for one extra Upper Levels customer.",
+   "numbers": {
+    "chance_pct": 20
+   },
+   "strategy": "+0.2 rich customers/day.",
+   "fit": [
+    "vintner",
+    "water-baron"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_TOP_REVIEW",
+   "kind": "reputation",
+   "name": "Rave Reviews",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": 100,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "price",
+   "effect": "Every budgeted customer (any faction — the in-game text says Upper Levels) gets +25 % budget.",
+   "numbers": {
+    "budget_pct": 25
+   },
+   "strategy": "Lifts the ceiling on every sale.",
+   "fit": [
+    "vintner",
+    "magnate",
+    "honest-broker"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClient.ApplyBudgetModifier"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_TOURISTTRAP",
+   "kind": "reputation",
+   "name": "Tourist Trap",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": -40,
+   "polarity": "negative",
+   "impact": "minor",
+   "cluster": "traffic",
+   "effect": "Upper Levels client weight −3 (base 8).",
+   "numbers": {
+    "ul_chance_delta": -3
+   },
+   "strategy": "Fewer rich customers.",
+   "fit": [],
+   "avoid": [
+    "vintner"
+   ],
+   "sites": [
+    "StoreClientManager.GetUpperLevelClientChance"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "UL_PETITION",
+   "kind": "reputation",
+   "name": "Petition to Security",
+   "faction": "FACTION_UPPER_LEVEL",
+   "threshold": -60,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "crime",
+   "effect": "Security rep losses ×2 and daily evidence ×1.5.",
+   "numbers": {
+    "sec_loss_mult": 2,
+    "evidence_mult": 1.5
+   },
+   "strategy": "Abusing UL customers spills into Security trouble. Note: Upper Levels has no −100 perk, so UL can fall to −200 without a game over.",
+   "fit": [],
+   "avoid": [
+    "fence",
+    "cook"
+   ],
+   "sites": [
+    "StoreReputation.ModReputation",
+    "SecData (daily evidence)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_REQUISITION",
+   "kind": "reputation",
+   "name": "Requisition Order",
+   "faction": "FACTION_SECURITY",
+   "threshold": 0,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "From day 8, on day%7==4 a Security officer buys food and medical supplies; trading with him raises Security rep.",
+   "numbers": {
+    "cadence": "day%7==4, day>7"
+   },
+   "strategy": "Active from the start (threshold 0). A steady Security rep source for legal runs.",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "rancher"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_SURPLUS",
+   "kind": "reputation",
+   "name": "Security Surplus",
+   "faction": "FACTION_SECURITY",
+   "threshold": 20,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "On day%7==3 a Security surplus merchant visits.",
+   "numbers": {
+    "cadence": "day%7==3"
+   },
+   "strategy": "Supply of security gear; better stock at 80.",
+   "fit": [
+    "armourer"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_PROTECTION",
+   "kind": "reputation",
+   "name": "Security Protection",
+   "faction": "FACTION_SECURITY",
+   "threshold": 40,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "theft",
+   "effect": "Uninsured burglary chance −16.",
+   "numbers": {
+    "burglary_delta": -16
+   },
+   "strategy": "Halves burglary risk.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.HandleInsurance"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_TRUSTED",
+   "kind": "reputation",
+   "name": "Trusted",
+   "faction": "FACTION_SECURITY",
+   "threshold": 60,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "inspection",
+   "effect": "Daily evidence halved; inspection countdown +2/+4 days; Security operations visible ahead.",
+   "numbers": {
+    "evidence_mult": 0.5,
+    "inspection_min_delta": 2,
+    "inspection_max_delta": 4
+   },
+   "strategy": "Doubles the crime budget's time horizon.",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "fence"
+   ],
+   "avoid": [],
+   "sites": [
+    "SecData (daily evidence)",
+    "StoreClientManager.ComputeInspectionCooldownRange",
+    "StoreOperationManager.CanPlayerKnowFactionOperation"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_RELIABLE_VENDOR",
+   "kind": "reputation",
+   "name": "Reliable Vendor",
+   "faction": "FACTION_SECURITY",
+   "threshold": 80,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "price",
+   "effect": "Every budgeted customer (any faction — the in-game text says Security) gets +50 % budget; the surplus merchant adds stun gun, tazer and an injector.",
+   "numbers": {
+    "budget_pct": 50
+   },
+   "strategy": "The largest budget lift in the game.",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClient.ApplyBudgetModifier",
+    "StoreClientList (surplus merchant)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_VIP",
+   "kind": "reputation",
+   "name": "VIP",
+   "faction": "FACTION_SECURITY",
+   "threshold": 100,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "inspection",
+   "effect": "No scheduled inspections, no burglaries, no early-warning needed.",
+   "numbers": {},
+   "strategy": "Removes the inspection subsystem: contraband becomes safe to hold. The capstone of the legal paths.",
+   "fit": [
+    "armourer",
+    "honest-broker",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.IsInspectionCountdownActive",
+    "StoreClientManager.HandleInspectionClient",
+    "PlayerStore.HandleInsurance"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_WATCHLIST",
+   "kind": "reputation",
+   "name": "Watchlist",
+   "faction": "FACTION_SECURITY",
+   "threshold": -20,
+   "polarity": "negative",
+   "impact": "moderate",
+   "cluster": "inspection",
+   "effect": "Daily evidence ×1.2 (replaced by ×1.5 at −60).",
+   "numbers": {
+    "evidence_mult": 1.2
+   },
+   "strategy": "Evidence arrives a fifth faster; the first warning that Security is turning.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "SecData (daily evidence)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_ALARM_IGNORED",
+   "kind": "reputation",
+   "name": "Must Be The Wind",
+   "faction": "FACTION_SECURITY",
+   "threshold": -40,
+   "polarity": "negative",
+   "impact": "moderate",
+   "cluster": "content_removal",
+   "effect": "The security button no longer reports customers: no reports, arrests or captures.",
+   "numbers": {},
+   "strategy": "Ends bounty income and the defence against thieves/blackmailer.",
+   "fit": [],
+   "avoid": [
+    "armourer"
+   ],
+   "sites": [
+    "StoreSecButton.OnClick",
+    "StoreSecButton.ShouldRequireHold"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_PRIORITY",
+   "kind": "reputation",
+   "name": "Most Wanted",
+   "faction": "FACTION_SECURITY",
+   "threshold": -60,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "inspection",
+   "effect": "Daily evidence ×1.5 (instead of Watchlist's ×1.2).",
+   "numbers": {
+    "evidence_mult": 1.5
+   },
+   "strategy": "Sentencing comes half again as fast; with UL Petition ×2.25.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "SecData (daily evidence)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_THOROUGH_INSPECTION",
+   "kind": "reputation",
+   "name": "No Stone Unturned",
+   "faction": "FACTION_SECURITY",
+   "threshold": -80,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "inspection",
+   "effect": "Inspection countdown −1/−1 and only regular (not lazy or shady) inspectors.",
+   "numbers": {
+    "inspection_delta": -1
+   },
+   "strategy": "No bribable or careless inspectors; contraband must be hidden properly.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.ComputeInspectionCooldownRange",
+    "StoreClientManager.HandleInspectionClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "SEC_IMMEDIATE_ARREST",
+   "kind": "reputation",
+   "name": "By Any Means",
+   "faction": "FACTION_SECURITY",
+   "threshold": -100,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "game_over",
+   "effect": "Security arrests you at the next shutter open: game over.",
+   "numbers": {},
+   "strategy": "Hard floor at −100 Security.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.OnLateShutterOpen"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "BM_HONOR",
+   "kind": "reputation",
+   "name": "Honor Amongst Thieves",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": 0,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "rep_rate",
+   "effect": "Always active. Black Market rep losses are doubled (the code applies ×2; the in-game text says ×1.5).",
+   "numbers": {
+    "bm_loss_mult": 2
+   },
+   "strategy": "Never cheat BM customers cheaply.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreReputation.ModReputation"
+   ],
+   "visible": "VISIBLE (always shown as active)"
+  },
+  {
+   "id": "BM_SMALL_TIME_BROKER",
+   "kind": "reputation",
+   "name": "Small Time Broker",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": 20,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "visitors",
+   "effect": "Label for the continuous BM-rep scaling of petty-thief and thief stock odds; no code checks this perk id.",
+   "numbers": {},
+   "strategy": "Effect comes from BM rep itself (client weight 10 −3 below 0, −3 below 25, +4 at 25, more at 50).",
+   "fit": [
+    "fence"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.GetBlackMarketClientChance",
+    "StoreClientList.GetBMRepStockMult"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "BM_RELIABLE",
+   "kind": "reputation",
+   "name": "Safe Hands",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": 40,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "visitors",
+   "effect": "A thief visits every day%7==1, a petty thief 20 % of days; thieves can carry loot crates.",
+   "numbers": {
+    "thief_cadence": "day%7==1",
+    "petty_thief_chance_pct": 20
+   },
+   "strategy": "Steady stolen-goods supply; stock richer with BM rep (×1.25 at 40 up to ×2.5 at 100).",
+   "fit": [
+    "fence",
+    "shark"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient",
+    "StoreClientList.CreateThief"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "BM_NETWORK",
+   "kind": "reputation",
+   "name": "Underground Network",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": 60,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "information",
+   "effect": "Black Market operations visible ahead.",
+   "numbers": {},
+   "strategy": "Information only.",
+   "fit": [
+    "fence"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreOperationManager.CanPlayerKnowFactionOperation"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "BM_DISTRUSTED",
+   "kind": "reputation",
+   "name": "Blacklisted",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": -40,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "supply",
+   "effect": "BM customers stop offering contraband, the Underground Exchange closes, janitor ×2.",
+   "numbers": {
+    "janitor_mult": 2
+   },
+   "strategy": "Kills the fence path.",
+   "fit": [],
+   "avoid": [
+    "fence",
+    "cook",
+    "shark"
+   ],
+   "sites": [
+    "PlayerStore.TryAddDirectSellingItemToTable",
+    "PlayerStore (exchange at close)",
+    "StoreService"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "BM_UNINSURABLE",
+   "kind": "reputation",
+   "name": "Uninsurable",
+   "faction": "FACTION_BLACK_MARKET",
+   "threshold": -60,
+   "polarity": "negative",
+   "impact": "moderate",
+   "cluster": "theft",
+   "effect": "Insurance unavailable.",
+   "numbers": {},
+   "strategy": "Burglary exposure unless Vigilant, an alarm or SEC protection. BM has no −100 perk.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreService (INSURANCE_SERVICE)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_REQUEST",
+   "kind": "reputation",
+   "name": "Revolution Marketplace Request",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": 20,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "Revolution marketplace requests (80 % on day%7==5; +1 on day%7==1 with Revolution Sympathizer). Needs the Marketplace Requests upgrade.",
+   "numbers": {},
+   "strategy": "Requests pay 1.5-2x item value plus rep.",
+   "fit": [
+    "armourer",
+    "smelter"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreRequest.StartDay",
+    "StoreShutterButton.OnShutterDoorOpenMorning"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_QUARTERMASTER",
+   "kind": "reputation",
+   "name": "Revolution Quartermaster",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": 40,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "On day%7==0 a quartermaster sells materials at a discount that improves with rep.",
+   "numbers": {
+    "cadence": "day%7==0"
+   },
+   "strategy": "Cheap materials for metal/gun/production lines.",
+   "fit": [
+    "smelter",
+    "armourer",
+    "magnate"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_FRIEND",
+   "kind": "reputation",
+   "name": "Friend of the Revolution",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": 60,
+   "polarity": "positive",
+   "impact": "minor",
+   "cluster": "information",
+   "effect": "Revolution operations visible ahead.",
+   "numbers": {},
+   "strategy": "Information only.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreOperationManager.CanPlayerKnowFactionOperation"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_RAID_LOOT",
+   "kind": "reputation",
+   "name": "Raid Loot",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": 80,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "visitors",
+   "effect": "On day%7==5 a raider sells raid loot; prices improve with rep.",
+   "numbers": {
+    "cadence": "day%7==5"
+   },
+   "strategy": "Supply of weapons and raid goods.",
+   "fit": [
+    "fence",
+    "armourer"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.HandlePerkClient"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_BLACKLISTED",
+   "kind": "reputation",
+   "name": "Blacklisted",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": -40,
+   "polarity": "negative",
+   "impact": "minor",
+   "cluster": "traffic",
+   "effect": "Revolution client weight 0.",
+   "numbers": {},
+   "strategy": "Revolution customers stop coming.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "StoreClientManager.GetRevolutionClientChance"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "REV_HIT",
+   "kind": "reputation",
+   "name": "Hit list",
+   "faction": "FACTION_REVOLUTION",
+   "threshold": -100,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "game_over",
+   "effect": "A bombing is set up at the next shutter open: game over.",
+   "numbers": {},
+   "strategy": "Hard floor at −100 Revolution.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.OnLateShutterOpen"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "CARTEL_INCREASED_STIPEND",
+   "kind": "reputation",
+   "name": "Increased Stipend",
+   "faction": "FACTION_CARTEL",
+   "threshold": 25,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "cash_rent",
+   "effect": "Chemist start only. Weekly cartel stipend 150 + 4 x Cartel rep.",
+   "numbers": {
+    "stipend": "150 + 4*rep"
+   },
+   "strategy": "At Cartel 50 the stipend is 350 a week.",
+   "fit": [
+    "cook"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientListCartel (weekly settlement)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "CARTEL_RELIABLE_CHEMIST",
+   "kind": "reputation",
+   "name": "Reliable Chemist",
+   "faction": "FACTION_CARTEL",
+   "threshold": 50,
+   "polarity": "positive",
+   "impact": "moderate",
+   "cluster": "supply",
+   "effect": "Chemist start only. Requesting extra cartel materials costs 6 rep instead of 12.",
+   "numbers": {
+    "material_rep_cost": -6
+   },
+   "strategy": "Halves the rep price of topping up the quota inputs.",
+   "fit": [
+    "cook"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientListCartel (material request)"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "CARTEL_AUTHORIZED_EXIT",
+   "kind": "reputation",
+   "name": "Authorized Exit",
+   "faction": "FACTION_CARTEL",
+   "threshold": 100,
+   "polarity": "positive",
+   "impact": "major",
+   "cluster": "objective",
+   "effect": "Chemist start only. The handler starts processing your exit; each exit dialogue raises the threshold by 25.",
+   "numbers": {
+    "threshold_step": 25
+   },
+   "strategy": "The Cook's way out of the quota.",
+   "fit": [
+    "cook"
+   ],
+   "avoid": [],
+   "sites": [
+    "StoreClientListCartel.IsExitAuthorized",
+    "StoreClientListCartel.BuildExitChain"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  },
+  {
+   "id": "CARTEL_RETIRED",
+   "kind": "reputation",
+   "name": "Forced Retirement",
+   "faction": "FACTION_CARTEL",
+   "threshold": -100,
+   "polarity": "negative",
+   "impact": "major",
+   "cluster": "game_over",
+   "effect": "Chemist start only. A cartel hitman is queued at the next shutter open: game over.",
+   "numbers": {},
+   "strategy": "Hard floor at −100 Cartel.",
+   "fit": [],
+   "avoid": [],
+   "sites": [
+    "PlayerStore.OnLateShutterOpen"
+   ],
+   "visible": "VISIBLE: reputation panel lists it with threshold/200 and unlocked state"
+  }
+ ]
+}

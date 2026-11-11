@@ -1,0 +1,55 @@
+{
+  "note": "Sold as counterfeit, but every element matches the reference: tell them it is genuine for +2 rep.",
+  "expect": [
+    "genuine"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-cigarettes-claimed-fake-genuine",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-cigarettes-claimed-fake-genuine",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5039,
+        "id": "packet_red_cigarette",
+        "name": "Red cigarettes",
+        "kind": "cigarettes",
+        "price": 50
+      },
+      "claim": "counterfeit",
+      "client": {
+        "name": "Scav",
+        "faction": "lower_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "lower_levels",
+        "value": 8.0,
+        "status": "Known"
+      },
+      "visual": {
+        "seal": "matches reference",
+        "lettering": "matches reference",
+        "logo": "matches reference",
+        "box_colour": "matches colour card"
+      }
+    },
+    "options": [
+      {
+        "id": "genuine",
+        "label": "Tell them it is genuine. Right: +2 rep with them, price rises to the genuine price less 15%. Wrong: they deny it, no penalty"
+      },
+      {
+        "id": "counterfeit",
+        "label": "Agree it is counterfeit: price stays 50"
+      }
+    ],
+    "hidden": {
+      "real_condition": "genuineCigarette",
+      "issue_tags": []
+    }
+  }
+}

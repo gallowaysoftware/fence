@@ -1,0 +1,31 @@
+{
+  "gym_dir": "/home/you/.cache/fence-league/gym-abcdef0",
+  "max_gyms": 8,
+  "max_gyms_while_gaming": 1,
+  "endpoints": {
+    "drift": {
+      "base_url": "http://192.0.2.10:9002/v1",
+      "model": "qwen38fn-mlx",
+      "no_schema": true,
+      "thinking": "off",
+      "temperature": "0.2",
+      "yields_to_game": true,
+      "concurrency": 1
+    },
+    "heavy": {
+      "base_url": "http://192.0.2.20:9000/v1",
+      "model": "glm53flash",
+      "probe_timeout": "15s",
+      "concurrency": 1
+    },
+    "localmodel": {
+      "base_url": "http://192.0.2.30:9000/v1",
+      "model": "localmodel/qwen3.8-27b",
+      "thinking": "off",
+      "yields_to_game": true,
+      "disabled": true,
+      "unload_url": "http://192.0.2.30:9000/unload",
+      "concurrency": 3
+    }
+  }
+}

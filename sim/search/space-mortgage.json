@@ -1,0 +1,37 @@
+{
+  "_doc": "The mortgage route (8a366a6): -human player levers that decide whether 12 payments of ~1 100-1 200 survive. Format: see search.py.",
+  "human": "player",
+  "search": {"pop": 10, "rungs": [8, 16, 32], "extend": 48, "mutate": [1, 2]},
+  "refs": {
+    "player": [],
+    "player_mm125": ["-directives-json", "{\"mortgage_margin\":1.25}"]
+  },
+  "knobs": {
+    "mortgage":           {"type": "cat", "dir": "mortgage", "weight": 3, "values": [null, "take", "accept_if_rent"], "prior": [4, 1, 1]},
+    "mortgage_margin":    {"type": "float", "dir": "mortgage_margin", "weight": 6, "lo": 0.5, "hi": 2.5, "digits": 2, "optional": true, "p_on": 0.7, "when": {"mortgage": [null]}},
+    "buyout":             {"type": "cat", "dir": "buyout", "values": [null, "hold_cash_for_buyout"], "prior": [3, 1]},
+    "cash_floor":         {"type": "int", "dir": "cash_floor", "weight": 3, "lo": 0, "hi": 3000, "optional": true, "p_on": 0.15},
+    "max_spend":          {"type": "int", "dir": "buy.max_spend", "weight": 3, "lo": 150, "hi": 6000, "log": true, "optional": true, "p_on": 0.3},
+    "stock_cap":          {"type": "int", "dir": "buy.stock_cap", "weight": 3, "lo": 1000, "hi": 25000, "log": true, "optional": true, "p_on": 0.3},
+    "wholesale_max_pct":  {"type": "int", "dir": "buy.wholesale_max_pct", "lo": 60, "hi": 100, "optional": true, "p_on": 0.5},
+    "single_max_pct":     {"type": "int", "dir": "buy.single_max_pct", "lo": 50, "hi": 100, "optional": true, "p_on": 0.4},
+    "restock_below":      {"type": "int", "dir": "buy.restock_below", "lo": 0, "hi": 6000, "optional": true, "p_on": 0.2},
+    "min_pct":            {"type": "int", "dir": "sell.min_pct", "lo": 50, "hi": 110, "optional": true, "p_on": 0.4},
+    "liquidate_min_pct":  {"type": "int", "dir": "sell.liquidate_min_pct", "weight": 2, "lo": 35, "hi": 95, "optional": true, "p_on": 0.4},
+    "sell_down_to_cash":  {"type": "int", "dir": "sell.sell_down_to_cash", "weight": 3, "lo": 0, "hi": 4000, "optional": true, "p_on": 0.15},
+    "bargain":            {"type": "cat", "dir": "bargain", "values": [null, "never", "discount"], "prior": [4, 1, 1]},
+    "services":           {"type": "cat", "dir": "services", "weight": 2, "values": [null, ["INSURANCE", "JANITORIAL"], ["INSURANCE"], ["JANITORIAL"]], "prior": [4, 1, 1, 1]},
+    "services_mode":      {"type": "cat", "dir": "services_mode", "values": [null, "ev"], "prior": [2, 1], "when": {"services": [null]}},
+    "upgrades_cash_max":  {"type": "int", "dir": "upgrades_cash_max", "weight": 2, "lo": 0, "hi": 2000, "optional": true, "p_on": 0.3},
+    "upgrade_reserve":    {"type": "int", "dir": "upgrade_reserve", "lo": 0, "hi": 3000, "optional": true, "p_on": 0.3},
+    "growth":             {"type": "subset", "dir": "growth", "optional": true, "p_on": 0.25,
+                           "pool": ["RENOVATION1", "SHOWCASE_I", "RENOVATION2", "RENOVATION3", "SHOWCASE_II", "BUY_REFERAL", "SELL_REFERAL"],
+                           "p": [0.7, 0.7, 0.6, 0.5, 0.5, 0.3, 0.3]},
+    "engine":             {"type": "cat", "dir": "engine", "values": [null, "none", "wine+water"], "prior": [5, 1, 0.5]},
+    "engine_reserve_max": {"type": "int", "dir": "engine_reserve_max", "lo": 100, "hi": 3000, "log": true, "optional": true, "p_on": 0.2},
+    "tap":                {"type": "cat", "dir": "tap", "values": [null, true], "prior": [4, 1]},
+    "restock_missed":     {"type": "cat", "dir": "restock_missed", "values": [null, false], "prior": [3, 1]},
+    "permit":             {"type": "cat", "dir": "permit", "values": [null, "buy", "bribe"], "prior": [4, 1, 1]},
+    "scavenge":           {"type": "cat", "dir": "scavenge", "values": [null, false], "prior": [5, 1]}
+  }
+}

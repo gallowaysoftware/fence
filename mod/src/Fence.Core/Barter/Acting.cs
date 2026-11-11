@@ -93,17 +93,14 @@ namespace Fence.Barter
     // Proof that acting is allowed right now: the bridge session is in act mode AND the player turned
     // on the act_enabled setting AND the switch is neither paused nor faulted. The only way to get one
     // is TryOpen, and the executor takes one and re-checks it before every game call.
+    // The autopilot gets one from TryOpenAutopilot: its setting on AND its switch running (docs/STREAM.md).
     public sealed class ActGate
     {
-        readonly Func<string> mode;
-        readonly Func<bool> setting;
-        readonly ActSwitch actSwitch;
+        readonly Func<bool> open;
 
-        ActGate(Func<string> mode, Func<bool> setting, ActSwitch actSwitch)
+        ActGate(Func<bool> open)
         {
-            this.mode = mode;
-            this.setting = setting;
-            this.actSwitch = actSwitch;
+            this.open = open;
         }
 
         public static bool Allows(string mode, bool setting, ActSwitch actSwitch) =>
@@ -112,10 +109,16 @@ namespace Fence.Barter
         public static ActGate TryOpen(Func<string> mode, Func<bool> setting, ActSwitch actSwitch)
         {
             if (mode == null || setting == null) return null;
-            return Allows(mode(), setting(), actSwitch) ? new ActGate(mode, setting, actSwitch) : null;
+            return Allows(mode(), setting(), actSwitch) ? new ActGate(() => Allows(mode(), setting(), actSwitch)) : null;
         }
 
-        public bool StillOpen => Allows(mode(), setting(), actSwitch);
+        public static ActGate TryOpenAutopilot(Func<bool> running)
+        {
+            if (running == null) return null;
+            return running() ? new ActGate(running) : null;
+        }
+
+        public bool StillOpen => open();
     }
 
     // Rate limits and settling: at most PerCustomer actions per customer and PerMinute per rolling
@@ -204,6 +207,7 @@ namespace Fence.Barter
     {
         public const string Mod = "mod";
         public const string Human = "human";
+        public const string Autopilot = "autopilot";
     }
 
     // Which decision and actor an outcome belongs to. A hook firing while the executor runs is the
@@ -213,6 +217,7 @@ namespace Fence.Barter
     public sealed class Attribution
     {
         string acting;
+        string actingAs = Actors.Mod;
         string lastDecision;
         string lastActor;
 
@@ -225,20 +230,24 @@ namespace Fence.Barter
             lastActor = null;
         }
 
-        public void BeginMod(string decisionId) => acting = decisionId;
+        public void BeginMod(string decisionId, string actor = Actors.Mod)
+        {
+            acting = decisionId;
+            actingAs = actor;
+        }
 
         public void EndMod() => acting = null;
 
         public (string decisionId, string actor) Direct(string newestDecision)
         {
-            var r = acting != null ? (acting, Actors.Mod) : (newestDecision, Actors.Human);
+            var r = acting != null ? (acting, actingAs) : (newestDecision, Actors.Human);
             lastDecision = r.Item1;
             lastActor = r.Item2;
             return r;
         }
 
         public (string decisionId, string actor) Consequence(string newestDecision) =>
-            acting != null ? (acting, Actors.Mod)
+            acting != null ? (acting, actingAs)
             : lastDecision != null ? (lastDecision, lastActor)
             : (newestDecision, Actors.Human);
     }

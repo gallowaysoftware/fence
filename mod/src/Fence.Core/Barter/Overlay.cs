@@ -113,6 +113,16 @@ namespace Fence.Barter
         public RecordingView Recording;
         // Morning, shutter not yet opened today: the plan's WINDOW part matters now.
         public bool BeforeOpen;
+        // The inspect advice line for the item under the magnifier (Inspect.InspectText), or empty.
+        public string Inspect;
+        // The stage shortlist (Fence.Core's own ranking) while a stage moment holds; null otherwise.
+        public IList<StageCandidate> Shortlist;
+        public long? ShortlistBudgetLeft;
+        // The autopilot's status line (empty when its setting is off), whether it is a stop that needs the
+        // human, and the pause button's label while it is on (it then pauses acting too).
+        public string Autopilot;
+        public bool AutopilotAlert;
+        public string AutopilotPause;
     }
 
     public sealed class OverlayView
@@ -121,6 +131,7 @@ namespace Fence.Barter
         public string Customer;
         public string Status;
         public string Move;
+        public string Inspect;
         public string Rationale;
         public string Options;
         public string Outcome;
@@ -138,6 +149,8 @@ namespace Fence.Barter
         public bool PauseInteractable;
         // The collapsed one-line bar.
         public string Bar;
+        public string Autopilot;
+        public bool AutopilotAlert;
     }
 
     // The strategist's plan is free text with headings (GOALS, CASH, WINDOW, STOCK, ...).
@@ -203,15 +216,29 @@ namespace Fence.Barter
                 Recording = s.Recording?.Text ?? "",
                 NotRecording = s.Recording != null && !s.Recording.Recording,
             };
+            if (!string.IsNullOrEmpty(s.AutopilotPause))
+            {
+                v.PauseLabel = s.AutopilotPause;
+                v.PauseInteractable = true;
+            }
+            v.Autopilot = s.Autopilot ?? "";
+            v.AutopilotAlert = s.AutopilotAlert && v.Autopilot.Length > 0;
             Plan(s, v);
             var advice = s.View?.Advice;
             v.Status = Status(s);
             v.Move = advice != null && s.Client != null && s.CoverageGap == null ? Move(advice, s.View.Status) : "";
             v.Rationale = advice != null && v.Move.Length > 0 ? Clean(advice.Rationale, 300) : "";
             v.Options = advice != null && v.Move.Length > 0 ? Options(advice) : "";
+            if (s.Shortlist != null && s.Shortlist.Count > 0 && s.Client != null && s.CoverageGap == null && (advice == null || advice.Kind == StageContext.Kind))
+            {
+                if (!IsStageOffer(advice)) v.Move = "offer: " + StageShortlist.Line(s.Shortlist[0], s.ShortlistBudgetLeft);
+                v.Options = StageShortlist.Text(s.Shortlist, s.ShortlistBudgetLeft, advice);
+            }
+            v.Inspect = s.Client != null ? Clean(s.Inspect, 260) : "";
             var current = s.Client != null && s.Today != null && s.Today.Count > 0 ? s.Today[s.Today.Count - 1] : null;
             v.Outcome = current != null && current.Outcomes.Count > 0 ? "Result: " + string.Join("; ", current.Outcomes) : "";
-            v.Bar = (v.NotRecording ? v.Recording + "\n" : "") + "fence · " + ModeText(s) + " · " + v.Status + (v.Move.Length > 0 ? " · " + v.Move : "");
+            v.Bar = (v.NotRecording ? v.Recording + "\n" : "") + (v.Autopilot.Length > 0 ? v.Autopilot + "\n" : "") + "fence · " + ModeText(s) + " · " + v.Status + (v.Move.Length > 0 ? " · " + v.Move : "")
+                    + (v.Inspect.Length > 0 ? "\n" + v.Inspect : "");
             return v;
         }
 
@@ -272,7 +299,7 @@ namespace Fence.Barter
         {
             if (c == null) return "No customer at the counter";
             var parts = new List<string> { Clean(c.Name, 40) };
-            string faction = Factions.Name(c.FactionId);
+            string faction = Factions.Visible(c);
             if (faction != null) parts.Add(faction);
             parts.Add(Intent(c.Intent, c.RawIntent));
             if (BarterRules.IsBuying(c.Intent) && c.UsesBudget) parts.Add("budget " + N(c.Budget));
@@ -408,7 +435,9 @@ namespace Fence.Barter
                     }
                     break;
                 default:
-                    return null;
+                    text = Fence.Inspect.InspectOutcomes.Describe(result);
+                    if (text == null) return null;
+                    break;
             }
             return (string)result["actor"] == Actors.Mod ? text + " (fence)" : text;
         }

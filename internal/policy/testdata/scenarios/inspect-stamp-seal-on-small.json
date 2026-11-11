@@ -1,0 +1,76 @@
+{
+  "note": "A 120-credit stamp with a seal: the amount passes, the seal rule does not.",
+  "expect": [
+    "confront_seal"
+  ],
+  "request": {
+    "session_id": "scenario",
+    "decision_id": "inspect-stamp-seal-on-small",
+    "kind": "inspect",
+    "game_day": 60,
+    "deadline_ms": 20000,
+    "state_signature": "scenario:inspect-stamp-seal-on-small",
+    "context": {
+      "mode": "authenticity",
+      "item": {
+        "uid": 5027,
+        "id": "food_stamp",
+        "name": "Food stamp (120)",
+        "kind": "food_stamp",
+        "price": 90
+      },
+      "claim": "genuine",
+      "client": {
+        "name": "Scav",
+        "faction": "upper_levels",
+        "intent": "sell"
+      },
+      "reputation": {
+        "faction": "upper_levels",
+        "value": -30.0,
+        "status": "Known"
+      },
+      "text": {
+        "amount": "120 credits"
+      },
+      "visual": {
+        "seal": "present",
+        "lettering": "matches reference",
+        "logo": "matches reference",
+        "chip": "matches reference"
+      }
+    },
+    "options": [
+      {
+        "id": "confront_lettering",
+        "label": "Confront: lettering issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with upper_levels, retry allowed"
+      },
+      {
+        "id": "confront_logo",
+        "label": "Confront: logo issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with upper_levels, retry allowed"
+      },
+      {
+        "id": "confront_seal",
+        "label": "Confront: seal issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with upper_levels, retry allowed"
+      },
+      {
+        "id": "confront_amount",
+        "label": "Confront: value issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with upper_levels, retry allowed"
+      },
+      {
+        "id": "confront_chip",
+        "label": "Confront: chip issues. Right: exposed at its true grade, then 15% off. Wrong: -2 rep with upper_levels, retry allowed"
+      },
+      {
+        "id": "genuine",
+        "label": "No confront: take it as genuine at 90"
+      }
+    ],
+    "hidden": {
+      "real_condition": "counterfeitStamp",
+      "issue_tags": [
+        "STAMP_SEAL_ISSUE"
+      ]
+    }
+  }
+}

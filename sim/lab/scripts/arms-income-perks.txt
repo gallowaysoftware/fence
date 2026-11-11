@@ -1,0 +1,8 @@
+# Hard income: the owner's starting perks on the best hard policy (outings fixed, so short_sleeper now matters).
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-income-perks.txt -dir DIR -seeds 60 -days 1000 -parallel 16 -- -seed0 960000
+best            | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json
+sleeper         | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks short_sleeper
+scav            | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks proficient_scavenger
+sleeper_scav    | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks short_sleeper+proficient_scavenger
+sleeper_scav_alert | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks short_sleeper+proficient_scavenger+alert
+owner_perks     | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks proficient_scavenger+alert+short_sleeper+bad_lease

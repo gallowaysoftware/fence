@@ -18,6 +18,7 @@ import (
 	"github.com/gallowaysoftware/fence/internal/policy"
 	"github.com/gallowaysoftware/fence/internal/protocol"
 	"github.com/gallowaysoftware/fence/internal/server"
+	"github.com/gallowaysoftware/fence/internal/show"
 )
 
 const fixtures = "../../protocol/fixtures"
@@ -68,8 +69,45 @@ func TestRecordedWithoutGaps(t *testing.T) {
 			events++
 		}
 	}
-	if g := decisionlog.Gaps(sessions[0], time.Minute); !g.Clean() || events != 4 {
+	if g := decisionlog.Gaps(sessions[0], time.Minute); !g.Clean() || events != 6 {
 		t.Fatalf("events %d, gaps %+v", events, g)
+	}
+}
+
+// The autopilot's events go through the bridge into the decision log, where fenceshow's builder reads
+// an action with its reason and a stop that needs a human (docs/STREAM.md "Recording").
+func TestAutopilotEventsReachTheShow(t *testing.T) {
+	dir := t.TempDir()
+	base, stop := startBridgeLog(t, protocol.ModeObserve, policy.Heuristic{}, dir)
+	if _, err := fakemod.Run(context.Background(), fakemod.Config{BaseURL: base, FixturesDir: fixtures}); err != nil {
+		t.Fatal(err)
+	}
+	stop()
+	sessions, err := decisionlog.ReadDir(dir)
+	if err != nil || len(sessions) != 1 {
+		t.Fatalf("sessions %d, %v", len(sessions), err)
+	}
+	b := show.NewBuilder(show.Player{ID: "live"})
+	var thoughts, stops []show.Event
+	for _, r := range sessions[0].Records {
+		evs, err := b.Feed(r.Raw)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, e := range evs {
+			switch {
+			case e.Kind == show.KindThought && len(e.HiddenUsed) > 0:
+				thoughts = append(thoughts, e)
+			case e.Kind == show.KindAutopilot:
+				stops = append(stops, e)
+			}
+		}
+	}
+	if len(thoughts) != 1 || !strings.Contains(thoughts[0].Text, "what Mara wants") {
+		t.Errorf("autopilot thoughts = %+v", thoughts)
+	}
+	if len(stops) != 1 || !stops[0].Autopilot.NeedsHuman || stops[0].Level != show.LevelMoment {
+		t.Errorf("autopilot stops = %+v", stops)
 	}
 }
 
@@ -116,7 +154,7 @@ func TestEndToEnd(t *testing.T) {
 			if res.Summary.SessionID != res.SessionID || res.Summary.Mode != tt.mode || res.Summary.Policy != tt.policyName {
 				t.Errorf("summary %+v", res.Summary)
 			}
-			if got := strings.Join(res.Events, ","); got != "day_snapshot,shutter_opened,customer_observed,human_action" {
+			if got := strings.Join(res.Events, ","); got != "day_snapshot,shutter_opened,customer_observed,human_action,autopilot,autopilot_fault" {
 				t.Errorf("events sent %s", got)
 			}
 			for _, step := range []string{"health:", "hello:", "event:", "decide:", "outcome:", "summary:"} {

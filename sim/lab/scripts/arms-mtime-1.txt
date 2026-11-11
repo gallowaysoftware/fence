@@ -1,0 +1,8 @@
+# Mortgage timing, batch 1 (selection seeds 960001-960060): sign-by deadlines on hard_income_mortgage.
+base      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/hard_income_mortgage.json
+w98       | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w98.json
+w105      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105.json
+w112      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w112.json
+w105_f500 | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_f500.json
+w105_f0   | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w105_f0.json
+w98_take  | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 960000 -directives sim/lab/scripts/directives/mt/w98_take.json

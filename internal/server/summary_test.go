@@ -18,19 +18,29 @@ import (
 
 func compileSchema(t *testing.T, name string) *jsonschema.Schema {
 	t.Helper()
-	b, err := schema.FS.ReadFile(name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	doc, err := jsonschema.UnmarshalJSON(strings.NewReader(string(b)))
+	entries, err := schema.FS.ReadDir(".")
 	if err != nil {
 		t.Fatal(err)
 	}
 	c := jsonschema.NewCompiler()
-	if err := c.AddResource(name, doc); err != nil {
-		t.Fatal(err)
+	for _, e := range entries {
+		if !strings.HasSuffix(e.Name(), ".schema.json") {
+			continue
+		}
+		b, err := schema.FS.ReadFile(e.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+		doc, err := jsonschema.UnmarshalJSON(strings.NewReader(string(b)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Under its $id, so the summary's $ref finds the directives schema.
+		if err := c.AddResource(schema.BaseURL+e.Name(), doc); err != nil {
+			t.Fatal(err)
+		}
 	}
-	sch, err := c.Compile(name)
+	sch, err := c.Compile(schema.BaseURL + name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,5 +281,54 @@ func TestSlowSummaryKeepsPlan(t *testing.T) {
 	json.Unmarshal([]byte(body), &got)
 	if code != 200 || got.Plan != "Sell the radios." || got.PlanDay != 12 {
 		t.Fatalf("%d %s", code, body)
+	}
+}
+
+type directivesPlanner struct {
+	funcPlanner
+	raw string
+	day int
+	ok  bool
+}
+
+func (p directivesPlanner) CurrentDirectives(string) (json.RawMessage, int, bool) {
+	return json.RawMessage(p.raw), p.day, p.ok
+}
+
+func TestSummaryDirectives(t *testing.T) {
+	plan := funcPlanner(func(string) (string, int, bool) { return "Keep 600 for rent.", 69, true })
+	noPlan := funcPlanner(func(string) (string, int, bool) { return "", 0, false })
+	tests := []struct {
+		name    string
+		planner Planner
+		want    string // the directives object as served; "" for absent
+	}{
+		{"planner without directives", plan, ""},
+		{"directives", directivesPlanner{plan, `{"day":69,"cash_floor":0,"bargain":"ev_positive","buy":{"hot_stock_cap":0}}`, 69, true},
+			`{"day":69,"cash_floor":0,"buy":{"hot_stock_cap":0},"bargain":"ev_positive"}`},
+		{"day from the planner", directivesPlanner{plan, `{"augs":"shoot"}`, 69, true}, `{"day":69,"augs":"shoot"}`},
+		{"none yet", directivesPlanner{plan, `{"augs":"shoot"}`, 69, false}, ""},
+		{"unreadable", directivesPlanner{plan, `[1]`, 69, true}, ""},
+		{"no plan, no directives", directivesPlanner{noPlan, `{"augs":"shoot"}`, 69, true}, ""},
+	}
+	sch := compileSchema(t, "summary.response.schema.json")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newHarnessConfig(t, Config{Mode: protocol.ModeObserve, Planner: tt.planner})
+			code, body := h.get("/v1/summary?session_id=" + url.QueryEscape(h.hello()))
+			if code != http.StatusOK {
+				t.Fatalf("%d %s", code, body)
+			}
+			validate(t, sch, body)
+			var got struct {
+				Directives json.RawMessage `json:"directives"`
+			}
+			if err := json.Unmarshal([]byte(body), &got); err != nil {
+				t.Fatal(err)
+			}
+			if string(got.Directives) != tt.want {
+				t.Fatalf("directives %s, want %s", got.Directives, tt.want)
+			}
+		})
 	}
 }

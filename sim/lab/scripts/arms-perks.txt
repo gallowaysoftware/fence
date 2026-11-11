@@ -1,0 +1,16 @@
+# Starting-perk variation (docs/research/EXPERIMENTS.md, v2 §perks; perk effects in docs/re/PERKS.md).
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-perks.txt -dir var/sim/exp/perks-normal -seeds 40 -days 200 -- -difficulty normal
+none                | -human knobs
+saving              | -human knobs -perks saving
+prime_real_estate   | -human knobs -perks prime_real_estate
+side_street         | -human knobs -perks side_street
+short_sleeper       | -human knobs -perks short_sleeper
+wild_favorite       | -human knobs -perks wild_favorite
+vending             | -human knobs -perks vending
+working_pipes       | -human knobs -perks working_pipes
+proficient_scav     | -human knobs -perks proficient_scavenger
+awful_negotiator    | -human knobs -perks awful_negotiator
+bad_lease           | -human knobs -perks bad_lease
+owner_loadout       | -human knobs -perks proficient_scavenger+alert+short_sleeper+bad_lease
+honest_broker       | -human knobs -perks diplomatic+prime_real_estate+handy
+magnate             | -human knobs -perks vending+wild_favorite+bad_lease

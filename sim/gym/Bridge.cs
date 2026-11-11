@@ -110,7 +110,50 @@ namespace Fence.Gym
             }
         }
 
+        // The plan's directives from /v1/summary (docs/PROTOCOL.md "Directives"); null when absent.
+        public Directives SummaryDirectives(string sessionId)
+        {
+            try
+            {
+                using var resp = http.GetAsync(baseUrl + "/v1/summary?session_id=" + Uri.EscapeDataString(sessionId)).GetAwaiter().GetResult();
+                if (!resp.IsSuccessStatusCode) return null;
+                var o = Newtonsoft.Json.Linq.JObject.Parse(resp.Content.ReadAsStringAsync().GetAwaiter().GetResult());
+                return o["directives"] is Newtonsoft.Json.Linq.JObject d ? Directives.Parse(d) : null;
+            }
+            catch (Exception e) when (!(e is ArgumentException))
+            {
+                return null;
+            }
+        }
+
         public void Dispose() => http.Dispose();
+    }
+
+    // `-bridge defer:`: a bridge in observe mode with no planner, in-process: hello and events go nowhere and
+    // every decide is deferred (the mod's answer when the bridge only watches). Tests the fallbacks.
+    internal sealed class DeferBridge : IBridge
+    {
+        readonly string session;
+
+        public DeferBridge(int seed) => session = "defer-s" + seed;
+
+        public string Name => "defer";
+
+        public HelloResponse Hello(HelloRequest hello) => new HelloResponse { SessionId = session, Protocol = ProtocolVersion.Current, Mode = Modes.Observe };
+
+        public void Event(EventRequest e) { }
+
+        public DecideResponse Decide(DecideRequest request, out long latencyMs)
+        {
+            latencyMs = 0;
+            return new DecideResponse { DecisionId = request.DecisionId, Choice = Choice.MakeDefer(), Source = Sources.Heuristic, Rationale = "observe" };
+        }
+
+        public void Outcome(OutcomeRequest outcome) { }
+
+        public SummaryResponse Summary(string sessionId) => null;
+
+        public void Dispose() { }
     }
 
     internal sealed class LocalBridge : IBridge

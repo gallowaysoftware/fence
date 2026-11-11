@@ -60,6 +60,8 @@ namespace Fence.Protocol
         [JsonProperty("session_id")] public string SessionId;
         [JsonProperty("protocol")] public int Protocol;
         [JsonProperty("mode")] public string Mode;
+        // The appraisal guides' value tables, when the bridge has them locally (never in the mod or the repo).
+        [JsonProperty("appraisal_guides", NullValueHandling = NullValueHandling.Ignore)] public JObject AppraisalGuides;
     }
 
     public sealed class EventRequest
@@ -139,6 +141,8 @@ namespace Fence.Protocol
         [JsonProperty("lessons_day")] public int LessonsDay;
         [JsonProperty("plan", NullValueHandling = NullValueHandling.Ignore)] public string Plan;
         [JsonProperty("plan_day", NullValueHandling = NullValueHandling.Ignore)] public int? PlanDay;
+        // The plan as executor directives (protocol/schema/directives.schema.json); the autopilot plays them.
+        [JsonProperty("directives", NullValueHandling = NullValueHandling.Ignore)] public JObject Directives;
     }
 
     public sealed class DayStats

@@ -217,7 +217,9 @@
       "returns": "StoreStation",
       "features": [
         "observe.game_day",
-        "record.snapshot.store"
+        "record.snapshot.store",
+        "autopilot.hands",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -229,7 +231,9 @@
       "returns": "System.Int32",
       "features": [
         "observe.game_day",
-        "record.snapshot.store"
+        "record.snapshot.store",
+        "autopilot.hands",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -669,7 +673,8 @@
       "kind": "field",
       "returns": "PlayerStore+StoreState",
       "features": [
-        "observe.barter.left"
+        "observe.barter.left",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "CLOSED at dismiss time = the shutter closed."
@@ -717,7 +722,9 @@
       "returns": "GameInventory",
       "features": [
         "advise.display",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Is the hovered item on a counter."
@@ -731,7 +738,9 @@
       "features": [
         "advise.display",
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -744,7 +753,9 @@
       "features": [
         "advise.display",
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -757,7 +768,11 @@
       "features": [
         "advise.barter",
         "observe.barter.session",
-        "record.snapshot.store"
+        "record.snapshot.store",
+        "advise.inspect",
+        "advise.aug",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Root of all store state."
@@ -794,7 +809,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -806,7 +823,8 @@
       "returns": "DialogUIManager",
       "features": [
         "advise.barter",
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -817,7 +835,9 @@
       "kind": "property",
       "returns": "StoreClientMono",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "advise.aug",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -828,7 +848,9 @@
       "kind": "property",
       "returns": "StoreUIManager",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "advise.aug",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -840,7 +862,8 @@
       "returns": "MapUIManager",
       "features": [
         "advise.barter",
-        "record.night.travel"
+        "record.night.travel",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -852,7 +875,8 @@
       "returns": "StoreClientInstance",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -865,7 +889,8 @@
       "returns": "StoreClient",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "advise.aug"
       ],
       "required": false
     },
@@ -877,7 +902,9 @@
       "returns": "System.Int32",
       "features": [
         "advise.barter",
-        "record.snapshot.store"
+        "record.snapshot.store",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -901,7 +928,9 @@
       "params": [],
       "returns": "System.Int32",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1052,7 +1081,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.clientele",
-        "record.snapshot.hidden"
+        "record.snapshot.hidden",
+        "autopilot.hands",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1076,7 +1107,8 @@
       "returns": "System.Collections.Generic.List<System.String>",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Tablet shows only known item types as Interests/Restrictions tags."
@@ -1090,7 +1122,8 @@
       "features": [
         "advise.barter",
         "observe.barter.bargain",
-        "record.customer"
+        "record.customer",
+        "advise.inspect"
       ],
       "required": false
     },
@@ -1102,7 +1135,8 @@
       "returns": "System.String",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1114,7 +1148,8 @@
       "returns": "System.String",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1126,7 +1161,8 @@
       "returns": "System.String",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1138,7 +1174,8 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1150,7 +1187,8 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1162,7 +1200,8 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1174,7 +1213,8 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1342,7 +1382,8 @@
       "returns": "System.Collections.Generic.List<System.String>",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1367,7 +1408,8 @@
       "returns": "System.Int32",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1383,7 +1425,8 @@
       "features": [
         "advise.barter",
         "record.customer",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1451,7 +1494,10 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1465,7 +1511,9 @@
         "advise.barter",
         "record.snapshot.inventory",
         "record.customer",
-        "record.snapshot.security"
+        "record.snapshot.security",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1478,7 +1526,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1494,7 +1544,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1508,7 +1560,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1529,7 +1583,8 @@
         "advise.barter",
         "record.snapshot.inventory",
         "record.customer",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1545,7 +1600,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1559,7 +1616,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1572,7 +1631,8 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1588,7 +1648,9 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1604,7 +1666,8 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1620,7 +1683,8 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1636,7 +1700,8 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "advise.inspect"
       ],
       "required": false
     },
@@ -1651,7 +1716,8 @@
         "advise.barter",
         "record.snapshot.inventory",
         "record.customer",
-        "record.human.expose"
+        "record.human.expose",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1664,7 +1730,8 @@
       "features": [
         "advise.barter",
         "record.snapshot.inventory",
-        "record.customer"
+        "record.customer",
+        "autopilot.executor"
       ],
       "required": false
     },
@@ -1891,7 +1958,8 @@
       "kind": "field",
       "returns": "System.Boolean",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1903,7 +1971,8 @@
       "params": [],
       "returns": "Dialogue",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1915,7 +1984,8 @@
       "params": [],
       "returns": "System.Boolean",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1961,7 +2031,8 @@
       "kind": "field",
       "returns": "System.Boolean",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "advise.aug"
       ],
       "required": false,
       "why": "Threaten group only shown once augs are introduced."
@@ -1973,7 +2044,8 @@
       "kind": "property",
       "returns": "System.Boolean",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.hands"
       ],
       "required": false
     },
@@ -1996,7 +2068,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "advise.barter"
+        "advise.barter",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Dismiss is blocked while > 0."
@@ -2546,7 +2619,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.rent"
+        "record.snapshot.rent",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Weekly rent (VISIBLE)."
@@ -2570,7 +2644,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.rent"
+        "record.snapshot.rent",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Days to rent as the calendar shows it (VISIBLE)."
@@ -2583,7 +2658,8 @@
       "params": [],
       "returns": "System.Boolean",
       "features": [
-        "record.snapshot.rent"
+        "record.snapshot.rent",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Static. Whether skipping rent is survivable."
@@ -2607,7 +2683,9 @@
       "kind": "field",
       "returns": "System.Boolean",
       "features": [
-        "record.snapshot.property"
+        "record.snapshot.property",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Mortgage active (VISIBLE)."
@@ -2619,7 +2697,9 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.property"
+        "record.snapshot.property",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Mortgage instalment (VISIBLE)."
@@ -2672,7 +2752,8 @@
       "params": [],
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.property"
+        "record.snapshot.property",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Mortgage offer terms (VISIBLE when offered)."
@@ -2685,7 +2766,8 @@
       "params": [],
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.property"
+        "record.snapshot.property",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Mortgage offer terms (VISIBLE when offered)."
@@ -2698,7 +2780,8 @@
       "params": [],
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.property"
+        "record.snapshot.property",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Mortgage offer length (static)."
@@ -2777,7 +2860,10 @@
       "features": [
         "record.snapshot.inventory",
         "record.snapshot.security",
-        "advise.stage"
+        "advise.stage",
+        "advise.aug",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "All owned items incl. nested; pass (false, true)."
@@ -2791,7 +2877,9 @@
       "features": [
         "record.snapshot.inventory",
         "record.human.counter",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "where=stock root."
@@ -2805,7 +2893,9 @@
       "features": [
         "record.snapshot.inventory",
         "record.human.counter",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "where=showcase root."
@@ -2818,7 +2908,8 @@
       "returns": "GameGridInventory",
       "features": [
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "where=hidden root (poster stash)."
@@ -2844,7 +2935,8 @@
       "returns": "GameSlotInventory",
       "features": [
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "where=vending_machine root."
@@ -2870,7 +2962,9 @@
       "returns": "GameInventory",
       "features": [
         "record.snapshot.inventory",
-        "record.human.counter"
+        "record.human.counter",
+        "autopilot.executor",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Walk up to the root container for where."
@@ -2920,7 +3014,8 @@
       "returns": "GameItem",
       "features": [
         "record.snapshot.inventory",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Nested items: the item a container belongs to."
@@ -2936,7 +3031,8 @@
       "returns": "System.Boolean",
       "features": [
         "record.snapshot.inventory",
-        "advise.stage"
+        "advise.stage",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Smuggler bays block inspection searches of their contents."
@@ -2964,7 +3060,9 @@
       ],
       "returns": "System.Boolean",
       "features": [
-        "advise.stage"
+        "advise.stage",
+        "advise.inspect",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Which of the client's interest tags a candidate carries."
@@ -3097,7 +3195,9 @@
       "kind": "field",
       "returns": "SecData",
       "features": [
-        "record.snapshot.security"
+        "record.snapshot.security",
+        "autopilot.executor",
+        "autopilot.gun"
       ],
       "required": false,
       "why": "Security record owner."
@@ -3133,7 +3233,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.security"
+        "record.snapshot.security",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Shown as N/100 (VISIBLE)."
@@ -3187,7 +3288,8 @@
       "params": [],
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.security"
+        "record.snapshot.security",
+        "autopilot.gun"
       ],
       "required": false,
       "why": "Sum of visible amounts."
@@ -3292,7 +3394,31 @@
         "record.night.upgrade"
       ],
       "required": false,
-      "why": "0 not bought, 1 ready (consumable), 2 unlocked."
+      "why": "0 not offered, 1 for sale, 2 owned (armed, for a held grace)."
+    },
+    {
+      "id": "snap.upgrade_cooldown",
+      "type": "NetworkUpgrade",
+      "member": "cooldownCurrent",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.upgrades"
+      ],
+      "required": false,
+      "why": "Days until a cooldown upgrade can be re-bought."
+    },
+    {
+      "id": "snap.upgrade_cooldown_duration",
+      "type": "NetworkUpgrade",
+      "member": "cooldownDuration",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot.upgrades"
+      ],
+      "required": false,
+      "why": "Non-zero only for upgrades with a re-buy cooldown."
     },
     {
       "id": "snap.upgrade_title",
@@ -3372,7 +3498,8 @@
       "params": [],
       "returns": "System.Boolean",
       "features": [
-        "record.snapshot.upgrades"
+        "record.snapshot.upgrades",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Owned."
@@ -3385,7 +3512,8 @@
       "returns": "System.Collections.Generic.List<StoreService>",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Nightly services (VISIBLE in sleep tablet)."
@@ -3398,7 +3526,8 @@
       "returns": "System.String",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Service id."
@@ -3411,7 +3540,8 @@
       "returns": "System.Int32",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Nightly cost."
@@ -3424,7 +3554,8 @@
       "returns": "System.Boolean",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Player selection."
@@ -3450,7 +3581,8 @@
       "returns": "System.Boolean",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Row shown."
@@ -3463,7 +3595,8 @@
       "returns": "System.Boolean",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Not toggleable."
@@ -3476,7 +3609,8 @@
       "returns": "System.Int32",
       "features": [
         "record.snapshot.services",
-        "record.night.services"
+        "record.night.services",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "On cooldown, not toggleable."
@@ -3901,7 +4035,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.snapshot.hidden"
+        "record.snapshot.hidden",
+        "record.aug"
       ],
       "required": false,
       "why": "HIDDEN; aug game over at 100 on some difficulties."
@@ -3926,7 +4061,8 @@
       "kind": "field",
       "returns": "HealthData",
       "features": [
-        "record.snapshot.hidden"
+        "record.snapshot.hidden",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Luck lives here."
@@ -4094,7 +4230,8 @@
       "returns": "StorePoster",
       "features": [
         "record.inspection",
-        "record.human.poster"
+        "record.human.poster",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "The hide-stash poster."
@@ -4107,7 +4244,8 @@
       "returns": "System.Boolean",
       "features": [
         "record.inspection",
-        "record.human.poster"
+        "record.human.poster",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Stash exposed (pulled up)."
@@ -4721,7 +4859,8 @@
       "params": [],
       "returns": "System.Void",
       "features": [
-        "record.human.bell"
+        "record.human.bell",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Prefix: call next (dismisses a dismissable current client)."
@@ -4736,7 +4875,8 @@
       ],
       "returns": "System.Void",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Prefix: every store dialogue decision (rent, buyout, mortgage, inspection, story, wanted)."
@@ -4749,7 +4889,8 @@
       "params": [],
       "returns": "Dialogue",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Read choices before SelectChoice."
@@ -4761,7 +4902,8 @@
       "kind": "field",
       "returns": "System.Collections.Generic.List<System.ValueTuple<GameItem,Dialogue,System.Action>>",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Choice token (name=label), next dialogue (plainText=visible text), action."
@@ -4773,7 +4915,8 @@
       "kind": "field",
       "returns": "System.String",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Visible choice text."
@@ -4788,7 +4931,8 @@
       ],
       "returns": "System.Boolean",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Greyed-out choices."
@@ -4800,7 +4944,8 @@
       "kind": "field",
       "returns": "System.Collections.Generic.Queue<System.String>",
       "features": [
-        "record.human.dialogue"
+        "record.human.dialogue",
+        "advise.aug"
       ],
       "required": false,
       "why": "Dialogue lines shown."
@@ -4813,7 +4958,8 @@
       "returns": "System.String",
       "features": [
         "record.human.dialogue",
-        "record.human.phone"
+        "record.human.phone",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Choice token label (internal, often empty)."
@@ -4841,7 +4987,8 @@
       "params": [],
       "returns": "Dialogue",
       "features": [
-        "record.human.phone"
+        "record.human.phone",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Read phone choices before SelectChoice."
@@ -4857,7 +5004,8 @@
       ],
       "returns": "System.Void",
       "features": [
-        "record.human.phone"
+        "record.human.phone",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Postfix: courier/visitor queued (supplier order)."
@@ -4869,7 +5017,8 @@
       "kind": "property",
       "returns": "DialoguePhoneUIManager",
       "features": [
-        "record.human.phone"
+        "record.human.phone",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Phone dialogue singleton."
@@ -5027,7 +5176,8 @@
       "params": [],
       "returns": "System.Void",
       "features": [
-        "record.night.sleep"
+        "record.night.sleep",
+        "autopilot.hands"
       ],
       "required": false,
       "why": "Prefix: player chose to sleep."
@@ -5587,7 +5737,10 @@
       "kind": "field",
       "returns": "System.String",
       "features": [
-        "record.run"
+        "record.run",
+        "advise.aug",
+        "record.snapshot.store",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "cozy/normal/hard/challenge or mod."
@@ -5599,7 +5752,8 @@
       "kind": "field",
       "returns": "System.Collections.Generic.List<StartingPerk>",
       "features": [
-        "record.run"
+        "record.run",
+        "record.snapshot.perks"
       ],
       "required": false,
       "why": "Starting perks."
@@ -5611,7 +5765,8 @@
       "kind": "field",
       "returns": "System.String",
       "features": [
-        "record.run"
+        "record.run",
+        "record.snapshot.perks"
       ],
       "required": false,
       "why": "Perk id."
@@ -5647,7 +5802,9 @@
       "kind": "property",
       "returns": "DifficultyRules",
       "features": [
-        "record.run"
+        "record.run",
+        "advise.aug",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Static. Difficulty numbers (rent growth, property price, permit fee)."
@@ -5659,7 +5816,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.run"
+        "record.run",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Buyout base price."
@@ -5784,7 +5942,8 @@
       "kind": "field",
       "returns": "System.Boolean",
       "features": [
-        "record.run"
+        "record.run",
+        "advise.aug"
       ],
       "required": false,
       "why": "Difficulty rule shown on the difficulty screen."
@@ -5796,7 +5955,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.run"
+        "record.run",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Difficulty rule shown on the difficulty screen."
@@ -5808,7 +5968,8 @@
       "kind": "field",
       "returns": "System.Int32",
       "features": [
-        "record.run"
+        "record.run",
+        "autopilot.executor"
       ],
       "required": false,
       "why": "Difficulty rule shown on the difficulty screen."
@@ -5824,6 +5985,3485 @@
       ],
       "required": false,
       "why": "Difficulty rule shown on the difficulty screen."
+    },
+    {
+      "id": "inspect.open",
+      "type": "InspectionUIManager",
+      "member": "OnInspectItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Postfix: the magnifier opened a customer's item; the game has already chosen the confront or appraisal panel."
+    },
+    {
+      "id": "inspect.ui_instance",
+      "type": "InspectionUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "InspectionUIManager",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Singleton of the inspection panel."
+    },
+    {
+      "id": "inspect.confront_panel",
+      "type": "InspectionUIManager",
+      "member": "confrontPanel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Active iff the game's CanOpenConfrontPanel passed for the item: not owned, not already confronted, trade not locked."
+    },
+    {
+      "id": "inspect.current_item",
+      "type": "InspectionUIManager",
+      "member": "currentInspectingItem",
+      "kind": "field",
+      "returns": "GameItem",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "The item under the magnifier when the confront button is pressed."
+    },
+    {
+      "id": "inspect.toggle1",
+      "type": "InspectionUIManager",
+      "member": "toggle1",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Toggle",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Confront issue toggle 1; the last checked one in code order is the verdict submitted."
+    },
+    {
+      "id": "inspect.toggle2",
+      "type": "InspectionUIManager",
+      "member": "toggle2",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Toggle",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Confront issue toggle 2; the last checked one in code order is the verdict submitted."
+    },
+    {
+      "id": "inspect.toggle3",
+      "type": "InspectionUIManager",
+      "member": "toggle3",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Toggle",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Confront issue toggle 3; the last checked one in code order is the verdict submitted."
+    },
+    {
+      "id": "inspect.toggle4",
+      "type": "InspectionUIManager",
+      "member": "toggle4",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Toggle",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Confront issue toggle 4; the last checked one in code order is the verdict submitted."
+    },
+    {
+      "id": "inspect.toggle5",
+      "type": "InspectionUIManager",
+      "member": "toggle5",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Toggle",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Confront issue toggle 5; the last checked one in code order is the verdict submitted."
+    },
+    {
+      "id": "human.inspect_verdict",
+      "type": "InspectionUIManager",
+      "member": "OnConfront",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "advise.inspect",
+        "record.human.inspect"
+      ],
+      "required": false,
+      "why": "Prefix: the issue the player submits (or the 'it is genuine' talk). Patch target only: the mod never calls it."
+    },
+    {
+      "id": "inspect.confront_result",
+      "type": "EmporiumAnalytics",
+      "member": "TrackConfront",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.String"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: the customer's answer to a confront or talk, for the inspect decision's outcome."
+    },
+    {
+      "id": "inspect.estimate",
+      "type": "AppraisalServiceHelper",
+      "member": "OnEstimate",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Prefix: the estimate submitted, for the inspect decision's outcome. Patch target only."
+    },
+    {
+      "id": "inspect.appraisal_too_high",
+      "type": "AppraisalServiceHelper",
+      "member": "GetTooHighDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: the customer refused the estimate as too high (visible dialogue)."
+    },
+    {
+      "id": "inspect.appraisal_too_low",
+      "type": "AppraisalServiceHelper",
+      "member": "GetTooLowDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: refused as too low (visible dialogue)."
+    },
+    {
+      "id": "inspect.appraisal_accepted",
+      "type": "AppraisalServiceHelper",
+      "member": "GetAcceptEstimateDialog",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "Dialogue",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: the estimate was accepted; the slip then shows the true value."
+    },
+    {
+      "id": "inspect.appraisal_walkout",
+      "type": "AppraisalServiceHelper",
+      "member": "GetPatienceRunOutDialog",
+      "kind": "method",
+      "params": [],
+      "returns": "Dialogue",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. Postfix: the customer ran out of patience and leaves."
+    },
+    {
+      "id": "inspect.tag_string",
+      "type": "TagState",
+      "member": "GetString",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "advise.inspect",
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "String cue tags (hand and plasma parts, injector text)."
+    },
+    {
+      "id": "inspect.find_feature",
+      "type": "GameItem",
+      "member": "FindItemFeatureByCategory",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "ItemFeature",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "The authenticity feature (CATEGORY_GENUINE_*) whose shown condition is the claim."
+    },
+    {
+      "id": "inspect.shown_condition",
+      "type": "ItemFeature",
+      "member": "GetCurrentItemCondition",
+      "kind": "method",
+      "params": [],
+      "returns": "ItemCondition",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "The claim: fakeCondition until exposed (VISIBLE as the panel layout)."
+    },
+    {
+      "id": "hidden.real_condition",
+      "type": "ItemFeature",
+      "member": "realCondition",
+      "kind": "field",
+      "returns": "ItemCondition",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "The true condition (HIDDEN): decide.hidden only."
+    },
+    {
+      "id": "inspect.condition_id",
+      "type": "ItemCondition",
+      "member": "identifier",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "genuineInjector, counterfeitStamp, ..."
+    },
+    {
+      "id": "inspect.appraiser_level",
+      "type": "PlayerStore",
+      "member": "appraiserLevel",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Appraisal rank 0-3 (VISIBLE: the guild certificate)."
+    },
+    {
+      "id": "inspect.base_fee",
+      "type": "AppraisalRankHelper",
+      "member": "GetBaseFee",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. The rank's base appraisal fee."
+    },
+    {
+      "id": "inspect.fee_percent",
+      "type": "AppraisalRankHelper",
+      "member": "GetFeePercent",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "advise.inspect"
+      ],
+      "required": false,
+      "why": "Static. The rank's fee percent for a grade 1-5; 0 means that grade is refused."
+    },
+    {
+      "id": "aug.shooting_enter",
+      "type": "StoreUIManager",
+      "member": "EnterShootingMode",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Prefix: human_action unholster. Never called: raising the gun dismisses the customer on holster."
+    },
+    {
+      "id": "aug.shooting_exit",
+      "type": "StoreUIManager",
+      "member": "ExitShootingMode",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Prefix: human_action holster when the gun is lowered without a shot."
+    },
+    {
+      "id": "aug.shoot",
+      "type": "StoreUIManager",
+      "member": "Shoot",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug",
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "Prefix: human_action shoot with the tells on screen. Called by the autopilot's LiveHands.Fire (M3)."
+    },
+    {
+      "id": "autopilot.shotgun_click",
+      "type": "Shotgun",
+      "member": "OnClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "The shotgun's click: raises the gun (LiveHands.RaiseGun, only while CanPickup and the gun is down)."
+    },
+    {
+      "id": "autopilot.shotgun_can_pickup",
+      "type": "Shotgun",
+      "member": "CanPickup",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "The click's own gate, checked before pressing it."
+    },
+    {
+      "id": "autopilot.can_shoot",
+      "type": "StoreUIManager",
+      "member": "CanShoot",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "Arm.Update's gate on the shot."
+    },
+    {
+      "id": "autopilot.shooting_ui",
+      "type": "StoreUIManager",
+      "member": "shootingUI",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "The crosshair: active once the raise's blackscreen is done and until the shot."
+    },
+    {
+      "id": "aug.is_shooting_mode",
+      "type": "StoreUIManager",
+      "member": "isShootingMode",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug",
+        "autopilot.hands",
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "Gun currently raised."
+    },
+    {
+      "id": "aug.is_shot",
+      "type": "StoreUIManager",
+      "member": "isShot",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "True from the shot until Security leaves; distinguishes kill from left-alive in DismissCurrentClient."
+    },
+    {
+      "id": "aug.shooting_unlocked",
+      "type": "PlayerStore",
+      "member": "isShootingUnlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Shotgun present (lost on all-clear / permit revocation)."
+    },
+    {
+      "id": "aug.good_kill",
+      "type": "AugHelper",
+      "member": "OnGoodKill",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Static. Prefix/postfix: aug event good_kill (cash, rep, presence drop). Never called."
+    },
+    {
+      "id": "aug.wrongful_kill",
+      "type": "AugHelper",
+      "member": "CleanupKill",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Static. Prefix/postfix: aug event wrongful_kill (MANSLAUGHTER, rep losses); RunStats.OnAugShot misses it. Never called."
+    },
+    {
+      "id": "aug.left_alive",
+      "type": "AugHelper",
+      "member": "OnAugLeftAlive",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Static. Prefix/postfix: aug event left_alive with the exit cause. Never called."
+    },
+    {
+      "id": "aug.shot_client",
+      "type": "AugHelper",
+      "member": "GetShotClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StoreClientInstance",
+      "features": [
+        "record.aug"
+      ],
+      "required": false,
+      "why": "Static. The client the shot resolved against."
+    },
+    {
+      "id": "aug.idle_suppressed",
+      "type": "StoreClientMono",
+      "member": "idleSuppressed",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Private. Rendered state 'perfectly still'; valid when idleDecisionClient is the current blueprint."
+    },
+    {
+      "id": "aug.idle_shake",
+      "type": "StoreClientMono",
+      "member": "idleShakeHorizontal",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Private. Rendered state 'side-to-side twitch'."
+    },
+    {
+      "id": "aug.idle_decision_client",
+      "type": "StoreClientMono",
+      "member": "idleDecisionClient",
+      "kind": "field",
+      "returns": "StoreClient",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Private. Which client the idle flags belong to."
+    },
+    {
+      "id": "client.sprite_name",
+      "type": "StoreClient",
+      "member": "spriteName",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Portrait id; mapped to words (aug-pool features, outfit family), never sent raw."
+    },
+    {
+      "id": "client.bubble_color",
+      "type": "StoreClient",
+      "member": "bubbleColor",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "With clientFaction decides the visible bubble; send the bubble, not NONE vs a faction."
+    },
+    {
+      "id": "client.aug_tier",
+      "type": "StoreClient",
+      "member": "augTier",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "HIDDEN label."
+    },
+    {
+      "id": "client.aug_idle_tell",
+      "type": "StoreClient",
+      "member": "augIdleTell",
+      "kind": "field",
+      "returns": "StoreClient+AugIdleTell",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "HIDDEN label (Default/Normal/Freeze/Seizure)."
+    },
+    {
+      "id": "client.aug_scanned",
+      "type": "StoreClient",
+      "member": "isAugScanned",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Scanner used on this client; only then may the shown verdict (isAug) enter context."
+    },
+    {
+      "id": "aug.introduced_day",
+      "type": "PlayerStore",
+      "member": "GetAugIntroducedDay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Static. 12, or 1 with Aug Menace."
+    },
+    {
+      "id": "hidden.aug_ended",
+      "type": "PlayerStore",
+      "member": "isAugEnded",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "All-clear given: no more augs."
+    },
+    {
+      "id": "perk.aug_menace",
+      "type": "StartingPerk",
+      "member": "IsAugMenace",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Static. Game over at 100 on every difficulty."
+    },
+    {
+      "id": "run.rule_augKillPresenceDrop",
+      "type": "DifficultyRules",
+      "member": "augKillPresenceDrop",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Presence tracker."
+    },
+    {
+      "id": "run.rule_augLeftAlivePresenceRise",
+      "type": "DifficultyRules",
+      "member": "augLeftAlivePresenceRise",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Presence tracker."
+    },
+    {
+      "id": "aug.being_arrested",
+      "type": "PlayerStore",
+      "member": "isClientBeingArrested",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Shotgun.CanPickup input."
+    },
+    {
+      "id": "aug.handling_shootout",
+      "type": "PlayerStore",
+      "member": "isHandlingShootout",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug",
+        "autopilot.hands",
+        "autopilot.gun"
+      ],
+      "required": false,
+      "why": "Shotgun.CanPickup input."
+    },
+    {
+      "id": "client.arrestable",
+      "type": "StoreClient",
+      "member": "arrestable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Shotgun.CanPickup input."
+    },
+    {
+      "id": "client.force_shootable",
+      "type": "StoreClient",
+      "member": "forceShootable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Shotgun.CanPickup input."
+    },
+    {
+      "id": "client.non_shootable",
+      "type": "StoreClient",
+      "member": "nonShootable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Shotgun.CanPickup input."
+    },
+    {
+      "id": "client.shot_counts_as_capture",
+      "type": "StoreClient",
+      "member": "shotCountsAsCapture",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "HIDDEN label: what a shot would resolve to."
+    },
+    {
+      "id": "aug.client_name",
+      "type": "LocHelper",
+      "member": "GetLocalizedClientName",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.String",
+      "features": [
+        "advise.aug"
+      ],
+      "required": false,
+      "why": "Static. The generic \"Upper Level Citizen\" / \"Thief\" names, for the name-vs-bubble tell."
+    },
+    {
+      "id": "snap.item_children",
+      "type": "GameItem",
+      "member": "children",
+      "kind": "property",
+      "returns": "System.Collections.Generic.List<GraphNodeStorage>",
+      "features": [
+        "record.capacity"
+      ],
+      "required": false,
+      "why": "Walk to the grid inside a container (smuggler bay, bag, machine)."
+    },
+    {
+      "id": "snap.node_children",
+      "type": "GraphNodeStorage",
+      "member": "children",
+      "kind": "property",
+      "returns": "System.Collections.Generic.List<GraphNodeStorage>",
+      "features": [
+        "record.capacity"
+      ],
+      "required": false,
+      "why": "Walk to the grid inside a container."
+    },
+    {
+      "id": "snap.grid_shape",
+      "type": "GameGridInventory",
+      "member": "inventoryShape",
+      "kind": "property",
+      "returns": "GridShape",
+      "features": [
+        "record.capacity",
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "Cells the grid allows."
+    },
+    {
+      "id": "snap.inventory_items",
+      "type": "GameInventory",
+      "member": "childItems",
+      "kind": "property",
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "record.capacity",
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Items in a grid, for free cells."
+    },
+    {
+      "id": "snap.item_shape",
+      "type": "GameItem",
+      "member": "modifiedShape",
+      "kind": "property",
+      "returns": "GridShape",
+      "features": [
+        "record.capacity"
+      ],
+      "required": false,
+      "why": "Cells an item covers."
+    },
+    {
+      "id": "snap.shape_width",
+      "type": "GridShape",
+      "member": "width",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "record.capacity",
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "Grid width."
+    },
+    {
+      "id": "snap.shape_height",
+      "type": "GridShape",
+      "member": "height",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "record.capacity",
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "Grid height."
+    },
+    {
+      "id": "snap.shape_get",
+      "type": "GridShape",
+      "member": "Get",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Byte",
+      "features": [
+        "record.capacity"
+      ],
+      "required": false,
+      "why": "0 = a usable cell (GameGridInventory.HasFreeCell)."
+    },
+    {
+      "id": "snap.shape_intersects",
+      "type": "GridShape",
+      "member": "Intersects",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.capacity"
+      ],
+      "required": false,
+      "why": "Whether an item covers a cell."
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.uipanel",
+      "type": "AdvCalendarUIManager",
+      "member": "UIPanel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.closeui",
+      "type": "AdvCalendarUIManager",
+      "member": "CloseUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.instance",
+      "type": "AdvCalendarUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "AdvCalendarUIManager",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.afterhourevents.isactive",
+      "type": "AfterhourEvents",
+      "member": "IsActive",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.chemicalhelper.dissolveinto",
+      "type": "ChemicalHelper",
+      "member": "DissolveInto",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.contrabandhelper.iscontraband",
+      "type": "ContrabandHelper",
+      "member": "IsContraband",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.currentconverterhelper.iscurrentconverter",
+      "type": "CurrentConverterHelper",
+      "member": "IsCurrentConverter",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.dialoguimanager.dialogchoicebubbles",
+      "type": "DialogUIManager",
+      "member": "dialogChoiceBubbles",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<DialogChoiceBubble>",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.dialoguimanager.iswaitingformanualadvance",
+      "type": "DialogUIManager",
+      "member": "isWaitingForManualAdvance",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.dialoguimanager.onadvancepressed",
+      "type": "DialogUIManager",
+      "member": "OnAdvancePressed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.directorymaster.item",
+      "type": "DirectoryMaster",
+      "member": "Item",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Boolean"
+      ],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.durabilityhelper.getrealdurability",
+      "type": "DurabilityHelper",
+      "member": "GetRealDurability",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.endofdayuimanager.initui",
+      "type": "EndOfDayUIManager",
+      "member": "InitUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.endofdayuimanager.instance",
+      "type": "EndOfDayUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "EndOfDayUIManager",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.endofdayuimanager.isopen",
+      "type": "EndOfDayUIManager",
+      "member": "IsOpen",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.gameitem.getgameitemtype",
+      "type": "GameItem",
+      "member": "GetGameItemType",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.getitemsize",
+      "type": "GameItem",
+      "member": "GetItemSize",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.isgameitemtype",
+      "type": "GameItem",
+      "member": "IsGameItemType",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.mayremove",
+      "type": "GameItem",
+      "member": "MayRemove",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.gameitemfunc.onitemtargetitemfunc",
+      "type": "GameItemFunc",
+      "member": "onItemTargetItemFunc",
+      "kind": "property",
+      "returns": "System.Action<GameItem,GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitemfunc.onthistargetitemfunc",
+      "type": "GameItemFunc",
+      "member": "onThisTargetItemFunc",
+      "kind": "property",
+      "returns": "System.Action<GameItem,GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameoveruimanager.instance",
+      "type": "GameOverUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "GameOverUIManager",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.gameoveruimanager.isshowing",
+      "type": "GameOverUIManager",
+      "member": "IsShowing",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.gameslotinventory.childitem",
+      "type": "GameSlotInventory",
+      "member": "childItem",
+      "kind": "property",
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.generalhelper.setitemowned",
+      "type": "GeneralHelper",
+      "member": "SetItemOwned",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.graphutils.findallchildrentype",
+      "type": "GraphUtils",
+      "member": "FindAllChildrenType",
+      "kind": "method",
+      "params": [
+        "GraphNodeStorage",
+        "System.Func<T,System.Boolean>",
+        "System.Func<T,System.Boolean>"
+      ],
+      "returns": "System.Collections.Generic.List<T>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.graphutils.findchildrentype",
+      "type": "GraphUtils",
+      "member": "FindChildrenType",
+      "kind": "method",
+      "params": [
+        "GraphNodeStorage",
+        "System.Func<T,System.Boolean>",
+        "System.Func<T,System.Boolean>"
+      ],
+      "returns": "System.Collections.Generic.List<T>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.graphutils.tryacceptall",
+      "type": "GraphUtils",
+      "member": "TryAcceptAll",
+      "kind": "method",
+      "params": [
+        "GraphNodeStorage",
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.gethealthpercent",
+      "type": "HydroponicHelper",
+      "member": "GetHealthPercent",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.interactable.ispaused",
+      "type": "Interactable",
+      "member": "isPaused",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.itemfeature.customintvalue1",
+      "type": "ItemFeature",
+      "member": "customIntValue1",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.isexposable",
+      "type": "ItemFeature",
+      "member": "isExposable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.usecondition",
+      "type": "ItemFeature",
+      "member": "useCondition",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.exposefeature",
+      "type": "ItemFeature",
+      "member": "ExposeFeature",
+      "kind": "method",
+      "params": [
+        "System.Boolean",
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.isfeaturematch",
+      "type": "ItemFeature",
+      "member": "IsFeatureMatch",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.isrealfeaturecheaper",
+      "type": "ItemFeature",
+      "member": "IsRealFeatureCheaper",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizeddialogue",
+      "type": "LocHelper",
+      "member": "GetLocalizedDialogue",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Object[]"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizedmechanic",
+      "type": "LocHelper",
+      "member": "GetLocalizedMechanic",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Object[]"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizedmechanicordefault",
+      "type": "LocHelper",
+      "member": "GetLocalizedMechanicOrDefault",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.Object[]"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinebottleprinter.isnormalunlocked",
+      "type": "MachineBottlePrinter",
+      "member": "IsNormalUnlocked",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehelper.getbatteryslot",
+      "type": "MachineHelper",
+      "member": "GetBatterySlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehelper.getbodystorage",
+      "type": "MachineHelper",
+      "member": "GetBodyStorage",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "GraphNodeStorage",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehydroponic.getinputslot",
+      "type": "MachineHydroponic",
+      "member": "GetInputSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehydroponic.getoutputslot",
+      "type": "MachineHydroponic",
+      "member": "GetOutputSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehydroponic.getwaterslot",
+      "type": "MachineHydroponic",
+      "member": "GetWaterSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehydroponic.getwaterslotitem",
+      "type": "MachineHydroponic",
+      "member": "GetWaterSlotItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineryhelper.getmachinepowerusage",
+      "type": "MachineryHelper",
+      "member": "GetMachinePowerUsage",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.mapuimanager.isintransit",
+      "type": "MapUIManager",
+      "member": "IsInTransit",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.modhelper.addgameoptionkeybind",
+      "type": "ModHelper",
+      "member": "AddGameOptionKeyBind",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.String",
+        "System.String",
+        "System.Func<System.String>",
+        "System.Func<UnityEngine.KeyCode>",
+        "System.Action<UnityEngine.KeyCode>",
+        "System.Func<System.String>"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.key"
+      ],
+      "required": false,
+      "why": "The autopilot's pause/resume key bind."
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtobackcounter",
+      "type": "ModHelper",
+      "member": "MoveItemToBackCounter",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtodisplaycase",
+      "type": "ModHelper",
+      "member": "MoveItemToDisplayCase",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtoinventory",
+      "type": "ModHelper",
+      "member": "MoveItemToInventory",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.networkupgrade.getupgradebyid",
+      "type": "NetworkUpgrade",
+      "member": "GetUpgradeById",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "NetworkUpgrade",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.networkupgrade.isretiredfarmerunlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsRetiredFarmerUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.networkupgrade.iswinemakerunlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsWinemakerUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.isvendingmachineunlocked",
+      "type": "PlayerStore",
+      "member": "isVendingMachineUnlocked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.loanofferedtogeorgio",
+      "type": "PlayerStore",
+      "member": "loanOfferedToGeorgio",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.lockshutterbuttonflag",
+      "type": "PlayerStore",
+      "member": "lockShutterButtonFlag",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.playerstore.storeclientdata",
+      "type": "PlayerStore",
+      "member": "storeClientData",
+      "kind": "field",
+      "returns": "StoreClientData",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.canendday",
+      "type": "PlayerStore",
+      "member": "CanEndDay",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.playerstore.getallrepoeligibleitems",
+      "type": "PlayerStore",
+      "member": "GetAllRepoEligibleItems",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.getbusinesspermitprice",
+      "type": "PlayerStore",
+      "member": "GetBusinessPermitPrice",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.isclientdimissable",
+      "type": "PlayerStore",
+      "member": "IsClientDimissable",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.powerhelper.candrawpowersource",
+      "type": "PowerHelper",
+      "member": "CanDrawPowerSource",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.powerhelper.getavailableenergyfromitem",
+      "type": "PowerHelper",
+      "member": "GetAvailableEnergyFromItem",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Boolean"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storebedroll.onclick",
+      "type": "StoreBedroll",
+      "member": "OnClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storeclient.canclientexposeanyfeaturedeep",
+      "type": "StoreClient",
+      "member": "CanClientExposeAnyFeatureDeep",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.getinspectablechildren",
+      "type": "StoreClient",
+      "member": "GetInspectableChildren",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclientdata.businesspermitbribeamount",
+      "type": "StoreClientData",
+      "member": "businessPermitBribeAmount",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclientmanager.clientstack",
+      "type": "StoreClientManager",
+      "member": "clientStack",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<StoreClient>",
+      "features": [
+        "autopilot.hands",
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storephoneclient.amountspent",
+      "type": "StorePhoneClient",
+      "member": "amountSpent",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.phonestate",
+      "type": "StorePhoneClient",
+      "member": "phoneState",
+      "kind": "field",
+      "returns": "StorePhoneClient+PhoneState",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.stocktype",
+      "type": "StorePhoneClient",
+      "member": "stockType",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.getbrewerphoneclient",
+      "type": "StorePhoneClient",
+      "member": "GetBrewerPhoneClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StorePhoneClient",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.getminingphoneclient",
+      "type": "StorePhoneClient",
+      "member": "GetMiningPhoneClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StorePhoneClient",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storephoneclient.useservice",
+      "type": "StorePhoneClient",
+      "member": "UseService",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeservice.isoncooldown",
+      "type": "StoreService",
+      "member": "IsOnCooldown",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storeshutterbutton.onclick",
+      "type": "StoreShutterButton",
+      "member": "OnClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storeshutterbutton.instance",
+      "type": "StoreShutterButton",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "StoreShutterButton",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storeuimanager.blackscreen",
+      "type": "StoreUIManager",
+      "member": "blackscreen",
+      "kind": "field",
+      "returns": "UnityEngine.UI.Image",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.storeuimanager.closeshutterconfirmationpanel",
+      "type": "StoreUIManager",
+      "member": "closeShutterConfirmationPanel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.canupgradedattractiveness",
+      "type": "VendingMachineHelper",
+      "member": "CanUpgradedAttractiveness",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.canupgradedcapacity",
+      "type": "VendingMachineHelper",
+      "member": "CanUpgradedCapacity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getsalechance",
+      "type": "VendingMachineHelper",
+      "member": "GetSaleChance",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getvendinginventory",
+      "type": "VendingMachineHelper",
+      "member": "GetVendingInventory",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getvendingprice",
+      "type": "VendingMachineHelper",
+      "member": "GetVendingPrice",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.transfercashtoplayer",
+      "type": "VendingMachineHelper",
+      "member": "TransferCashToPlayer",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.upgradeattractiveness",
+      "type": "VendingMachineHelper",
+      "member": "UpgradeAttractiveness",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.upgradecapacity",
+      "type": "VendingMachineHelper",
+      "member": "UpgradeCapacity",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getpurityarrayindex",
+      "type": "WaterFeatureHelper",
+      "member": "GetPurityArrayIndex",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getwaterfeature",
+      "type": "WaterFeatureHelper",
+      "member": "GetWaterFeature",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "ItemFeature",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.onwaterlabelupdated",
+      "type": "WaterFeatureHelper",
+      "member": "OnWaterLabelUpdated",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.emptycontainer",
+      "type": "WaterHelper",
+      "member": "EmptyContainer",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.getcurrentcapacityml",
+      "type": "WaterHelper",
+      "member": "GetCurrentCapacityML",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.getfilteritem",
+      "type": "WaterHelper",
+      "member": "GetFilterItem",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.getwaterpurity",
+      "type": "WaterHelper",
+      "member": "GetWaterPurity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.isempty",
+      "type": "WaterHelper",
+      "member": "IsEmpty",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.isfull",
+      "type": "WaterHelper",
+      "member": "IsFull",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.transferliquid",
+      "type": "WaterHelper",
+      "member": "TransferLiquid",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.canemptywinebottle",
+      "type": "WineHelper",
+      "member": "CanEmptyWineBottle",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.emptywinebottle",
+      "type": "WineHelper",
+      "member": "EmptyWineBottle",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.getwaterqualityscore",
+      "type": "WineHelper",
+      "member": "GetWaterQualityScore",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.getwinequalitytier",
+      "type": "WineHelper",
+      "member": "GetWineQualityTier",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.isfinishedwine",
+      "type": "WineHelper",
+      "member": "IsFinishedWine",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.iswaterration",
+      "type": "WineHelper",
+      "member": "IsWaterRation",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.pourrationintobottle",
+      "type": "WineHelper",
+      "member": "PourRationIntoBottle",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.winehelper.trystartfermentation",
+      "type": "WineHelper",
+      "member": "TryStartFermentation",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.contentwindow",
+      "type": "GameItem",
+      "member": "contentWindow",
+      "kind": "property",
+      "returns": "PixelWindow",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.isclientbuying",
+      "type": "StoreClient",
+      "member": "IsClientBuying",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehelper.getmoduleinv",
+      "type": "MachineHelper",
+      "member": "GetModuleInv",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineryhelper.getcurrentperformancebonus",
+      "type": "MachineryHelper",
+      "member": "GetCurrentPerformanceBonus",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinealarm.toggletransmitter",
+      "type": "MachineAlarm",
+      "member": "ToggleTransmitter",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineprojector.getattractivenessboost",
+      "type": "MachineProjector",
+      "member": "GetAttractivenessBoost",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.healthdata.woundstate",
+      "type": "HealthData",
+      "member": "woundState",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The wound the night log tells the player (scavenge_max_wound)."
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getdisplayedcertificate",
+      "type": "AppraisalRankHelper",
+      "member": "GetDisplayedCertificate",
+      "kind": "method",
+      "params": [],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getpromotioncost",
+      "type": "AppraisalRankHelper",
+      "member": "GetPromotionCost",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getrank",
+      "type": "AppraisalRankHelper",
+      "member": "GetRank",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.iscertificate",
+      "type": "AppraisalRankHelper",
+      "member": "IsCertificate",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.appraisalprogress",
+      "type": "PlayerStore",
+      "member": "appraisalProgress",
+      "kind": "field",
+      "returns": "System.Double",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.isappraisalintroduced",
+      "type": "PlayerStore",
+      "member": "isAppraisalIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.getappraisaljoincost",
+      "type": "PlayerStore",
+      "member": "GetAppraisalJoinCost",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.insinjectorhelper.recalled_prefix",
+      "type": "InsInjectorHelper",
+      "member": "RECALLED_PREFIX",
+      "kind": "field",
+      "returns": "System.Int32[]",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.labelerhelper.iseditablelabelfeature",
+      "type": "LabelerHelper",
+      "member": "IsEditableLabelFeature",
+      "kind": "method",
+      "params": [
+        "ItemFeature"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemconditionlist.conditionlookup",
+      "type": "ItemConditionList",
+      "member": "conditionLookup",
+      "kind": "field",
+      "returns": "System.Collections.Generic.Dictionary<System.String,System.Collections.Generic.List<ItemCondition>>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.fakecondition",
+      "type": "ItemFeature",
+      "member": "fakeCondition",
+      "kind": "field",
+      "returns": "ItemCondition",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemfeature.setexposed",
+      "type": "ItemFeature",
+      "member": "SetExposed",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.emporiumentry.finditembyuniqueid",
+      "type": "EmporiumEntry",
+      "member": "FindItemByUniqueID",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemcondition.modvalue",
+      "type": "ItemCondition",
+      "member": "modValue",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.gettraitrank",
+      "type": "PlantGeneticsHelper",
+      "member": "GetTraitRank",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.String"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getdisktrait",
+      "type": "PlantGeneticsHelper",
+      "member": "GetDiskTrait",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "PlantTrait",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.isblankdisk",
+      "type": "PlantGeneticsHelper",
+      "member": "IsBlankDisk",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.planttrait.id",
+      "type": "PlantTrait",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.networkupgrade.isplantdnaunlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsPlantDnaUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineprogresshelper.getmachinestate",
+      "type": "MachineProgressHelper",
+      "member": "GetMachineState",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getseedslot",
+      "type": "MachineDnaManipulator",
+      "member": "GetSeedSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getinputdiskslot",
+      "type": "MachineDnaManipulator",
+      "member": "GetInputDiskSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getoutputdiskslot",
+      "type": "MachineDnaManipulator",
+      "member": "GetOutputDiskSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getejectgrid",
+      "type": "MachineDnaManipulator",
+      "member": "GetEjectGrid",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getprecisiontrait",
+      "type": "MachineDnaManipulator",
+      "member": "GetPrecisionTrait",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "PlantTrait",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitemfunc.canthistargetitemfunc",
+      "type": "GameItemFunc",
+      "member": "canThisTargetItemFunc",
+      "kind": "property",
+      "returns": "System.Func<GameItem,GameItem,System.Boolean>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.planttraitregistry.get",
+      "type": "PlantTraitRegistry",
+      "member": "Get",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "PlantTrait",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.removeplantfromhydroponic",
+      "type": "HydroponicHelper",
+      "member": "RemovePlantFromHydroponic",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "Dialogue.nextDialogue",
+      "type": "Dialogue",
+      "member": "nextDialogue",
+      "kind": "field",
+      "returns": "Dialogue",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Appraisal: the client's reply says \"too low\" or \"too high\"."
+    },
+    {
+      "id": "PixelWindow.child",
+      "type": "PixelWindow",
+      "member": "child",
+      "kind": "property",
+      "returns": "GraphNodeStorage",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The dossier and the bin: a container item's inventory."
+    },
+    {
+      "id": "PlayerStore.dayWhenLoanOfferedGeorgio",
+      "type": "PlayerStore",
+      "member": "dayWhenLoanOfferedGeorgio",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The morning plan: Georgio's early payback."
+    },
+    {
+      "id": "GameItem.GetDonationCreditValue",
+      "type": "GameItem",
+      "member": "GetDonationCreditValue",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int64",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The permit official's donations: credit per item."
+    },
+    {
+      "id": "PlayerStore.devMode",
+      "type": "PlayerStore",
+      "member": "devMode",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates (NightOuting.DoorShut)."
+    },
+    {
+      "id": "HealthData.IsSeriouslyWounded",
+      "type": "HealthData",
+      "member": "IsSeriouslyWounded",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates."
+    },
+    {
+      "id": "StoreEventManager.IsEventActive",
+      "type": "StoreEventManager",
+      "member": "IsEventActive",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates: crackdown."
+    },
+    {
+      "id": "StartingPerkContent.IsAgoraphobiaResting",
+      "type": "StartingPerkContent",
+      "member": "IsAgoraphobiaResting",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates."
+    },
+    {
+      "id": "PlayerStore.isAfterhoursIntroduced",
+      "type": "PlayerStore",
+      "member": "isAfterhoursIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates."
+    },
+    {
+      "id": "PlayerStore.visitLeftTonight",
+      "type": "PlayerStore",
+      "member": "visitLeftTonight",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StoreDoor.OnClick's gates."
+    },
+    {
+      "id": "PlayerStore.isNetworkIntroduced",
+      "type": "PlayerStore",
+      "member": "isNetworkIntroduced",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Wild's Network reachable by phone (WildRead)."
+    },
+    {
+      "id": "StorePhoneClient.GetWildPhoneClient",
+      "type": "StorePhoneClient",
+      "member": "GetWildPhoneClient",
+      "kind": "method",
+      "params": [],
+      "returns": "StorePhoneClient",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Wild's line in its regular state (WildRead)."
+    },
+    {
+      "id": "NetworkUpgrade.GetDefinitionsInOrder",
+      "type": "NetworkUpgrade",
+      "member": "GetDefinitionsInOrder",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<NetworkUpgrade>",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Wild's Network slots as the window lists them (WildRead.View)."
+    },
+    {
+      "id": "NetworkUpgrade.isRepeatable",
+      "type": "NetworkUpgrade",
+      "member": "isRepeatable",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "WildRead.View."
+    },
+    {
+      "id": "NetworkUpgrade.IsReady",
+      "type": "NetworkUpgrade",
+      "member": "IsReady",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "WildRead.View: the Use button's state."
+    },
+    {
+      "id": "MapUIManager.confirmationPanel",
+      "type": "MapUIManager",
+      "member": "confirmationPanel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The go-outside confirm (items on the back counter)."
+    },
+    {
+      "id": "TransitUI.IsOpen",
+      "type": "TransitUI",
+      "member": "IsOpen",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The map is open: pick the location."
+    },
+    {
+      "id": "GenericConfirmationUIManager.Instance",
+      "type": "GenericConfirmationUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "GenericConfirmationUIManager",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The \"leave items on the ground?\" prompt."
+    },
+    {
+      "id": "GenericConfirmationUIManager.panel",
+      "type": "GenericConfirmationUIManager",
+      "member": "panel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The prompt is open."
+    },
+    {
+      "id": "PhoneUIManager.Instance",
+      "type": "PhoneUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "PhoneUIManager",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The phone (suppliers, Wild)."
+    },
+    {
+      "id": "PhoneUIManager.phonePanel",
+      "type": "PhoneUIManager",
+      "member": "phonePanel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The phone is open."
+    },
+    {
+      "id": "DialoguePhoneUIManager.dialogChoiceBubbles",
+      "type": "DialoguePhoneUIManager",
+      "member": "dialogChoiceBubbles",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<DialogChoiceBubble>",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The call's choices are on screen."
+    },
+    {
+      "id": "DialoguePhoneUIManager.isWaitingForManualAdvance",
+      "type": "DialoguePhoneUIManager",
+      "member": "isWaitingForManualAdvance",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The call's line waits for a click."
+    },
+    {
+      "id": "WildNetworkUI.IsOpen",
+      "type": "WildNetworkUI",
+      "member": "IsOpen",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Wild's window is open (Joe's visit or the phone)."
+    },
+    {
+      "id": "InspectionUIManager.panel",
+      "type": "InspectionUIManager",
+      "member": "panel",
+      "kind": "field",
+      "returns": "UnityEngine.GameObject",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The inspection view is open."
+    },
+    {
+      "id": "EmporiumEntry.choices",
+      "type": "EmporiumEntry",
+      "member": "choices",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.ValueTuple<GameItem,System.Action>>",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The afterhours response: go out without a backpack."
+    },
+    {
+      "id": "EmporiumEntry.trashcan",
+      "type": "EmporiumEntry",
+      "member": "trashcan",
+      "kind": "property",
+      "returns": "GameItem",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The bin, for appraisal slips."
+    },
+    {
+      "id": "RunStats.Current",
+      "type": "RunStats",
+      "member": "Current",
+      "kind": "property",
+      "returns": "RunStats",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The calendar's wealth chart: net worth by day for the morning plan's ledger."
+    },
+    {
+      "id": "RunStats.seriesStartDay",
+      "type": "RunStats",
+      "member": "seriesStartDay",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The wealth chart's first day."
+    },
+    {
+      "id": "RunStats.netWorthByDay",
+      "type": "RunStats",
+      "member": "netWorthByDay",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.Int32>",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The wealth chart."
+    },
+    {
+      "id": "ModHelper.CloseWildNetwork",
+      "type": "ModHelper",
+      "member": "CloseWildNetwork",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Close Wild's window."
+    },
+    {
+      "id": "ModHelper.ReturnFromAfterhour",
+      "type": "ModHelper",
+      "member": "ReturnFromAfterhour",
+      "kind": "method",
+      "params": [
+        "System.Boolean"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "MapUIManager.Return (asks about items on the ground)."
+    },
+    {
+      "id": "PhoneUIManager.OpenUI",
+      "type": "PhoneUIManager",
+      "member": "OpenUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "StorePhoneObject.OnClick."
+    },
+    {
+      "id": "PhoneUIManager.WillAnswerCall",
+      "type": "PhoneUIManager",
+      "member": "WillAnswerCall",
+      "kind": "method",
+      "params": [
+        "System.Int64"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Dial only a line that answers."
+    },
+    {
+      "id": "PhoneUIManager.AutoCall",
+      "type": "PhoneUIManager",
+      "member": "AutoCall",
+      "kind": "method",
+      "params": [
+        "System.Int64"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The phone book's quick dial."
+    },
+    {
+      "id": "DialoguePhoneUIManager.OnAdvancePressed",
+      "type": "DialoguePhoneUIManager",
+      "member": "OnAdvancePressed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Advance the call's line."
+    },
+    {
+      "id": "PhoneUIManager.CloseUI",
+      "type": "PhoneUIManager",
+      "member": "CloseUI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Hang up."
+    },
+    {
+      "id": "ModReflect.CallStatic",
+      "type": "ModReflect",
+      "member": "CallStatic",
+      "kind": "method",
+      "params": [
+        "System.Type",
+        "System.String",
+        "System.Object[]"
+      ],
+      "returns": "System.Object",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "WildNetworkUI's private OnSlotClicked / OnUseClicked (the slot click and the Use button)."
+    },
+    {
+      "id": "StoreDoor.OnClick",
+      "type": "StoreDoor",
+      "member": "OnClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The night's door, with its own gates."
+    },
+    {
+      "id": "MapUIManager.OnGoOutsideConfirm",
+      "type": "MapUIManager",
+      "member": "OnGoOutsideConfirm",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The go-outside confirm's Yes."
+    },
+    {
+      "id": "MapUIManager.ScavengeButtonClick",
+      "type": "MapUIManager",
+      "member": "ScavengeButtonClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The dump's search button."
+    },
+    {
+      "id": "GenericConfirmationUIManager.ConfirmButtonPressed",
+      "type": "GenericConfirmationUIManager",
+      "member": "ConfirmButtonPressed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Answer the prompt: leave the items."
+    },
+    {
+      "id": "InspectionUIManager.ChangeAppraisalServicePrice",
+      "type": "InspectionUIManager",
+      "member": "ChangeAppraisalServicePrice",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The appraisal panel's price buttons."
+    },
+    {
+      "id": "InspectionUIManager.OnAppraisalServiceEstimated",
+      "type": "InspectionUIManager",
+      "member": "OnAppraisalServiceEstimated",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The appraisal panel's submit."
+    },
+    {
+      "id": "ModHelper.MoveItemToAfterhours",
+      "type": "ModHelper",
+      "member": "MoveItemToAfterhours",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Leave stock on the ground to make room for loot."
+    },
+    {
+      "id": "StorePhoneClient.GetLocalizedDisplayName",
+      "type": "StorePhoneClient",
+      "member": "GetLocalizedDisplayName",
+      "kind": "method",
+      "params": [],
+      "returns": "System.String",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Who the autopilot is calling, for the feed."
     }
   ]
 }

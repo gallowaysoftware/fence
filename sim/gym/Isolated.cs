@@ -33,7 +33,7 @@ namespace Fence.Gym
         public static string Play(string argsJson)
         {
             string baseDir = AppContext.BaseDirectory;
-            var ctx = new EpisodeContext(baseDir, Path.Combine(Boot.Repo, "var", "gamedata", ".headless-gym"));
+            var ctx = new EpisodeContext(baseDir, Fence.Sim.Headless.OutDir);
             try
             {
                 var asm = ctx.LoadFromAssemblyPath(typeof(EpisodeContext).Assembly.Location);

@@ -1,0 +1,69 @@
+{
+  "name": "t5-hard-llm",
+  "players": [
+    {
+      "id": "player",
+      "mode": "local"
+    },
+    {
+      "id": "bridge-observe",
+      "mode": "heuristic",
+      "bridge_flags": [
+        "-mode",
+        "observe"
+      ]
+    },
+    {
+      "id": "qwen27-delta",
+      "endpoint": "localmodel",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-exemplars",
+        "var/exemplars.jsonl"
+      ]
+    }
+  ],
+  "baseline": "player",
+  "seeds": [
+    970001,
+    970002,
+    970003,
+    970004,
+    970005,
+    970006,
+    970007,
+    970008,
+    970009,
+    970010,
+    970011,
+    970012,
+    970013,
+    970014,
+    970015,
+    970016,
+    970017,
+    970018,
+    970019,
+    970020,
+    970021,
+    970022,
+    970023,
+    970024
+  ],
+  "starts": [
+    "apprentice"
+  ],
+  "perks": [
+    "none"
+  ],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player",
+    "directives": "sim/lab/scripts/directives/hard_search_best.json"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

@@ -1,0 +1,6 @@
+# Hard income: the vending machine (sim/gym/Vending.cs) on the best hard policy, by perk or bought from Wild.
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-income-vending.txt -dir DIR -seeds 60 -days 1000 -parallel 14 -- -seed0 960000
+best            | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json
+vperk           | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks vending
+vperk_sleeper   | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_search_best.json -perks vending+short_sleeper
+vbuy            | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/hard_vending_buy.json

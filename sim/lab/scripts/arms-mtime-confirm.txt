@@ -1,0 +1,7 @@
+# Mortgage timing, confirmation on fresh hard seeds 980001-980060 (never used before), plus normal defaults.
+c_base      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980000 -directives sim/lab/scripts/directives/hard_income_mortgage.json
+c_w105      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980000 -directives sim/lab/scripts/directives/mt/w105.json
+c_w112      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980000 -directives sim/lab/scripts/directives/mt/w112.json
+c_cash_asap | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980000 -directives sim/lab/scripts/directives/mt/cash_asap.json
+c_cash_hold | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -seed0 980000 -directives sim/lab/scripts/directives/mt/cash_hold.json
+n_defaults  | -human player -difficulty normal -seed0 980000

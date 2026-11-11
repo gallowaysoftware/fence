@@ -1,0 +1,10 @@
+# Hard income, batch 7: the owner's tactics as levers on vs2, and two engines vs one doubled.
+t1_no_furnace | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t1_no_furnace.json -perks vending+short_sleeper
+t1_no_scav | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t1_no_scav.json -perks vending+short_sleeper
+t2_household | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t2_household.json -perks vending+short_sleeper
+t2_vending_off | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t2_vending_off.json -perks vending+short_sleeper
+t3_materials | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t3_materials.json -perks vending+short_sleeper
+t4_jackson_sunday | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t4_jackson_sunday.json -perks vending+short_sleeper
+t8_tap | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/t8_tap.json -perks vending+short_sleeper
+e_wine_bays4 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/e_wine_bays4.json -perks vending+short_sleeper
+e_furnace2 | -human player -difficulty hard -start apprentice -directives sim/lab/scripts/directives/inc/e_furnace2.json -perks vending+short_sleeper

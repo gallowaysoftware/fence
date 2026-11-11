@@ -1,0 +1,11 @@
+# Wine levers on the appraisal incumbent (docs/re/WINE.md). Selection: hard seeds 1800001-016 (-seed0 1800000 -seeds 16);
+# confirmation: 60 fresh hard seeds 1800101-160 (-seed0 1800100 -seeds 60).
+base        | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/hard_income_mortgage_appraisal.json
+score5      | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/score5.json
+age10       | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/age10.json
+racks       | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/racks.json
+purifier    | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/purifier.json
+dna         | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/dna.json
+dna_ranks2  | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/dna_ranks2.json
+dna_prec    | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/dna_precision.json
+dna_jack7   | -human player -difficulty hard -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/wine/dna_jackson7.json
