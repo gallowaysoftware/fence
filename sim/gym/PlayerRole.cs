@@ -80,6 +80,7 @@ namespace Fence.Gym
             if (IsSign(i)) return "sign";
             if (Appraisal.IsKit(i) || Labels.IsTool(i)) return "tool";
             if (Storage.On && Storage.IsBay(i)) return "tool";
+            if (Style.KeepsPerfume(i)) return "tool";
             // `inspect`: the magnifier is the inspection tool, not stock.
             if (i.identifier == "magnifier" && D.Raw.Value<string>("inspect") != null) return "tool";
             // Water sold under a label its true grade does not match is exposed by the buyer's test (rep loss,
@@ -99,9 +100,13 @@ namespace Fence.Gym
             if (Contraband(i) && (c.isSecurity || c.noAcceptingContraband)) return "contraband";
             // Water held through a surplus (an event pushing its price down), sold into shortages.
             if (Production.WaterSellOn && i.GetGameItemType().Contains("WATER") && i.GetCurrentValue(false, true, true, false, 0L) < i.GetCurrentValue(false, true, false, false, 0L)) return "water_surplus";
-            if (StolenHelper.IsStolenItem(i) && (c.isSecurity || !(D.SellHot ?? false))) return "stolen";
+            if (StolenHelper.IsStolenItem(i) && (c.isSecurity || !(D.SellHot ?? false) && !(HotMaxHeat is int mh && Heat(i) <= mh))) return "stolen";
+            if (Style.Speculating(i, c)) return "speculating";
             return null;
         }
+
+        // `sell.hot_max_heat: N` (gym): a stolen item at heat N or less is staged for any buyer but Security.
+        static int? HotMaxHeat => D.Raw["sell"]?.Value<int?>("hot_max_heat");
 
         static bool WineAging(GameItem i) => D.Raw.Value<int?>("wine_min_age") is int age && i.identifier == "wine_bottle" && WineHelper.IsFinishedWine(i)
             && i.GetTagReadonly("AGE_INT").GetInt() < age && !(P?.Liquidating ?? false) && Production.AgingRank(i) < (D.Raw.Value<int?>("wine_hold_max") ?? 20) && WineHoldCashOk();
@@ -175,6 +180,15 @@ namespace Fence.Gym
             }
             var avoid = D.AvoidTypes;
             var picked = theirs.Where(i => !(avoid.Count > 0 && TypeIs(i, avoid))).OrderBy(i => i.uniqueId).ToList();
+            if (Style.SpecialtyTypes is List<string> only)
+            {
+                var mine = picked.Where(i => TypeIs(i, only)).ToList();
+                if (mine.Count > 0 && mine.Count < picked.Count)
+                {
+                    defaults.Take("player:stage_specialty", mine.Count + " of " + theirs.Count);
+                    return mine;
+                }
+            }
             if (Breadth.On && picked.Count > 0)
             {
                 // A lot cheap enough to buy whole stays whole; otherwise only the short types are staged (the whole
@@ -196,7 +210,7 @@ namespace Fence.Gym
             bool avoidStolen = D.AvoidStolen ?? true;
             // A display buyer lifts the case's items to the counter and inspects them like any buyer, so an
             // undisclosed fake in the case costs rep the same way.
-            var pool = owned.Where(i => !Contraband(i) && !(avoidStolen && StolenHelper.IsStolenItem(i)) && !P.Reserved(i) && !D.HoldUids.Contains(i.uniqueId) && !HidesFake(i) && !WineAging(i)).ToList();
+            var pool = owned.Where(i => !Contraband(i) && !(avoidStolen && StolenHelper.IsStolenItem(i)) && !P.Reserved(i) && !D.HoldUids.Contains(i.uniqueId) && !HidesFake(i) && !WineAging(i) && !Style.KeepsPerfume(i)).ToList();
             List<GameItem> picked;
             if (D.ShowUids != null)
                 picked = pool.Where(i => D.ShowUids.Contains(i.uniqueId)).Take(capacityHint).ToList();
@@ -206,7 +220,8 @@ namespace Fence.Gym
                 // or more (from day 14) brings its tier-3 buyer (stockpiler, chef, connoisseur…) with the big
                 // budget (docs/re/WINDOW.md, ShowcaseHelper.CreateClientByStockType). Fill the case with the
                 // type that gets closest, most valuable first; the other types' best items take what room is left.
-                string top = WindowTypes.OrderByDescending(t => pool.Where(i => i.GetGameItemType().Contains(t)).OrderByDescending(i => i.GetNegociatedValue()).Take(6).Sum(i => (long)i.GetNegociatedValue())).First();
+                var shownTypes = Style.SpecialtyTypes is List<string> st && st.Any(t => WindowTypes.Contains(t)) ? WindowTypes.Where(st.Contains).ToArray() : WindowTypes;
+                string top = shownTypes.OrderByDescending(t => pool.Where(i => i.GetGameItemType().Contains(t)).OrderByDescending(i => i.GetNegociatedValue()).Take(6).Sum(i => (long)i.GetNegociatedValue())).First();
                 if (P != null) P.ShowType = top;
                 picked = pool.Where(i => i.GetGameItemType().Contains(top)).OrderByDescending(i => i.GetNegociatedValue()).ThenBy(i => i.uniqueId).ToList();
                 foreach (var type in WindowTypes.Where(t => t != top))
@@ -752,7 +767,8 @@ namespace Fence.Gym
             // Types buyers asked for this week and found nothing of (H16, stock breadth): restock them at
             // their estimate (they sell at the retail markup) while the shelf holds fewer than two.
             var prefer = d.PreferTypes.Concat(p?.RisingTypes ?? new HashSet<string>()).Concat(p?.ShowType != null && (d.Raw.Value<bool?>("restock_show_type") ?? true) ? new[] { p.ShowType } : new string[0])
-                .Concat(d.Raw.Value<bool?>("restock_missed") == false ? Enumerable.Empty<string>() : PlayerDemand.Wanted(p?.Day ?? 0)).ToList();
+                .Concat(d.Raw.Value<bool?>("restock_missed") == false ? Enumerable.Empty<string>() : PlayerDemand.Wanted(p?.Day ?? 0))
+                .Concat(Style.BuyTypes()).ToList();
             if (prefer.Count > 0 && staged.Count > 0 && staged.All(i => PlayerStock.OnCounter(i.Value<int?>("uid") ?? -1) is GameItem g && PlayerRole.TypeIs(g, prefer)))
             {
                 // Restocking, not speculating: single lots at their estimate only while small.
@@ -805,6 +821,14 @@ namespace Fence.Gym
             }
             bool wsOk = lotOk && wholesale.HasValue && Has(req, "accept_wholesale") && wholesale.Value <= estAll * wsMax && Afford(wholesale.Value) && cellsAll <= free;
             bool buyOk = stagedOk && Has(req, "buy_all") && price <= est * singleMax && Afford(price) && cells <= free;
+            // Trading styles (Style): a specialist buys a lot only when its types carry it, a wholesale flipper never
+            // buys single items.
+            if (!inputsOnly && Style.SpecialtyTypes != null)
+            {
+                if (!Style.SpecialtyCarries(theirs)) wsOk = false;
+                if (!staged.All(i => Style.IsSpecialty(PlayerStock.OnCounter(i.Value<int?>("uid") ?? -1)))) buyOk = false;
+            }
+            if (!inputsOnly && (d.Raw["buy"]?.Value<bool?>("no_singles") ?? false)) buyOk = false;
             // `short_rent_buy_pct: P` (gym): while the cash is under the rent floor with rent day a few days away,
             // holding it cannot pay the rent and an empty shelf turns buyers away; buy lots at P % of their
             // estimate or less, down to `short_rent_reserve` (default 0) cash, to sell before rent day

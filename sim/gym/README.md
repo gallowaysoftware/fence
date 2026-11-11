@@ -498,6 +498,19 @@ the same way, or completely within a second or two (a half-written file is retri
   it did so only with `window_signs` or `storage_bays`, and every other plan that visited him bought nothing.
   `hold_for: {types, k, faction}` keeps the k most valuable goods of each listed type for that faction's buyers
   (default Upper Levels: +15 % tips once UL rep reaches 20, `UL_TIPS`) unless the shop is short of cash.
+  Trading styles (`sim/gym/Style.cs`, docs/research/TRADING-STYLES.md; all off unless set): `specialty: {types,
+  lot_share, buy_at_estimate}` buys only goods of those types (a wholesale lot only when they are `lot_share` of its
+  estimate, default 0.5; from a mixed seller only they are staged) and fills the display case from them;
+  `speculate: {types, ul, events, max_days, buy_at_estimate}` keeps goods of those types from ordinary buyers until
+  an Upper Levels buyer with tips unlocked comes (`ul`, default true), a market event lifts their price (`events`,
+  default true) or they have waited `max_days` (default 21), unless the shop is short of cash; `buy_at_estimate`
+  (default false) buys either style's types like `buy.prefer_types`. `perfume: {buyers, sellers, min_sale, min_lot,
+  buy_at_estimate}` keeps neuroactive perfume (and Eleanor's self-refilling bottle) as a tool and sprays it on a
+  buyer whose staged goods are worth `min_sale` (default 200) and still fit the budget after +15 %, and on a seller
+  whose lot is worth `min_lot` (default 300) and, 15 % cheaper, within the buying limits; it buys perfume at its
+  estimate unless `buy_at_estimate: false` (gym only: the live autopilot does not spray). `buy.no_singles: true` buys
+  only wholesale lots (and engine inputs). `sell.hot_max_heat: N` stages stolen goods at heat N or less for any
+  buyer but Security.
   `storage_bays: true` keeps owned storage bays as fixtures, fills them each morning with stock (most valuable
   per cell first) and stages goods for buyers and the case straight from them; with `"storage_bay"` in
   `jackson`, Dr. Jackson's bays are bought until two are owned.

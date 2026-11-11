@@ -9817,6 +9817,37 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storereputation.isperkunlocked",
+      "type": "StoreReputation",
+      "member": "IsPerkUnlocked",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.usecounthelper.canuse",
+      "type": "UseCountHelper",
+      "member": "CanUse",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

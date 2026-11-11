@@ -34,6 +34,7 @@
     <Compile Include="$(GymSrc)/WildRead.cs" Link="Gym/WildRead.cs" />
     <Compile Include="$(GymSrc)/AugRule.cs" Link="Gym/AugRule.cs" />
     <Compile Include="$(GymSrc)/Modules.cs" Link="Gym/Modules.cs" />
+    <Compile Include="$(GymSrc)/Style.cs" Link="Gym/Style.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemandTrace.Off.cs" Link="Gym/DemandTrace.Off.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModSide.Live.cs" Link="Gym/ModSide.Live.cs" />
   </ItemGroup>

@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Sixteen hard-difficulty policies that win, each with a different start, perk set or engine, so a stream
+Twenty-two hard-difficulty policies that win, each with a different start, perk set, engine or trading style, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -127,6 +127,13 @@ that is not significant on either set (pooled about −900 ± 1 550). The lever 
 the gym's summaries match the previous build on 10 hard (2620901–910, the incumbent) and 10 normal (2620951–960)
 seeds, so no other route changes. `water_baron`, the poorest winner in the menu, wins 60/60 on 2600001–060 on this
 main (NW 5 778 / 17 394 / 19 187, median day 175), so it got no change.
+
+## Trading-style routes (2026-11-11)
+
+Six more routes keep the `appraiser`'s start, kit and cash buyout and change only how the shop buys and sells:
+`apothecary`, `hardware_store`, `speculator`, `bulk_buyer`, `fair_dealer` and `clean_shop`. Each wins 60/60 on
+seeds 7100001–060 and 7110001–060 (median win day 98–112); numbers and fingerprints in
+docs/research/TRADING-STYLES.md.
 
 ## Without the Appraisal Board (2026-11-11)
 

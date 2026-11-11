@@ -3,6 +3,27 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Trading styles — 2026-11-11: six ways to trade that win hard 60/60
+
+**Result.** The counter policy every route shared is now one style of six. On top of the `appraiser` route,
+`apothecary` (medical specialist), `hardware_store` (household specialist), `speculator` (holds medical, food,
+water and materials for shortages), `bulk_buyer` (wholesale lots only, a medical supplier's sign), `fair_dealer`
+(never haggles) and `clean_shop` (refuses stolen goods) each win **60/60 on 60 screening seeds (7100001–060) and
+60/60 on 60 fresh seeds (7110001–060)**, median win day 98–112; the specialists lose 12–14 days and the speculator
+23 days (paired) against the generalist, the other three are within noise. Their fingerprints differ: resale two
+thirds medical or four fifths household for the specialists, twice the reference's sales into market events for the
+speculator, all buying in wholesale lots and a quarter more of it for the flipper, half as much buying again and a
+fifth more sales for the fair dealer, nothing hot for the clean shop (docs/research/TRADING-STYLES.md). Aggressive
+haggling loses every run to the Lower Levels mob (day ~58). Without the Appraisal Board every style loses (0/60);
+none closes the Board-free gap (the best adds ~200 of net worth by day 98).
+
+**Levers** (`sim/gym/Style.cs`, default off; summaries byte-identical to a957b56 on eight hard and normal seeds):
+`specialty`, `speculate`, `perfume` (gym only: sprays neuroactive perfume on big trades; works, too few uses to
+matter), `buy.no_singles`, `sell.hot_max_heat`. After merging main 8a1713a the summaries match main's on six hard and
+normal seeds (`appraiser`, `smelter`, `rancher`, `fountain`, `pharma`) and four style runs reproduce their measured
+summaries exactly. The demand trace now records each sale's price, cost, days held and tips, and every counter
+choice.
+
 ## Morning summary (2026-11-11, end of run 2: 2026-11-10 16:30 → 2026-11-11 10:30 AST)
 
 **Hard is solved by the executor, and so is challenge.** At the start of run 2 the best hard policy won 8/60.

@@ -687,7 +687,22 @@ namespace Fence.Gym
                 }
             Scheduler.Settle();
             if (IsPlayer && moved > 0) moved -= PullExposable(GameBarter.CurrentClient());
+            if (IsPlayer && moved > 0)
+            {
+                var c = GameBarter.CurrentClient();
+                long value = In(e.backInvinvElement).Sum(i => i.GetNegociatedValue());
+                Spray(Style.PerfumeFor(c, owned, true, value, c.useClientBudget ? c.GetBudget() : long.MaxValue));
+            }
             return moved > 0;
+        }
+
+        // `perfume` (Style.cs): the spray is the bottle's own slot action on the client at the counter.
+        void Spray(GameItem bottle)
+        {
+            if (bottle == null) return;
+            bool can = bottle.canActivateSlotItemFunc?.Invoke(bottle, bottle.parentInventory, null) ?? false;
+            if (can) Chore.Act("perfume", bottle, () => bottle.onActivateSlotItemFunc?.Invoke(bottle, bottle.parentInventory, null));
+            Scheduler.Settle();
         }
 
         bool StageSeller(BarterSnapshot snap)
@@ -705,6 +720,17 @@ namespace Fence.Gym
                     Mod.Human(HumanActions.Stage, Advice(), Mod.Game.Uid(i), new JObject { ["owned"] = false }, "stage_from_seller");
                 }
             Scheduler.Settle();
+            if (IsPlayer && Style.PerfumeOn && moved > 0)
+            {
+                var c = GameBarter.CurrentClient();
+                // A seller's lot: the wholesale price is the sum of every item on the counter, so the spray moves all of it.
+                var lot = (c.isOfferWholesale ? e.frontInvinvElement.childItems.Concat(e.backInvinvElement.childItems) : e.backInvinvElement.childItems)
+                    .Where(i => i != null && !GeneralHelper.IsItemOwned(i)).ToList();
+                long value = lot.Sum(i => i.GetNegociatedValue()), est = lot.Sum(i => (long)PlayerRole.Est(i));
+                double price = c.isOfferWholesale ? value * (100 - c.wholesaleDiscount) / 100.0 : value;
+                if (Style.SprayWorthIt(price, est, c.isOfferWholesale))
+                    Spray(Style.PerfumeFor(c, EmporiumEntry.Instance.GetAllOwnedItems(false, true).Where(i => i != null), false, value, long.MaxValue));
+            }
             return moved > 0;
         }
 

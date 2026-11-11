@@ -79,25 +79,45 @@ namespace Fence.Gym
             };
         }
 
+        // What each traded item cost the shop and when, by uid: a sale's margin and holding time (absent: made,
+        // scavenged or a gift).
+        static readonly Dictionary<int, (int paid, int day)> basis = new Dictionary<int, (int, int)>();
+
         public static void Trade(bool sold, GameItem item, int amount)
         {
+            if (!On) return;
+            int day = PlayerDay.Current?.Day ?? 0;
+            if (!sold) basis[item.uniqueId] = (amount, day);
             if (cur == null) return;
             if (sold && (string)cur["k"] == "buyer")
             {
                 cur["sold"] = (int)cur["sold"] + amount;
                 cur["sold_items"] = (int)cur["sold_items"] + 1;
+                var o = Item(item);
+                o["got"] = amount;
+                o["base"] = (int)item.GetCurrentValue(false, true, false, false, 0L);
+                if (item.itemFeatures.Any(f => f != null && f.identifier == "tips")) o["tips"] = true;
+                if (basis.TryGetValue(item.uniqueId, out var b)) { o["paid"] = b.paid; o["held"] = day - b.day; }
+                var list = cur["items"] as JArray ?? new JArray();
+                list.Add(o);
+                cur["items"] = list;
             }
             else if (!sold && (string)cur["k"] == "seller")
             {
                 var o = Item(item);
                 o["paid"] = amount;
+                if (StolenHelper.IsStolenItem(item)) o["hot"] = PlayerRole.Heat(item);
                 ((JArray)cur["bought"]).Add(o);
             }
         }
 
         public static void Why(string why)
         {
-            if (cur != null && why != null) cur["choice"] = why.Length > 80 ? why.Substring(0, 80) : why;
+            if (cur == null || why == null) return;
+            cur["choice"] = why.Length > 80 ? why.Substring(0, 80) : why;
+            var all = cur["choices"] as JArray ?? new JArray();
+            all.Add(why.Split(' ')[0]);
+            cur["choices"] = all;
         }
 
         public static void Flush()
@@ -112,13 +132,26 @@ namespace Fence.Gym
             if (!On) return;
             Flush();
             var by = new JObject();
+            int units = 0, worth = 0;
             foreach (var i in EmporiumEntry.Instance.GetAllOwnedItems(false, true).Where(i => i != null && !Production.Reserved(i)))
+            {
+                units++;
+                worth += PlayerRole.Est(i);
                 foreach (var t in i.GetGameItemType().Distinct())
                 {
                     var a = by[t] as JArray ?? new JArray(0, 0);
                     by[t] = new JArray((int)a[0] + 1, (int)a[1] + PlayerRole.Est(i));
                 }
-            Write(new JObject { ["k"] = "day", ["day"] = day, ["stock"] = by, ["cash"] = PlayerStore.Instance.playerCash });
+            }
+            var events = new JArray();
+            try
+            {
+                foreach (var ev in StoreStation.Instance.storeEventManager.GetActiveEventOnDay(day, true, true))
+                    foreach (var n in ev.negociationDatas ?? new List<NegociationData>())
+                        if (n?.itemType != null) events.Add(n.itemType + ":" + n.value);
+            }
+            catch (Exception) { }
+            Write(new JObject { ["k"] = "day", ["day"] = day, ["stock"] = by, ["cash"] = PlayerStore.Instance.playerCash, ["units"] = units, ["worth"] = worth, ["events"] = events });
             w.Flush();
         }
     }
