@@ -27,7 +27,7 @@ into it (local main, never origin: origin/main is a squashed history), run the t
 |---|---|---|
 | `build-order` | one capital plan across engines: Georgio's day-43 loan, permit first, power before machines, complete kits, protected kit, storage | docs/research/BUILD-ORDER.md |
 | `cheap-wins` | wanted posters, Board blacklist, no insurance under Alert, Grace-deferred last rents, Georgio cash, insurance pulse, permit bribe, fridge | docs/research/HIDDEN-SYSTEMS.md |
-| `fish-power` | electric-eel power hub, fish feed/harvest, rats at age 2–4, Q-200 furnace from trained learning modules, the alarm overvolt bug | docs/re/AQUACULTURE.md |
+| `fish-power` | WIP 45c5f87, **not merge-ready**: `make test-mod` fails 2/500 until compat/hooks.json lists the new members (MachineFeedDispenser.GetPelletKcal, AquacultureHelper.GetPelletShare, GameItem.FindAdjacentType, GameItem.unitCount, GameInventory.TryInventorySlot, SlotMarker.numTransfer/TryAcceptOnce, GridShape/GridShapeBuilder); nothing measured yet. Built: eel power hub (lab-verified adjacency; first eel arrives ~day 64, evening placement moved nothing — debug), pellets ≤ 24 %, young rat cuts, the alarm overvolt fix. Q-200 furnace judged out of reach (learning modules too rare). Next: hooks, hub debug, run `arms-fishpower-base.txt` and `arms-fishpower.txt` | docs/re/AQUACULTURE.md (state-at-reboot note at the end) |
 
 Tests: `make test-go`, `make test-mod`, `dotnet test sim/gym.tests -c Release`. Build tip: `dotnet restore
 --source ~/.nuget/packages`, then `--no-restore --disable-build-servers`.
