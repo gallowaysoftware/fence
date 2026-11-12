@@ -11,14 +11,14 @@ namespace Fence.Lab
     {
         // ---- kit ----------------------------------------------------------------------------
 
-        static int P(GameItem c, string liquid) => c.GetTagReadonly(Liquid.GetCurrentPartFromId(liquid)).GetInt();
+        internal static int P(GameItem c, string liquid) => c.GetTagReadonly(Liquid.GetCurrentPartFromId(liquid)).GetInt();
 
-        static string Parts(GameItem c) => string.Join(" ", Liquid.Liquids.Select(l => (l.identifier, v: P(c, l.identifier)))
+        internal static string Parts(GameItem c) => string.Join(" ", Liquid.Liquids.Select(l => (l.identifier, v: P(c, l.identifier)))
             .Where(x => x.v > 0).Select(x => $"{x.identifier}={x.v / 1000.0:0.###}ml"));
 
         static double Temp(GameItem c) => c.GetTagReadonly("CONTAINER_TEMP_TAG").GetDouble();
 
-        static List<MachineryButton> Buttons(GameItem m)
+        internal static List<MachineryButton> Buttons(GameItem m)
         {
             var found = new List<MachineryButton>();
             void Walk(PixelElement e)
@@ -35,12 +35,12 @@ namespace Fence.Lab
             return found;
         }
 
-        static void Press(MachineryButton b) => W.Get<Action>(b, "callback")();
+        internal static void Press(MachineryButton b) => W.Get<Action>(b, "callback")();
 
-        static GraphNodeStorage Storage(GameItem m, int i) => (GraphNodeStorage)MachineHelper.GetBodyStorage(m, i);
+        internal static GraphNodeStorage Storage(GameItem m, int i) => (GraphNodeStorage)MachineHelper.GetBodyStorage(m, i);
 
         // Chem modules go in storage 0 of the blender, plate and finisher.
-        static GameItem ChemMachine(string id, int modules)
+        internal static GameItem ChemMachine(string id, int modules)
         {
             var m = W.Own(id);
             for (int i = 0; i < modules; i++)
@@ -48,12 +48,12 @@ namespace Fence.Lab
             return m;
         }
 
-        static void Lift(GameItem it)
+        internal static void Lift(GameItem it)
         {
             (it.parentInventory as GameInventory)?.Expel(it);
         }
 
-        static GameItem Container(string id = "water_pitcher") => W.Own(id);
+        internal static GameItem Container(string id = "water_pitcher") => W.Own(id);
 
         // A graduated pour (dropper/cylinder): exactly ul of the source's mix, proportionally.
         static void Pour(GameItem from, GameItem to, int ul)
@@ -66,7 +66,7 @@ namespace Fence.Lab
         // Supply bottles exactly as unpacking a chemical supply pack makes them.
         static GameItem Supply(string builder) { var b = (GameItem)W.Call(typeof(PreBuildChemHelper), builder); GeneralHelper.SetItemOwned(b, true); return b; }
 
-        static void Blend(GameItem container, string itemId, int count, int modules)
+        internal static void Blend(GameItem container, string itemId, int count, int modules)
         {
             var bl = ChemMachine("blender", modules);
             if (!Put(Storage(bl, 2), container)) throw new InvalidOperationException("blender: container rejected");
@@ -138,7 +138,7 @@ namespace Fence.Lab
             return n;
         }
 
-        static List<GameItem> Finish(GameItem c, string recipe, int modules, int max = 200)
+        internal static List<GameItem> Finish(GameItem c, string recipe, int modules, int max = 200)
         {
             var f = ChemMachine("chem_finisher", modules);
             f.ModifyTag("SELECTED_CHEM_ID_TAG", s => s.Enable().SetString(recipe));
@@ -156,7 +156,7 @@ namespace Fence.Lab
             return made;
         }
 
-        static string Summary(List<GameItem> products)
+        internal static string Summary(List<GameItem> products)
         {
             if (products.Count == 0) return "0 made";
             var pur = products.Select(ChemicalProductHelper.GetPurity).ToList();

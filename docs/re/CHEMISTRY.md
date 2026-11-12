@@ -108,7 +108,7 @@ the active ingredients included, into water (largest particles first), so a batc
 | `debris` | 200 | both | | | | every precipitation/sedimentation |
 | `lipobond_agent` | 5 | — | **55** | | | common supplies |
 | `livestock_steroid`, `livestock_immunity` | 5 | — | | | | red / green serum (100 each), injected 20 µL into an animal |
-| `wine_extract` | 5 | — | | | | pouring a wine bottle into a container (4 ‰ × quality tier 0–5 of 750 ml, so 0–15 ml; a counterfeit gives 8 ‰ plus 8 ‰ chemical contaminant; `WineHelper.PourWineIntoContainer`); no use in chemistry |
+| `wine_extract` | 5 | — | | | | pouring a wine bottle into a container (4 ‰ × quality tier 0–5 of 750 ml, so 0–15 ml; a counterfeit gives 8 ‰ plus 8 ‰ chemical contaminant; `WineHelper.PourWineIntoContainer`); no use in chemistry itself, but the same pour adds 150 ml of alcohol (20 % of 750 ml), an alcohol source the evaporator's recovery module can distil |
 | `nomore` | 5 | — | | | | dream extract reduction |
 
 No reaction produces zyanide, contraceptive, synaprest or wine extract: cyanide and birth-control pills

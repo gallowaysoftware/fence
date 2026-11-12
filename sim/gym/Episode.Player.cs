@@ -637,6 +637,7 @@ namespace Fence.Gym
             Fish.Trade(sold, item, amount);
             Crops.Trade(sold, item, amount);
             Lab.Trade(sold, item, amount);
+            Production.BreedTrade(sold, item, amount);
             SupplyProbe.Trade(sold, item, amount);
             Printer.Trade(sold, item, amount);
             Arms.Trade(sold, item, amount);

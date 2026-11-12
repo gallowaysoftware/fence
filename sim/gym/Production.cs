@@ -60,8 +60,10 @@ namespace Fence.Gym
             StolenTrade.Reset();
             Crops.Reset();
             Lab.Reset();
+            ResetBreeding();
             Quality.Reset();
             ResetQuality();
+            Power.Reset();
             ResetSales();
         }
 
@@ -96,10 +98,9 @@ namespace Fence.Gym
         public static bool Reserved(GameItem i)
         {
             if (Directives.Current.ReleaseUids.Contains(i.uniqueId) || shownWater.Contains(i.uniqueId)) return false;
-            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Fish.Reserved(i) || Printer.Reserved(i) || Arms.Reserved(i) || Crops.Reserved(i) || Lab.Reserved(i)) return true;
+            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Fish.Reserved(i) || Printer.Reserved(i) || Arms.Reserved(i) || Crops.Reserved(i) || Lab.Reserved(i) || Power.Reserved(i)) return true;
             if ((PlantSafe(i) || cleanStore.Contains(i.uniqueId)) && (!SellsCured || i.identifier == "water_tank") || batches.ContainsKey(i.uniqueId) || (ReedOn && i.identifier == "water_tank") || (ReedOn && i.identifier == "water_jug" && Parent(i) == null && WaterHelper.IsEmpty(i))) return true;
             if (ReedOn && (i.IsTag("HYDROPONIC_MACHINE_TAG") || i.identifier == ReedSeedId)) return true;
-            if (PowerKit && i.identifier == "recharger") return true;
             if (Fountain.Holds(i)) return true;
             // The reeds' fill kit, bought from the Retired Farmer or the water merchant before the tap may be.
             if (ReedOn && (i.identifier == "water_pitcher" || i.identifier == "uv_filter" || (i.identifier == "water_filter" && DurabilityHelper.GetRealDurability(i) > 0)
@@ -178,7 +179,7 @@ namespace Fence.Gym
         public static int Wants(string id)
         {
             if (DnaWants(id) > 0) return DnaWants(id);
-            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Fish.Wants(id) + Printer.Wants(id) + Arms.Wants(id) + (Crops.On ? Crops.Wants(id, Bays()) : 0) + Lab.Wants(id);
+            int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Fish.Wants(id) + Printer.Wants(id) + Arms.Wants(id) + (Crops.On ? Crops.Wants(id, Bays()) : 0) + Lab.Wants(id) + Power.Wants(id);
             return f > 0 ? Math.Max(w, 0) + f : w;
         }
 
@@ -276,9 +277,9 @@ namespace Fence.Gym
         }
 
         // With `engine: none` nothing is an engine input (a winemaker's bottles are plain stock then).
-        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Fish.IsInput(id) || Printer.IsInput(id) || Arms.IsInput(id) || Crops.IsInput(id) || Lab.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
+        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Fish.IsInput(id) || Printer.IsInput(id) || Arms.IsInput(id) || Crops.IsInput(id) || Lab.IsInput(id) || Power.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
 
-        static bool IsInputAny(string id) => (DnaOn && Donors.Contains(id ?? "")) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || CleanInput(id) || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
+        static bool IsInputAny(string id) => (DnaOn && (BreedOn ? BreedDonorId(id ?? "") : Donors.Contains(id ?? ""))) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || CleanInput(id) || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
 
         static bool Put(GameItem into, GameItem it)
         {
@@ -293,10 +294,13 @@ namespace Fence.Gym
         {
             // The rats and the printer first: the cage's mending scrap and growing ingot and the printer's scrap are taken
             // before the furnace loads every scrap.
+            Power.Morning(ep);
             Rats.Morning(ep);
             Fish.Morning(ep);
             Printer.Morning(ep);
             Arms.Morning(ep);
+            // Before the lab: its batch holds the blender from the morning it starts until the next.
+            PressWeed(ep);
             Lab.Morning(ep);
             Furnace.Morning(ep);
             Modules.Morning(ep);
@@ -333,6 +337,10 @@ namespace Fence.Gym
             }
             try { TendPower(ep, true); }
             catch (Exception e) { ep.ProductionError(e); }
+            // A gene line edits its cold clones before the bays replant from them (the best seed goes to the manipulator).
+            if (BreedOn)
+                try { TendDna(ep); }
+                catch (Exception e) { ep.ProductionError(e); }
             foreach (var bay in Bays())
             {
                 try { TendBay(ep, bay); Quality.Bay(bay); }
@@ -340,8 +348,9 @@ namespace Fence.Gym
             }
             try { TendPower(ep, false); }
             catch (Exception e) { ep.ProductionError(e); }
-            try { TendDna(ep); }
-            catch (Exception e) { ep.ProductionError(e); }
+            if (!BreedOn)
+                try { TendDna(ep); }
+                catch (Exception e) { ep.ProductionError(e); }
             try { TreatWater(ep); }
             catch (Exception e) { ep.ProductionError(e); }
             try { TendWinePurifier(ep); }
@@ -465,6 +474,7 @@ namespace Fence.Gym
         {
             Lab.Stow();
             Fish.Stow();
+            StowDna();
             if (!WineOn && !WaterSellOn) return;
             Earmark();
             if (!WineOn && !ReedOn) return;
@@ -623,6 +633,7 @@ namespace Fence.Gym
             if (DnaOn) t["dna"] = DnaTotals();
             if (Crops.Totals(Bays()) is JObject crops) t["crops"] = crops;
             if (Lab.Status() is JObject lab) t["lab"] = lab;
+            if (Power.Status() is JObject power) t["power"] = power;
             return t;
         }
     }

@@ -350,6 +350,39 @@
       },
       "description": "gym executor: the arms engine (docs/re/ARMS.md): weapon permits on display for gun-order clients, orders filled from stock with mods and repairs, permits II and III bought near their Security gates, guns held and printed for orders; `forge` builds them from printed frames finished New (a new printer with the metal and CNC modules)"
     },
+    "breeding": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "gym executor: gene lines bred on the DNA manipulator (docs/research/BREEDING.md), off when absent; needs the wine engine (bays) and buys PLANT_DNA",
+      "properties": {
+        "lines": {
+          "type": "array",
+          "description": "in priority order: a preset name, or {crop, edits, bank, min_success, give_up} (optionally {preset, ...} to override a preset)",
+          "items": {
+            "oneOf": [
+              {"enum": ["caffeine_weed", "bloom", "coffee"]},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "preset": {"enum": ["caffeine_weed", "bloom", "coffee"]},
+                  "crop": {"type": "string", "minLength": 1, "description": "seed id, e.g. fillerweed_seed, coffee_bean, bloomberry_seed"},
+                  "edits": {"$ref": "#/$defs/ids", "description": "trait ids, one rank each, applied in order"},
+                  "bank": {"$ref": "#/$defs/ids", "description": "negative-complexity traits applied first when the next edit's odds are under min_success"},
+                  "min_success": {"type": "integer", "minimum": 0, "maximum": 100},
+                  "give_up": {"type": "integer", "minimum": 0, "maximum": 100, "description": "bloomberry: stop editing a seed when the next op's odds fall below this"}
+                }
+              }
+            ]
+          }
+        },
+        "manipulators": {"type": "integer", "minimum": 1, "maximum": 4},
+        "reserve": {"$ref": "#/$defs/credits", "description": "cash kept over rent and floor when buying PLANT_DNA"},
+        "press": {"type": "boolean", "description": "press produce whose only liquid is caffeine into caffeine pills with the lab's blender and finisher (default true with lab on)"},
+        "press_min_ml": {"type": "integer", "minimum": 5, "description": "caffeine (ml, after the blender's loss) a press waits for"},
+        "hold": {"type": "integer", "minimum": 0, "description": "caffeine produce held for the press; beyond it the produce sells raw"}
+      }
+    },
     "stolen": {
       "type": "object",
       "additionalProperties": false,
@@ -367,6 +400,49 @@
         "bm_bargain": {"enum": ["never", "discount", "ev_positive", "aggressive"]}
       },
       "description": "gym executor: the stolen-goods trade (docs/re/STOLEN.md): legal goods staged from a seller's mixed lot, stolen lots judged at their clean estimate, warm goods sold under a trafficking cap, no bargaining with Black Market sellers"
+    },
+    "power": {
+      "description": "gym executor: free power (sim/gym/Power.cs, docs/research/CHEMISTRY-ENGINE.md), off when absent",
+      "oneOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "buy": {
+              "enum": [
+                "auto",
+                "always"
+              ],
+              "description": "auto: POWER_HIJACK and a recharger once they pay back within payback_weeks against bought cells"
+            },
+            "payback_weeks": {
+              "type": "number",
+              "minimum": 0
+            },
+            "unit_price": {
+              "type": "number",
+              "minimum": 0,
+              "description": "what a unit of charge costs as bought cells"
+            },
+            "commercial": {
+              "type": "boolean",
+              "description": "COMMERCIAL_POWER once the draw passes the rechargers' capacity"
+            },
+            "rechargers": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "loose": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "charged cells kept loose for the engines"
+            }
+          }
+        }
+      ]
     },
     "lab": {
       "description": "gym executor: the chemistry lab (docs/research/CHEMISTRY-ENGINE.md), off when absent. \"caffeine\" is the older form of {products: [\"caffeine_pill\"]}",
@@ -454,6 +530,84 @@
             "quota_margin": {
               "type": "integer",
               "minimum": 0
+            },
+            "alcohol_ratio": {
+              "type": "number",
+              "minimum": 0.25,
+              "maximum": 5,
+              "description": "alcohol : coffee mush (0.75 is the full yield)"
+            },
+            "recover": {
+              "type": "boolean",
+              "description": "buy the solvent-recovery module, extract below 78 °C and dry in the evaporator to get half the alcohol back"
+            },
+            "alcohol_weeks": {
+              "type": "number",
+              "minimum": 0,
+              "description": "weeks of alcohol held in packs"
+            },
+            "packs_max": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "hold": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "inputs held from sale and bought (default two batches)"
+            },
+            "window": {
+              "type": "boolean",
+              "description": "the display case goes MEDICAL once our pills there reach 350"
+            },
+            "chem_bay": {
+              "type": "boolean",
+              "description": "buy the chemist's storage bay when the stock grid is short and keep the kit in it"
+            },
+            "room_items": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "room_cells": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "filters": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "water filters held (kotton half that)"
+            },
+            "bath": {
+              "type": "boolean",
+              "description": "one alcohol bath per batch fed in increments (the solvent is never consumed)"
+            },
+            "bath_ml": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "dry": {
+              "enum": [
+                "auto",
+                "plate",
+                "evaporator"
+              ],
+              "description": "where a batch is dried: evaporator with the recovery module (alcohol back) or a modded plate"
+            },
+            "bath_days": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "days a bath waits for more inputs before it is filtered and dried"
+            },
+            "wait_kotton_days": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "mornings a batch waits for kotton before it is filtered through water filters alone"
+            },
+            "caffeine_inputs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "bred produce carrying the caffeine Production trait, pressed like coffee beans"
             }
           }
         }

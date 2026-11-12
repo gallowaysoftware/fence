@@ -51,6 +51,14 @@ namespace Fence.Gym
                 if (empty == null || Chore.Accept(ws, empty, -1) != 0) return false;
                 c = empty;
             }
+            // Water a hydroreed has cured (Production.PlantSafeWater, docs/research/QUALITY.md) in place of raw tap: tap water's
+            // contaminants cut the plant's health, and coffee's harvest with it (×0.5 at health ≤ 15, PlantList).
+            if (CuredWater && (!cured.Contains(c.uniqueId) || WaterHelper.GetCurrentCapacityML(c) < 600) && Production.PlantSafeWater().FirstOrDefault() is GameItem safe
+                && Chore.Accept(EmporiumEntry.Instance.invElement, c, -1) == 0)
+            {
+                if (Chore.Accept(ws, safe, -1) == 0) { cured.Add(safe.uniqueId); CuredSwaps++; return true; }
+                Chore.Accept(ws, c, -1);
+            }
             if (WaterHelper.GetCurrentCapacityML(c) >= 600) return true;
             faucet ??= Chore.Faucet();
             int before = WaterHelper.GetCurrentCapacityML(c);
@@ -59,6 +67,10 @@ namespace Fence.Gym
             return true;
         }
 
+        // `crops_cured` (default true): the bays take cured water when the reeds have some.
+        static bool CuredWater => Directives.Current.Raw.Value<bool?>("crops_cured") ?? true;
+        public static int CuredSwaps;
+        static readonly HashSet<int> cured = new HashSet<int>();
         public static long TapMl;
         public static int Harvested, Planted;
         public static long HarvestValue, Sales;
@@ -67,7 +79,8 @@ namespace Fence.Gym
 
         public static void Reset()
         {
-            Harvested = Planted = 0;
+            Harvested = Planted = CuredSwaps = 0;
+            cured.Clear();
             TapMl = 0;
             faucet = null;
             HarvestValue = Sales = 0;
@@ -82,7 +95,8 @@ namespace Fence.Gym
 
         static int Planted_(List<GameItem> bays, string seed) => bays.Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == seed);
 
-        static IEnumerable<GameItem> LooseSeeds(string seed) => Owned().Where(i => i.identifier == seed && Parent(i) == null && !StolenHelper.IsStolenItem(i)).OrderBy(i => i.uniqueId);
+        // The most-edited genome first when a gene line breeds this crop (Breeding.cs); otherwise oldest first.
+        static IEnumerable<GameItem> LooseSeeds(string seed) => Owned().Where(i => i.identifier == seed && Parent(i) == null && !StolenHelper.IsStolenItem(i)).OrderByDescending(Production.BreedRank).ThenBy(i => PlantGeneticsHelper.GetHeat(i)).ThenBy(i => i.uniqueId);
 
         // The seeds held for replanting: one per bay of the crop and one spare.
         public static void Earmark(List<GameItem> bays)
@@ -137,7 +151,7 @@ namespace Fence.Gym
         public static JObject Totals(List<GameItem> bays) => !On ? null : new JObject
         {
             ["bays"] = bays.Count(IsCrop), ["planted"] = Planted, ["harvested"] = Harvested, ["harvest_value"] = HarvestValue,
-            ["sales"] = Sales, ["sold"] = JObject.FromObject(SoldById), ["tap_ml"] = TapMl,
+            ["sales"] = Sales, ["sold"] = JObject.FromObject(SoldById), ["tap_ml"] = TapMl, ["cured_swaps"] = CuredSwaps,
         };
     }
 }

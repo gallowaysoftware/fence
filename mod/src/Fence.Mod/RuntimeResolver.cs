@@ -135,6 +135,10 @@ namespace Fence.Mod
                 case "MachineProgressHelper": found = MachineProgressHelperMembers(member); break;
                 case "PlantGeneticsHelper": found = PlantGeneticsHelperMembers(member); break;
                 case "PlantTrait": found = PlantTraitMembers(member); break;
+                case "PlantRegistry": found = PlantRegistryMembers(member); break;
+                case "PlantDefinition": found = PlantDefinitionMembers(member); break;
+                case "ModuleHelper": found = ModuleHelperMembers(member); break;
+                case "MachineDnaManipulator+OperationPlan": found = DnaOperationPlanMembers(member); break;
                 case "PlantTraitRegistry": found = PlantTraitRegistryMembers(member); break;
                 case "GenericConfirmationUIManager": found = GenericConfirmationUIManagerMembers(member); break;
                 case "PhoneUIManager": found = PhoneUIManagerMembers(member); break;
@@ -328,6 +332,10 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantGeneticsHelperMembers(string m) => typeof(PlantGeneticsHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantTraitMembers(string m) => typeof(PlantTrait).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantTraitRegistryMembers(string m) => typeof(PlantTraitRegistry).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantRegistryMembers(string m) => typeof(PlantRegistry).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PlantDefinitionMembers(string m) => typeof(PlantDefinition).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ModuleHelperMembers(string m) => typeof(ModuleHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] DnaOperationPlanMembers(string m) => typeof(MachineDnaManipulator.OperationPlan).GetMember(m, All);
 
         static MemberSignature Describe(MemberInfo m)
         {

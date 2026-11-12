@@ -54,7 +54,12 @@ namespace Fence.Gym
         static bool Makes(string id) => Products.Contains(id);
         static bool Legacy => Cfg == null;
 
-        static int MaxInputs => Cfg?.Value<int?>("inputs") ?? Directives.Current.Raw.Value<int?>("lab_beans") ?? 12;
+        static int MaxInputs => Cfg?.Value<int?>("inputs") ?? Directives.Current.Raw.Value<int?>("lab_beans") ?? (Legacy ? 12 : 20);
+        // Inputs held from sale and bought: `hold` (default two batches). A raw bean sells for ~25, pressed ~100.
+        // Water filters held (kotton half that): a 20-bean batch spends about one of each, and the chemist and the
+        // farmer bring them a few a week.
+        static int Filters => Legacy ? 2 : Cfg.Value<int?>("filters") ?? 4;
+        static int Hold => Legacy ? MaxInputs : Cfg.Value<int?>("hold") ?? 2 * MaxInputs;
         static int Reserve => Cfg?.Value<int?>("reserve") ?? Directives.Current.Raw.Value<int?>("lab_reserve") ?? 500;
         static bool AfterPermit => Cfg?.Value<bool?>("after_permit") ?? Directives.Current.Raw.Value<bool?>("lab_after_permit") ?? true;
         // "auto" buys the next chem module when its grade or yield gain pays it back within `payback_weeks`; "none"
@@ -64,7 +69,33 @@ namespace Fence.Gym
         // Alcohol : dream mush. 5 is the most extract per cap; lower spends fewer evaporator nights per unit.
         // Under the cartel the evaporator is the bottleneck (one vessel, 300 ml a night), so 3: 89 % of the extract for
         // 60 % of the solvent.
-        static double DustRatio => Math.Max(1, Math.Min(5, Cfg?.Value<double?>("ratio") ?? (Cartel ? 3 : 5)));
+        // With the recovery module half the alcohol comes back, so the cartel's count can afford ratio 5 again.
+        static double DustRatio => Math.Max(1, Math.Min(5, Cfg?.Value<double?>("ratio") ?? (Cartel && !Recovering() ? 3 : 5)));
+        // Alcohol : coffee mush. R7 converts each second's 15 % chunk at 0.75 × min(1, alcohol / chunk / 5), so 0.75× the
+        // mush already gives the full yield (alcohol is a solvent there, never consumed); 0.8 covers the dosing's shortfall.
+        static double CaffeineRatio => Cfg?.Value<double?>("alcohol_ratio") ?? 0.8;
+        // `recover` (default true): buy the solvent-recovery module, extract caffeine below alcohol's 78 °C boil and dry
+        // in the evaporator, which hands back half the alcohol into a bottle in its distillate slot.
+        static bool RecoverOn => !Legacy && (Cfg.Value<bool?>("recover") ?? true);
+        // `bath` (default true where the driver runs the morning's seconds, the gym): alcohol is a solvent, never consumed
+        // (R1 reads it against the dream mush still present, R7 against each second's 15 % chunk of coffee mush), so one
+        // bath of `bath_ml` takes the batch in increments, each sized to the full yield and fed once the last has
+        // converted. The batch then dries once: the solvent goes per batch, not per input.
+        // `dry`: "auto" (default) dries a batch whose alcohol survived extraction in the evaporator when the recovery
+        // module is fitted (half the alcohol back, one more night), else on a modded plate (one night, alcohol lost);
+        // "plate" / "evaporator" force one.
+        static string DryMode => Legacy ? "plate" : Cfg.Value<string>("dry") ?? "auto";
+        static bool DryInEvaporator => DryMode == "evaporator" || (DryMode == "auto" && Recovering() && (coolExtract || bathDone));
+        static bool BathOn => !Legacy && Thermostat && (Cfg.Value<bool?>("bath") ?? true);
+        static int BathUl(Recipe r) => (Cfg.Value<int?>("bath_ml") ?? (r.Id == Caffeine ? 250 : 300)) * 1000;
+        // Alcohol : mush present for the full yield: R7 5 × the 15 % chunk = 0.75 (0.8 for the dosing's shortfall); R1 5.
+        static double BathRatio(Recipe r) => r.Id == Caffeine ? CaffeineRatio : 5;
+        // Seconds at temperature before the next increment: R7 takes 15 % of the mush a second (0.85^25 ≈ 2 % left), R1
+        // the larger of 2 ml and 10 % (0.9^40 ≈ 1.5 %).
+        // Days a bath waits for more inputs (`bath_days`, default 4); none while the cartel's count is short (the weekly
+        // visit takes only pressed dust).
+        static int BathDays => Cartel && DustHeld().Count < QuotaKeep ? 0 : Cfg.Value<int?>("bath_days") ?? 4;
+        static int FeedEvery(Recipe r) => r.Id == Caffeine ? 25 : 40;
         // Mornings a filtered batch waits for a water filter before it is poured through kotton alone.
         static int WaitFilterDays => Cfg?.Value<int?>("wait_filter_days") ?? (Legacy ? 0 : 7);
         // The final purity a Phanta pill is cut to when it would come out at 75 % or more (toxic).
@@ -76,16 +107,22 @@ namespace Fence.Gym
         // that cannot hold a window (< 2 modules) is not used for dream extraction or Phanta.
         public static bool Thermostat;
 
+        const string Recovery = "evaporator_module_solvent_recovery", ChemBay = "storage_bay_chem", Fineness = "system_module_fineness";
         const string Pack = "common_chemical", Restricted = "restricted_chemical", Precursor = "med_bottle_violet", Module = "chem_module",
             Pitcher = "water_pitcher", Scanner = "chem_scanner";
         static readonly string[] Machines = { "blender", "heating_plate", "evaporator", "chem_finisher", Scanner };
         static readonly string[] Glass = { "100ml_cylinder", "50ml_cylinder", "25ml_cylinder", "5ml_dropper", "1ml_dropper" };
         static readonly string[] Vessels = { Pitcher, "large_bottled_water", "water_jug", "bottled_water" };
+        // An empty mini bottle (250 ml) holds a two-bean batch when no larger vessel is left.
+        static readonly string[] WorkVessels = Vessels.Concat(new[] { "mini_bottle" }).ToArray();
         static readonly string[] Reagents = { "alcohol", "acid", "base", "lipobond_agent", "reducing_agent" };
 
         enum Step { Idle, Mixed, Heating, Dried, Drying }
 
         static Step step;
+        static bool coolExtract, feeding, bathDone, waitingInputs;
+        static int feedLeft, feedK, feedSec, increments;
+        static IExecutorHost feedEp;
         static string product, lastProduct;
         static int vessel, filterPitcher, batchInputs, batchDay, filterWait, thermoSeconds;
         static double batchExpect;
@@ -108,7 +145,13 @@ namespace Fence.Gym
             batchExpect = 0;
             nominal.Clear();
             Batches = Pills = BeansUsed = PacksOpened = ModulesFitted = Stalls = QuotaStaged = QuotaVisits = 0;
-            PillValue = PillSales = PillsSold = CutUl = 0;
+            PillValue = PillSales = PillsSold = CutUl = RecoveredUl = 0;
+            RoomMoves = InBay = 0;
+            feeding = bathDone = waitingInputs = false;
+            feedLeft = feedK = feedSec = increments = 0;
+            feedEp = null;
+            Increments = 0;
+            coolExtract = false;
             stalls.Clear();
             made.Clear();
             per.Clear();
@@ -129,11 +172,19 @@ namespace Fence.Gym
 
         public static int UpgradeReserve => Reserve;
 
+        // The lab's capital comes in stages after the permit (`after_permit`): the crop taps and the power kit wait for
+        // it too, or the permit's money goes short and OPERATING_WITHOUT_LICENSE piles up to an arrest.
+        // The four machines are in (the Chemist start owns them on day 1): their power is running cost, not capital.
+        public static bool Running => On && Up && Machines.Take(4).All(m => Find(m) != null);
+
+        public static bool PermitFirst => On && !Legacy && AfterPermit && Directives.Current.Raw.Value<string>("permit") == "buy" && !PlayerStore.Instance.hasBusinessPermit;
+
         static IEnumerable<GameItem> Owned() => EmporiumEntry.Instance.GetAllOwnedItems(false, true).Where(i => i != null);
         static GameItem Parent(GameItem i) => i.parentInventory?.GetParentItem();
         static GameItem Find(string id) => Owned().Where(i => i.identifier == id).OrderBy(i => i.uniqueId).FirstOrDefault();
         static GameItem ById(int uid) => uid == 0 ? null : Owned().FirstOrDefault(i => i.uniqueId == uid);
-        static bool Loose(GameItem i) => Parent(i) == null;
+        // Loose: on its own in a grid, or kept in the chemist's storage bay (a player works from its open window).
+        static bool Loose(GameItem i) => Parent(i) is not GameItem p || p.identifier == ChemBay;
 
         static int Total(GameItem c) => WaterHelper.GetTotalVolume(c);
         static int Capacity(GameItem c) => c.GetTagReadonly("LIQUID_CONTAINER_CAPACITY").GetInt();
@@ -173,23 +224,32 @@ namespace Fence.Gym
         static bool IsReagentBottle(GameItem i) => i.IsTag("LIQUID_CONTAINER_TAG") && Loose(i) && Total(i) > 0 && i.identifier != "wine_bottle"
             && (Reagents.Any(l => Tag(i, l) >= Total(i) * (l == "alcohol" ? 0.6 : 0.85)) || (Makes(Phanta) && Tag(i, "methylol") > 0));
 
-        static bool IsInputGood(GameItem i) => Recipes.Any(r => r.Input == i.identifier && r.Id != Phanta);
+        // Produce that blends into a batch: the recipe's own input and, for caffeine, `caffeine_inputs` (bred produce that
+        // carries the caffeine Production trait, docs/re/PLANTS.md; the gene-lines engine grows it). The doses read the
+        // spectrometer, so any such produce works once one is owned; without it they assume a coffee bean's make-up.
+        static bool Takes(Recipe r, string id) => id != null && (r.Input == id
+            || (r.Id == Caffeine && !Legacy && Cfg["caffeine_inputs"] is JArray extra && extra.Any(x => (string)x == id)));
+
+        // For other engines: produce the lab will press when it holds it.
+        public static bool TakesInput(string id) => On && Recipes.Any(r => Makes(r.Id) && r.Id != Phanta && Takes(r, id));
+
+        static bool IsInputGood(GameItem i) => Recipes.Any(r => Takes(r, i.identifier) && r.Id != Phanta);
 
         public static bool Reserved(GameItem i)
         {
             if (!On) return false;
             string id = i.identifier ?? "";
-            if (Mine(i) || Machines.Contains(id) || Glass.Contains(id) || id == Pack || id == Module || (Makes(Phanta) && id == Restricted) || QuotaHeld(i)) return true;
-            if (Recipes.Any(r => Makes(r.Id) && r.Input == id && r.Id != Phanta)) return Owned().Count(x => x.identifier == id && Loose(x) && x.uniqueId <= i.uniqueId) <= (Up ? MaxInputs : 2);
+            if (Mine(i) || Machines.Contains(id) || Glass.Contains(id) || id == Pack || id == Module || id == Recovery || id == ChemBay || (id == Fineness && Recovering()) || (Makes(Phanta) && id == Restricted) || QuotaHeld(i)) return true;
+            if (Recipes.Any(r => Makes(r.Id) && Takes(r, id) && r.Id != Phanta)) return Owned().Count(x => x.identifier == id && Loose(x) && x.uniqueId <= i.uniqueId) <= (Up ? Hold : 2);
             if (id == Pitcher) return Owned().Count(x => x.identifier == Pitcher) <= 2;
             if (!Legacy && Cell(i) && Loose(i)) return Owned().Count(x => Cell(x) && Loose(x) && x.uniqueId <= i.uniqueId) <= 2;
-            if (id == "water_filter" || id == "kotton_fabric") return Owned().Count(x => x.identifier == id && Loose(x)) <= 2;
+            if (id == "water_filter" || id == "kotton_fabric") return Owned().Count(x => x.identifier == id && Loose(x)) <= Math.Max(2, Filters);
             return IsReagentBottle(i);
         }
 
-        static readonly string[] Kit = { Pack, Module, Pitcher, "5ml_dropper", "25ml_cylinder", "1ml_dropper", "water_filter", "kotton_fabric", "energy_credit", "energy_credit_breeder", "energy_credit_dis", "blender", "heating_plate", "evaporator", "chem_finisher", Scanner };
+        static readonly string[] Kit = { Pack, Module, Recovery, ChemBay, Fineness, Pitcher, "5ml_dropper", "25ml_cylinder", "1ml_dropper", "water_filter", "kotton_fabric", "energy_credit", "energy_credit_breeder", "energy_credit_dis", "blender", "heating_plate", "evaporator", "chem_finisher", Scanner };
 
-        public static bool IsInput(string id) => On && id != null && (Kit.Contains(id) || Recipes.Any(r => Makes(r.Id) && r.Input == id) || (Makes(Phanta) && id == Restricted));
+        public static bool IsInput(string id) => On && id != null && (Kit.Contains(id) || Recipes.Any(r => Makes(r.Id) && Takes(r, id)) || (Makes(Phanta) && id == Restricted));
 
         // A contraband input the plan makes something from (dream caps, restricted supplies) is bought as an input.
         public static bool ContrabandInput(string id) => On && id != null && ((Makes(Dust) && id == "dream_cap") || (Makes(Phanta) && id == Restricted));
@@ -249,8 +309,62 @@ namespace Fence.Gym
         {
             if (!On || !Up) return;
             var e = EmporiumEntry.Instance;
-            foreach (var i in new[] { e.backInvinvElement, e.frontInvinvElement }.SelectMany(inv => inv.childItems).Where(i => i != null && GeneralHelper.IsItemOwned(i) && (Reserved(i) && (!IsInputGood(i) || !Legacy) || (!Legacy && (Recipes.Any(r => Makes(r.Id) && r.Input == i.identifier) || i.identifier == Module || i.identifier == Pack)))).ToList())
-                if (Chore.Accept(e.invElement, i, -1) != 0) Chore.Accept(e.showcaseElement, i, -1);
+            foreach (var i in new[] { e.backInvinvElement, e.frontInvinvElement }.SelectMany(inv => inv.childItems).Where(i => i != null && GeneralHelper.IsItemOwned(i) && (Reserved(i) && (!IsInputGood(i) || !Legacy) || (!Legacy && (Recipes.Any(r => Makes(r.Id) && Takes(r, i.identifier)) || i.identifier == Module || i.identifier == Pack)))).ToList())
+                if (Chore.Accept(e.invElement, i, -1) != 0 && Chore.Accept(e.showcaseElement, i, -1) != 0 && !Legacy
+                    && (MakeRoom(PlayerRole.Cells(i)) ? Chore.Accept(e.invElement, i, -1) : 1) != 0 && MakeRoom(e.showcaseElement, PlayerRole.Cells(i)))
+                    Chore.Accept(e.showcaseElement, i, -1);
+        }
+
+        // A full stock grid leaves a bought machine on the back counter, where the next buyer's "sell all" takes it (the
+        // gym saw a heating plate bought and sold again three weeks running): the cheapest plain stock goes out to the
+        // back counter for sale instead, at most `room_items` (8) of it.
+        static bool MakeRoom(int cells) => MakeRoom(EmporiumEntry.Instance.invElement, cells);
+
+        static int Free(GameGridInventory g) => g.inventoryShape.width * g.inventoryShape.height - g.childItems.Where(x => x != null).Sum(PlayerRole.Cells);
+
+        static IEnumerable<GameItem> Evictable(GameGridInventory g) => g.childItems.Where(x => x != null && !Production.Reserved(x) && !made.Contains(x.uniqueId)
+            && !x.IsGameItemType("MACHINE") && x.contentWindow == null && ContrabandHelper.GetContrabandLevelInInt(x) == 0).OrderBy(x => x.GetNegociatedValue()).ThenBy(x => x.uniqueId);
+
+        static bool MakeRoom(GameGridInventory g, int cells)
+        {
+            var back = EmporiumEntry.Instance.backInvinvElement;
+            int moved = 0, max = Cfg.Value<int?>("room_items") ?? 8;
+            foreach (var x in Evictable(g).ToList())
+            {
+                if (Free(g) >= cells || moved >= max) break;
+                if (Chore.Accept(back, x, -1) == 0) { moved++; RoomMoves++; }
+            }
+            return Free(g) >= cells;
+        }
+
+        public static int RoomMoves, Increments;
+
+        // The small kit (packs, reagent bottles, glassware, filters, spare modules) from the stock grid into the chemist's
+        // storage bay. Beans and cells stay out: the crop bays replant and the engines swap from the grid.
+        static void KeepInBay()
+        {
+            var bay = Find(ChemBay);
+            var stock = EmporiumEntry.Instance.invElement;
+            if (bay == null) return;
+            if (!ReferenceEquals(bay.parentInventory, stock) && Chore.Accept(stock, bay, -1) != 0 && MakeRoom(PlayerRole.Cells(bay))) Chore.Accept(stock, bay, -1);
+            var inside = GraphUtils.FindChildrenType<GameInventory>(bay).FirstOrDefault();
+            if (inside == null) return;
+            foreach (var i in stock.childItems.Where(i => i != null && Reserved(i) && !Mine(i) && i.contentWindow == null && !Machines.Contains(i.identifier) && i.identifier != ChemBay
+                && !IsInputGood(i) && !Cell(i) && !(i.identifier ?? "").StartsWith("energy_credit", StringComparison.Ordinal) && i.identifier != Pitcher).ToList())
+                if (Chore.Accept(inside, i, -1) == 0) InBay++;
+        }
+
+        public static int InBay;
+
+        // A lot of lab kit can be bought into a full grid when plain stock can make way for it (Stow does it on arrival).
+        public static bool CanMakeRoom(IEnumerable<string> ids, int cells)
+        {
+            if (!On || Legacy || !ids.All(id => IsInput(id))) return false;
+            int max = Cfg.Value<int?>("room_items") ?? 8;
+            var e = EmporiumEntry.Instance;
+            // Failing the grid, the display case holds a machine until the grid has room (Stow; no window buyer wants one).
+            return Evictable(e.invElement).Take(max).Sum(PlayerRole.Cells) >= cells - PlayerStock.FreeCells()
+                || Free(e.showcaseElement) + Evictable(e.showcaseElement).Take(max).Sum(PlayerRole.Cells) >= cells;
         }
 
         // The blender, plate and finisher keep their chem modules in storage 0 (MachineHelper.GetModuleInv assumes a battery there).
@@ -360,11 +474,56 @@ namespace Fence.Gym
         }
 
         // Dr. Jackson's goods the lab buys at his shop or his visits: chem modules, and a missing scanner or filter.
-        public static bool JacksonBuys(string id) => On && !Legacy && (id == Module || id == Scanner || id == "water_filter" || id == "kotton_fabric" || id == "energy_credit");
+        public static bool JacksonBuys(string id) => On && !Legacy && (id == Module || id == Scanner || id == "water_filter" || id == "kotton_fabric" || id == "energy_credit" || (Cartel && id == "energy_credit_dis"));
 
         // `lab.jackson_need` (default 7; 0 never): nights between after-hours trips to Dr. Jackson while the plan wants
         // a module.
         public static int? JacksonNeed => On && !Legacy && (Cfg.Value<int?>("jackson_need") ?? 7) is int n && n > 0 ? n : (int?)null;
+
+        // Packs held: alcohol for `alcohol_weeks` (default 2) of the observed input rate on top of what is open, counted per
+        // pack (350 ml of alcohol; a recovering evaporator returns half of what the batches spend), at most `packs_max` (6).
+        // Packs come by the one (the chemist weekly, the scav general's 25 % + 25 %), so every one offered is taken.
+        static int PacksWanted()
+        {
+            double perInput = 0;
+            foreach (var r in Recipes.Where(x => Makes(x.Id) && x.Id != Phanta))
+                perInput = Math.Max(perInput, (r.Id == Caffeine ? 44800 * CaffeineRatio : 22000 * DustRatio) * (Recovering() ? 0.5 : 1));
+            double need = Recipes.Where(x => Makes(x.Id) && x.Id != Phanta).Sum(Rate) * (Cfg?.Value<double?>("alcohol_weeks") ?? 2) * perInput - Have("alcohol");
+            int packs = (int)Math.Ceiling(Math.Max(0, need) / 350000);
+            return Math.Max(1, Math.Min(Cfg?.Value<int?>("packs_max") ?? 6, packs));
+        }
+
+        static GameInventory EvapModules(GameItem evap) => Slot(evap, 1) as GameInventory;
+        static GameSlotInventory Distillate(GameItem evap) => Slot(evap, 3) as GameSlotInventory;
+
+        static bool Recovering()
+        {
+            var evap = Find("evaporator");
+            return RecoverOn && evap != null && (EvapModules(evap)?.childItems.Any(x => x != null && x.identifier == Recovery) ?? false);
+        }
+
+        public static long RecoveredUl;
+
+        // The recovery bottle: an empty mini bottle (a spent alcohol mini) or another small empty vessel in the distillate
+        // slot; once it holds 150 ml it comes out as a supply bottle and an empty one goes in.
+        static void SeatDistillate(GameItem evap)
+        {
+            var slot = Distillate(evap);
+            if (slot == null) return;
+            var stock = EmporiumEntry.Instance.invElement;
+            var d = slot.childItem;
+            if (d != null && Total(d) >= Math.Min(150000, Capacity(d) * 6 / 10))
+            {
+                int alc = Tag(d, "alcohol");
+                if (Chore.Accept(stock, d, -1) != 0 && Chore.Accept(EmporiumEntry.Instance.backInvinvElement, d, -1) != 0) return;
+                RecoveredUl += alc;
+                d = null;
+            }
+            if (d != null) return;
+            var empty = Owned().Where(i => Loose(i) && !Mine(i) && (i.identifier == "mini_bottle" || i.identifier == "bottled_water") && i.IsTag("LIQUID_CONTAINER_TAG") && Total(i) == 0)
+                .OrderBy(i => i.uniqueId).FirstOrDefault();
+            if (empty != null) Chore.Accept(slot, empty, -1);
+        }
 
         static bool ModulePays()
         {
@@ -387,20 +546,32 @@ namespace Fence.Gym
                 case "coffee_bean":
                 case "dream_cap":
                     if (!Makes(id == "coffee_bean" ? Caffeine : Dust)) return 0;
-                    return Math.Max(0, (Up ? MaxInputs : 2) - Owned().Count(i => i.identifier == id && Loose(i)));
+                    return Math.Max(0, (Up ? Hold : 2) - Owned().Count(i => i.identifier == id && Loose(i)));
                 case Pack:
-                    return Up && Owned().Count(i => i.identifier == Pack) == 0 && (Have("alcohol") < 350000 || !Bottles("acid").Any() || (Makes(Caffeine) && !Bottles("lipobond_agent").Any())) ? 1 : 0;
+                    if (Legacy) return Up && Owned().Count(i => i.identifier == Pack) == 0 && (Have("alcohol") < 350000 || !Bottles("acid").Any() || (Makes(Caffeine) && !Bottles("lipobond_agent").Any())) ? 1 : 0;
+                    return Up ? Math.Max(0, PacksWanted() - Owned().Count(i => i.identifier == Pack)) : 0;
+                // The chemist's storage bay (50 % a visit) once the stock grid is short of room: the kit moves into it.
+                case ChemBay:
+                    return Up && !Legacy && (Cfg.Value<bool?>("chem_bay") ?? true) && Find(ChemBay) == null && PlayerStock.FreeCells() < 40 && cash > rent + 600 ? 1 : 0;
+                // Two fineness modules (Q +25 each, barter offers 3 %) with the recovery module's 50 make Q 100: every
+                // evaporated ml of alcohol comes back (MachineEvaporator clamps Q at 100).
+                case Fineness:
+                    return Recovering() && EvapModules(Find("evaporator"))?.childItems.Count(x => x != null && x.identifier == Fineness) + Owned().Count(i => i.identifier == Fineness && Loose(i)) < 2 ? 1 : 0;
+                case Recovery:
+                    return Up && RecoverOn && (Makes(Caffeine) || Makes(Dust)) && Find(Recovery) == null && Find("evaporator") != null && cash > rent + 300 ? 1 : 0;
                 case Restricted:
                     return Up && Makes(Phanta) && PhantaPossible() && !Owned().Any(i => i.identifier == Restricted) && !Bottles("methylol").Any() ? 1 : 0;
-                case Pitcher: return Owned().Count(i => i.identifier == Pitcher) < 2 ? 1 : 0;
+                // A spare: uninsured nights lose one owned item to a burglar (PlayerStore.GetRandomBurglaryEligibleItem), and the
+                // chemist offers a pitcher only every other week.
+                case Pitcher: return Owned().Count(i => i.identifier == Pitcher) < (Legacy ? 2 : 3) ? 1 : 0;
                 case "5ml_dropper":
                 case "25ml_cylinder":
                 case "1ml_dropper":
                     return Up && !Legacy && Find(id) == null ? 1 : 0;
                 case "water_filter":
                     if (Legacy) return Up && !Owned().Any(i => i.identifier == "water_filter") ? 1 : 0;
-                    return Up && Owned().Count(i => i.identifier == "water_filter") < 2 ? 1 : 0;
-                case "kotton_fabric": return Up && !Legacy && !Owned().Any(i => i.identifier == "kotton_fabric") ? 1 : 0;
+                    return Up && Owned().Count(i => i.identifier == "water_filter") < Filters ? 1 : 0;
+                case "kotton_fabric": return Up && !Legacy && Owned().Count(i => i.identifier == "kotton_fabric") < (Filters + 1) / 2 ? 1 : 0;
                 case Module:
                     int loose = Owned().Count(i => i.identifier == Module && Loose(i));
                     if (!Up || loose > 0 || cash <= rent + 600) return 0;
@@ -411,7 +582,7 @@ namespace Fence.Gym
                 case "heating_plate":
                 case "evaporator":
                 case "chem_finisher":
-                    return Up && Find(id) == null && cash > rent + 600 ? 1 : 0;
+                    return Up && Find(id) == null && cash > rent + (Legacy ? 600 : 300) ? 1 : 0;
                 case Scanner:
                     return Up && !Legacy && Find(id) == null && cash > rent + 600 ? 1 : 0;
                 case "energy_credit":
@@ -454,6 +625,7 @@ namespace Fence.Gym
         public static void Morning(IExecutorHost ep)
         {
             if (!On || !Up) return;
+            feedEp = ep;
             try { Run(ep); }
             catch (Exception e) { ep.ProductionError(e); }
         }
@@ -462,20 +634,26 @@ namespace Fence.Gym
         {
             var stock = EmporiumEntry.Instance.invElement;
             // The kit lands on the back counter, where a buyer's "sell all" would take it.
-            foreach (var i in Owned().Where(i => Loose(i) && !ReferenceEquals(i.parentInventory, stock) && Reserved(i) && !IsInputGood(i)).ToList())
+            foreach (var i in Owned().Where(i => Parent(i) == null && !ReferenceEquals(i.parentInventory, stock) && Reserved(i) && !IsInputGood(i)).ToList())
                 Chore.Accept(stock, i, -1);
             FitModules();
+            KeepInBay();
             var blender = Find("blender");
             var plate = Find("heating_plate");
             var evap = Find("evaporator");
+            if (evap != null && Recovering()) SeatDistillate(evap);
             var finisher = Find("chem_finisher");
+            if (evap != null) Power.Need("lab", MachineryHelper.GetMachinePowerUsage(evap));
+            // Room in the stock grid for the machines still to buy (a seller's lot is refused when it does not fit).
+            if (!Legacy && (blender == null || plate == null || evap == null || finisher == null)) MakeRoom(Cfg.Value<int?>("room_cells") ?? 18);
             if (blender == null || plate == null || evap == null || finisher == null) { Stall("machines:" + string.Join("+", new[] { ("blender", blender), ("heating_plate", plate), ("evaporator", evap), ("chem_finisher", finisher) }.Where(x => x.Item2 == null).Select(x => x.Item1))); return; }
             // Live, machine windows' buttons are not pressed (LiveHost.MachineButton): the lab does nothing rather than
             // load a blender it cannot start (docs/research/CHEMISTRY-ENGINE.md, "Live").
             if (!Legacy && ep.MachineButton(blender, LocHelper.GetLocalizedMechanic("mech_blender_btn_start")) == null) { Stall("no_buttons"); return; }
-            if (ById(vessel) == null) { step = Step.Idle; product = null; }
+            if (ById(vessel) == null) { step = Step.Idle; product = null; feeding = bathDone = false; }
             switch (step)
             {
+                case Step.Mixed when feeding: Resume(plate); return;
                 case Step.Mixed: Heat(ep, plate, evap); return;
                 case Step.Heating: Filter(ep, plate, evap); return;
                 case Step.Dried:
@@ -489,6 +667,10 @@ namespace Fence.Gym
         // The finisher's first module (its impurity caps every product), then where the plan's next module goes.
         static void FitModules()
         {
+            var ev = Find("evaporator");
+            if (ev != null && EvapModules(ev) is GameInventory grid)
+                foreach (var m in Owned().Where(i => (i.identifier == Recovery || (i.identifier == Fineness && Recovering())) && Loose(i)).OrderBy(i => i.identifier == Recovery ? 0 : 1).ToList())
+                    Chore.Accept(grid, m, -1);
             foreach (var mod in Owned().Where(i => i.identifier == Module && Loose(i)).ToList())
             {
                 int f = Fitted("chem_finisher");
@@ -502,8 +684,9 @@ namespace Fence.Gym
         // The filter pitcher, and the work vessel: the largest other empty pitcher, jug or water bottle.
         static bool PickVessels()
         {
-            var cands = Owned().Where(i => Vessels.Contains(i.identifier) && (Loose(i) || Mine(i)) && !Production.HeldForWine(i)).OrderBy(i => i.uniqueId).ToList();
+            var cands = Owned().Where(i => WorkVessels.Contains(i.identifier) && (Loose(i) || Mine(i)) && !Production.HeldForWine(i)).OrderBy(i => i.uniqueId).ToList();
             if (ById(filterPitcher) == null) filterPitcher = cands.FirstOrDefault(i => i.identifier == Pitcher && i.uniqueId != vessel)?.uniqueId ?? 0;
+            if (ById(vessel) is GameItem cur && step == Step.Idle && cands.Any(i => i.uniqueId != filterPitcher && Total(i) < 20000 && Capacity(i) > Capacity(cur))) vessel = 0;
             if (ById(vessel) == null) vessel = cands.Where(i => i.uniqueId != filterPitcher && Total(i) < 20000).OrderByDescending(Capacity).ThenBy(i => i.uniqueId).FirstOrDefault()?.uniqueId ?? 0;
             return vessel != 0 && filterPitcher != 0;
         }
@@ -523,14 +706,14 @@ namespace Fence.Gym
 
         static void Start(IExecutorHost ep, GameItem blender, GameItem plate)
         {
-            if (!PickVessels()) { Stall("vessels"); return; }
+            if (!PickVessels()) { Stall(filterPitcher == 0 ? "vessels:filter_pitcher" : "vessels:work"); return; }
             OpenPack(Pack, () => Have("alcohol") >= 150000 && Bottles("acid").Any() && Bottles("base").Any() && Bottles("lipobond_agent").Any());
             if (Makes(Phanta)) OpenPack(Restricted, () => Bottles("methylol").Any() || !PhantaPossible());
             // The cartel's count comes first: nothing else takes the vessel while the dust held is short of it.
             bool quotaFirst = Cartel && Makes(Dust) && DustHeld().Count < QuotaKeep;
             foreach (var id in Products.Where(p => !quotaFirst || p == Dust))
             {
-                bool started = id == Phanta ? StartPhanta(ep, plate) : StartBlend(ep, blender, plate, R(id));
+                bool started = id == Phanta ? StartPhanta(ep, plate) : BathOn ? StartBath(ep, blender, plate, R(id)) : StartBlend(ep, blender, plate, R(id));
                 if (started) return;
             }
         }
@@ -544,7 +727,7 @@ namespace Fence.Gym
         static bool StartBlend(IExecutorHost ep, GameItem blender, GameItem plate, Recipe r)
         {
             var v = ById(vessel);
-            var inputs = Owned().Where(i => i.identifier == r.Input && Loose(i) && !Crops.Reserved(i) && !StolenHelper.IsStolenItem(i)).OrderBy(i => i.uniqueId).ToList();
+            var inputs = Owned().Where(i => Takes(r, i.identifier) && Loose(i) && !Crops.Reserved(i) && !StolenHelper.IsStolenItem(i)).OrderBy(i => i.uniqueId).ToList();
             if (inputs.Count == 0) { Stall(r.Id == Caffeine ? "beans" : "caps"); return false; }
             if (r.Id == Dust && !CanHold(plate, Dust)) { Stall("plate_window"); return false; }
             int alcohol = Have("alcohol");
@@ -557,7 +740,7 @@ namespace Fence.Gym
             // Per input: 44.8 ml of coffee mush (alcohol 1× it: the full 75 % even as it boils off) or 22 ml of dream
             // mush (alcohol `ratio`× it), less the blender's loss; the batch shrinks to the alcohol at hand and the
             // vessel's room (a mini bottle brings 3/7 of its alcohol again in water).
-            double ratio = Legacy ? 0.75 : r.Id == Caffeine ? 1.0 : DustRatio;
+            double ratio = Legacy ? 0.75 : r.Id == Caffeine ? CaffeineRatio : DustRatio;
             int mushPer = (int)((r.Id == Caffeine ? 44800 : 22000) * keep);
             int perInput = (int)(mushPer * (1 + ratio + ratio * 3 / 7) + (r.Id == Caffeine ? 35000 : 10000));
             int n = Math.Min(inputs.Count, MaxInputs);
@@ -588,6 +771,145 @@ namespace Fence.Gym
             Begin(ep, r, loaded, v);
             if (r.Id == Dust) HoldWindow(plate, v, 44);
             return true;
+        }
+
+        static List<GameItem> Inputs(Recipe r) => Owned().Where(i => Takes(r, i.identifier) && Loose(i) && !Crops.Reserved(i) && !StolenHelper.IsStolenItem(i)).OrderBy(i => i.uniqueId).ToList();
+
+        static int MushPer(Recipe r, GameItem blender) => (int)((r.Id == Caffeine ? 44800 : 22000) * (100 - MachineBlender.GetLoss(blender)) / 100.0);
+
+        // The bath, the first increment, and the plate: the rest is fed through the morning's seconds (BathSecond).
+        static bool StartBath(IExecutorHost ep, GameItem blender, GameItem plate, Recipe r)
+        {
+            var v = ById(vessel);
+            var inputs = Inputs(r);
+            if (inputs.Count == 0) { Stall(r.Id == Caffeine ? "beans" : "caps"); return false; }
+            if (r.Id == Dust && !CanHold(plate, Dust)) { Stall("plate_window"); return false; }
+            if (!Bottles("acid").Any() || (r.Id == Caffeine && !Bottles("lipobond_agent").Any())) { Stall("reagents"); return false; }
+            if (!Glass.Any(g => Find(g) != null)) { Stall("glassware"); return false; }
+            Rinse(v, r.Id);
+            nominal.Clear();
+            int mushPer = MushPer(r, blender);
+            // The bath for the inputs at hand (one increment's worth, up to `bath_ml`): every batch dries its bath away.
+            int bath = Math.Min(BathUl(r), (int)(BathRatio(r) * mushPer * inputs.Count * 1.05) + 2000);
+            int alcohol = Part(v, "alcohol");
+            if (alcohol < bath) alcohol += Dose("alcohol", v, Math.Min(Have("alcohol"), bath - alcohol), over: true);
+            int k = (int)(alcohol / (BathRatio(r) * mushPer));
+            if (k < 1) { Stall("reagents"); return false; }
+            // Room in the vessel: per input the mush, its other matter (a bean's 32 ml of caffeine, fat, protein,
+            // physical; a cap's 9 ml) and the acid and lipobond that go in with it.
+            int perInput = mushPer + (r.Id == Caffeine ? 45000 : 12000);
+            int n = Math.Min(Math.Min(inputs.Count, MaxInputs), Math.Max(1, (Capacity(v) - Total(v) - 100000) / perInput));
+            feedK = k;
+            feedLeft = n;
+            increments = 0;
+            Begin(ep, r, 0, v);
+            if (!Feed(ep, blender, r)) { step = Step.Idle; product = null; return false; }
+            HeatBath(plate, v, r);
+            feeding = true;
+            bathDone = false;
+            feedSec = 0;
+            return true;
+        }
+
+        // One increment: the vessel through the blender with up to `feedK` inputs, acid for their protein and lipobond for
+        // their fat (both consumed, 1:1 and 1:8; the bath is held under lipobond's 55 °C boil).
+        static bool Feed(IExecutorHost ep, GameItem blender, Recipe r)
+        {
+            var v = ById(vessel);
+            int waiting = Math.Min(Inputs(r).Count, feedLeft);
+            // More inputs came than the bath was sized for: more alcohol, up to `bath_ml`.
+            if (waiting > feedK && Part(v, "alcohol") < BathUl(r))
+            {
+                int mushPer = MushPer(r, blender);
+                int want = Math.Min(BathUl(r), (int)(BathRatio(r) * mushPer * waiting * 1.05) + 2000);
+                if (want > Part(v, "alcohol")) Dose("alcohol", v, Math.Min(Have("alcohol"), want - Part(v, "alcohol")), over: true);
+                feedK = Math.Max(feedK, (int)(Part(v, "alcohol") / (BathRatio(r) * mushPer)));
+            }
+            var inputs = Inputs(r).Take(Math.Min(feedK, feedLeft)).ToList();
+            if (inputs.Count == 0) return false;
+            var input = Slot(blender, 1);
+            if (Chore.Accept(Slot(blender, 2), v, -1) != 0) { Stall("blender"); return false; }
+            int loaded = 0;
+            foreach (var b in inputs)
+                if (Chore.Accept(input, b, -1) == 0) loaded++;
+            var press = ep.MachineButton(blender, LocHelper.GetLocalizedMechanic("mech_blender_btn_start"));
+            press?.Invoke();
+            double keep = (100 - MachineBlender.GetLoss(blender)) / 100.0;
+            string mushId = r.Id == Caffeine ? "coffee_mush" : "dream_cap_mush";
+            if (r.Id == Caffeine) { Nominal(mushId, (int)(44800 * keep * loaded)); Nominal("protein", (int)(8000 * keep * loaded)); Nominal("fat", (int)(8000 * keep * loaded)); }
+            else { Nominal(mushId, (int)(22000 * keep * loaded)); Nominal("protein", (int)(2000 * keep * loaded)); }
+            if (press == null) { Stall("blend"); return false; }
+            Dose("acid", v, Part(v, "protein") - Part(v, "acid") + Part(v, "base"));
+            React("acid", "protein", 1);
+            // Lipobond is consumed 1:8 by the fat (R11); what is left boils off at drying but its bottle's impurities stay in
+            // the residue, so with the spectrometer the dose is the fat's eighth to the dropper.
+            if (r.Id == Caffeine) { Dose("lipobond_agent", v, Part(v, "fat") / 8 + (Scans ? 100 : 500), over: true); React("lipobond_agent", "fat", 8); }
+            feedLeft -= loaded;
+            batchInputs += loaded;
+            increments++;
+            Increments++;
+            if (r.Id == Caffeine) BeansUsed += loaded;
+            Add(Per(r.Id), "inputs", loaded);
+            return loaded > 0;
+        }
+
+        // Caffeine at 50–54 °C (R7 from 50, lipobond boils above 55, water extraction from 80 takes mush at an eighth of
+        // the yield); dream mush at 40–49. Two modules hold it (set 54 / 44); fewer, the thermostat.
+        static void HeatBath(GameItem plate, GameItem v, Recipe r)
+        {
+            if (Chore.Accept(Slot(plate, 1), v, -1) != 0) { Stall("plate"); return; }
+            int target = r.Id == Caffeine ? 54 : 44;
+            if (PlateModules(plate) >= 2) SetTarget(plate, target);
+            int state = PlateModules(plate) >= 2 ? 2 : 1;
+            if (PlateModules(plate) >= 2 || Readout(v) < (r.Id == Caffeine ? 51 : 43))
+                Chore.Act("plate_on", plate, () => plate.ModifyTag("HEATING_PLATE_STATE", s => s.Enable().SetInt(state)));
+        }
+
+        static void Resume(GameItem plate)
+        {
+            var v = ById(vessel);
+            if (v == null || product == null) { feeding = false; return; }
+            waitingInputs = false;
+            // Nothing new and the wait is over: extraction ends and the batch goes on to filtering.
+            var r = R(product);
+            if (Inputs(r).Count == 0 && feedEp.Day - batchDay >= BathDays) { feeding = false; bathDone = true; return; }
+            feedSec = 0;
+            HeatBath(plate, v, r);
+        }
+
+        // Each second of the morning while the bath is fed: hold the window, count the seconds at temperature, feed the
+        // next increment when the last has converted, and end the extraction when the inputs are in.
+        static void BathSecond()
+        {
+            var plate = Find("heating_plate");
+            var blender = Find("blender");
+            var v = ById(vessel);
+            if (plate == null || blender == null || v == null || feedEp == null) { feeding = false; return; }
+            if (waitingInputs) return;
+            var r = R(product);
+            bool onPlate = ReferenceEquals((Slot(plate, 1) as GameSlotInventory)?.childItem, v);
+            if (!onPlate) { HeatBath(plate, v, r); return; }
+            int t = Readout(v);
+            if (PlateModules(plate) < 2)
+            {
+                int state = plate.GetTagReadonly("HEATING_PLATE_STATE").GetInt();
+                int on = r.Id == Caffeine ? 50 : 42, off = r.Id == Caffeine ? 51 : (PlateModules(plate) == 0 ? 46 : 45);
+                if (state != 0 && t >= off) PlateOff(plate);
+                else if (state == 0 && t <= on) Chore.Act("plate_on", plate, () => plate.ModifyTag("HEATING_PLATE_STATE", s => s.Enable().SetInt(1)));
+            }
+            if (t >= (r.Id == Caffeine ? 50 : 40)) feedSec++;
+            if (feedSec < FeedEvery(r)) return;
+            if (feedLeft > 0 && Feed(feedEp, blender, r)) { feedSec = 0; HeatBath(plate, v, r); return; }
+            // Out of inputs with room left: the bath waits (off the heat at the morning's end) for the next ones, up to
+            // `bath_days` (default 4) from its first increment.
+            if (batchInputs < MaxInputs && feedEp.Day - batchDay < BathDays)
+            {
+                feedLeft = MaxInputs - batchInputs;
+                if (Inputs(r).Count == 0) { PlateOff(plate); waitingInputs = true; return; }
+            }
+            feeding = false;
+            bathDone = true;
+            PlateOff(plate);
         }
 
         static void Begin(IExecutorHost ep, Recipe r, int inputs, GameItem v)
@@ -720,7 +1042,8 @@ namespace Fence.Gym
             plate = null;
             v = null;
             if (!On || !Thermostat || product == null) return false;
-            if (!(product == Dust && step == Step.Mixed || product == Phanta && step == Step.Heating)) return false;
+            if (feeding) return false;
+            if (!(product == Dust && step == Step.Mixed || product == Phanta && step == Step.Heating || product == Caffeine && step == Step.Heating && coolExtract)) return false;
             plate = Find("heating_plate");
             v = ById(vessel);
             return plate != null && v != null && PlateModules(plate) < 2 && ReferenceEquals((Slot(plate, 1) as GameSlotInventory)?.childItem, v);
@@ -731,11 +1054,12 @@ namespace Fence.Gym
         // 150; extraction finishes within about a minute at temperature) it stays off.
         public static void Second()
         {
+            if (On && feeding && step == Step.Mixed && product != null) { BathSecond(); return; }
             if (!OnThermostat(out var plate, out var v)) return;
             int state = plate.GetTagReadonly("HEATING_PLATE_STATE").GetInt();
             if (++thermoSeconds > (Cfg?.Value<int?>("thermo_s") ?? 150)) { PlateOff(plate); return; }
             int t = Readout(v);
-            int on = product == Dust ? 42 : 121, off = product == Dust ? (PlateModules(plate) == 0 ? 46 : 45) : 124;
+            int on = product == Dust ? 42 : product == Caffeine ? 58 : 121, off = product == Dust ? (PlateModules(plate) == 0 ? 46 : 45) : product == Caffeine ? 66 : 124;
             if (state != 0 && t >= off) PlateOff(plate);
             else if (state == 0 && t <= on) Chore.Act("plate_on", plate, () => plate.ModifyTag("HEATING_PLATE_STATE", s => s.Enable().SetInt(1)));
         }
@@ -744,6 +1068,9 @@ namespace Fence.Gym
         // plate holds 99 °C: dream extract dies from 60).
         public static void EndMorning()
         {
+            // A bath left feeding (inputs still to come) waits off the heat for the next morning: dream extract dies
+            // from 60 °C and an unmodded plate holds 99.
+            if (On && feeding && Find("heating_plate") is GameItem p) PlateOff(p);
             if (OnThermostat(out var plate, out _)) PlateOff(plate);
         }
 
@@ -753,7 +1080,7 @@ namespace Fence.Gym
         static void Heat(IExecutorHost ep, GameItem plate, GameItem evap)
         {
             var v = ById(vessel);
-            if (product == Dust)
+            if (product == Dust || bathDone)
             {
                 // Extracted yesterday: off the plate, base for any acid left (both pass the filters), filtered and dried.
                 PlateOff(plate);
@@ -775,9 +1102,19 @@ namespace Fence.Gym
                 step = Step.Heating;
                 return;
             }
-            // Caffeine: extracts from 50 °C and never degrades, so any plate will do (unmodded it holds 99 °C).
+            // Caffeine: extracts from 50 °C and never degrades, so any plate will do (unmodded it holds 99 °C). With the
+            // recovery module it is held under alcohol's 78 °C boil (two modules: set 64; fewer: the thermostat) so the
+            // alcohol reaches the evaporator.
             if (Chore.Accept(Slot(plate, 1), v, -1) != 0) { Stall("plate"); return; }
-            if (PlateModules(plate) >= 2) SetTarget(plate, 99);
+            coolExtract = Recovering() && (PlateModules(plate) >= 2 || Thermostat);
+            thermoSeconds = 0;
+            if (PlateModules(plate) >= 2) SetTarget(plate, coolExtract ? 64 : 99);
+            if (coolExtract && PlateModules(plate) < 2)
+            {
+                Chore.Act("plate_on", plate, () => plate.ModifyTag("HEATING_PLATE_STATE", s => s.Enable().SetInt(1)));
+                step = Step.Heating;
+                return;
+            }
             Chore.Act("plate_on", plate, () => plate.ModifyTag("HEATING_PLATE_STATE", s => s.Enable().SetInt(2)));
             step = Step.Heating;
         }
@@ -804,7 +1141,7 @@ namespace Fence.Gym
             {
                 var next = Owned().Where(i => i.identifier == filterId && Loose(i) && DurabilityHelper.GetRealDurability(i) >= 60).OrderByDescending(i => DurabilityHelper.GetRealDurability(i)).ThenBy(i => i.uniqueId).FirstOrDefault();
                 if (next == null) return false;
-                if (seated != null) Chore.Accept(stock, seated, -1);
+                if (seated != null) Unseat(seated);
                 foreach (var inv in GraphUtils.FindChildrenType<GameInventory>(f))
                     if (Chore.Accept(inv, next, -1) == 0) break;
             }
@@ -815,7 +1152,20 @@ namespace Fence.Gym
             return true;
         }
 
-        static bool Usable(string filterId) => Owned().Any(i => i.identifier == filterId && DurabilityHelper.GetRealDurability(i) >= 60);
+        // A filter the pour can use: loose, or seated in our filter pitcher (one in another engine's pitcher is not ours).
+        // A filter out of the pitcher: into the stock grid, the chemist's storage bay, a grid made room in, or (spent, no
+        // use to anyone) the back counter. Left seated, the next filter cannot go in.
+        static void Unseat(GameItem filter)
+        {
+            var stock = EmporiumEntry.Instance.invElement;
+            if (Chore.Accept(stock, filter, -1) == 0) return;
+            if (Find(ChemBay) is GameItem bay && GraphUtils.FindChildrenType<GameInventory>(bay).FirstOrDefault() is GameInventory inside && Chore.Accept(inside, filter, -1) == 0) return;
+            if (!Legacy && MakeRoom(PlayerRole.Cells(filter)) && Chore.Accept(stock, filter, -1) == 0) return;
+            Chore.Accept(EmporiumEntry.Instance.backInvinvElement, filter, -1);
+        }
+
+        static bool Usable(string filterId) => Owned().Any(i => i.identifier == filterId && DurabilityHelper.GetRealDurability(i) >= 60
+            && (Loose(i) || (Legacy ? true : Parent(i)?.uniqueId == filterPitcher)));
 
         static void Filter(IExecutorHost ep, GameItem plate, GameItem evap)
         {
@@ -833,6 +1183,10 @@ namespace Fence.Gym
             // on the physical contaminant and mineral that kotton passes. Without a water filter the batch waits for one:
             // kotton alone leaves the physical contaminant in (caffeine 99 % → 83 %).
             if (!Usable("water_filter") && !Cartel && filterWait++ < WaitFilterDays) { Stall("wait_filter"); return; }
+            // Without kotton the water filter spends itself on the debris and plant matter (a third of the residue) and
+            // passes the rest: the batch presses cut grade, at about a third of the price. It waits `wait_kotton_days`
+            // (21) for kotton (the chemist 75 % a week, the shady farmer, the scav seller).
+            if (!Legacy && !Usable("kotton_fabric") && !Cartel && filterWait++ < (Cfg.Value<int?>("wait_kotton_days") ?? 21)) { Stall("wait_kotton"); return; }
             Chore.Accept(stock, v, -1);
             bool k = !Legacy && Pass(v, "kotton_fabric");
             bool w = Pass(v, "water_filter");
@@ -845,7 +1199,7 @@ namespace Fence.Gym
             if (!Legacy && !Cartel && Scans && Coarse(v) > 0.01 && filterWait++ < WaitFilterDays) { Stall("filter_spent"); return; }
             if (!w) Stall("kotton_only");
             batchFilter = (k ? "kotton" : "") + (w ? "+water" : "");
-            if (product == Caffeine && !Legacy && PlateModules(plate) >= 1 && Chore.Accept(Slot(plate, 1), v, -1) == 0)
+            if (product == Caffeine && !Legacy && PlateModules(plate) >= 1 && !DryInEvaporator && Chore.Accept(Slot(plate, 1), v, -1) == 0)
             {
                 // Dried on the plate above 100 °C (one module: fixed 160; two: set 104): no evaporator night.
                 if (PlateModules(plate) >= 2) SetTarget(plate, 104);
@@ -858,10 +1212,21 @@ namespace Fence.Gym
 
         static void Evaporate(GameItem evap, GameItem v)
         {
+            ChargeEvaporator(evap);
+            if (Recovering()) SeatDistillate(evap);
+            if (Chore.Accept(Slot(evap, 2), v, -1) != 0) { Stall("evaporator"); return; }
+            step = Step.Drying;
+        }
+
+        // A night's draw in the battery, or the fullest loose cell in its place (the spent one stays loose for the
+        // recharger, Power.cs).
+        static void ChargeEvaporator(GameItem evap)
+        {
             var stock = EmporiumEntry.Instance.invElement;
-            if (Charge(evap) < 6)
+            if (Charge(evap) < Math.Max(6, MachineryHelper.GetMachinePowerUsage(evap)))
             {
-                var cell = Owned().Where(i => Cell(i) && Loose(i)).OrderByDescending(i => PowerHelper.GetAvailableEnergyFromItem(i, false)).FirstOrDefault();
+                int have = Charge(evap);
+                var cell = Owned().Where(i => Cell(i) && Loose(i) && PowerHelper.GetAvailableEnergyFromItem(i, false) > have).OrderByDescending(i => PowerHelper.GetAvailableEnergyFromItem(i, false)).FirstOrDefault();
                 var bat = MachineHelper.GetBatterySlot(evap);
                 if (cell != null)
                 {
@@ -869,8 +1234,6 @@ namespace Fence.Gym
                     Chore.Accept(bat, cell, -1);
                 }
             }
-            if (Chore.Accept(Slot(evap, 2), v, -1) != 0) { Stall("evaporator"); return; }
-            step = Step.Drying;
         }
 
         // Phanta is toxic from 75 %: a residue that would press at 74.5 % or more is cut with acid (inert in it; 0.1
@@ -920,12 +1283,16 @@ namespace Fence.Gym
             if (WaterHelper.IsWet(v))
             {
                 if (step == Step.Dried) { Evaporate(evap, v); return false; }
+                if (Charge(evap) < 6 && !Legacy) ChargeEvaporator(evap);
                 if (Charge(evap) < 6) Stall("evaporator_power");
                 return false;
             }
             var r = R(product);
             if (r.Id == Phanta) CutPhanta(v, Fitted("chem_finisher"));
             if (r.Id == Dust) CutForQuota(v, Fitted("chem_finisher"));
+            // A vessel the stock grid had no room for after an earlier press still sits in the finisher.
+            if ((Slot(finisher, 1) as GameSlotInventory)?.childItem is GameItem old && old.uniqueId != v.uniqueId && Chore.Accept(stock, old, -1) != 0)
+                Chore.Accept(EmporiumEntry.Instance.backInvinvElement, old, -1);
             if (Chore.Accept(Slot(finisher, 1), v, -1) != 0) { Stall("finisher"); return false; }
             Chore.Act("configure", finisher, () => finisher.ModifyTag("SELECTED_CHEM_ID_TAG", s => s.Enable().SetString(r.Id)));
             var output = (GameInventory)Slot(finisher, 2);
@@ -939,8 +1306,15 @@ namespace Fence.Gym
             if (residueTotal > 0)
                 foreach (var l in Liquid.Liquids.Select(l => (l.identifier, n: Tag(v, l.identifier))).Where(x => x.n > 0).OrderByDescending(x => x.n).Take(6))
                     residue[l.identifier] = Math.Round(100.0 * l.n / residueTotal, 2);
+            var back = EmporiumEntry.Instance.backInvinvElement;
+            foreach (var p in output.childItems.Where(x => x != null && made.Contains(x.uniqueId)).ToList())
+                if (Chore.Accept(stock, p, -1) != 0) Chore.Accept(back, p, -1);
+            bool full = false;
             for (int k = 0; k < 400 && MachineChemFinisher.CanOutput(finisher, (GameSlotInventory)Slot(finisher, 1)); k++)
             {
+                // A unit pressed into a full output grid is lost (MachineChemFinisher ignores the placement): with the
+                // stock and back counter full the rest waits in the vessel for room.
+                if (output.childItems.Count(x => x != null) >= 20) { full = true; break; }
                 var press = ep.MachineButton(finisher, label);
                 if (press == null) break;
                 press();
@@ -956,10 +1330,26 @@ namespace Fence.Gym
                     Add(o, "value", est);
                     Add(grades, ChemicalProductHelper.GetCurrentChemicalConditionId(p) ?? "none", 1);
                     Add(batchGrades, ChemicalProductHelper.GetCurrentChemicalConditionId(p) ?? "none", 1);
-                    if (Chore.Accept(stock, p, -1) != 0) Chore.Accept(EmporiumEntry.Instance.backInvinvElement, p, -1);
+                    if (Chore.Accept(stock, p, -1) != 0) Chore.Accept(back, p, -1);
                 }
             }
-            if (pressed == 0) { Stall("press"); return false; }
+            if (full) { Stall("stock_full"); return false; }
+            if (pressed == 0)
+            {
+                // Under one unit's draw left (a batch whose inputs never came): nothing to press, the vessel is freed.
+                if (!Legacy && Total(v) < r.DrawUl)
+                {
+                    Chore.Act("empty", v, () => WaterHelper.EmptyContainer(v));
+                    Chore.Accept(stock, v, -1);
+                    step = Step.Idle;
+                    bathDone = feeding = false;
+                    product = null;
+                    Stall("press_empty");
+                    return true;
+                }
+                Stall("press");
+                return false;
+            }
             if (!Legacy) Chore.Accept(stock, v, -1);
             Batches++;
             Add(o, "batches", 1);
@@ -967,6 +1357,7 @@ namespace Fence.Gym
             var log = o["log"] as JArray ?? (JArray)(o["log"] = new JArray());
             if (log.Count < 60) log.Add(new JObject { ["day"] = ep.Day, ["inputs"] = batchInputs, ["units"] = pressed, ["expect"] = GradeName[Band(batchExpect)], ["filter"] = batchFilter, ["f"] = Fitted("chem_finisher"), ["b"] = Fitted("blender"), ["p"] = PlateModules(plate), ["grades"] = batchGrades, ["residue_ml"] = residueTotal / 1000, ["residue_pct"] = residue });
             step = Step.Idle;
+            bathDone = feeding = false;
             ep.Human("production", null, ep.Uid(v), new JObject { ["action"] = "lab_finish", ["product"] = r.Id, ["inputs"] = batchInputs, ["units"] = pressed, ["days"] = ep.Day - batchDay }, "player:lab");
             product = null;
             return true;
@@ -979,6 +1370,16 @@ namespace Fence.Gym
             var o = Per(item.identifier);
             Add(o, "sold", 1);
             Add(o, "sales", amount);
+        }
+
+        // `lab.window` (default true; `window_mode: concentrate`): the case goes to MEDICAL once our pills in stock reach
+        // the 350 that brings the tier-3 medical buyer (ShowcaseHelper.CreateClientByStockType: the hospital
+        // administrator, 750 + day to spend, from day 14); otherwise pills never lead a case judged on its top six items.
+        public static string WindowType(IList<GameItem> pool)
+        {
+            if (!On || Legacy || !(Cfg.Value<bool?>("window") ?? true) || (PlayerDay.Current?.Day ?? 0) < 14) return null;
+            long v = pool.Where(i => i.identifier == Caffeine && made.Contains(i.uniqueId)).OrderByDescending(i => i.GetNegociatedValue()).Take(30).Sum(i => (long)i.GetNegociatedValue());
+            return v >= 350 ? "MEDICAL" : null;
         }
 
         public static JObject Status()
@@ -995,7 +1396,7 @@ namespace Fence.Gym
             var o = new JObject
             {
                 ["unlocked"] = Up, ["step"] = step.ToString(), ["product"] = product, ["batches"] = Batches, ["beans_used"] = BeansUsed, ["pills"] = Pills, ["pill_value"] = PillValue,
-                ["pills_sold"] = PillsSold, ["pill_sales"] = PillSales, ["packs_opened"] = PacksOpened, ["modules_fitted"] = ModulesFitted,
+                ["pills_sold"] = PillsSold, ["pill_sales"] = PillSales, ["packs_opened"] = PacksOpened, ["recovering"] = Recovering(), ["room_moves"] = RoomMoves, ["bath"] = BathOn, ["increments"] = Increments, ["chem_bay"] = Find(ChemBay) != null, ["into_bay"] = InBay, ["recovered_ml"] = RecoveredUl / 1000, ["alcohol_ml"] = Have("alcohol") / 1000, ["modules_fitted"] = ModulesFitted,
                 ["finisher_modules"] = kit.f, ["blender_modules"] = kit.b, ["plate_modules"] = plate == null ? 0 : PlateModules(plate), ["scanner"] = Scans, ["water_filter"] = kit.wf,
                 ["stalls"] = JObject.FromObject(stalls), ["expect"] = expect, ["products"] = JObject.FromObject(per),
             };

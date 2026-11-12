@@ -7644,9 +7644,9 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
-      "id": "autopilot.networkupgrade.iswinemakerunlocked",
+      "id": "autopilot.networkupgrade.ispowerhijackunlocked",
       "type": "NetworkUpgrade",
-      "member": "IsWinemakerUnlocked",
+      "member": "IsPowerHijackUnlocked",
       "kind": "method",
       "params": [],
       "returns": "System.Boolean",
@@ -7657,9 +7657,37 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
-      "id": "autopilot.networkupgrade.ispowerhijackunlocked",
+      "id": "autopilot.networkupgrade.iscommercialpowerunlocked",
       "type": "NetworkUpgrade",
-      "member": "IsPowerHijackUnlocked",
+      "member": "IsCommercialPowerUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.powerhelper.isdisposablepowersource",
+      "type": "PowerHelper",
+      "member": "IsDisposablePowerSource",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.networkupgrade.iswinemakerunlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsWinemakerUnlocked",
       "kind": "method",
       "params": [],
       "returns": "System.Boolean",
@@ -8913,6 +8941,383 @@
         "GameItem"
       ],
       "returns": "PlantTrait",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantregistry.get",
+      "type": "PlantRegistry",
+      "member": "Get",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "PlantDefinition",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantregistry.all",
+      "type": "PlantRegistry",
+      "member": "All",
+      "kind": "property",
+      "returns": "System.Collections.Generic.IEnumerable<PlantDefinition>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantdefinition.id",
+      "type": "PlantDefinition",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantdefinition.returnsseeds",
+      "type": "PlantDefinition",
+      "member": "returnsSeeds",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantdefinition.harvestisownseed",
+      "type": "PlantDefinition",
+      "member": "HarvestIsOwnSeed",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantdefinition.getinnaterank",
+      "type": "PlantDefinition",
+      "member": "GetInnateRank",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantdefinition.innatetraits",
+      "type": "PlantDefinition",
+      "member": "innateTraits",
+      "kind": "field",
+      "returns": "System.Collections.Generic.Dictionary<System.String,System.Int32>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.geteffectivecomplexity",
+      "type": "PlantGeneticsHelper",
+      "member": "GetEffectiveComplexity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getsuccesschance",
+      "type": "PlantGeneticsHelper",
+      "member": "GetSuccessChance",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.iswrittendisk",
+      "type": "PlantGeneticsHelper",
+      "member": "IsWrittenDisk",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getdiskuses",
+      "type": "PlantGeneticsHelper",
+      "member": "GetDiskUses",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.canapplytrait",
+      "type": "PlantGeneticsHelper",
+      "member": "CanApplyTrait",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "PlantTrait",
+        "System.String&"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.gettraits",
+      "type": "PlantGeneticsHelper",
+      "member": "GetTraits",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Collections.Generic.List<System.ValueTuple<PlantTrait,System.Int32>>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getcomplexity",
+      "type": "PlantGeneticsHelper",
+      "member": "GetComplexity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getheat",
+      "type": "PlantGeneticsHelper",
+      "member": "GetHeat",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.extractionuses",
+      "type": "PlantGeneticsHelper",
+      "member": "ExtractionUses",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "PlantTrait"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getextractabletraits",
+      "type": "PlantGeneticsHelper",
+      "member": "GetExtractableTraits",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Func<PlantTrait,System.Boolean>"
+      ],
+      "returns": "System.Collections.Generic.List<PlantTrait>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.modulehelper.getajustedquality",
+      "type": "ModuleHelper",
+      "member": "GetAjustedQuality",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.planoperation",
+      "type": "MachineDnaManipulator",
+      "member": "PlanOperation",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "MachineDnaManipulator+OperationPlan",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.blockedreason",
+      "type": "MachineDnaManipulator+OperationPlan",
+      "member": "blockedReason",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.successchance",
+      "type": "MachineDnaManipulator+OperationPlan",
+      "member": "successChance",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.progress",
+      "type": "MachineDnaManipulator+OperationPlan",
+      "member": "progress",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.liquid.getcurrentpartfromid",
+      "type": "Liquid",
+      "member": "GetCurrentPartFromId",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.liquid.currentpart",
+      "type": "Liquid",
+      "member": "currentPart",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.unitvalue",
+      "type": "GameItem",
+      "member": "unitValue",
+      "kind": "property",
+      "returns": "System.Int64",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.planttrait.locked",
+      "type": "PlantTrait",
+      "member": "locked",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getplant",
+      "type": "HydroponicHelper",
+      "member": "GetPlant",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "PlantDefinition",
       "features": [
         "autopilot.executor"
       ],

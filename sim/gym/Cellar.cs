@@ -491,54 +491,26 @@ namespace Fence.Gym
         // `power` (false) runs it once two bays grow.
 
         static bool PowerKit => CleanOn && (CleanPlan.Value<bool?>("power") ?? false);
-        static GameItem Recharger() => Owned().FirstOrDefault(i => i.identifier == "recharger" && Parent(i) == null);
         static bool PowerWanted() => PowerKit && (PlayerDay.Current?.Day ?? 0) >= CleanFromDay && Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem != null) >= 2;
 
-        public static IEnumerable<string> PowerUpgrades()
-        {
-            if (!PowerWanted() || Recharger() == null) yield break;
-            yield return "POWER_HIJACK";
-            if (Bays().Count >= 4 && (CleanPlan.Value<bool?>("commercial_power") ?? false)) yield return "COMMERCIAL_POWER";
-        }
+        // What Power.cs needs to run this kit (it owns the purchases and the cell rotation).
+        public static bool CellarPowerKit => PowerKit;
+        public static bool CellarPowerWanted => PowerWanted();
+        public static bool CellarCommercialPower => PowerKit && (CleanPlan.Value<bool?>("commercial_power") ?? false);
+        public static int CellarBayCount => Bays().Count;
+        public static int CellarLowBays => Bays().Count(b => Charge(b) < 16);
 
+        static IEnumerable<string> PowerUpgrades() => Power.CellarUpgrades();
+        static int PowerCellWants() => Power.CellarCellWants();
+        static void TendPower(IExecutorHost ep, bool before) => Power.CellarTend(before);
         static int CellsOwned() => Owned().Count(i => i.identifier == "energy_credit");
-
-        // Cells: one in each bay and four charging.
-        static int PowerCellWants() => Recharger() == null ? -1 : Math.Max(0, Bays().Count + 4 - CellsOwned());
-
-        // Before the bays: the recharger's fullest cells out for any bay that will need one. After: every loose cell short of
-        // full back into it.
-        static void TendPower(IExecutorHost ep, bool before)
-        {
-            var r = Recharger();
-            if (!PowerKit || r == null) return;
-            var stock = EmporiumEntry.Instance.invElement;
-            if (before)
-            {
-                int low = Bays().Count(b => Charge(b) < 16);
-                int loose = Owned().Count(i => Charged(i) && Parent(i) == null);
-                foreach (var cell in GraphUtils.FindAllChildrenType<GameItem>(r).Where(i => i.identifier == "energy_credit" && PowerHelper.GetAvailableEnergyFromItem(i, false) >= 40)
-                             .OrderByDescending(i => PowerHelper.GetAvailableEnergyFromItem(i, false)).ThenBy(i => i.uniqueId).Take(Math.Max(0, low - loose)).ToList())
-                    Chore.Accept(stock, cell, -1);
-                return;
-            }
-            var grid = GraphUtils.FindChildrenType<GameGridInventory>(r).FirstOrDefault();
-            if (grid == null) return;
-            // A full cell makes room for an empty one.
-            var spare = Owned().Where(i => i.identifier == "energy_credit" && Parent(i) == null && PowerHelper.GetAvailableEnergyFromItem(i, false) < 100)
-                .OrderBy(i => PowerHelper.GetAvailableEnergyFromItem(i, false)).ThenBy(i => i.uniqueId).ToList();
-            foreach (var full in GraphUtils.FindAllChildrenType<GameItem>(r).Where(i => PowerHelper.GetAvailableEnergyFromItem(i, false) >= 100).Take(spare.Count).ToList())
-                Chore.Accept(stock, full, -1);
-            foreach (var cell in spare)
-                if (Chore.Accept(grid, cell, -1) != 0) break;
-        }
 
         static JObject CellarStatus() => !ReedOn ? null : new JObject
         {
             ["reeds"] = ReedBays().Count, ["reed_seeds"] = Owned().Count(i => i.identifier == ReedSeedId && Parent(i) == null), ["fills"] = ReedFills, ["filtered_fills"] = ReedFiltered, ["store_ml"] = StoreRoomMl(),
             ["cured_ml_in_hand"] = Owned().Where(i => cleanStore.Contains(i.uniqueId)).Sum(WaterHelper.GetCurrentCapacityML),
             ["pitcher"] = Pitcher() != null, ["filters"] = Owned().Count(i => i.identifier == "water_filter" && DurabilityHelper.GetRealDurability(i) > 0),
-            ["strips"] = Strips().Count(), ["recharger"] = Recharger() != null, ["cells"] = CellsOwned(),
+            ["strips"] = Strips().Count(), ["recharger"] = Power.HasRecharger, ["cells"] = CellsOwned(),
         };
     }
 }

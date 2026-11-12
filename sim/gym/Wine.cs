@@ -19,7 +19,7 @@ namespace Fence.Gym
         static int WineRacks => WineOn ? Directives.Current.Raw.Value<int?>("wine_racks") ?? 0 : 0;
 
         // The machines the wine levers buy at Dr. Jackson's, and how many of each.
-        public static int JacksonWineWants(string id) => id == "wine_rack" ? WineRacks : id == "water_purifier" && WinePurifierOn ? 1 : id == "recharger" && PowerWanted() ? 1 : id == "uv_filter" && PureOn ? 1 : id == "water_tank" && ReedOn ? Owned().Count(i => i.identifier == "water_tank") + CleanWants(id) : JacksonDnaWants(id);
+        public static int JacksonWineWants(string id) => id == "wine_rack" ? WineRacks : id == "water_purifier" && WinePurifierOn ? 1 : id == "recharger" && Power.CellarWantsRecharger ? 1 : id == "uv_filter" && PureOn ? 1 : id == "water_tank" && ReedOn ? Owned().Count(i => i.identifier == "water_tank") + CleanWants(id) : JacksonDnaWants(id);
 
         // HQ (99.00 %) and better: the wine term +1 and a slow enough health loss in the bays.
         const int HqPurity = 9900;

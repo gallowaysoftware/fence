@@ -222,7 +222,7 @@ namespace Fence.Gym
                 // budget (docs/re/WINDOW.md, ShowcaseHelper.CreateClientByStockType). Fill the case with the
                 // type that gets closest, most valuable first; the other types' best items take what room is left.
                 var shownTypes = Style.SpecialtyTypes is List<string> st && st.Any(t => WindowTypes.Contains(t)) ? WindowTypes.Where(st.Contains).ToArray() : WindowTypes;
-                string top = shownTypes.OrderByDescending(t => pool.Where(i => i.GetGameItemType().Contains(t)).OrderByDescending(i => i.GetNegociatedValue()).Take(6).Sum(i => (long)i.GetNegociatedValue())).First();
+                string top = Lab.WindowType(pool) ?? shownTypes.OrderByDescending(t => pool.Where(i => i.GetGameItemType().Contains(t)).OrderByDescending(i => i.GetNegociatedValue()).Take(6).Sum(i => (long)i.GetNegociatedValue())).First();
                 if (P != null) P.ShowType = top;
                 picked = pool.Where(i => i.GetGameItemType().Contains(top)).OrderByDescending(i => i.GetNegociatedValue()).ThenBy(i => i.uniqueId).ToList();
                 foreach (var type in WindowTypes.Where(t => t != top))
@@ -442,6 +442,7 @@ namespace Fence.Gym
             if (JacksonEquipment && Production.IsInput(i.identifier) && (i.identifier != "energy_credit" || Production.Charged(i))
                 && staged < Production.Wants(i.identifier)) return true;
             if (Lab.JacksonBuys(i.identifier) && staged < Lab.Wants(i.identifier)) return true;
+            if (Power.JacksonBuys(i.identifier) && staged < Power.Wants(i.identifier)) return true;
             var ids = (D.Raw["jackson"] as Newtonsoft.Json.Linq.JArray)?.Select(x => (string)x).ToList()
                 ?? new List<string> { "sign_water" };
             if (WindowSigns is List<string> signs) ids = ids.Concat(signs).ToList();
@@ -471,7 +472,8 @@ namespace Fence.Gym
             // stocks, at most once in N nights.
             int need = D.Raw.Value<int?>("jackson_need") ?? 0;
             bool needed = need > 0 && v.Day - lastJackson >= need && JacksonEquipment && JacksonStock.Any(id => Production.Wants(id) > 0)
-                || Lab.JacksonNeed is int ln && v.Day - lastJackson >= ln && (Lab.Wants("chem_module") > 0 || Lab.Wants("energy_credit") > 0);
+                || Lab.JacksonNeed is int ln && v.Day - lastJackson >= ln && (Lab.Wants("chem_module") > 0 || Lab.Wants("energy_credit") > 0)
+                || Power.On && v.Day - lastJackson >= 3 && Power.Wants("recharger") > 0;
             if ((due || needed) && v.Locations.Contains("dr_jackson") && v.Cash > v.RentDue + 800)
             {
                 plan.Outing = "dr_jackson";
@@ -552,6 +554,7 @@ namespace Fence.Gym
             bool fount = Fountain.Buys && (P?.Day ?? 0) >= Fountain.BuyDay;
             if (fount) order.Add("VENDING_FOUNTAIN");
             order.AddRange(Suppliers.Upgrades());
+            order.AddRange(Power.Upgrades());
             order.AddRange(Lab.Upgrades());
             order.AddRange(Crops.Upgrades());
             order.AddRange(Production.ReedUpgrades());
@@ -581,9 +584,10 @@ namespace Fence.Gym
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
                 if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
-                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) || Arms.WantsUpgrade(id) || Fish.WantsUpgrade(id))
+                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) || Arms.WantsUpgrade(id) || Fish.WantsUpgrade(id) || Power.WantsUpgrade(id))
                 {
-                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Lab.WantsUpgrade(id) ? Lab.UpgradeReserve : Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) ? 300 : Arms.WantsUpgrade(id) ? Arms.UpgradeReserve : Fish.WantsUpgrade(id) ? Fish.UpgradeReserve : Suppliers.Reserve(id))) continue;
+                    if (Lab.PermitFirst && (Crops.WantsUpgrade(id) || (Power.WantsUpgrade(id) && !Lab.Running))) continue;
+                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Lab.WantsUpgrade(id) ? Lab.UpgradeReserve : Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) || Power.WantsUpgrade(id) ? 300 : Arms.WantsUpgrade(id) ? Arms.UpgradeReserve : Fish.WantsUpgrade(id) ? Fish.UpgradeReserve : Suppliers.Reserve(id))) continue;
                     picks.Add(id);
                     funds -= u.Cost;
                     favor = Math.Max(0, favor - u.Cost);
@@ -835,7 +839,7 @@ namespace Fence.Gym
                 return cash - cost + PlayerStock.Value() * 0.7 >= pst.mortgageWeeklyPayment;
             }
             // Engine inputs are bought near their estimate: a bottle turns 12 into 85-175 of wine.
-            if (inputsOnly && cells <= free && stagedOk)
+            if (inputsOnly && (cells <= free || Lab.CanMakeRoom(staged.Select(i => i.Value<string>("id")), cells)) && stagedOk)
             {
                 if (wholesale.HasValue && lotOk && Has(req, "accept_wholesale") && AffordInput(wholesale.Value) && staged.Count == theirs.Count)
                 {

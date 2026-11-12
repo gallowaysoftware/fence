@@ -3,6 +3,40 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## The chemistry supply loop — 2026-11-12: every wall closed or measured; the lab still loses
+
+**Result.** The caffeine lab's supply walls, closed one by one on the chemistry engine (docs/research/CHEMISTRY-ENGINE.md,
+"The supply loop"). Free power is a new cross-engine file, `sim/gym/Power.cs` (`power: {...}`: POWER_HIJACK,
+rechargers, COMMERCIAL_POWER, charged loose cells as the interface). The lab gained a solvent bath fed in increments,
+solvent recovery, pack stocking, spare vessels and filters, room-making in a full grid, the chemist's storage bay and
+a medical case. On hard, 60 paired seeds: the Board route still wins 57–60/60, but **62–114 days later** than
+`sprinter` (90). Board-free and on the farmer start the loop is 0/60 and **dies 36–58 days sooner**. The Cook is 0/30
+(day ~38).
+
+**Found.**
+
+- Alcohol is a solvent, not a reactant (R1/R7): one 250 ml bath takes a 20-bean batch. Packs fell from 4.9 to 3.4 a
+  run, and recovery returns 0.35–0.7 L. "Alcohol is the binding wall" was wrong.
+- The old extraction at 99 °C let water extraction (≥ 80 °C, an eighth of the yield) eat mush; the bath holds 50–54 °C.
+- A full stock grid left bought machines on the back counter, where buyers' "sell all" took them, and pills pressed
+  into a full output grid were lost. Both are fixed.
+- An uninsured shop loses an owned item to a burglar each night: the lab's pitchers and vessels went that way.
+- Beans (~5 a week from visitors; 1.45 tap bays a run) and capital are the walls. Power is free from day ~55 and
+  costs a Board run ~20 days.
+
+
+## Gene lines (breeding) — 2026-11-12
+
+**Result.** `breeding: {lines: ["caffeine_weed", "bloom", "coffee", …]}` (sim/gym/Breeding.cs; docs/research/BREEDING.md)
+breeds clone lines on cold children with banked complexity and refills from the richest donor, and presses
+caffeine-only produce into pills. Lab (`fence-lab breed.*`): odds/work/heat formulas exact; refills give a bred
+donor's whole rank; caffeine on fillerweed gives pure-caffeine produce (8 ml an item at caffeine IV + potent II),
+pressed with no alcohol at the finisher's cap (lab pure with 4 + 4 modules); purifying I is the bloomberry trait on
+any water (Basewater 1.16 → 1.58 wine points a berry; dirty tap −0.5 → +0.7). Fixed: the DNA kit was sold off the back
+counter (also under `wine_dna`). Gym, hard Board, 60 paired: caffeine weed 60/60 vs 60/60, buyout +11.8 ± 9.9 days
+later; bloom 60/60 vs 60/60, +18.2 ± 5.5 days; Board-free 0/60 everywhere (weed −2.0 ± 6.1, bloom −9.5 ± 8.7
+last day). The line's kit (lab machines, cells, bays, donors) is missing on most mornings; PLANT_DNA's capex is the
+delay. The mechanics are there for a route that already has the kit.
 ## Clean water at scale — 2026-11-12: the staged build cures water, the buyout does not move; bottles are the wall
 
 **Result.** The staged clean-water build of PRODUCTION-VERDICTS.md as `clean_water` (sim/gym/Cellar.cs, off by

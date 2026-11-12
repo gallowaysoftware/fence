@@ -151,8 +151,8 @@ Every trait is unlimited in rank. A rank r scales a per-rank-one percent by `r^0
 | perennial | — | 5 | survives harvest and refruits; harvest −25 %, growth −20 %, seed yield −50 % | incompatible with infertile |
 | purifying / polluting | water quality | 3 / −2 | each growth night removes `min(95 %, 10 % × r^0.75)` of every purifier-removable contaminant except mineral (at least 1 ml each), down to a floor of each liquid's machine floor ÷ r (chemical 16, heavy metal 25, microplastic 18, organic 10, microbe 9, physical 7 bp at rank I); removed volume returns as water / turns 0.1 % × r^0.75 of the water into organic 50 %, microbe 35 %, physical 15 % | rank IV (hydroreed): 28 %/night, floors 4/6/4/2/2/1 bp |
 | dense | fibre | 3 | harvested durable items +25 % durability | only crops with durable produce (hydroreed filters) |
-| potent / weak | potency | 3 / −2 | active ingredients ±25 % | only seeds with an active liquid (coffee, dream cap); acts on seed produce too |
-| caffeine / coffee-mush / dream-cap-mush production | — | 3 / 2 / 4 | infuses 2 / 10 / 2 ml × r^0.75 of that liquid into each produce item (dream-cap mush adds contraband 2 unless the neutralizer module is in; the nightmare module converts it) | acts on seed produce too |
+| potent / weak | potency | 3 / −2 | active ingredients ±25 % | only seeds with an active liquid (coffee, dream cap, or any seed given a production trait first); acts on seed produce too |
+| caffeine / coffee-mush / dream-cap-mush production | — | 3 / 2 / 4 | infuses 2 / 10 / 2 ml × r^0.75 of that liquid into each produce item (dream-cap mush adds contraband 2 unless the neutralizer module is in; the nightmare module converts it) | acts on seed produce too, **and on any crop's produce**: a fillerweed given caffeine harvests items whose only liquid is caffeine (lab, `breed.caffeineweed`; docs/research/BREEDING.md) |
 
 A trait that acts on produce has no effect (and the manipulator refuses it) on a plant whose harvest is its own seed
 (coffee), unless it is marked for seed produce. The gene scanner prints "no effect" next to such traits.
@@ -161,6 +161,12 @@ A trait that acts on produce has no effect (and the manipulator refuses it) on a
 of the parent and starts with zero heat. The number of copies per seed output is the seed-yield multiplier's whole
 part plus a roll on its fraction (fertile I: 1 + 25 %; infertile X: ~0). Nothing else changes a genome: no
 crossing, no pollination, no mutation in the plant code (bought and spawned seeds carry only the innate ranks).
+
+**Bred donors** (lab, `breed.extract`). The uses a refill adds are the donor's *current* rank of a trait innate to its
+species, so a line's own clones become rich donors (a coffee bean bred to caffeine III refills +3, potent IV +4); a
+trait the species lacks gives 1 however high (fillerweed with caffeine III: +1). The op runs at the donor's own
+complexity: 45–65 % on those bred beans. Complexity, unlike heat, is permanent on clones; negative traits lower it
+for good, which is how a clone line banks odds (BREEDING.md §1).
 
 ## 4. Water-quality plants
 
@@ -275,7 +281,19 @@ and every descendant carries the edit and starts cold for the next one.
   frail is refused (same group); remove a frail rank first (stabilizer + precision tuned to frail), or simply give it
   clean water. Removing `slow_grower` (stabilizer) brings work 43 → 32 (4 nights, +50 %).
 
+**Measured** (lab, `breed.bloom`, 6 bays × 21 nights each; wine points a berry on nights 10–21). On
+`FillWithBaseWater` + 6 tablets the plain plant already reaches 1.16 (better than the computed Basewater row above:
+that water is cleaner than the bought bottles the table used), hardy I 1.03, **purifying I 1.58**, purifying I +
+bountiful I 1.62 at 7 berries, bountiful I 1.04 at 7. On filtered Rustwater + a nutrient tablet a litre without
+water tablets (chemical 219 bp): plain −0.52, hardy I −0.49, bountiful I −0.54, **purifying I +0.66** and purifying
++ bountiful +0.97, still rising as the bay converges. Rules 1–3 hold; hardy I is worth nothing on either water.
+
 ## 7. `sim/gym/Dna.cs` against the above
+
+**Superseded by `breeding` (sim/gym/Breeding.cs, docs/research/BREEDING.md)**, which implements gaps 1–5 below as gene
+lines; `wine_dna` is kept as it was, except that the DNA kit is now moved off the back counter, where it sat from
+the night PLANT_DNA was bought and the next buyers took the manipulator (in the gym it was sold within days in 4 of
+6 hard runs) — part of why `wine_dna` measured null.
 
 What it does: buys PLANT_DNA, the manipulator and blank disks; random-extracts from a fillerweed / nutrifruit /
 hydroreed (most hardy ranks first, i.e. fillerweed) onto a blank disk until a disk reads Hardy; applies it to

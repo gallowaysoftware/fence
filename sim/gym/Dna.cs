@@ -14,10 +14,10 @@ namespace Fence.Gym
     // label or the gene scanner's readout.
     internal static partial class Production
     {
-        public static bool DnaOn => WineOn && (Directives.Current.Raw.Value<bool?>("wine_dna") ?? false);
+        public static bool DnaOn => WineOn && ((Directives.Current.Raw.Value<bool?>("wine_dna") ?? false) || BreedOn);
         static bool DnaPrecision => DnaOn && (Directives.Current.Raw.Value<bool?>("wine_dna_precision") ?? false);
         // Cash kept after Wild's PLANT_DNA beyond the rent and floor.
-        static int DnaReserve => Directives.Current.Raw.Value<int?>("wine_dna_reserve") ?? 1500;
+        static int DnaReserve => BreedCfg?.Value<int?>("reserve") ?? Directives.Current.Raw.Value<int?>("wine_dna_reserve") ?? 1500;
         // Hardy ranks wanted on each bloomberry seed (a second rank costs a second operation at ~55 %).
         static int DnaRanks => Math.Max(1, Directives.Current.Raw.Value<int?>("wine_dna_ranks") ?? 1);
 
@@ -41,18 +41,22 @@ namespace Fence.Gym
         static bool Bloomseed(GameItem i) => i.identifier == "bloomberry_seed" && Parent(i) == null;
 
         // Bred seeds waiting for a bay, and plain seeds a Hardy disk can still improve.
-        static int BredInHand() => Owned().Count(i => Bloomseed(i) && Hardy(i) >= DnaRanks);
+        static int BredInHand() => BreedOn ? BloomBredInHand() : Owned().Count(i => Bloomseed(i) && Hardy(i) >= DnaRanks);
+
+        // A bloomberry the program has finished with (breeding), or one with the lever's hardy ranks (wine_dna).
+        static bool BredBloom(GameItem s) => BreedOn ? BloomFinished(s) : Hardy(s) >= DnaRanks;
 
         static bool DiskReady() => Owned().Any(i => HardyDisk(i) && Parent(i) == null);
 
         // Plain bays left to replace: every bay ends up with a bred plant.
-        static int PlainBays() => Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && Hardy(s) < DnaRanks);
+        static int PlainBays() => BreedOn ? BloomPlainBays() : Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && Hardy(s) < DnaRanks);
 
         static bool DnaDone() => PlainBays() == 0 && Bays().Any();
 
         public static bool DnaReserved(GameItem i)
         {
             if (!DnaOn) return false;
+            if (BreedOn) return BreedReserved(i);
             if (i.identifier == "plant_dna_manipulator" || (IsDisk(i) && (PlantGeneticsHelper.IsBlankDisk(i) || HardyDisk(i))) || (i.identifier ?? "").StartsWith("dna_manipulator_module", StringComparison.Ordinal) || i.identifier == "gene_scanner" || i.identifier == "hatchet") return true;
             return Donors.Contains(i.identifier ?? "") && !DnaDone();
         }
@@ -60,7 +64,9 @@ namespace Fence.Gym
         // Dr. Jackson's stock the lever wants, as a total owned.
         static int JacksonDnaWants(string id)
         {
-            if (!DnaOn || !NetworkUpgrade.IsPlantDnaUnlocked() || DnaDone()) return 0;
+            if (!DnaOn || !NetworkUpgrade.IsPlantDnaUnlocked()) return 0;
+            if (BreedOn) return BreedJacksonWants(id);
+            if (DnaDone()) return 0;
             var owned = Owned().ToList();
             switch (id)
             {
@@ -75,7 +81,9 @@ namespace Fence.Gym
 
         // A plain bloomberry seed for the disk, and one bay more than the plan's while a bred seed waits and no hatchet
         // can clear a plain plant.
-        static int DnaWantsSeed() => DnaOn && DiskReady() && !Owned().Any(i => Bloomseed(i) && Hardy(i) < DnaRanks) ? 1 : 0;
+        static int DnaWantsSeed() => BreedOn
+            ? BloomLine != null && NetworkUpgrade.IsPlantDnaUnlocked() && BloomPlainBays() > BloomBredInHand() && !Owned().Any(i => Bloomseed(i) && !BloomFinished(i)) ? 1 : 0
+            : DnaOn && DiskReady() && !Owned().Any(i => Bloomseed(i) && Hardy(i) < DnaRanks) ? 1 : 0;
 
         static int DnaExtraBays() => DnaOn && BredInHand() > 0 && !Owned().Any(i => i.identifier == "hatchet") ? 1 : 0;
 
@@ -89,6 +97,8 @@ namespace Fence.Gym
         static void TendDna(IExecutorHost ep)
         {
             if (!DnaOn) return;
+            if (BreedOn) { TendBreeding(ep); return; }
+            StowDna();
             ReplantBred(ep);
             var m = Manipulator();
             if (m == null) return;
@@ -151,6 +161,7 @@ namespace Fence.Gym
         // Donor seeds bought from sellers while no Hardy disk is in hand; cells for the manipulator.
         static int DnaWants(string id)
         {
+            if (BreedOn) return BreedDonorWants(id);
             if (!DnaOn || !NetworkUpgrade.IsPlantDnaUnlocked() || DnaDone() || DiskReady() || !Donors.Contains(id)) return 0;
             return Owned().Any(i => Donors.Contains(i.identifier ?? "") && Parent(i) == null) ? 0 : 1;
         }
@@ -177,7 +188,7 @@ namespace Fence.Gym
             if (BredInHand() == 0 || Bays().Any(b => MachineHydroponic.GetInputSlot(b).childItem == null)) return;
             var hatchet = Owned().FirstOrDefault(i => i.identifier == "hatchet");
             if (hatchet == null) return;
-            var bay = Bays().Where(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && Hardy(s) < DnaRanks).OrderBy(b => b.uniqueId).FirstOrDefault();
+            var bay = Bays().Where(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && (BreedOn ? s.identifier == "bloomberry_seed" && Progress(s, BloomLine) == 0 : Hardy(s) < DnaRanks)).OrderBy(b => b.uniqueId).FirstOrDefault();
             if (bay == null) return;
             if (hatchet.canThisTargetItemFunc != null && !hatchet.canThisTargetItemFunc(hatchet, bay)) return;
             Chore.Act("uproot", bay, () => HydroponicHelper.RemovePlantFromHydroponic(bay));
@@ -186,10 +197,12 @@ namespace Fence.Gym
         }
 
         // The seed TendBay plants: a bred one first when the lever is on.
-        static GameItem SeedToPlant() => DnaOn
+        static GameItem SeedToPlant() => BreedOn && BloomLine != null
+            ? Owned().Where(i => Bloomseed(i) && !BloomUnfinished(i)).OrderByDescending(BloomFinished).ThenByDescending(i => Progress(i, BloomLine)).ThenBy(i => i.uniqueId).FirstOrDefault()
+            : DnaOn && !BreedOn
             ? Owned().Where(i => Bloomseed(i)).OrderByDescending(Hardy).ThenBy(i => i.uniqueId).FirstOrDefault()
             : Owned().FirstOrDefault(i => i.identifier == "bloomberry_seed" && Parent(i) == null);
 
-        static JObject DnaTotals() => new JObject { ["ops"] = DnaOps, ["bred_planted"] = Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && Hardy(s) >= DnaRanks), ["replanted"] = DnaReplanted, ["manipulator"] = Manipulator() != null, ["hardy_disk"] = DiskReady() };
+        static JObject DnaTotals() => BreedOn ? BreedTotals() : new JObject { ["ops"] = DnaOps, ["bred_planted"] = Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem s && Hardy(s) >= DnaRanks), ["replanted"] = DnaReplanted, ["manipulator"] = Manipulator() != null, ["hardy_disk"] = DiskReady() };
     }
 }
