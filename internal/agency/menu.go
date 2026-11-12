@@ -256,7 +256,7 @@ func (m *Menu) LeanText() string {
 	}
 	var b strings.Builder
 	for _, e := range es {
-		fmt.Fprintf(&b, "- %s (%s): %s; won %s, median day %d", e.Name, e.Start, diffText(ref, e), e.Lab.Wins, e.Lab.MedianWinDay)
+		fmt.Fprintf(&b, "- %s (%s, %s): %s; won %s, median day %d", e.Name, e.Start, e.Persona, diffText(ref, e), e.Lab.Wins, e.Lab.MedianWinDay)
 		if o := e.Odds; o != nil {
 			fmt.Fprintf(&b, "; by day %d %d %% (%d–%d)", m.Deadline, o.Pct(), o.Lo, o.Hi)
 		} else if m.Deadline > 0 {

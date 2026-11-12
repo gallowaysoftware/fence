@@ -395,8 +395,9 @@ the prompt and the last one off the menu.
 
 ```sh
 # drift's 27B through the gate (start the gate first), lean prompt; add -format F for a format run,
-# -start S to fix the start, -dry-run to see a pick without recording it
-make choose ARGS="-format sprint_91"
+# -start S to fix the start, -dry-run to see a pick without recording it; PERSONA=id is the card's
+# archetype, which writes the thesis and plays the run whatever route is picked
+make choose PERSONA=botanist ARGS="-format sprint_91"
 ```
 
 It prints the route and the save to start (difficulty, start, perks), the thesis, the mod's

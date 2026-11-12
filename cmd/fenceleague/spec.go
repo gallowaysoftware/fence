@@ -94,6 +94,9 @@ type Player struct {
 	ChooseRoute string `json:"choose_route,omitempty"`
 	// AgencyLean shortens the day-0 prompt for a small model on a tight context.
 	AgencyLean bool `json:"agency_lean,omitempty"`
+	// Persona is the archetype a choose_route player plays whatever route it picks (a
+	// docs/personas id, the scenario card's); empty takes the chosen route's.
+	Persona string `json:"persona,omitempty"`
 }
 
 const (
@@ -186,6 +189,9 @@ func (s *Spec) normalize() error {
 			return fmt.Errorf("player id %q: empty, duplicate or not lower-case", p.ID)
 		}
 		seen[p.ID] = true
+		if p.Persona != "" && (p.ChooseRoute == "" || !idRE.MatchString(p.Persona)) {
+			return fmt.Errorf("player %s: persona %q needs choose_route and an id", p.ID, p.Persona)
+		}
 		if p.ChooseRoute != "" && (p.Mode != ModePlan || len(s.Routes) == 0 || p.ChooseRoute != ChooseAny && p.ChooseRoute != ChooseStart) {
 			return fmt.Errorf("player %s: choose_route %q needs mode plan, routes, and any or start", p.ID, p.ChooseRoute)
 		}

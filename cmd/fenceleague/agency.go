@@ -9,6 +9,7 @@ import (
 	"github.com/gallowaysoftware/fence/internal/agency"
 	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
+	"github.com/gallowaysoftware/fence/internal/strategy"
 )
 
 // Values of Player.ChooseRoute: the model picks the run's route before day 1 (internal/agency).
@@ -34,6 +35,13 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 	client := &llm.OpenAI{BaseURL: l.proxy.BaseURL(m.ID()), Model: model, OpenAIOptions: opts}
 	recent := agency.Recent(l.Dir, dir)
 	ask := agency.Ask{Recent: recent, Lean: m.Player.AgencyLean}
+	if id := m.Player.Persona; id != "" {
+		text, err := strategy.LoadPersona(strategy.DefaultPersonaDir, id)
+		if err != nil {
+			return m, agency.Choice{}, err
+		}
+		ask.Persona, ask.PersonaText = id, text
+	}
 	if len(recent) > 0 {
 		ask.Exclude = recent[len(recent)-1]
 	}

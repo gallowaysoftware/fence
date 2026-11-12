@@ -127,3 +127,26 @@ func TestChoose(t *testing.T) {
 		t.Error("unknown format")
 	}
 }
+
+// The card's persona writes the thesis and plays the run, whatever route the model picks.
+func TestChoosePersona(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "choices")
+	t.Chdir(filepath.Join("..", ".."))
+	srv, prompts := fakeLLM(t, answer(map[string]any{"route": "vintner"}))
+	var out, errb bytes.Buffer
+	args := []string{"-llm-url", srv.URL, "-model", "fake", "-dir", dir, "-lean", "-persona", "botanist"}
+	if err := run(context.Background(), args, time.Now, &out, &errb); err != nil {
+		t.Fatal(err)
+	}
+	for _, w := range []string{"route     vintner (menu route)", "persona   botanist (the card's)", "-route vintner -persona botanist"} {
+		if !strings.Contains(out.String(), w) {
+			t.Errorf("output lacks %q:\n%s", w, out.String())
+		}
+	}
+	if p := (*prompts)[0]; !strings.Contains(p, "the run's card makes you this archetype") || !strings.Contains(p, "\nBotanist\nPath: plants clean the water.") || strings.Contains(p, "## Notes") {
+		t.Errorf("prompt lacks the persona's prompt part, or carries its notes:\n%s", p)
+	}
+	if err := run(context.Background(), []string{"-llm-url", srv.URL, "-dir", dir, "-persona", "../x"}, time.Now, &out, &errb); err == nil {
+		t.Error("a missing persona")
+	}
+}

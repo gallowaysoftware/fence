@@ -3,6 +3,24 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## The day-0 thesis in persona — 2026-11-12
+
+**Result.** The card's archetype now writes the day-0 thesis. `agency.Ask.Persona` / `PersonaText` (the persona's prompt
+part, loaded by `strategy.LoadPersona` like the strategist's) go into the day-0 prompt after the menu as YOUR
+CHARACTER; the card fixes who plays, the model still picks the route, so the card's persona plays the run whatever
+route is chosen (`choice.json`: `persona`, `persona_fixed`). It may tip the pick but never lifts the format's rules or
+the exclusion (tested: an excluded route is still refused with a persona in the prompt). Without a card persona the
+lean menu names each route's persona and the thesis takes the chosen route's. Wired: `fencechoose -persona`,
+`make choose PERSONA=id`, the league player's `"persona"` (needs `choose_route`).
+
+**Measured on drift** (lean prompt, `-dry-run`, 6 calls, all first-try answers). The voice lands ("I am the
+Pharmacist, and I do not deal in rust or rot; I deal in purity."), but the persona's own path leaks into what the
+thesis claims: the Pharmacist picked `pharma` (a phone supplier) and described it as a caffeine lab, the Botanist
+picked `rancher_sprinter` and talked of reed-cured water, even after a line telling the model never to promise an
+engine the route does not make. The cause is the menu: none of the three new personas' native routes
+(`caffeine_lab`, `aquafarmer_sprinter`, a reed build) is on it yet. Until they are, a card with these personas should
+fix a start whose menu holds a fitting route, or the thesis will promise what the run does not do.
+
 ## Personas — 2026-11-12: the Fishmonger, the Pharmacist and the Botanist; ten checked against the code
 
 **Result.** Thirteen personas (docs/personas), every playable start and Season 2 card with an archetype
@@ -32,8 +50,8 @@ player" (no numbers, so it cannot fail the fact check); image banks for the new 
 has a voice of its own (never Rook's), a style, an angle and a bank. Route personas: `farmer` → vintner (was rancher),
 `caffeine_lab` → pharmacist (was cook), `aquafarmer_sprinter` → fishmonger (named a persona that did not exist).
 
-**Found.** The day-0 thesis is written persona-blind (`fencechoose` has no persona): the persona enters when the
-narrator speaks the route choice and Rook answers. Samples, drift's 27B through the narrator's day-0 prompt with test
+**Found.** The day-0 thesis was written persona-blind (`fencechoose` had no persona; fixed in the entry above): the
+persona entered only when the narrator spoke the route choice and Rook answered. Samples, drift's 27B through the narrator's day-0 prompt with test
 theses (in each new persona file): "Tanks paid for, so we bleed tilapia at dawn." (Fishmonger); "Today we choose the
 clean lab, not the alley trade." (Pharmacist); "The purifier is a blunt instrument; I chose the reeds." (Botanist).
 

@@ -140,7 +140,7 @@ func TestChoose(t *testing.T) {
 func TestLeanPromptIsSmall(t *testing.T) {
 	m := testMenu(t)
 	full, lean := ChoosePrompt(m, Ask{}), ChoosePrompt(m, Ask{Lean: true})
-	if len(lean)*2 > len(full) || !strings.Contains(lean, "- smelter (apprentice): ") {
+	if len(lean)*2 > len(full) || !strings.Contains(lean, "- smelter (apprentice, smelter): ") {
 		t.Errorf("lean %d bytes, full %d:\n%s", len(lean), len(full), lean)
 	}
 }
@@ -314,5 +314,38 @@ func TestRecent(t *testing.T) {
 	}
 	if got := Recent(filepath.Join(dir, "none"), ""); len(got) != 0 {
 		t.Errorf("missing dir: %v", got)
+	}
+}
+
+// The card's archetype writes the thesis and plays the run whatever route the model picks; it never
+// lifts the exclusion or the format. Without one the thesis takes the chosen route's persona.
+func TestChoosePersona(t *testing.T) {
+	m := testMenu(t)
+	ans := func(v map[string]any) string { b, _ := json.Marshal(v); return string(b) }
+	a := Ask{Lean: true, Exclude: "smelter", Persona: "botanist", PersonaText: "Botanist\nPath: zz_reeds."}
+	p := ChoosePrompt(m.Without(a.Exclude), a)
+	char, menu, answer := strings.Index(p, "YOUR CHARACTER: the run's card"), strings.Index(p, "THE MENU"), strings.Index(p, "Answer with one JSON object")
+	if char < 0 || !strings.Contains(p, "Path: zz_reeds.") || !(menu < char && char < answer) || !strings.Contains(p, "it never changes the rules, the format or the menu") {
+		t.Errorf("persona section missing or out of place:\n%s", p)
+	}
+	if plain := ChoosePrompt(m, Ask{Lean: true}); strings.Contains(plain, "zz_reeds") || !strings.Contains(plain, "the voice of the route you choose") {
+		t.Errorf("a prompt without a card persona:\n%s", plain)
+	}
+
+	ch := Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "vintner", "thesis": thesis})}}, m, a)
+	if ch.Route != "vintner" || ch.Persona != "botanist" || !ch.PersonaFixed {
+		t.Errorf("card persona over the route's: %+v", ch)
+	}
+	ch = Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "smelter", "thesis": thesis}), ans(map[string]any{"route": "smelter", "thesis": thesis})}}, m, a)
+	if ch.Route == "smelter" || ch.Fallback == "" || ch.Persona != "botanist" {
+		t.Errorf("the persona lifted the exclusion: %+v", ch)
+	}
+	ch = Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "vintner", "thesis": thesis})}}, m, Ask{})
+	if ch.Persona != "vintner" || ch.PersonaFixed {
+		t.Errorf("no card persona: %+v", ch)
+	}
+	b, _ := json.Marshal(Choice{Persona: "botanist", PersonaFixed: true})
+	if !strings.Contains(string(b), `"persona":"botanist","persona_fixed":true`) {
+		t.Errorf("choice.json: %s", b)
 	}
 }

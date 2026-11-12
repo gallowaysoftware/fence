@@ -18,7 +18,8 @@ all run: the day-0 thesis, the plans, the narrator's lines and the co-host's foi
 | `odds` | the executor's measured wins out of 60 under the card | shown on the format card; a card goes live only once measured |
 
 A card is a format plus a start, perks and an archetype: `sim/lab/scripts/directives/formats/*.json` gains
-`start`, `perks` and `persona`, and `fencechoose -format` reads them (to build).
+`start`, `perks` and `persona`, and `fencechoose -format` reads them (to build; until then the persona is
+`fencechoose -persona`).
 
 ## Season 1, the Gauntlet: beat every start on hard
 
@@ -75,8 +76,9 @@ The archetype's persona file sets what the player cares about and how it plays: 
 despises, how it takes a loss. The strategist's plans follow it (the style section of the plan prompt), the narrator
 speaks in it (a fixed Kokoro voice and a speaking style, `internal/show/persona.go`), and the co-host Rook is cast as
 its opposite: each persona carries the angle Rook takes on it (the Honest Broker's is a shark's, the Cook's a
-pharmacist's). The day-0 thesis itself is written persona-blind (`fencechoose` has no persona); the persona comes in
-when the narrator speaks it and Rook answers. A persona file's `## Notes` (its sources, voice, Rook's angle and sample
+pharmacist's). The day-0 thesis is written in it too: the card's archetype goes into the day-0 prompt
+(`fencechoose -persona`, docs/STREAM.md "Model agency") and plays the run whatever route the model picks; a card
+without one takes the chosen route's persona. A persona file's `## Notes` (its sources, voice, Rook's angle and sample
 lines) are for people: no prompt carries them, and the part before them stays under 800 bytes.
 
 ## The archetypes

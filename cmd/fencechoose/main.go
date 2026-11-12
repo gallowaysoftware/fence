@@ -26,6 +26,7 @@ import (
 	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/route"
+	"github.com/gallowaysoftware/fence/internal/strategy"
 )
 
 const defaultDir = "var/stream/choices"
@@ -51,6 +52,7 @@ func run(ctx context.Context, args []string, now func() time.Time, stdout, stder
 	fs.SetOutput(stderr)
 	formatName := fs.String("format", "", "the run's stream format (a hard one that names no route): the menu shows each route's odds of its deadline")
 	start := fs.String("start", "", "the start the run fixes; only routes that play it are offered")
+	persona := fs.String("persona", "", "the scenario card's archetype (a docs/personas id): it writes the thesis and plays the run whatever route is chosen; empty: the chosen route's persona")
 	lean := fs.Bool("lean", false, "the lean prompt (one line a route), for drift's MLX, which refuses the full one for memory")
 	url := fs.String("llm-url", env("GATE_URL", "http://127.0.0.1:7380")+"/plan/v1", "the strategist's OpenAI-compatible endpoint (default: drift through the gate's plan lane)")
 	model := fs.String("model", env("DRIFT_MODEL", "qwen38-27b-mlx"), "the strategist's model")
@@ -75,6 +77,13 @@ func run(ctx context.Context, args []string, now func() time.Time, stdout, stder
 		return fmt.Errorf("-start %s: no route plays it; starts: %v", *start, menu.Starts())
 	}
 	ask := agency.Ask{FixedStart: *start, Lean: *lean, Recent: agency.Recent(*dir, "")}
+	if *persona != "" {
+		text, err := strategy.LoadPersona(strategy.DefaultPersonaDir, *persona)
+		if err != nil {
+			return err
+		}
+		ask.Persona, ask.PersonaText = *persona, text
+	}
 	if n := len(ask.Recent); n > 0 {
 		ask.Exclude = ask.Recent[n-1]
 	}
@@ -181,7 +190,11 @@ func report(w io.Writer, ch agency.Choice, f *format.Format, line, runDir, route
 	}
 	fmt.Fprintf(w, "route     %s (%s)\n", ch.Route, kind)
 	fmt.Fprintf(w, "save      a new hard save, start %s, perks %s\n", ch.Start, ch.Perks)
-	fmt.Fprintf(w, "persona   %s\n", ch.Persona)
+	who := "the route's"
+	if ch.PersonaFixed {
+		who = "the card's"
+	}
+	fmt.Fprintf(w, "persona   %s (%s)\n", ch.Persona, who)
 	if ch.Format != "" {
 		fmt.Fprintf(w, "format    %s\n", ch.Format)
 	}

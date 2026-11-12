@@ -38,8 +38,11 @@ type Choice struct {
 	Composition *Composition `json:"composition,omitempty"`
 	Start       string       `json:"start"`
 	Perks       string       `json:"perks"`
-	Persona     string       `json:"persona,omitempty"`
-	Thesis      string       `json:"thesis"`
+	// Persona plays the run: the card's archetype when it fixes one (PersonaFixed), else the
+	// route's own. The thesis is written in the card's voice, or the route's when it fixes none.
+	Persona      string `json:"persona,omitempty"`
+	PersonaFixed bool   `json:"persona_fixed,omitempty"`
+	Thesis       string `json:"thesis"`
 	// Menu is the route names the model was offered; FixedStart the start the match fixed.
 	Menu       []string `json:"menu"`
 	FixedStart string   `json:"fixed_start,omitempty"`
@@ -81,6 +84,10 @@ type Ask struct {
 	// Format is the run's stream format, nil for none. With a deadline, each route shows its odds
 	// of beating it (deadline_odds.json).
 	Format *format.Format
+	// Persona is the archetype the scenario card fixes (a docs/personas id), "" for none; the
+	// model still picks the route. PersonaText is that persona's prompt part, as the strategist
+	// loads it (strategy.LoadPersona): the thesis is written in its voice.
+	Persona, PersonaText string
 }
 
 // ChoosePrompt is the day-0 ask: the start (fixed or free), the format, the menu with its lab
@@ -121,11 +128,16 @@ func ChoosePrompt(m *Menu, a Ask) string {
 	} else {
 		b.WriteString(LeverText())
 	}
+	if a.Persona != "" && strings.TrimSpace(a.PersonaText) != "" {
+		fmt.Fprintf(&b, "\nYOUR CHARACTER: the run's card makes you this archetype, whatever route you choose. Write the thesis as this character: what it brags about, what it scorns, what it cares for. It may tip which route you prefer; it never changes the rules, the format or the menu above. The thesis speaks of the route you chose and what it does: never promise an engine or a purchase the route does not make:\n%s\n", strings.TrimSpace(a.PersonaText))
+	} else {
+		b.WriteString("\nYOUR CHARACTER: each route is played by its persona, named on its menu line; write the thesis in the voice of the route you choose.\n")
+	}
 	b.WriteString(`
 Answer with one JSON object:
 - to play a menu route: {"route": "<name>", "thesis": "<one paragraph>"}
 - to compose: {"compose": {"name": "<new_name>", "base": "<menu route>", "levers": {"<lever>": <value>, ...}}, "thesis": "<one paragraph>"} (add "start" and "perks" only to change the base's).
-The thesis is one paragraph, 60–120 words, in your own voice: what this shop will be, why it beats the alternatives you passed over (name one), and what you will watch for. It is shown to the viewers.`)
+The thesis is one paragraph, 60–120 words, in your character's voice, first person: what this shop will be, why it beats the alternatives you passed over (name one), and what you will watch for. It is shown to the viewers.`)
 	return b.String()
 }
 
@@ -174,6 +186,7 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, a Ask) (ch Choice) {
 		base, _ := m.Get(ans.Compose.Base)
 		ch.Route, ch.Composed, ch.Composition = ans.Compose.Name, true, ans.Compose
 		ch.Start, ch.Perks, ch.Persona = ans.Compose.start(base), ans.Compose.perks(base), base.Persona
+		ch.fixPersona(a)
 		return ch
 	}
 	name := ans.Route
@@ -191,7 +204,16 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, a Ask) (ch Choice) {
 	}
 	e, _ := m.Get(name)
 	ch.Route, ch.Start, ch.Perks, ch.Persona = e.Name, e.Start, e.Perks, e.Persona
+	ch.fixPersona(a)
 	return ch
+}
+
+// fixPersona puts the card's archetype over the route's: the card fixes who plays, the model
+// only what.
+func (ch *Choice) fixPersona(a Ask) {
+	if a.Persona != "" {
+		ch.Persona, ch.PersonaFixed = a.Persona, true
+	}
 }
 
 // Recent are the routes chosen in dir's subdirectories (<dir>/*/choice.json), oldest first by

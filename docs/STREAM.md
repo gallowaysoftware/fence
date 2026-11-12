@@ -60,6 +60,12 @@ the executor keeps the routine.
   `agency.Recent` reads the previous choices (`<dir>/*/choice.json`, oldest first by file time) for both the league
   and the stream. Stream: `make choose ARGS="-format sprint_91"` (`cmd/fencechoose`, docs/STREAM-OPS.md,
   "Starting a run") asks drift through the gate before day 1 and records the choice in `var/stream/choices/`.
+  **The thesis is in persona.** The scenario card fixes the archetype, the model picks the route: with a card
+  persona (`fencechoose -persona ID`, `make choose PERSONA=ID`; the league player's `"persona"`) the persona's prompt
+  part, as the strategist loads it, goes in the prompt after the menu as YOUR CHARACTER, the thesis is written in its
+  voice, and it plays the run whatever route is chosen (`choice.json`: `persona`, `persona_fixed`). It may tip the
+  pick; it never lifts the format's rules or the exclusion. Without one the lean menu names each route's persona
+  and the thesis takes the chosen route's.
   League: `"choose_route": "any" | "start"` on a plan player (`cmd/fenceleague/agency.go`; the
   match keeps its scheduled route slot as its id, `match.json` records `chosen_route`, the answer is `choice.json`, a
   composition `route.json`); bridge: `-choice FILE`.

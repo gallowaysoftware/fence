@@ -210,7 +210,8 @@ show-live:
 	go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player drift -model $(DRIFT_MODEL) $(NARRATOR_FLAGS) $(ARGS)
 
 # The stream run's day-0 route (docs/STREAM-OPS.md, "Starting a run"): drift's 27B through the gate,
-# lean prompt, the last run's route off the menu. ARGS="-format sprint_91", "-dry-run", ...
+# lean prompt, the last run's route off the menu; PERSONA=id for the card's archetype (docs/CAMPAIGN.md).
+# ARGS="-format sprint_91", "-dry-run", ...
 .PHONY: choose
 choose:
-	go run ./cmd/fencechoose -llm-url $(GATE_URL)/plan/v1 -model $(DRIFT_MODEL) -lean $(ARGS)
+	go run ./cmd/fencechoose -llm-url $(GATE_URL)/plan/v1 -model $(DRIFT_MODEL) -lean $(if $(PERSONA),-persona $(PERSONA)) $(ARGS)

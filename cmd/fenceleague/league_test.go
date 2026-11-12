@@ -322,10 +322,13 @@ func TestRouteRunSpec(t *testing.T) {
 	if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[{"id":"h","mode":"heuristic"}],"routes":[{"route":"nope"}]}`)); err == nil {
 		t.Error("an unknown route must fail")
 	}
-	for _, p := range []string{`{"id":"h","mode":"heuristic","choose_route":"any"}`, `{"id":"q","mode":"plan","endpoint":"e","choose_route":"all"}`} {
+	for _, p := range []string{`{"id":"h","mode":"heuristic","choose_route":"any"}`, `{"id":"q","mode":"plan","endpoint":"e","choose_route":"all"}`, `{"id":"q","mode":"plan","endpoint":"e","persona":"botanist"}`, `{"id":"q","mode":"plan","endpoint":"e","choose_route":"any","persona":"../botanist"}`} {
 		if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[` + p + `],"routes":[{"route":"` + smelter + `"}]}`)); err == nil || !strings.Contains(err.Error(), "choose_route") {
 			t.Errorf("%s: err %v", p, err)
 		}
+	}
+	if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[{"id":"q","mode":"plan","endpoint":"e","choose_route":"any","persona":"botanist"}],"routes":[{"route":"` + smelter + `"}]}`)); err != nil {
+		t.Errorf("a card persona on a choose_route player: %v", err)
 	}
 	// A match played on the model's route keeps its scheduled id, so it pairs with the baseline's.
 	played := m
