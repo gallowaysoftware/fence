@@ -195,6 +195,23 @@ females and a male per 32-cell tank: ~130 a night of fillets at full breeding (c
 
 Measured on hard: §7.
 
+### 5.1 Paper best case against the gym (computed, 2026-11-12)
+
+The Aquafarmer start's two tanks at their source-code ceiling, per night:
+
+| Output | Paper | How | Gym (`aqua_fish_max`, median a day) |
+|---|---|---|---|
+| Tilapia fillets | ~320 | 2 females a 32-cell tank × 2 tanks × 0.9 juveniles + the aquafarmer's 4 roe a week (≈ 3.4 juveniles a night): ~7 a night at ~70, but feed caps it at ~4.5 a night (≈ 18 000 kcal a week: 10 000 industrial, ≤ 2 500 pellets under the 25 % taint line, ~5 000 from one fillerweed bay) | 102 (fillets sold) |
+| Eel uplift | ~30 | fillets fed to 2 eels at 0.245 a kcal instead of sold at 0.14; capped by what two eels drain (~300 kcal a night) | ~25 (4 800 of eel fillets a run) |
+| Caviar | ~86 | one sturgeon from day 18: 5 jars (1 200) every ~14 nights for the first 10 jars | ~0 (rarely bought: 500 + markup) |
+| Costs | −45 | feed ~30, filters ~10, power ~3 (converter at draw 1) | — |
+| **Net** | **~390** | | **~125** |
+
+The gap is about 3×. In the runs it comes from: feed (75 hungry tank-mornings a run with the big tank; the aquafarmer is
+the only bulk seller), breeding gaps when old breeders die before an heir comes of age (15 % a night is lumpy), eels lost
+to waste on the 6 L the shop's water allows (24 a run died, mostly in the big tank), the sturgeon's cash gate, and every
+capital purchase (AQUACULTURE_II 1 200, converters, eels) landing in the weeks the cash buyout needs the money.
+
 ## 6. Player-visible boundary (what the executor may read)
 
 The executor (`sim/gym/Fish.cs`) reads only what the tooltips show or a player derives from the rules: species, sex,
@@ -212,3 +229,27 @@ sold (~80 a day)** for ~600 of feed, 2 fish lost, 4–5 unpowered mornings. Net 
 day 100 against the same start without the engine; win rate unchanged (53/60 against 52/60, McNemar p = 1.0; cash
 buyouts 23 against 18, p = 0.38). The binding limits seen in the runs: feed (20 hungry mornings a run: the
 aquafarmer's 10 000 kcal a week is used up) and power before Dr. Jackson's converter.
+
+**Round 2 (2026-11-12; `sim/lab/scripts/arms-fish2.txt`). `aqua_fish_max` and the Board-off arms ran on build 782ca8b plus
+the permit gate (`var/sim/exp/fish5`), the others on 782ca8b (`fish4`).**
+The engine at max output — eels and sturgeon (`fish_big`), the aquafarmer's roe (`fish_roe`), fillerweed bays
+(`crops`, through the wine engine's bays), stock put in water right after purchase, a converter per tank, two live
+filters in the big tank, a spare blade — 60 paired seeds 8710001–060, wins = any buyout (Wilson 95 %, McNemar exact
+against `aqua_none`):
+
+| Arm | Wins | Cash buyouts | Fish income a day (median) | nw100 (mean) |
+|---|---|---|---|---|
+| `aqua_none` | 52/60 (76–93 %) | 18/60 | — | 21 836 |
+| `aqua_fish` (defaults) | 53/60 (78–94 %), p = 1.0 | 22/60 | 83 | 23 917 |
+| `aqua_fish_max` (+ eels, sturgeon, roe) | **59/60 (91–100 %), p = 0.039** | 0/60 | 102 of tilapia + ~25 of eel | 18 400 |
+| `aqua_fish_weed` (+ fillerweed bays) | **60/60 (94–100 %), p = 0.008** | 4/60 | 41 (+ ~16 of fillerweed sold) | 20 386 |
+| `aqua_fish_all` (all of it) | **60/60 (94–100 %), p = 0.008** | 0/60 | 67 + ~24 of eel | 17 638 |
+| Board off: `aqua_none` | 0/60 | — | — | 3 122 |
+| Board off: `aqua_fish` | 0/60 | — | 48 | 3 667 |
+| Board off: `aqua_fish_max` | 0/60 | — | 58 | 2 856 |
+
+The bigger engines make more fish and win more often, but every one of their wins is the mortgage's end (day 195): the
+capital they buy is the cash the sprint policy would have bought the shop with. Without the Board nothing wins: fish
+income (~50–60 a day) is below the hard rent, and the extra spending ends runs earlier (day 125 against 146), 12 of 60
+in an arrest for an unpaid permit even with fish capital held back until the permit is bought.
+

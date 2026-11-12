@@ -515,6 +515,14 @@ average: 7 arrests for an unpaid permit, the cash goes to the tanks). As a strea
 breeding, a fillet knife every morning) and decent with the Board; it needs a persona, a ghost band and deadline
 odds before it goes on the menu (`internal/route` tests).
 
+Round 2, the engine at max output (eels and sturgeon, the aquafarmer's roe, fillerweed bays; docs/re/AQUACULTURE.md §5.1
+and §7): `aqua_fish_max` wins 59/60 (McNemar p = 0.039 against `aqua_none`) and `aqua_fish_weed` / `aqua_fish_all` 60/60
+(p = 0.008), but all of those wins come at the mortgage's end (day 195). Their capital is the cash the sprint
+would have bought the shop with, so cash buyouts fall from 18–22 to 0–4. Board off, still 0/60: fish make 50–60 a day,
+below the hard rent. The rancher with a fillerweed bay (through the wine engine) is worse than without: 51/60 against
+58/60. A native Aquafarmer route that beats `aqua_none` on wins exists (`aqua_fish_weed`, 60/60, median day 195); one
+that beats it on speed does not.
+
 ## The wound rest on weaker routes
 
 `scavenge_max_wound: 3` on the two routes that scavenge hardest or start weakest, same 60 seeds:

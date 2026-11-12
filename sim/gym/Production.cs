@@ -445,6 +445,7 @@ namespace Fence.Gym
         public static void Stow()
         {
             Lab.Stow();
+            Fish.Stow();
             if (!WineOn && !WaterSellOn) return;
             Earmark();
             if (!WineOn) return;

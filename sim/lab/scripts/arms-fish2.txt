@@ -1,0 +1,12 @@
+# The fish engine at max output (docs/re/AQUACULTURE.md §5): defaults, + eels and sturgeon (fish_big) and the aquafarmer's
+# roe (fish_roe), + fillerweed feed bays, all three, and Board-off; rats with a fillerweed bay.
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-fish2.txt -dir var/sim/exp/fish4 -seeds 60 -days 200 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 8710000
+aqua_fish | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish.json
+aqua_fish_max | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_max.json
+aqua_fish_weed | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_weed.json
+aqua_fish_all | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_all.json
+aqua_fish_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_noboard.json
+aqua_fish_all_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_all_noboard.json
+rancher_sprinter_peak_weed | -human player -start rancher -directives sim/lab/scripts/directives/rats/rancher_sprinter_peak_weed.json
+# Round 2 (fish capital waits for the business permit): -dir var/sim/exp/fish5
+aqua_fish_max_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_max_noboard.json

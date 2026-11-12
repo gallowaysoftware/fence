@@ -631,3 +631,10 @@ day against 19), 42 rats cut against 21, feed 1 620 against 1 850. Wins 58/60 bo
 55 against 53 (p = 0.75), median win day **69 against 76** (paired −7.2 ± 12.7 days, within noise). The lever stays
 off by default; `rancher_sprinter` is unchanged.
 
+With a fillerweed feed bay (the production-verdicts audit's suggestion: `engine: "wine+rats"`, `crops: {"fillerweed_seed":
+2}`, `bays: 0`, on top of `rats_cut: "peak"`; `sim/lab/scripts/arms-fish2.txt`): 51/60 wins against 58/60 (McNemar
+p = 0.065), cash buyouts 19 against 55, rat meat sold 2 790 a run (17 a day) against 3 190. In the gym the bay comes with
+the wine engine's purchases (WINEMAKER, bays, power, water), and that capital costs more than the feed saves: the rats
+were not short of food under the peak rule (feed spend ~1 600 a run). A feed bay without the wine engine's bundle is not
+modelled.
+

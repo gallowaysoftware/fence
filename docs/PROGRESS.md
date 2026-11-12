@@ -132,6 +132,17 @@ against docs/re and the executor: docs/research/HIDDEN-SYSTEMS.md, ranked gap ta
 Corrections went into AUGS, CONCEALMENT, MITIGATIONS, CLIENTS (a new "The wanted list" section) and VERIFIED.md;
 the decomp-only corrections that still need a lab check are listed at the end of HIDDEN-SYSTEMS.md.
 
+## Fish at max output — 2026-11-12: eels, sturgeon, roe and feed bays raise the wins, not the speed
+
+**Result.** `engine: fish` gained `fish_big` (Wild's AQUACULTURE_II, then a second tank of eels, an electric eel and a
+sturgeon, fed the tilapia's own fillets), `fish_roe` (the aquafarmer's fertilised roe) and works with fillerweed crop
+bays. It also fixes three faults that were losing stock: purchases now go into water at once rather than the next
+morning (they died overnight), spent filters are replaced, and a spare blade is kept. Hard, 60 paired seeds, Aquafarmer
+start: max output wins 59/60 and with the bays 60/60 (against 52/60 without fish; McNemar p = 0.039 / 0.008). All of
+those wins are the mortgage's: the capital replaces the cash buyout (18 → 0–4). Fish income rises from 83 to ~127 a day
+against a paper ceiling of ~390 (docs/re/AQUACULTURE.md §5.1: feed, breeding gaps, waste in 6 L, capital timing).
+Board off: 0/60 in every arm. A fillerweed bay for the rats (through the wine engine) lowers their wins (51 against 58).
+
 ## Livestock chains from the source — 2026-11-12: fish engine, rats at their peak, every chain listed
 
 **Result.** The game's production code was read end to end and written up in our own words:
