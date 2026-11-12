@@ -243,7 +243,7 @@ purifying strips minerals too, so add tablets afterwards.
 
 ## Arms (`docs/re/ARMS.md`)
 
-`fence-lab arms.permits|mods|orders|printer`, hard, the Gunsmith start; items made through `DirectoryMaster.Item`, as
+`fence-lab arms.permits|mods|orders|printer` and `forge.printers|orders|engine` (`sim/lab/ForgeExps.cs`), hard, the Gunsmith start; items made through `DirectoryMaster.Item`, as
 the game makes them (the lab's `W.Make` skips the identifier and the permit check).
 
 | Claim | Method | n | Result | Verdict |
@@ -261,6 +261,12 @@ the game makes them (the lab's `W.Make` skips the identifier and the permit chec
 | A best order pays 1.5 × the market value with mods | printed gun + extended mag + red dot | 20 | 20/20; estimate 145, paid 217 | CONFIRMED |
 | The Gunsmith start's old printer: pistol chip loaded, 7 power a night, a printed pistol in 3 nights, legal under Permit I, New, estimate 50 | 2 plastic, quiet nights | 1 | as stated | CONFIRMED |
 | A permit in stock brings no gun-order client; on display it brings ~0.6 a day | gym: the `gunsmith` route (permit moved to stock on day 1) against `arms` (permit kept on display) | 70 days / 16 runs | 0 in 70 days / 59–85 in ~100–120 days | CONFIRMED (gym) |
+| The Gunsmith start's old printer cannot take both the metal and the CNC module | `forge.printers`: fit metal then CNC, and CNC then metal | 2 | the second module refused either way (two stuck modules) | CONFIRMED |
+| A new printer with metal + CNC: frames and gun parts | `forge.printers`: quiet nights, 100-charge cell | 1 per chip | 14 power a night; heavy or handmade frame in 4 nights (legal under its permit, estimate 125 heavy); gun-part run in 2 nights: 3 / 4 / 5 parts from a Fair / Very High / Perfect ingot | CONFIRMED |
+| Frame print quality = the ingot's bonus (VL −30 … Perfect +100); the finished gun is New with base × (100 + Q) % | `forge.printers`: one print per purity, then `GunFrameHelper.Finish` | 12 | heavy Q 30: 50/50/57/50/67/67; Q 100: 78/78/88/78/104/104; handmade Q 0: 26/19/39/84/65/39; estimate 150 / 200 whatever Q | CONFIRMED |
+| A Perfect-ingot heavy clears every High order but big, bare | `forge.orders`, 10 deliveries a kind | 60 | firepower 565, style 646, reliability 706, handling 684, general 749, best 300; heavy Q 30 bare meets only handling (425) and best | CONFIRMED |
+| Every Basic kind with a frame-built handmade, every Mid kind with a frame-built heavy | `forge.orders` | 10 a kind | all mandatory rows met; Basic mean 226 (Q 0) / 248 (Q 30); Mid mean 296 (Q 0) / 339 (Q 30) / 353 (Q 100) | CONFIRMED |
+| The executor's forge fits the modules into the new printer only, prints parts from a Low ingot and frames from the purest known one, and finishes them | `forge.engine`: the kit owned, Permit II, 16 mornings of `Printer.Morning` + `Arms.Morning` | 1 | metal + CNC in the new printer, old one untouched; 2 heavies at Q 30, New, legal | CONFIRMED |
 
 ## Stolen goods (`docs/re/STOLEN.md`)
 

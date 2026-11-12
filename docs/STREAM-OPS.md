@@ -1017,6 +1017,15 @@ from stock. A refused client left, or was served as a buyer.
 - A repair with a gun part (`onThisTargetItemFunc`; it may fail by chance and still spend the part).
 - The follow-up buyer.
 
+**The frame forge** (`arms.forge`, docs/re/ARMS.md §6.1; not yet run in the game). It adds two live actions to the
+morning chores, both through the engines' hands (`Chore.Accept`, `Chore.Act`): the metal and CNC modules go into the
+bay of the new printer (never the old one, whose stuck modules leave no room) while it is ready, and every legal frame
+gets a gun part (the part's own use on the frame, `GunFrameHelper.Finish`). A finish that makes no gun throws, and the
+morning's guard faults the autopilot (it stops; it never retries). Expected lines: `chore — finish_frame` on the
+frame, then a human action `production` with `action: finish_frame`, the gun, its print quality and the new gun's uid
+(rule `player:forge`). Watch that the frame and a part leave stock and a New handmade or heavy pistol appears. With
+`window_per_tier` a permit is on display only while a gun of its tier is held.
+
 ### 12.2 Fish (the Aquafarmer)
 
 **What runs live.**

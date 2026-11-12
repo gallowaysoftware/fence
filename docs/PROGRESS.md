@@ -59,6 +59,24 @@ the next buyer (~2–3 a run). The mod needs the `stolen` engine's reads (the di
 trafficking total) checked live; `threaten-trade-shoot` on augs and Lower Levels under-labelling (the sweep's other
 two items for this branch) belong to the aug and label code and were not folded in.
 
+## The frame forge — 2026-11-12: verified per gun, a loss on the hard Gunsmith route
+
+**Result.** `arms.forge` (sim/gym/Arms.cs, Printer.cs; contract in docs/PROTOCOL.md and the directives schema) builds
+the Armourer's order guns from printed frames: a new printer (the old one cannot hold both the metal and the CNC
+module), the kit bought from the retired gunsmith once each, frames from the purest known ingot (ingots our own furnace
+made), gun parts from the cheapest, every frame finished New with a part (a live chore with a fault on a miss), and
+each permit shown only while a gun of its tier is held; guns are no longer bought, own-gun repairs keep their parts
+for frames, melee prints load one High ingot and never a Low one. Lab (`sim/lab/ForgeExps.cs`, docs/sim/VERIFIED.md):
+4 nights a frame at 14 power, frame quality = the ingot's bonus, a Perfect-ingot heavy clears every High order but big
+bare (mean 608), value per printer-night 74 (High, Perfect) / 33 (Mid, Very High) / 15 (Basic) / ~25 for the old
+printer's pistols (docs/re/ARMS.md §6.1).
+
+**Measured** (hard, 2910001–060, paired, `sim/lab/scripts/arms-forge.txt`): `armourer` 60/60, median 105;
+`armourer_forge` 60/60, median 203, **+72.6 ± 14.0 days**, 40 mortgages; `armourer_forge_mid` +76.0 ± 13.1. Only
+11 and 5 of 60 runs finish a gun. The kit spend tips the cash buyout into the mortgage; the permit official was handed
+the working forge printer (a `BribePicks` reservation bug, reported to fair-play); burglars take loose kit after the
+insurance cut; a Mid kit needs ~70 printer-nights under Permit II to pay back. The route is unchanged (`forge` off).
+Board-off arms were not run (reprioritised). `make test-go`, `make test-mod` and the arms gym tests pass.
 
 ## The day-0 thesis in persona — 2026-11-12
 

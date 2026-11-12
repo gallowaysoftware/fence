@@ -6,7 +6,8 @@
 DIR holds `arms.py run` outputs (DIR/<arm>/s<seed>.summary.json). Per arm: buyouts (Wilson 95 %), median win day,
 McNemar against REF on the paired seeds (exact two-sided binomial on the discordant pairs), the paired win-day
 difference on seeds both won (mean ± 1.96 SE), income by source over the run (gun orders, arms counter sales, the
-Board, counter and vending), the permit tier reached and the day, and Security at the end.
+Board, counter and vending), the permit tier reached and the day, Security at the end, orders offered and filled by
+tier, and the frame forge's totals when it runs.
 """
 import glob
 import json
@@ -92,7 +93,13 @@ def main():
                     f" Security at the end median {st.median(x.get('security', 0) for x in arm):.0f}")
             bt = [sum(x["by_tier"][i] for x in arm) / len(arm) for i in range(3)]
             it = [sum(x["income_by_tier"][i] for x in arm) / len(arm) for i in range(3)]
-            inc += f"\n  orders by tier per run {bt[0]:.1f}/{bt[1]:.1f}/{bt[2]:.1f}, income {it[0]:.0f}/{it[1]:.0f}/{it[2]:.0f}"
+            ot = [sum((x.get("offered_by_tier") or [0, 0, 0])[i] for x in arm) / len(arm) for i in range(3)]
+            inc += f"\n  orders by tier per run (Basic/Mid/High) offered {ot[0]:.1f}/{ot[1]:.1f}/{ot[2]:.1f}, filled {bt[0]:.1f}/{bt[1]:.1f}/{bt[2]:.1f}, income {it[0]:.0f}/{it[1]:.0f}/{it[2]:.0f}"
+            fg = [x["forge"] for x in arm if x.get("forge")]
+            if fg:
+                fd = sorted(x["first_day"] for x in fg if x.get("first_day"))
+                inc += (f"\n  forge: first gun in {len(fd)} (median day {fd[len(fd) // 2] if fd else '-'}), guns finished {st.mean(x.get('finished', 0) for x in fg):.1f},"
+                        f" kit spend {st.mean(x.get('capital', 0) for x in fg):.0f}, built-gun orders {st.mean(x.get('orders', 0) for x in fg):.1f} paying {st.mean(x.get('income', 0) for x in fg):.0f}")
         print(inc)
 
 

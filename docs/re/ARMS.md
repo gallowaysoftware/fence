@@ -193,6 +193,95 @@ printed heavy frame is level 2: legal only under Permit II.
 better chips, modules and mods on rolls (RECIPES.md §1.3, corrected: he also stocks silencer2, laser2, compensator,
 the 10 mm mags, springs, trigger group, match barrel, pistol switch, ammo display and gel grip on 18–50 % rolls).
 
+### 6.1 The frame forge (lab, `fence-lab forge.printers|orders|engine`)
+
+A frame chip prints a frame from an ingot (the heavy one also takes a scrap); a gun part on the frame
+(`GunFrameHelper.Finish`, the part's own use on the frame) gives the gun **New** (+30 % stats), its base stats ×
+(100 + the frame's print quality) % (`GunHelper.MultiplyBaseStat`). Print quality = the printer's adjusted quality +
+the ingot's bonus (`MachinePrinter.HandlePrintedItemQuality`, `CaptureIngotQuality`): Very Low −30, Low −20, Fair 0,
+High +20, Very High +30, **Perfect +100**. The furnace's ingot is Low + 2 × the ore share of its inputs + its quality
+/ 100 (at least 1 with a flux) levels (`IngotPurityHelper.SetPurityFromInput`): all-ore with a flux is Very High;
+Perfect needs all ore and a quality-200 furnace (FORMULA-EXPLOITS §12).
+
+| Measured | Result |
+|---|---|
+| The Gunsmith start's old printer with the metal and the CNC module | **refused**: its two stuck modules leave room for one of them, either order. The forge needs a new printer (the retired gunsmith always stocks one, 455 on hard) |
+| New printer + metal + CNC | 14 power a night (8 bare); a heavy or handmade frame in **4 nights**; a gun-part run in **2 nights**: 3 parts from a Fair (or Low) ingot, 4 from Very High, 5 from Perfect; frames are legal at birth under their permit |
+| Heavy frame by ingot (Q): gun FP/STY/REL/RCL/ERG/ACC | VL (−30) 27/27/29/27/36/36; Low (−20) 31/31/35/31/41/41; Fair (0) 39/39/44/39/52/52; High (20) 46/46/52/46/62/62; Very High (30) 50/50/57/50/67/67; **Perfect (100) 78/78/88/78/104/104** |
+| Handmade frame by ingot | Fair 26/19/39/84/65/39; Very High 33/24/50/109/84/50; Perfect 52/39/78/169/130/78 |
+| Estimate of the finished gun | handmade 150, heavy 200 whatever the quality (stats never move a price) |
+
+Orders paid, 10 deliveries each through the order client's Accept (mean, all mandatory rows met unless stated):
+
+| Gun | Basic: accurate / firepower / big / suppressed / stylish / general / handling / best .22 |
+|---|---|
+| handmade Q 0 | 274 / 222 / 102 / 274 / 227 / 282 / 200 / 225 (mean 226) |
+| handmade Q 30 | 276 / 222 / 101 / 275 / 325 / 280 / 278 / 225 (mean 248) |
+
+| Gun | Mid: suppressed / stylish / big / firepower / general / handling / best 10 mm |
+|---|---|
+| heavy Q 0 | 276 / 250 / 193 / 385 / 393 / 275 / 300 (mean 296) |
+| heavy Q 30 | 378 / 331 / 196 / 387 / 429 / 355 / 300 (mean 339) |
+| heavy Q 100 | 377 / 385 / 196 / 385 / 429 / 401 / 300 (mean 353) |
+
+| Gun | High: firepower / style / reliability / handling / general / best 10 mm |
+|---|---|
+| heavy Q 30, bare | none / none / none / 425 / none / 300 |
+| **heavy Q 100, bare** | **565 / 646 / 706 / 684 / 749 / 300** (mean 608; only big, size > 16, is out of reach) |
+
+**Value per printer-night** (inputs at list: an ingot 50 × (1 + its purity's value modifier: Low −15 %, Very High
++50 %, Perfect +200 %), scrap 10, a part a third of a Low ingot, power 1.35 a unit; a gun takes 4 frame nights + ⅔ of
+a part run, 4.67 printer-nights and 65 power):
+
+| Build | Order tier | Mean paid | Inputs | Net a gun | Per printer-night |
+|---|---|---|---|---|---|
+| heavy, Perfect ingot (Q 100) | High (Permit III) | 608 | 262 | 346 | **74** |
+| heavy, Very High ingot (Q 30) | Mid (Permit II) | 339 | 187 | 152 | **33** |
+| heavy, Fair ingot (Q 0) | Mid | 296 | 162 | 134 | 29 |
+| handmade, Very High (Q 30) | Basic (Permit I) | 248 | 177 | 71 | 15 |
+| handmade, Fair (Q 0) | Basic | 226 | 152 | 74 | 16 |
+| printed pistol (old printer, 3 nights, 7 power, 2 plastic at 12) | Basic (gym mean, round 1) | ~128 | ~52 | ~76 | ~25 |
+
+So the build queue per permit tier is: Permit I, handmade frames (a Fair ingot is as good as a Very High one there),
+and the old printer keeps making printed pistols, which earn more per night on its cheaper power; Permit II, heavy
+frames from the purest ingot first; Permit III with a Perfect-ingot furnace, heavy frames for High orders, more than
+twice a Mid order's night. A Basic order never pays a heavy's Mid value (the engine prices a 10 mm gun at 300 against
+Basic orders under Permit II). Printer-nights bind, not orders: Basic clients come ~0.6 a day and Mid ~0.5, against
+one gun every 4.67 nights per forge printer.
+
+**Played in the gym (hard, 2910001–060, 1000-day horizon, `sim/lab/scripts/arms-forge.txt`, `armsreport.py`):
+the forge does not pay on the Armourer's ~day-105 cash route, and on most seeds it never makes a gun.**
+
+| Arm (`arms/…json`) | Wins (Wilson 95 %) | Median win day | Paired Δ win day | Cash buyouts | ΔNW day 60 / 100 | Runs with a built gun | Kit spend | Orders offered / filled (Basic, Mid) |
+|---|---|---|---|---|---|---|---|---|
+| `armourer` (round 1, reference) | 60/60 (94–100 %) | 105 | — | 56 | — | — | — | 6.1 / 4.3, 0.1 / 0 |
+| `armourer_forge` (handmade + heavy frames, old printer idle) | 60/60 (94–100 %) | 203 | **+72.6 ± 14.0** | 20 | −2 127 / −7 002 | 11 | 1 748 | 5.5 / 4.2, 0 / 0 |
+| `armourer_forge_mid` (heavy only, Permit II at Security 45) | 60/60 (94–100 %) | 203 | **+76.0 ± 13.1** | 19 | −2 168 / −7 788 | 5 | 1 587 | 4.3 / 3.7, 0.6 / 0.1 |
+| `armourer_forge_pistols` (forge + the old printer's pistols, first build) | 60/60 (94–100 %) | 133 | +54.2 ± 12.8 | 31 | −1 486 / −5 033 | 18 | 1 838 | 48.1 / 26.0, 0.1 / 0.1 |
+
+McNemar is 0:0 everywhere (every arm wins every seed). Δ is paired over seeds both won, ± 1.96 SE. Without the Board
+not measured this round (the owner reprioritised; round 1 had every arm at 0/60 there).
+
+Why, in order of weight:
+
+1. **The kit is spent before it can earn, and that tips the cash buyout into the mortgage.** ~1 600–1 800 goes on
+   modules and chips from day ~25; the route's day-84 projection then falls short and 40 of 60 runs sign the
+   mortgage (win ~day 200) where `armourer` buys for cash on 56. The kit's own cost is ~6 days; the mortgage cliff is
+   the rest of the +73.
+2. **The kit rarely stays whole.** The retired gunsmith rolls each piece weekly (CNC 25 %, handmade chip 20 %, heavy
+   chip 15 %, +10–15 points per permit tier above I); 25–35 of 60 runs held the whole kit at once (median day 46),
+   but in the traced seed (2910002) the business-permit official was handed **the working forge printer with both
+   modules inside** (`permit_bribe` 1 528 on day 45): `PlayerCounter.BribePicks` gave away an item the engines
+   reserve (fair-play's file, not edited here). After day 56 the route drops insurance and burglars take loose
+   modules and chips, and an idle printer's bay is not locked.
+3. **Even whole, it pays back too slowly.** Mid heavies earn ~33 a printer-night, so a ~2 340 Mid kit needs ~70
+   printer-nights under Permit II, which arrives on day ~48–62 of a run that ends near day 105.
+
+The condition, stated: the forge pays when Permit II (or III with Perfect ingots, 74 a printer-night) will be held
+for more than ~70 (≈ 31) printer-nights after the kit is whole, the kit is protected from the permit official and
+burglars, and the purchase does not push the cash buyout into the mortgage. None holds on the hard Gunsmith route
+as played; `forge` stays opt-in, off in `routes/armourer.json`.
+
 ## 7. Who buys weapons, and market events
 
 | Buyer | Wants | Budget | Comes |

@@ -119,6 +119,7 @@ namespace Fence.Gym
         public static void Morning(IExecutorHost ep)
         {
             if (!On) return;
+            Arms.NoteIngots();
             var stock = EmporiumEntry.Instance.invElement;
             foreach (var p in Printers())
             {
@@ -135,10 +136,11 @@ namespace Fence.Gym
             var slot = ChipSlot(p);
             var output = Output(p);
             if (input == null || slot == null || output == null) return;
+            // Counted as it reaches stock: an item a full stock leaves in the output is counted on the morning it moves.
             foreach (var it in output.childItems.Where(i => i != null).ToList())
             {
-                MadeValue += PlayerRole.Est(it);
-                Chore.Accept(stock, it, -1);
+                int v = PlayerRole.Est(it);
+                if (Chore.Accept(stock, it, -1) == 0) MadeValue += v;
             }
             // Power for the night: a cell with more charge than the one in the battery.
             int usage = MachineryHelper.GetMachinePowerUsage(p);
@@ -154,14 +156,16 @@ namespace Fence.Gym
             }
             var owned = Owned().ToList();
             if (Environment.GetEnvironmentVariable("FENCE_PRINTER_DEBUG") != null)
-                Console.Error.WriteLine($"printer d{ep.Day} state={MachineProgressHelper.GetMachineState(p)} chip={slot.childItem?.identifier} bat={Energy(bat?.childItem)} use={usage} scrap={Loose(Scrap).Count()} plastic={Loose(Plastic).Count()} cells={Loose(Cell).Count()} chips={string.Join(",", owned.Where(IsChip).Select(i => i.identifier))}");
+                Console.Error.WriteLine($"printer d{ep.Day} state={MachineProgressHelper.GetMachineState(p)} chip={slot.childItem?.identifier} bat={Energy(bat?.childItem)} use={usage} scrap={Loose(Scrap).Count()} plastic={Loose(Plastic).Count()} cells={Loose(Cell).Count()} chips={string.Join(",", owned.Where(IsChip).Select(i => i.identifier))} queue={string.Join(",", Arms.ForgeQueue(p))} furnaceScrap={Furnace.Furnaces().Sum(f => GraphUtils.FindAllChildrenType(f, (GameItem x) => x.identifier == Scrap).Count)}");
             if (MachineProgressHelper.GetMachineState(p) != "STATE_READY") return;
+            // The module bay is locked while the printer works: the forge's metal and CNC modules go in when it is ready.
+            if (Arms.Forge && Arms.Forgeable(p)) FitForge(p);
             GameItem pick = null;
-            foreach (var id in Chips)
+            foreach (var id in Arms.ForgeQueue(p).Concat(Chips))
             {
                 var chip = owned.FirstOrDefault(i => i.identifier == id && IsChip(i) && (Parent(i) == null || ReferenceEquals(i.parentInventory, slot)));
                 if (chip == null || !MachineProgressHelper.CanStart(chip, p)) continue;
-                if (Needs(chip).All(n => input.childItems.Count(i => i != null && i.identifier == n.id) + Loose(n.id).Count() >= n.n)) { pick = chip; break; }
+                if (Needs(chip).All(n => input.childItems.Count(i => i != null && i.identifier == n.id) + Usable(chip, n.id, n.n).Count >= n.n)) { pick = chip; break; }
             }
             if (pick == null) return;
             if (!ReferenceEquals(slot.childItem, pick))
@@ -174,7 +178,7 @@ namespace Fence.Gym
             foreach (var it in input.childItems.Where(i => i != null && !needs.Any(n => n.id == i.identifier)).ToList()) Chore.Accept(stock, it, -1);
             long loaded = 0;
             foreach (var (id, n) in needs)
-                foreach (var it in Loose(id).Take(Math.Max(0, n - input.childItems.Count(i => i != null && i.identifier == id))).ToList())
+                foreach (var it in Usable(pick, id, Math.Max(0, n - input.childItems.Count(i => i != null && i.identifier == id))))
                 {
                     loaded += PlayerRole.Est(it);
                     Chore.Accept(input, it, -1);
@@ -183,6 +187,30 @@ namespace Fence.Gym
             Loads++;
             byChip[pick.identifier] = (byChip.TryGetValue(pick.identifier, out int c) ? c : 0) + 1;
             ep.Human("production", null, ep.Uid(p), new JObject { ["action"] = "print", ["chip"] = pick.identifier }, "player:printer");
+        }
+
+        // Ingots by the chip's rule (Arms.PickIngots: the purest for a frame, never a Low one for melee); the rest in order.
+        // The furnace loads every scrap into its input each morning, so a frame's scrap is taken back out of it when stock
+        // has none.
+        static List<GameItem> Usable(GameItem chip, string id, int n)
+        {
+            if (id == "metal_ingot") return Arms.PickIngots(chip, Loose(id), n);
+            var l = Loose(id).Take(n).ToList();
+            if (l.Count < n && id == Scrap && chip.IsTag("PRINTER_FRAME_CHIP_TAG"))
+                l.AddRange(Furnace.Furnaces().SelectMany(f => GraphUtils.FindAllChildrenType(f, (GameItem x) => x.identifier == Scrap && !StolenHelper.IsStolenItem(x))).Take(n - l.Count));
+            return l;
+        }
+
+        static void FitForge(GameItem p)
+        {
+            var bay = MachineHelper.GetBodyStorage(p, 1) as GameGridInventory;
+            if (bay == null) return;
+            foreach (var id in new[] { "printer_module_metal", "printer_module_cnc" })
+            {
+                if (bay.childItems.Any(m => m != null && m.identifier == id)) continue;
+                var m = Owned().FirstOrDefault(i => i.identifier == id && Parent(i) == null);
+                if (m != null) Chore.Accept(bay, m, -1);
+            }
         }
 
         public static void Trade(bool sold, GameItem item, int amount)

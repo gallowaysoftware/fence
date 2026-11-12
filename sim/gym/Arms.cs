@@ -18,6 +18,13 @@ namespace Fence.Gym
     //     of each Mid mod are bought too (`buy_mods`). Saving for the buyout or selling down, nothing is held.
     //   `print_guns`: with `printer: "run"`, the pistol chips print first while fewer than `keep_guns` are held.
     //   `show_weapons` (default off): held guns and mods may sit in the display case.
+    //   `forge` (FORMULA-EXPLOITS §2, docs/re/ARMS.md §6): build the order guns instead of buying them. A new printer from
+    //     the retired gunsmith (the Gunsmith start's old one has no room beside its stuck modules for the metal and CNC
+    //     modules) prints frames from the furnace's ingots and gun parts; a frame finished with a part is a New gun with
+    //     base stats x (100 + the ingot's quality bonus) %. Each permit goes on display only while a gun of its tier is
+    //     held (`window_per_tier`); guns are no longer bought (`buy_guns`). Options: `forge_from` (day), `forge_printers`
+    //     (1), `keep_handmade` (3), `keep_heavy` (3), `forge_reserve` (cash kept above the rent when buying the kit, 500),
+    //     `forge_until` (70).
     // Weapons above the permit stay contraband, which the executor neither buys nor sells.
     internal static class Arms
     {
@@ -26,9 +33,11 @@ namespace Fence.Gym
         static bool Opt(string k) => On && (O.Value<bool?>(k) ?? true);
         static int Num(string k, int d) => O?.Value<int?>(k) ?? d;
 
-        public static int KeepGuns => Num("keep_guns", 4);
+        public static int KeepGuns => Num("keep_guns", Forge ? KeepHandmade + KeepHeavy : 4);
 
         public static int Orders, OrderIncome, GivenValue, Service, Best, Sent, PartsUsed, Repairs, ArmsSales;
+        public static int ForgeDay, Finished, ForgeCapital, ForgeOrders, ForgeIncome;
+        static readonly SortedDictionary<string, int> finishedByQ = new SortedDictionary<string, int>(StringComparer.Ordinal);
         public static int Permit2Day, Permit3Day, PermitLostDay;
         public static readonly int[] ByTier = new int[4], IncomeByTier = new int[4], Offered = new int[4];
         static readonly SortedDictionary<string, int> refusals = new SortedDictionary<string, int>(StringComparer.Ordinal);
@@ -37,6 +46,10 @@ namespace Fence.Gym
         {
             Orders = OrderIncome = GivenValue = Service = Best = Sent = PartsUsed = Repairs = ArmsSales = 0;
             Permit2Day = Permit3Day = PermitLostDay = 0;
+            ForgeDay = Finished = ForgeCapital = ForgeOrders = ForgeIncome = 0;
+            finishedByQ.Clear();
+            knownIngots.Clear();
+            kitBought.Clear();
             Array.Clear(ByTier, 0, 4);
             Array.Clear(IncomeByTier, 0, 4);
             Array.Clear(Offered, 0, 4);
@@ -64,6 +77,7 @@ namespace Fence.Gym
             if (!Opt("orders")) return false;
             // Saving for the buyout or selling down for rent, the stock held for orders is cash like any other.
             var day = PlayerDay.Current;
+            if (Forge && !(day?.SavingForBuyout ?? false) && ForgeKit(i)) return true;
             if (day != null && (day.SavingForBuyout || day.Liquidating)) return false;
             if (IsGun(i)) return HeldGuns().Any(g => g.uniqueId == i.uniqueId);
             // Two of each mod and four gun parts: what an order's bonuses and a repair use; the rest sells.
@@ -81,13 +95,18 @@ namespace Fence.Gym
 
         static bool MidMod(string id) => PermitHelper.IsGunPermitII() && Array.IndexOf(MidMods, id) >= 0;
 
-        public static bool IsInput(string id) => Opt("orders") && id != null && (Array.IndexOf(GunIds, id) >= 0 || (Opt("buy_mods") && MidMod(id)));
+        static bool BuyGuns => O?.Value<bool?>("buy_guns") ?? !Forge;
+
+        public static bool IsInput(string id) => Opt("orders") && id != null && ((BuyGuns && Array.IndexOf(GunIds, id) >= 0) || (Opt("buy_mods") && MidMod(id)) || (Forge && (Array.IndexOf(ForgeKitIds, id) >= 0 || id == "scrap_metal")));
 
         // Guns are bought (legal ones only reach the counter's buy path) while fewer than `keep_guns` are held; under
         // Permit II, two of each Mid mod (`buy_mods`).
         public static int Wants(string id)
         {
             if (!IsInput(id)) return 0;
+            if (Array.IndexOf(ForgeKitIds, id) >= 0) return ForgeWants(id);
+            // A heavy frame takes a scrap, which the furnace otherwise smelts: two held for the next frames.
+            if (id == "scrap_metal") return Forge && Owns(HeavyChip) > 0 && PermitHelper.IsGunPermitII() ? Math.Max(0, 2 - Owned().Count(i => i.identifier == id && Parent(i) == null)) : 0;
             if (Array.IndexOf(GunIds, id) >= 0) return Math.Max(0, KeepGuns - HeldCount());
             return Math.Max(0, 2 - Owned().Count(i => i.identifier == id && Parent(i) == null));
         }
@@ -95,6 +114,166 @@ namespace Fence.Gym
         public static bool PrintGuns => Opt("print_guns") && PermitHelper.IsGunPermitI() && HeldCount() < KeepGuns;
 
         public static readonly string[] GunChips = { "printer_chip_pistol_double", "printer_chip_pistol" };
+
+        // ---- the frame forge ----
+
+        public const string HandmadeChip = "printer_chip_handmade_pistol_frame", HeavyChip = "printer_chip_heavy_handmade_pistol_frame", PartChip = "printer_chip_gun_part";
+        const string MetalModule = "printer_module_metal", CncModule = "printer_module_cnc", Frame = "GUN_FRAME_TAG", Ingot = "metal_ingot", Part = "gun_part";
+        static readonly string[] ForgeKitIds = { "printer", MetalModule, CncModule, HeavyChip, HandmadeChip, PartChip };
+
+        public static bool Forge => On && O["forge"] is JToken f && f.Type != JTokenType.Null && !(f.Type == JTokenType.Boolean && !(bool)f);
+        static bool ForgeLive => Forge && (PlayerDay.Current?.Day ?? 0) >= Num("forge_from", 0) && !(PlayerDay.Current?.SavingForBuyout ?? false);
+        static int ForgePrinters => Num("forge_printers", 1);
+        static int KeepHandmade => Num("keep_handmade", 3);
+        static int KeepHeavy => Num("keep_heavy", 3);
+
+        // The old printer's two stuck modules leave no room for both the metal and the CNC module (lab, forge.printers).
+        public static bool Forgeable(GameItem printer) => printer != null && MachineHelper.GetBodyStorage(printer, 1) is GameGridInventory bay && !bay.childItems.Any(m => m != null && m.IsTag("MODULE_STUCK_TAG"));
+
+        static int Owns(string id) => Owned().Count(i => i.identifier == id);
+
+        static bool CashFor => PlayerStore.Instance.playerCash >= (PlayerDay.Current?.RentDue ?? 0) + Num("forge_reserve", 500) && !(PlayerDay.Current?.Cuts("upgrades") ?? false);
+
+        // The kit, one of each per forge printer: a new printer, the metal and CNC modules; one of each chip. The heavy
+        // chip only on a route that buys Permit II (a heavy frame is level 2).
+        // Each piece is bought at most once per forge printer: a piece lost to a burglar is not bought again, and nothing
+        // is bought after `forge_until` (default 70), when the ~70 printer-nights a Mid kit needs to pay back are gone.
+        static int ForgeWants(string id)
+        {
+            if (!ForgeLive || !CashFor || (PlayerDay.Current?.Day ?? 0) > Num("forge_until", 70)) return 0;
+            if ((kitBought.TryGetValue(id, out int had) ? had : 0) >= (id == HandmadeChip || id == HeavyChip || id == PartChip ? 1 : ForgePrinters)) return 0;
+            int printers = Printer.Printers().Count(Forgeable);
+            switch (id)
+            {
+                // The printer is always in his stock: it waits until both modules and a frame chip are in hand.
+                case "printer": return printers < ForgePrinters && Owns(MetalModule) > 0 && Owns(CncModule) > 0 && (Owns(HandmadeChip) > 0 || Owns(HeavyChip) > 0) ? 1 : 0;
+                case MetalModule:
+                case CncModule: return Owns(id) < ForgePrinters ? 1 : 0;
+                case HeavyChip: return Owns(id) == 0 && KeepHeavy > 0 && (PermitHelper.IsGunPermitII() || Num("permit_max", 2) >= 2) ? 1 : 0;
+                case HandmadeChip: return Owns(id) == 0 && KeepHandmade > 0 ? 1 : 0;
+                case PartChip: return Owns(id) == 0 ? 1 : 0;
+            }
+            return 0;
+        }
+
+        static bool IsFrame(GameItem i) => i != null && i.IsTag(Frame);
+        static string FrameGun(GameItem frame) => frame.GetTagReadonly("GUN_FRAME_GUN_ID_STRING").GetString();
+        static bool IsNew(GameItem g) => g.FindItemFeatureByCategory("CATEGORY_EQUIPMENT_CONDITION")?.realCondition?.identifier == "equipment_condition_new";
+
+        // A frame-built gun: New, which no seller's gun is (sellers bring Poor to Good).
+        static bool Built(GameItem g) => IsGun(g) && IsNew(g) && (g.identifier == "handmade_pistol" || g.identifier == "heavy_handmade_pistol");
+
+        // Guns and frames of a kind on hand: what the next frame print tops up to `keep_*`.
+        static int OnHand(string gunId) => Owned().Count(i => Parent(i) == null && Legal(i) && ((IsGun(i) && i.identifier == gunId && IsNew(i)) || (IsFrame(i) && FrameGun(i) == gunId)));
+
+        static readonly string[][] TierGuns = { new string[0], new[] { "printed_gun", "handmade_pistol" }, new[] { "heavy_handmade_pistol", "glock_receiver", "revolver" }, new[] { "smg", "shotgun" } };
+
+        static bool HoldsTier(int tier) => Owned().Any(i => IsGun(i) && Legal(i) && Parent(i) == null && Array.IndexOf(TierGuns[Math.Max(0, Math.Min(3, tier))], i.identifier) >= 0);
+
+        // What a gun given to this order costs: its estimate, except that under Permit II a 10 mm gun is worth a Mid order
+        // (300 to 430 bare at Q 0 to 30, lab), which a Basic order never pays.
+        static int Cost(GunOrderData o, GameItem g)
+        {
+            int est = PlayerRole.Est(g);
+            if (Forge && o.tier < 2 && PermitHelper.IsGunPermitII() && Array.IndexOf(TierGuns[2], g.identifier) >= 0) return Math.Max(est, Num("mid_gun_value", 300));
+            return est;
+        }
+
+        // Ingots our own furnace made: their purity follows from what was loaded (MachineFurnace: Low + 2 x ore share +
+        // flux), so the player knows it; any other ingot ranks as unknown.
+        static readonly HashSet<int> knownIngots = new HashSet<int>();
+        static readonly Dictionary<string, int> kitBought = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        public static void KnowIngot(GameItem i) => knownIngots.Add(i.uniqueId);
+
+        public static void NoteIngots()
+        {
+            foreach (var f in Furnace.Furnaces())
+                foreach (var i in GraphUtils.FindAllChildrenType(f, (GameItem x) => x.identifier == Ingot)) knownIngots.Add(i.uniqueId);
+        }
+
+        static readonly string[] Purities = { "INGOT_PURITY_VERY_LOW", "INGOT_PURITY_LOW", "INGOT_PURITY_FAIR", "INGOT_PURITY_HIGH", "INGOT_PURITY_VERY_HIGH", "INGOT_PURITY_PERFECT" };
+        static readonly int[] PurityBonus = { -30, -20, 0, 20, 30, 100 };
+
+        // MachinePrinter.INGOT_QUALITY_BONUS for a known ingot; null when the player cannot know it.
+        static int? Bonus(GameItem ingot)
+        {
+            if (!knownIngots.Contains(ingot.uniqueId)) return null;
+            int k = Array.IndexOf(Purities, IngotPurityHelper.GetPurity(ingot));
+            return k < 0 ? (int?)null : PurityBonus[k];
+        }
+
+        // Which ingots a chip gets. A frame takes the purest (its bonus is the gun's print quality); a gun-part run the
+        // cheapest that still gives 3 parts (Low, Fair); a melee run one High or better and never a Low one
+        // (condition = 20-30 + the integer mean bonus: one High in three clears Poor, one Low guarantees it).
+        public static List<GameItem> PickIngots(GameItem chip, IEnumerable<GameItem> ingots, int n) =>
+            PickIngots(chip.IsTag("PRINTER_FRAME_CHIP_TAG") ? 'f' : chip.IsTag("PRINTER_GUN_PART_CHIP_TAG") ? 'p' : chip.IsTag("PRINTER_MELEE_CHIP_TAG") ? 'm' : '-', ingots, n);
+
+        static List<GameItem> PickIngots(char kind, IEnumerable<GameItem> ingots, int n)
+        {
+            var l = ingots.ToList();
+            int B(GameItem i) => Bonus(i) ?? 0;
+            if (kind == 'f') return l.OrderByDescending(B).ThenBy(i => i.uniqueId).Take(n).ToList();
+            if (kind == 'p')
+                return l.OrderBy(i => Bonus(i) switch { -20 => 0, 0 => 1, null => 2, 20 => 3, -30 => 4, 30 => 5, _ => 6 }).ThenBy(i => i.uniqueId).Take(n).ToList();
+            if (kind == 'm')
+            {
+                var safe = l.Where(i => B(i) >= 0).ToList();
+                var lead = safe.Where(i => B(i) >= 20).OrderBy(B).ThenBy(i => i.uniqueId).Take(1).ToList();
+                return lead.Concat(safe.Except(lead).OrderBy(B).ThenBy(i => i.uniqueId)).Take(n).ToList();
+            }
+            return l.OrderBy(i => i.uniqueId).Take(n).ToList();
+        }
+
+        // The forge printer's next job: gun parts when the frames on hand would wait for one, then the heavy frame under
+        // Permit II, then the handmade frame, each up to its `keep_*`. A frame is printed only when a part can finish it.
+        public static IEnumerable<string> ForgeQueue(GameItem printer)
+        {
+            if (!ForgeLive || !Forgeable(printer)) yield break;
+            int parts = Owned().Count(i => i.identifier == Part && Parent(i) == null);
+            int frames = Owned().Count(i => IsFrame(i) && Parent(i) == null);
+            bool partChip = Owns(PartChip) > 0;
+            bool heavy = PermitHelper.IsGunPermitII() && OnHand("heavy_handmade_pistol") < KeepHeavy;
+            bool hand = PermitHelper.IsGunPermitI() && OnHand("handmade_pistol") < KeepHandmade;
+            if (partChip && parts <= frames && (heavy || hand || frames > 0)) yield return PartChip;
+            if (!partChip && parts <= frames) yield break;
+            if (heavy) yield return HeavyChip;
+            if (hand) yield return HandmadeChip;
+        }
+
+        // The kit a forge holds: frames, gun parts (up to 6) and the ingots the next frames and part run take.
+        static bool ForgeKit(GameItem i)
+        {
+            if (IsFrame(i)) return true;
+            if (i.identifier == Part) return Owned().Where(m => m.identifier == Part && Parent(m) == null).OrderBy(m => m.uniqueId).Take(6).Any(m => m.uniqueId == i.uniqueId);
+            if (i.identifier != Ingot || Parent(i) != null || StolenHelper.IsStolenItem(i) || Owns(HandmadeChip) + Owns(HeavyChip) == 0) return false;
+            var loose = Owned().Where(m => m.identifier == Ingot && Parent(m) == null && !StolenHelper.IsStolenItem(m)).ToList();
+            var keep = loose.OrderByDescending(m => Bonus(m) ?? 0).ThenBy(m => m.uniqueId).Take(2).ToList();
+            if (Owns(PartChip) > 0) keep.AddRange(PickIngots('p', loose.Except(keep), 1));
+            return keep.Any(m => m.uniqueId == i.uniqueId);
+        }
+
+        // Each morning a gun part goes on every frame (the part's own use on the frame: GunFrameHelper.Finish), giving
+        // a New gun at the frame's print quality; it is legal at birth under the permit that covers it.
+        static void FinishFrames(IExecutorHost ep)
+        {
+            foreach (var frame in Owned().Where(i => IsFrame(i) && Parent(i) == null && Legal(i)).OrderBy(i => i.uniqueId).ToList())
+            {
+                var part = Owned().FirstOrDefault(i => i.identifier == Part && Parent(i) == null && !StolenHelper.IsStolenItem(i));
+                if (part == null || part.canThisTargetItemFunc == null || !part.canThisTargetItemFunc(part, frame)) return;
+                string gunId = FrameGun(frame);
+                int q = frame.GetTagReadonly("GUN_FRAME_PRINT_QUALITY_INT").GetInt(), uid = ep.Uid(frame);
+                var before = new HashSet<int>(Owned().Where(i => i.identifier == gunId).Select(i => i.uniqueId));
+                Chore.Act("finish_frame", frame, () => part.onThisTargetItemFunc?.Invoke(part, frame));
+                var gun = Owned().FirstOrDefault(i => i.identifier == gunId && !before.Contains(i.uniqueId));
+                if (gun == null) throw new InvalidOperationException("finishing " + gunId + " frame made no gun");
+                if (ForgeDay == 0) ForgeDay = ep.Day;
+                Finished++;
+                string key = gunId + "_q" + q;
+                finishedByQ[key] = (finishedByQ.TryGetValue(key, out int c) ? c : 0) + 1;
+                ep.Human("production", null, uid, new JObject { ["action"] = "finish_frame", ["gun"] = gunId, ["print_quality"] = q, ["gun_uid"] = ep.Uid(gun) }, "player:forge");
+            }
+        }
 
         // ---- the display case ----
 
@@ -104,7 +283,10 @@ namespace Fence.Gym
             // An order client takes one of the day's customer slots: with no legal gun in stock it would only be sent
             // away, so the permits come off display until one is (`window_when_stocked`, default on).
             if ((O.Value<bool?>("window_when_stocked") ?? true) && HeldCount() == 0) return new List<GameItem>();
+            // Per tier: a Mid client with only Basic guns in stock is a customer's slot spent on a refusal.
+            bool perTier = O.Value<bool?>("window_per_tier") ?? Forge;
             return owned.Where(i => IsPermit(i) && PermitHelper.HavePermit("FIREARM", i.GetTagReadonly(PermitHelper.PERMIT_ITEM_LEVEL).GetInt()))
+                .Where(i => !perTier || HoldsTier(i.GetTagReadonly(PermitHelper.PERMIT_ITEM_LEVEL).GetInt()))
                 .GroupBy(i => i.identifier).Select(g => g.OrderBy(i => i.uniqueId).First())
                 .OrderByDescending(i => i.GetTagReadonly(PermitHelper.PERMIT_ITEM_LEVEL).GetInt()).ToList();
         }
@@ -127,6 +309,11 @@ namespace Fence.Gym
             var stock = EmporiumEntry.Instance.invElement;
             foreach (var p in EmporiumEntry.Instance.frontInvinvElement.childItems.Where(i => i != null && IsPermit(i) && GeneralHelper.IsItemOwned(i)).ToList())
                 Chore.Accept(stock, p, -1);
+            if (Forge)
+            {
+                try { FinishFrames(ep); }
+                catch (Exception e) { ep.ProductionError(e); }
+            }
         }
 
         // ---- Wild ----
@@ -236,7 +423,8 @@ namespace Fence.Gym
         // misses only stat rows.
         static bool Repair(GunOrderData o, GameItem gun)
         {
-            int budget = Num("repair_parts", 2);
+            // The forge's parts finish frames; on a service gun a repair is paid, or its part comes back when declined.
+            int budget = Forge && !GunHelper.IsServiceGun(gun) ? 0 : Num("repair_parts", 2);
             bool any = false;
             while (!Passes(o, gun) && budget-- > 0 && GunHelper.CanRepair(gun) && o.mandatoryRequirements.Where(r => !r.IsMet(gun)).All(r => !r.isCaliber && r.isMustBeLargerThan))
             {
@@ -275,7 +463,7 @@ namespace Fence.Gym
                 var added = Build(o, g, loose);
                 if (Passes(o, g))
                 {
-                    int r = Reward(o, g), given = PlayerRole.Est(g);
+                    int r = Reward(o, g), given = Cost(o, g);
                     if (r >= given * minPct && (best == null || r - given > best.Reward - best.Given)) best = new Plan { Gun = g, Reward = r, Given = given };
                 }
                 else if (near == null && o.mandatoryRequirements.Where(q => !q.IsMet(g)).All(q => !q.isCaliber && q.isMustBeLargerThan && g.GetTagReadonly(q.id).GetInt() * 100 >= q.value * 85)) near = g;
@@ -299,6 +487,11 @@ namespace Fence.Gym
         public static void Delivered(StoreClient c, Plan p, int cash)
         {
             int tier = Math.Max(0, Math.Min(3, c.gunOrderData.tier));
+            if (!p.Service && p.Gun != null && Built(p.Gun))
+            {
+                ForgeOrders++;
+                ForgeIncome += cash;
+            }
             Orders++;
             ByTier[tier]++;
             IncomeByTier[tier] += cash;
@@ -317,6 +510,11 @@ namespace Fence.Gym
         public static void Trade(bool sold, GameItem item, int amount)
         {
             if (On && sold && item != null && (IsGun(item) || IsMod(item) || PlayerRole.TypeIs(item, new[] { "WEAPON", "AMMUNITION" }))) ArmsSales += amount;
+            if (Forge && !sold && item != null && Array.IndexOf(ForgeKitIds, item.identifier) >= 0)
+            {
+                ForgeCapital += amount;
+                kitBought[item.identifier] = (kitBought.TryGetValue(item.identifier, out int n) ? n : 0) + 1;
+            }
         }
 
         public static JObject Status()
@@ -329,6 +527,11 @@ namespace Fence.Gym
                 ["by_tier"] = new JArray(ByTier.Skip(1)), ["income_by_tier"] = new JArray(IncomeByTier.Skip(1)), ["offered_by_tier"] = new JArray(Offered.Skip(1)),
                 ["sent_away"] = Sent, ["refusals"] = JObject.FromObject(refusals), ["parts_used"] = PartsUsed, ["repairs"] = Repairs, ["arms_sales"] = ArmsSales,
                 ["guns_held"] = Owned().Count(i => IsGun(i) && Legal(i) && Parent(i) == null),
+                ["forge"] = !Forge ? null : new JObject
+                {
+                    ["first_day"] = ForgeDay, ["finished"] = Finished, ["finished_by_gun_q"] = JObject.FromObject(finishedByQ), ["capital"] = ForgeCapital,
+                    ["orders"] = ForgeOrders, ["income"] = ForgeIncome, ["kit"] = new JArray(Owned().Where(i => Array.IndexOf(ForgeKitIds, i.identifier) >= 0).Select(i => i.identifier).OrderBy(x => x, StringComparer.Ordinal)),
+                },
             };
         }
     }

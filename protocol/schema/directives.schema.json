@@ -336,9 +336,19 @@
         "permit_margin": {"type": "integer", "minimum": 0},
         "permit_reserve": {"$ref": "#/$defs/credits"},
         "permit_from": {"type": "integer", "minimum": 0},
-        "permit_max": {"type": "integer", "minimum": 1, "maximum": 3}
+        "permit_max": {"type": "integer", "minimum": 1, "maximum": 3},
+        "forge": {"type": "boolean"},
+        "buy_guns": {"type": "boolean"},
+        "window_per_tier": {"type": "boolean"},
+        "forge_from": {"type": "integer", "minimum": 0},
+        "forge_until": {"type": "integer", "minimum": 0},
+        "forge_printers": {"type": "integer", "minimum": 0},
+        "keep_handmade": {"type": "integer", "minimum": 0},
+        "keep_heavy": {"type": "integer", "minimum": 0},
+        "forge_reserve": {"$ref": "#/$defs/credits"},
+        "mid_gun_value": {"$ref": "#/$defs/credits"}
       },
-      "description": "gym executor: the arms engine (docs/re/ARMS.md): weapon permits on display for gun-order clients, orders filled from stock with mods and repairs, permits II and III bought near their Security gates, guns held and printed for orders"
+      "description": "gym executor: the arms engine (docs/re/ARMS.md): weapon permits on display for gun-order clients, orders filled from stock with mods and repairs, permits II and III bought near their Security gates, guns held and printed for orders; `forge` builds them from printed frames finished New (a new printer with the metal and CNC modules)"
     },
     "stolen": {
       "type": "object",

@@ -1,0 +1,9 @@
+# The frame forge against round 1's Armourer on hard, with and without the Board (docs/research/ROUTES.md, "The Armourer").
+# FENCE_GYM_DLL=… python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-forge.txt -dir var/sim/exp/forge -seeds 60 -days 1000 -parallel 3 -- -difficulty hard -perks vending+short_sleeper -seed0 2910000
+# python3 sim/lab/scripts/armsreport.py var/sim/exp/forge armourer armourer_forge armourer_forge_mid armourer_forge_pistols
+armourer | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_forge | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge.json
+armourer_forge_mid | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge_mid.json
+armourer_forge_pistols | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge_pistols.json
+armourer_noboard | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_noboard.json
+armourer_forge_noboard | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge_noboard.json

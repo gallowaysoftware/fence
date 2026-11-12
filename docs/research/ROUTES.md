@@ -467,6 +467,18 @@ On the ghost-band seeds 8100001–060 `fence` wins 60/60, median day 105; its de
 stream route, not a speed route: it puts the Fence start's own story on screen (thieves at the counter, the bay
 filling and emptying, BM rep climbing to Safe Hands) at no cost to the win.
 
+**The frame forge (round 2, 2026-11-12; docs/re/ARMS.md §6.1).** `arms.forge` builds the order guns from printed
+frames (New, base stats × the ingot's print quality) instead of buying them. Lab: the Gunsmith start's old printer
+cannot hold both the metal and the CNC module, so the forge needs a new printer (455); a frame takes 4 nights at 14
+power, a gun-part run 2; a Very High ingot's heavy pays a mean 339 across the Mid kinds, a Perfect ingot's heavy 608
+across the High kinds (all but big, bare). In the gym on 2910001–060 it **does not pay**: `armourer_forge` +72.6 ±
+14.0 days (median 203, 40 of 60 by the mortgage), `armourer_forge_mid` +76.0 ± 13.1, both 60/60; 11 and 5 of 60 runs
+ever finish a gun. The kit (~1 700 spent from day ~25) tips the cash buyout into the mortgage; the permit official
+was handed the working forge printer in a traced seed (a `BribePicks` bug, reported); burglars take loose modules
+after the insurance cut; and a Mid kit needs ~70 printer-nights under Permit II to pay back. The route file is
+unchanged (`forge` off); the forge directives live in `arms/armourer_forge*.json`. Lab.json, the ghost band and the
+deadline odds are unchanged because the route is.
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
