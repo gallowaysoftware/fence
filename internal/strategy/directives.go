@@ -104,6 +104,8 @@ type DirectivesResult struct {
 	Why map[string]string
 	// Err is why the model's directives were unusable, if they were.
 	Err error
+	// Bet is the plan's move on the run's bet (delta directives only); nil for none.
+	Bet *protocol.BetMove
 }
 
 // DraftDirectives asks c, in the plan's conversation, for the plan as directives, and

@@ -27,6 +27,8 @@ type PlanInput struct {
 	Failed bool
 	// Extra are instructions in words that Directives cannot hold (the gym's own levers).
 	Extra []string
+	// Bet is the plan's move on the run's bet, nil for none.
+	Bet *protocol.BetMove
 }
 
 // ReadBridgeLog collects each day's plan from a bridge's slog text output (bridge.log in
@@ -67,6 +69,11 @@ func ReadBridgeLog(r io.Reader) (map[int]*PlanInput, error) {
 			var why map[string]string
 			if json.Unmarshal([]byte(kv["why"]), &why) == nil && len(why) > 0 {
 				get(day).Why = why
+			}
+		case "bet":
+			var mv protocol.BetMove
+			if json.Unmarshal([]byte(kv["json"]), &mv) == nil {
+				get(day).Bet = &mv
 			}
 		case "directives fixed":
 			p := get(day)

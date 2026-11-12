@@ -29,6 +29,34 @@
     "lessons_day": {"type": "integer", "minimum": 0, "description": "The day that produced lessons; 0 when there are none."},
     "plan": {"type": "string", "maxLength": 2048, "description": "The strategist's plan for the day; absent when there is none."},
     "plan_day": {"type": "integer", "minimum": 0, "description": "The day the plan was written for; absent when there is no plan."},
-    "directives": {"$ref": "directives.schema.json", "description": "The plan as machine-readable directives for an executor; absent when there is no plan."}
+    "directives": {"$ref": "directives.schema.json", "description": "The plan as machine-readable directives for an executor; absent when there is no plan."},
+    "bet": {
+      "type": "object",
+      "description": "What the plan did to the run's bet (docs/PROTOCOL.md, Bets); absent when it did nothing.",
+      "additionalProperties": false,
+      "properties": {
+        "stake": {
+          "type": "object",
+          "required": ["claim", "kind", "by"],
+          "additionalProperties": false,
+          "properties": {
+            "claim": {"type": "string", "minLength": 1, "maxLength": 140},
+            "kind": {"enum": ["cash", "net_worth", "sell", "hold", "upgrade", "event", "payment", "judged"]},
+            "target": {"type": "integer"},
+            "item": {"type": "string"},
+            "uids": {"type": "array", "items": {"type": "integer"}},
+            "by": {"type": "integer", "minimum": 1},
+            "day": {"type": "integer", "minimum": 0}
+          }
+        },
+        "drop": {"type": "boolean"},
+        "verdict": {
+          "type": "object",
+          "required": ["won"],
+          "additionalProperties": false,
+          "properties": {"won": {"type": "boolean"}, "why": {"type": "string"}}
+        }
+      }
+    }
   }
 }

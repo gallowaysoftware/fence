@@ -3,6 +3,29 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Bets and callbacks — 2026-11-11: the narration sets things up and pays them off
+
+**Result.** With the bridge's `-bets`, a delta plan may stake one checkable bet a day ("Net worth reaches 5000 by
+day 35"): cash, net worth, a sale, a hold, an upgrade, a market rise or a payment, checked by `internal/bet` against
+player-visible state in the bridge and the show alike, or judged by the model at its deadline. The show speaks the
+stake, then calls it back when it is won, lost or abandoned ("I staked it on day 28 that we'd clear 5,000. We hit it
+early, 5,251."); a ledger of named characters (Georgio, Dr. Jackson, the landlord, the loan shark, dialogue speakers)
+gives the narrator their history ("Jackson sold me that neon sign last week. Now he's here again."), and the night beat
+doubles as a diary against the morning's plan. Six Qwen-27B runs on hard (sprinter, the Shark; docs/SHOW.md "Measured:
+bets and callbacks"): 4–15 bets a run, 53 settled, 40 called back in the narrator's own words; bet lines passed the
+fact check 46 / 14 / 5 (first try / retry / caption). On the last rules every one of 7 settlements was called back.
+Density stayed at ~1.8 lines a game day.
+
+**drift (Qwen3.8-27B MLX, one request at a time), seed 2950006, 24 days:** 23 plans, 0 unusable directives, 0
+unreadable bets, 7 stakes (5 kept; 2 landed after their day while drift was busy; 1 more rejected as a repeat),
+settled 2 won / 3 lost. A first attempt on Flash-Next was stopped after 12 plans when drift switched models.
+
+**What did not work.** Qwen kept betting the executor would buy one upgrade that no `upgrades_buy` named, and lost it
+night after night; same-day bets settled before they were set up. Fixed by a deadline of tomorrow at the earliest and
+no restake of a just-settled bet for 3 days. A callback once invented a reason ("the market ate it") and a ledger line
+swapped who sold what; the fact check reads numbers, not deeds. Model-judged verdicts are lenient. The ledger misses
+two-word names that never held a dialogue ("John Smith").
+
 ## Model agency — 2026-11-11: the model picks the route, takes the forks, and invents twelve routes
 
 **Result.** Qwen-27B now chooses each run's route before day 1 (from the 22–34-route menu with its lab record, or a

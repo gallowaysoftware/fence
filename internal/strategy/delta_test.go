@@ -102,3 +102,26 @@ func TestLintDecline(t *testing.T) {
 		})
 	}
 }
+
+func TestFinishDeltaBet(t *testing.T) {
+	tests := []struct {
+		name, raw, want, directives string
+	}{
+		{"a bet needs no why and is no directive",
+			`{"bargain":"never","why":{"bargain":"x"},"bet":{"claim":"Cash past 9,000 by day 60","kind":"cash","target":9000,"by":60}}`,
+			`{"stake":{"claim":"Cash past 9,000 by day 60","kind":"cash","target":9000,"by":60}}`, `{"day":41,"bargain":"never"}`},
+		{"drop", `{"bet":"drop"}`, `{"drop":true}`, `{"day":41}`},
+		{"keep is nothing", `{"bet":"keep"}`, `null`, `{"day":41}`},
+		{"a verdict as an outcome word", `{"bet_verdict":{"outcome":"lost","why":"security came twice"}}`, `{"verdict":{"won":false,"why":"security came twice"}}`, `{"day":41}`},
+		{"a verdict without a why under why", `{"bet_verdict":{"won":true},"why":{"bet_verdict":"x"}}`, `{"verdict":{"won":true}}`, `{"day":41}`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := finishDelta(json.RawMessage(tt.raw), nil, shop(t, nil), 41, "")
+			got, _ := json.Marshal(r.Bet)
+			eq(t, string(got), tt.want)
+			d, _ := json.Marshal(r.Directives)
+			eq(t, string(d), tt.directives)
+		})
+	}
+}

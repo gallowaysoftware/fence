@@ -63,6 +63,10 @@ type PlanInput struct {
 	BaseDirectives string
 	// Route is the run's route (route.Route.Text), "" for none.
 	Route string
+	// Bets asks the delta directives for an optional bet; Bet is the run's bet as the model
+	// should read it (open, settled, due for a verdict).
+	Bets bool
+	Bet  string
 }
 
 // planSystem states only mechanics from docs/re/STATE.md, docs/re/BARTER.md and
@@ -190,6 +194,8 @@ type PlanDraft struct {
 	day         int
 	delta       bool
 	base        string
+	bets        bool
+	bet         string
 }
 
 // DraftPlanConversation is DraftPlan, keeping the conversation for DraftDirectives.
@@ -224,7 +230,7 @@ func DraftPlanConversation(ctx context.Context, c llm.Client, in PlanInput, maxT
 		}
 		answer := llm.Message{Role: llm.RoleAssistant, Content: nonEmpty(strings.TrimSpace(resp.Text), "(empty)")}
 		if err == nil {
-			return &PlanDraft{Plan: plan, Model: resp.Model, system: system, messages: append(msgs, answer), snap: snap, persona: in.style(), day: day, delta: in.Delta, base: in.BaseDirectives}, nil
+			return &PlanDraft{Plan: plan, Model: resp.Model, system: system, messages: append(msgs, answer), snap: snap, persona: in.style(), day: day, delta: in.Delta, base: in.BaseDirectives, bets: in.Bets, bet: in.Bet}, nil
 		}
 		msgs = append(msgs, answer,
 			llm.Message{Role: llm.RoleUser, Content: "That plan is unusable: " + err.Error() +

@@ -88,6 +88,12 @@ type DirectivesPlanner interface {
 	CurrentDirectives(session string) (directives json.RawMessage, day int, ok bool)
 }
 
+// BetPlanner is a Planner whose plans may stake a bet (docs/PROTOCOL.md, "Bets"); /v1/summary
+// serves the latest plan's move on it.
+type BetPlanner interface {
+	CurrentBet(session string) *protocol.BetMove
+}
+
 type Server struct {
 	cfg       Config
 	log       *slog.Logger
@@ -392,7 +398,7 @@ func (s *Server) summary(w http.ResponseWriter, r *http.Request) {
 	resp := protocol.SummaryResponse{
 		SessionID: sess.id, Mode: sess.mode, Policy: s.cfg.Policy.Name(), Model: s.cfg.Model,
 		Day: day.Day, Today: day.Today, Lessons: day.Lessons, LessonsDay: day.LessonsDay,
-		Plan: p.text, PlanDay: p.day, Directives: p.directives,
+		Plan: p.text, PlanDay: p.day, Directives: p.directives, Bet: p.bet,
 	}
 	if resp.Today.RepDelta == nil {
 		resp.Today.RepDelta = map[string]float64{}
@@ -414,6 +420,7 @@ type plan struct {
 	text       string
 	day        int
 	directives *protocol.Directives
+	bet        *protocol.BetMove
 }
 
 // currentPlan is the planner's plan cut to MaxPlanBytes; none when it is late, panics or
@@ -429,6 +436,9 @@ func (s *Server) currentPlan(ctx context.Context, session string) plan {
 		}
 		p := plan{text: clipText(strings.TrimSpace(text), protocol.MaxPlanBytes), day: max(day, 0)}
 		p.directives = s.directives(session)
+		if bp, ok := s.cfg.Planner.(BetPlanner); ok {
+			p.bet = bp.CurrentBet(session)
+		}
 		return p, nil
 	})
 	if err != nil {

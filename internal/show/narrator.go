@@ -63,6 +63,10 @@ type Narrator struct {
 	seen    int64
 	busy    bool
 	quietAt time.Time
+	// bet is the strategist's open bet, for the lines that build up to it; ledger the run's
+	// named characters (ledger.go).
+	bet    *BetState
+	ledger Ledger
 
 	// pace is the run's latest standing against its book (ghost.go), "" without one.
 	pace string
@@ -102,7 +106,7 @@ func (n *Narrator) defaults() {
 // Priority ranks moments when only one can be spoken.
 func Priority(ev Event) int {
 	switch ev.Beat {
-	case BeatMilestone, BeatPace:
+	case BeatMilestone, BeatPace, BeatBetWon, BeatBetLost, BeatBetAbandoned:
 		return 4
 	case BeatNight, BeatAppraisalStreak:
 		return 2
@@ -125,7 +129,7 @@ func Priority(ev Event) int {
 		return 4
 	case KindAug, KindHeat, KindMoney, KindPurchase:
 		return 4
-	case KindCandidates, KindPlan:
+	case KindCandidates, KindPlan, KindBet:
 		return 3
 	case KindTrade:
 		return 2
@@ -168,7 +172,7 @@ func (n *Narrator) Run(ctx context.Context, events <-chan Event) {
 // telling twice as late. With CPU TTS under load a line took 13 s, and every moment that waited
 // for it passed the 15 s limit.
 func (n *Narrator) slack(ev Event, limit time.Duration) time.Duration {
-	if smallBeatCues[ev.Beat] != "" {
+	if smallBeatCues[ev.Beat] != "" || betCues[ev.Beat] != "" {
 		return 2 * limit
 	}
 	return limit
@@ -205,7 +209,7 @@ func (n *Narrator) intake(ctx context.Context, events <-chan Event) {
 		}
 		n.mu.Lock()
 		if ev.Kind == KindRunStart {
-			n.clock, n.lastNet, n.pace = nil, nil, ""
+			n.clock, n.lastNet, n.pace, n.bet, n.ledger = nil, nil, "", nil, Ledger{}
 			// A restart's replayed run start is the same run: its phrasebook stands.
 			if ev.Run != n.bookRun {
 				n.books, n.bookRun = nil, ev.Run
@@ -226,6 +230,14 @@ func (n *Narrator) intake(ctx context.Context, events <-chan Event) {
 			d := ev.Summary.NetWorthDelta
 			n.lastNet = &d
 		}
+		if ev.Kind == KindBet && ev.Bet != nil {
+			n.bet = nil
+			if ev.Bet.Outcome == "staked" {
+				b := *ev.Bet
+				n.bet = &b
+			}
+		}
+		n.ledger.Note(ev)
 		fill := n.fills(ev)
 		n.mu.Unlock()
 		if (ev.Level < LevelMoment && !fill) || ev.Kind == KindSay {
@@ -277,7 +289,7 @@ func (n *Narrator) speak(ctx context.Context, ev Event) time.Duration {
 	if line == "" {
 		return 0
 	}
-	say := &Say{Line: line, For: ev.Seq, Source: sp.source, Check: sp.check, Faults: sp.faults, MS: sp.ms, Mood: n.mood(ev).Name}
+	say := &Say{Line: line, For: ev.Seq, Source: sp.source, Check: sp.check, Faults: sp.faults, MS: sp.ms, Mood: n.mood(ev).Name, Callback: sp.callback}
 	var dur time.Duration
 	if n.TTS != nil && n.AudioDir != "" {
 		voice := n.voice()
@@ -385,6 +397,7 @@ type spoken struct {
 	line, source, check string
 	faults              []string
 	ms                  int64
+	callback            []string
 }
 
 // line asks the LLM for a line and checks it against the moment's facts and the persona's
@@ -399,7 +412,8 @@ func (n *Narrator) line(ctx context.Context, ev Event) spoken {
 	facts := FactsOf(ev)
 	mood := n.mood(ev)
 	pb := n.book()
-	news := ev.Text + "\n" + facts.Prompt()
+	callback := n.history(ev, &facts)
+	news := ev.Text + "\n" + facts.Prompt() + facts.history
 	if p := ev.Plan; p != nil {
 		news += "\n" + strings.Join(slices.Concat(p.Headline, p.Changes, p.Why, p.Goals), "\n")
 	}
@@ -428,7 +442,7 @@ func (n *Narrator) line(ctx context.Context, ev Event) spoken {
 			if try > 0 {
 				check = "retry"
 			}
-			return spoken{line: l, source: "llm", check: check, faults: first, ms: n.now().Sub(start).Milliseconds()}
+			return spoken{line: l, source: "llm", check: check, faults: first, ms: n.now().Sub(start).Milliseconds(), callback: callback}
 		}
 		fs := make([]string, len(faults))
 		for i, f := range faults {
@@ -503,7 +517,9 @@ func (n *Narrator) system(mood Mood) string {
 func (n *Narrator) prompt(ev Event, f Facts, avoid []string, image string) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Day %d. Moment: %s\n", ev.Day, ev.Text)
-	if cue := smallBeatCues[ev.Beat]; cue != "" {
+	if cue := betCues[ev.Beat]; cue != "" {
+		fmt.Fprintf(&b, "This moment: %s\n", cue)
+	} else if cue := smallBeatCues[ev.Beat]; cue != "" {
 		fmt.Fprintf(&b, "This moment: %s\n", cue)
 	} else if cue := beatCues[ev.Beat]; cue != "" {
 		fmt.Fprintf(&b, "This is a big moment of the run: %s\n", cue)
@@ -536,6 +552,7 @@ func (n *Narrator) prompt(ev Event, f Facts, avoid []string, image string) strin
 	if facts := f.Prompt(); facts != "" {
 		b.WriteString("Facts:\n" + facts)
 	}
+	b.WriteString(f.history)
 	if len(n.recent) > 0 {
 		fmt.Fprintf(&b, "Your previous lines: %s\n", strings.Join(n.recent, " / "))
 	}

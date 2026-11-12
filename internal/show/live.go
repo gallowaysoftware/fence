@@ -187,8 +187,8 @@ func (l *Live) plan(ctx context.Context, t *tail) {
 		t.b.Player.Model = s.Model
 	}
 	key := s.Plan
-	if s.Directives != nil {
-		if b, err := json.Marshal(s.Directives); err == nil {
+	for _, v := range []any{s.Directives, s.Bet} {
+		if b, err := json.Marshal(v); err == nil && v != nil {
 			key += string(b)
 		}
 	}
@@ -200,7 +200,9 @@ func (l *Live) plan(ctx context.Context, t *tail) {
 	if day == 0 {
 		day = s.Day
 	}
-	ev := t.b.Plan(PlanInput{Day: day, Text: s.Plan, Directives: s.Directives})
-	ev.V, ev.Run = SchemaVersion, t.b.run
-	l.Publish(ev)
+	in := PlanInput{Day: day, Text: s.Plan, Directives: s.Directives, Bet: s.Bet}
+	for _, ev := range append([]Event{t.b.Plan(in)}, t.b.Bets(in)...) {
+		ev.V, ev.Run = SchemaVersion, t.b.run
+		l.Publish(ev)
+	}
 }

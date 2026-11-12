@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gallowaysoftware/fence/internal/bet"
 	"github.com/gallowaysoftware/fence/internal/protocol"
 )
 
@@ -71,7 +72,14 @@ type Builder struct {
 	augDetection            string
 	handedOver              bool
 
-	ghost ghostRun
+	// bets is the strategist's bet, checked against what the log shows; speakers are the
+	// names that have held a dialogue with the shop (ledger.go).
+	bets     bet.Tracker
+	speakers map[string]bool
+	// headline is the latest prose plan's headline and its day, for the night's diary.
+	headline    []string
+	headlineDay int
+	ghost       ghostRun
 }
 
 type client struct{ name, faction, intent string }
@@ -91,6 +99,7 @@ func NewBuilder(p Player) *Builder {
 		upgrades: map[string]string{},
 		clients:  map[int64]client{},
 		counters: map[string]counter{},
+		speakers: map[string]bool{},
 	}
 }
 
@@ -261,6 +270,7 @@ func (b *Builder) event(e *logEvent) []Event {
 		if b.started {
 			b.Player.Difficulty, b.Player.Start, b.Player.Perks = "", "", nil
 			b.ended, b.heat, b.planDay, b.planDirectives, b.day, b.mornings = false, nil, 0, nil, 0, 0
+			b.bets = bet.Tracker{}
 			b.ghost = ghostRun{}
 		}
 		b.fill(d.Difficulty, d.Start, d.Perks)
@@ -279,7 +289,7 @@ func (b *Builder) event(e *logEvent) []Event {
 	case "human_action":
 		return b.action(e)
 	case "money":
-		return b.money(e)
+		return append(b.money(e), b.moneyBets(e)...)
 	case "aug":
 		return b.aug(e)
 	case "autopilot":
@@ -441,7 +451,7 @@ func (b *Builder) snapshot(e *logEvent) []Event {
 		rep[k] = v.Value
 	}
 
-	var out []Event
+	out := betEvents(b.bets.Snapshot(e.Data, max(s.Store.Day, e.GameDay)), b.Clock())
 	if s.Phase == "morning" || (s.Phase == "run_start" && b.day == 0) {
 		day := max(s.Store.Day, e.GameDay, 1)
 		if day > b.mornings && s.Phase == "morning" && b.haveClock {
@@ -459,6 +469,7 @@ func (b *Builder) snapshot(e *logEvent) []Event {
 		if b.Plans != nil {
 			if p := b.Plans(day); p != nil {
 				out = append(out, b.Plan(*p))
+				out = append(out, b.Bets(*p)...)
 			}
 		}
 	}
@@ -573,6 +584,7 @@ func (b *Builder) customer(e *logEvent) []Event {
 	c := client{name: d.Context.Client.Name, faction: d.Context.Client.Faction, intent: d.Context.Client.Intent}
 	b.clients[d.ClientSeq] = c
 	if c.intent == "dialogue" {
+		b.speakers[c.name] = true
 		return nil
 	}
 	b.today.Customers++
@@ -657,7 +669,7 @@ func (b *Builder) outcome(id string, o *logOutcome) []Event {
 			who = "The customer"
 		}
 		b.haggled(c.client.name, optionWords(res.Option), verdict)
-		return []Event{{Kind: KindThought, Level: LevelTicker, Text: fmt.Sprintf("Haggled with %s (%s): %s.", who, optionWords(res.Option), verdict)}}
+		return []Event{{Kind: KindThought, Level: LevelTicker, Who: b.character(c.client.name), Text: fmt.Sprintf("Haggled with %s (%s): %s.", who, optionWords(res.Option), verdict)}}
 	}
 	return nil
 }
@@ -702,6 +714,9 @@ func (b *Builder) trade(c counter, side string, uids []int64, cash int64) []Even
 	}
 	t.Items = groupNames(names)
 	b.clock.Cash += cash
+	if side == "sold" {
+		b.bets.Sold(uids, abs(cash))
+	}
 	switch side {
 	case "sold":
 		b.today.Sold += t.Cash
@@ -722,7 +737,7 @@ func (b *Builder) trade(c counter, side string, uids []int64, cash int64) []Even
 			}
 		}
 	}
-	ev := Event{Kind: KindTrade, Level: tradeLevel(t, b.clock.NetWorth), Trade: t, Clock: b.Clock(), Text: tradeText(t)}
+	ev := Event{Kind: KindTrade, Level: tradeLevel(t, b.clock.NetWorth), Trade: t, Clock: b.Clock(), Text: tradeText(t), Who: b.character(t.Customer)}
 	b.counterBeat(&ev)
 	return []Event{ev}
 }
@@ -979,16 +994,16 @@ func (b *Builder) money(e *logEvent) []Event {
 		}
 		return []Event{b.daySummary()}
 	case "rent_paid":
-		return ev(LevelNotable, -d.Amount, "Paid the rent: %d.", d.Amount)
+		return with(ev(LevelNotable, -d.Amount, "Paid the rent: %d.", d.Amount), landlord)
 	case "rent_missed":
-		return ev(LevelMoment, 0, "Missed the rent.")
+		return with(ev(LevelMoment, 0, "Missed the rent."), landlord)
 	case "georgio_loan":
 		// The shop lends to Georgio; he repays four times as much later.
 		b.clock.Cash -= d.Amount
-		return ev(LevelMoment, -d.Amount, "Lent %d to Georgio.", d.Amount)
+		return with(ev(LevelMoment, -d.Amount, "Lent %d to Georgio.", d.Amount), georgio)
 	case "georgio_payback":
 		b.clock.Cash += d.Amount
-		return ev(LevelMoment, d.Amount, "Georgio paid back %d.", d.Amount)
+		return with(ev(LevelMoment, d.Amount, "Georgio paid back %d.", d.Amount), georgio)
 	case "permit_bought":
 		return ev(LevelMoment, -d.Price, "Bought the vendor permit for %d.", d.Price)
 	case "permit_bribe":
@@ -1114,6 +1129,7 @@ func (b *Builder) Plan(in PlanInput) Event {
 	p.Goals = append(p.Goals, b.goals()...)
 	if len(p.Headline) > 0 {
 		b.goal, b.goalDay = p.Headline[0], in.Day
+		b.headline, b.headlineDay = p.Headline, in.Day
 	}
 	first := b.planDay == 0
 	p.Changes = Changes(b.planDirectives, p.Directives)

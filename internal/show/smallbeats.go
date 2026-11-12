@@ -108,7 +108,12 @@ func (b *Builder) nightBeat(inv []itemView) []Event {
 	default:
 		text += fmt.Sprintf(": back with %s.", summarizeItems(groupNames(names), 3))
 	}
-	return []Event{{Kind: KindThought, Level: LevelMoment, Beat: BeatNight, Clock: b.Clock(), Text: text}}
+	ev := Event{Kind: KindThought, Level: LevelMoment, Beat: BeatNight, Clock: b.Clock(), Text: text}
+	if n.location == "dr_jackson" {
+		ev.Who = jackson
+	}
+	ev.Plan = b.diary()
+	return []Event{ev}
 }
 
 // milestoneBeat marks net worth crossing a quarter, half and three quarters of the buyout
@@ -143,4 +148,14 @@ func (b *Builder) appraisalBeat(fee *int64) []Event {
 	}
 	return []Event{{Kind: KindThought, Level: LevelMoment, Beat: BeatAppraisalStreak, Clock: b.Clock(),
 		Text: fmt.Sprintf("Appraisal streak: %d in a row accepted, %s in fees over the streak.", b.streak, num(b.streakFees))}}
+}
+
+// diary is the night's look back: the morning's plan against where the day closed, for the
+// narrator (bets.go); nil when today had no prose plan.
+func (b *Builder) diary() *Plan {
+	if b.headlineDay != b.day || len(b.headline) == 0 {
+		return nil
+	}
+	return &Plan{Day: b.day, Source: "diary", Headline: b.headline[:min(2, len(b.headline))],
+		Goals: []string{fmt.Sprintf("Cash %s this morning, %s tonight", num(b.morningCash), num(b.clock.Cash))}}
 }

@@ -427,3 +427,10 @@ func TestPartWithoutEnd(t *testing.T) {
 		t.Errorf("title %q", k.Title)
 	}
 }
+
+func TestBetChapterTitle(t *testing.T) {
+	ev := show.Event{Day: 31, Kind: show.KindBet, Beat: show.BeatBetLost, Level: show.LevelMoment, Bet: &show.BetState{Claim: "Cash past 2,500 by day 30."}}
+	if got := chapterTitle(ev); got != "Day 31: Bet lost: Cash past 2,500 by day 30" {
+		t.Errorf("title = %q", got)
+	}
+}

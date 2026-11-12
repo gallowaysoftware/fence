@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gallowaysoftware/fence/internal/bet"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/protocol"
 )
@@ -57,6 +58,8 @@ type Options struct {
 	BaseDirectives string
 	// Route is the run's route (route.Route.Text): its plans are written as that shop; "" for none.
 	Route string
+	// Bets lets each delta plan stake one checkable bet on the run (docs/PROTOCOL.md, "Bets").
+	Bets bool
 	// Agency (agency.go): the day-0 choice, the forks and the plan cadence.
 	Agency Agency
 }
@@ -100,6 +103,11 @@ type run struct {
 	directives      *protocol.Directives
 	reviewDay       int
 	tail            chan struct{}
+	// bets is the run's bet; betNews what settled it since the last plan read it; betMove
+	// the latest plan's move on it, served with the plan.
+	bets    bet.Tracker
+	betNews []bet.Resolution
+	betMove *protocol.BetMove
 	agencyRun
 }
 
@@ -178,6 +186,7 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 			return
 		}
 		d := r.day(n)
+		s.noteBets(r, r.bets.Snapshot(ev.Data, n))
 		switch snap.Phase {
 		case "morning":
 			d.morning, d.morningRaw = snap, ev.Data
@@ -193,6 +202,13 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 		if r := s.runFor(session, ev.GameDay); r != nil {
 			n := ev.GameDay
 			s.enqueue(r, func(ctx context.Context) { s.reviewDay(ctx, r, n) })
+		}
+	case "money":
+		var m struct {
+			Kind string `json:"kind"`
+		}
+		if r := s.runFor(session, ev.GameDay); r != nil && json.Unmarshal(ev.Data, &m) == nil {
+			s.noteBets(r, r.bets.Money(m.Kind, ev.GameDay))
 		}
 	case "aug":
 		if r := s.runFor(session, ev.GameDay); r != nil && isGoodKill(ev.Data) {
@@ -292,6 +308,10 @@ func (s *Strategist) Outcome(session string, oc protocol.Outcome) {
 	defer s.mu.Unlock()
 	if r := s.runFor(session, oc.GameDay); r != nil && !s.closed {
 		r.day(oc.GameDay).stats.addOutcome(oc.DecisionID, oc.Result)
+		var res result
+		if json.Unmarshal(oc.Result, &res) == nil && res.Kind == "trade" && res.Side == "sold" && res.CashDelta != nil {
+			r.bets.Sold(res.Items, *res.CashDelta)
+		}
 		s.outcomeWindfalls(session, r, oc)
 	}
 }
@@ -474,6 +494,9 @@ func (s *Strategist) planDay(ctx context.Context, session string, r *run, n, gen
 		return
 	}
 	in := PlanInput{Day: n, Snapshot: d.morningRaw, Persona: s.personaFor(session, r), Augs: r.augs.trackFor(d.morning, n), WineIdle: r.wine.Idle(n), Delta: s.opt.DeltaDirectives, BaseDirectives: s.opt.BaseDirectives, Route: s.opt.Route, Exemplars: s.opt.Exemplars.Similar(d.morningRaw, n, 3)}
+	if s.opt.Bets {
+		in.Bets, in.Bet = true, betBrief(&r.bets, r.betNews, d.morning)
+	}
 	if y := r.yesterday(n); y != nil {
 		yp := y.dayPlan()
 		in.Yesterday = &yp
@@ -507,6 +530,9 @@ func (s *Strategist) planDay(ctx context.Context, session string, r *run, n, gen
 	d.plan, d.model, d.directives = draft.Plan, draft.Model, &dr.Directives
 	if n >= r.planDay || r.plan == "" {
 		r.plan, r.planModel, r.planDay, r.directives = draft.Plan, draft.Model, n, &dr.Directives
+	}
+	if s.opt.Bets {
+		s.applyBet(r, d, n, dr.Bet)
 	}
 	s.log.Info("day plan written", "day", n, "bytes", len(draft.Plan), "ms", planMS, "directives_ms", time.Since(start).Milliseconds()-planMS, "plan", draft.Plan)
 	if dr.Err != nil {

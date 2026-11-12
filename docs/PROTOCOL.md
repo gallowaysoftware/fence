@@ -226,7 +226,8 @@ The day (meta-turn) view for the overlay. Example: `protocol/fixtures/summary.re
 `today` comes from memory's day stats for the current run (zeros when memory is off),
 `lessons` is the run's current lessons text (≤ 2 KB, `""` before the first reflection) and
 `lessons_day` the day that produced it. `plan` / `plan_day` (optional, ≤ 2 KB) are the
-strategist's plan for the day and the day it was written; absent before the first plan. The mod fetches it on `client_arrived`,
+strategist's plan for the day and the day it was written; absent before the first plan. `bet`
+(optional) is that plan's move on the run's bet ("Bets" below). The mod fetches it on `client_arrived`,
 `waking_up`, after each outcome, and at most every 5 s. `404` for an unknown session.
 
 ## Directives (structured plan)
@@ -299,6 +300,46 @@ except an engine that names only part of the base's (a restated `wine` would sto
 
 The last five are route levers a strategist's fork may change mid-run (docs/STREAM.md, "Model agency"); the gym
 reads them from the morning's directives like any route file's.
+
+## Bets
+With the bridge's `-bets` (delta directives only), the delta answer may also carry the run's
+**bet**: one claim the morning plan stakes, with a deadline, that the show sets up and calls
+back to when it is settled (`docs/SHOW.md`, "Bets and callbacks"). Bets are optional and never
+directives: they need no `why`, and the executor never sees them. At most one is open.
+
+```json
+{"bet": {"claim": "Cash past 2,500 by day 21, rent and all", "kind": "cash", "target": 2500, "by": 21}}
+```
+
+| `kind` | Fields | Won when (player-visible state only) | Lost when |
+|---|---|---|---|
+| `cash`, `net_worth` | `target` | a snapshot on or before day `by` shows it | day `by` closes short |
+| `sell` | `uids` or `item` (a name in stock), optional `target` (least the sale brings) | the items are sold by day `by` (for `target` or more) | day `by` closes unsold, or the sale brought less |
+| `hold` | `uids` or `item` | day `by` closes with the items still held | one is sold or gone first |
+| `upgrade` | `item` (an upgrade on offer; names map to ids) | the snapshot shows it owned by day `by` | day `by` closes without it |
+| `event` | `item` (a market item type the snapshot names; any other becomes `judged`) | an active market event raises that type by day `by` | day `by` closes without one |
+| `payment` | | a rent or mortgage payment by day `by` | a missed rent, or no payment by day `by` |
+| `judged` | | the model's `bet_verdict` says so | the model's `bet_verdict` says so |
+
+"By day N" includes day N's trading and its night (the night's upgrades too): the bet is
+over at day N's `sleep` snapshot ("day `by` closes" above). The bridge rejects (and logs `bet rejected`)
+a bet with no claim (claims are cut to 140 bytes), an unknown kind, a deadline today or more than 42 days out (a bet settled the night it is staked has no time
+to build), one already true when staked (filler), an item not in stock, an upgrade owned or not on
+offer, or the bet settled in the last 3 days staked again (Qwen bet on the same upgrade four
+nights running, lost each time). A stake whose deadline passed before its plan landed is ignored. `"bet": "drop"` abandons the open bet; a new bet replaces it (the old one counts as
+abandoned); the same bet again keeps it. A `judged` bet comes due the morning after its
+deadline: the next plan's delta ask (the same morning, or the next weekly plan under
+`-plan-every`) tells the model to judge it from the state with
+`"bet_verdict": {"won": true|false, "why": "<the fact>"}`; a plan that does not expires it, and
+the bridge logs that as a `drop`. Every check above runs on snapshots, not plans, so weekly
+plans settle the other kinds on the same day daily ones do. Each plan's delta ask shows the open bet (with the cash or net worth against its target)
+and what settled since the last plan.
+
+`internal/bet` checks bets for both sides: the bridge and the show feed the same tracker the same
+decision-log events (every `day_snapshot`, sold `trade` outcomes, `money` rent and mortgage
+events), so they settle a bet on the same day. The bridge logs each move as `msg=bet day=N
+json={"stake":…|"drop":true|"verdict":…}` and each settlement as `msg="bet settled"`;
+`/v1/summary` serves the latest plan's move as `bet` (`protocol.BetMove`).
 
 ## `POST /v1/outcome`
 Sent when the game resolves something a decision started. Fire-and-forget; a decision may

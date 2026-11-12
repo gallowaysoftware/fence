@@ -130,9 +130,11 @@ func (b *Builder) mortgage(kind string, raw json.RawMessage) ([]Event, bool) {
 			b.mortgageWeeks = d.Weeks
 		}
 		if d.Down > 0 && d.Weekly > 0 {
-			return ev(LevelMoment, BeatMortgageSigned, -d.Down, "Signed the mortgage: %s down, then %s a week for %d weeks, and the shop is ours.", num(d.Down), num(d.Weekly), d.Weeks)
+			evs, _ := ev(LevelMoment, BeatMortgageSigned, -d.Down, "Signed the mortgage: %s down, then %s a week for %d weeks, and the shop is ours.", num(d.Down), num(d.Weekly), d.Weeks)
+			return with(evs, loanShark), true
 		}
-		return ev(LevelMoment, BeatMortgageSigned, 0, "Signed the mortgage.")
+		evs, _ := ev(LevelMoment, BeatMortgageSigned, 0, "Signed the mortgage.")
+		return with(evs, loanShark), true
 	case "mortgage_payment", "mortgage_paid":
 		left := max(0, b.clock.MortgageWeeksLeft-1)
 		b.clock.MortgageWeeksLeft = left

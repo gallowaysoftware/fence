@@ -174,6 +174,46 @@ type SummaryResponse struct {
 	// Directives is the plan as machine-readable instructions for an executor; absent
 	// when there is no plan.
 	Directives *Directives `json:"directives,omitempty"`
+	// Bet is what the plan did to the run's bet; absent when it did nothing.
+	Bet *BetMove `json:"bet,omitempty"`
+}
+
+// Bet is a checkable claim a morning plan stakes on the run (docs/PROTOCOL.md, "Bets"). Kind
+// says how it is checked against player-visible state; a "judged" bet is judged by the model
+// at its deadline.
+type Bet struct {
+	Claim string `json:"claim"`
+	// Kind is one of BetKinds.
+	Kind string `json:"kind"`
+	// Target is the cash or net worth to reach (cash, net_worth) or the least a sale brings
+	// (sell, optional).
+	Target int64 `json:"target,omitempty"`
+	// Item is an item name (sell, hold), an upgrade id (upgrade) or a market item type (event).
+	Item string  `json:"item,omitempty"`
+	UIDs []int64 `json:"uids,omitempty"`
+	// By is the last day the claim may come true on; Day the day it was staked.
+	By  int `json:"by"`
+	Day int `json:"day,omitempty"`
+}
+
+// BetKinds are the bets the bridge and the show check themselves, and "judged".
+var BetKinds = []string{"cash", "net_worth", "sell", "hold", "upgrade", "event", "payment", "judged"}
+
+// MaxBetClaim bounds Bet.Claim, in bytes.
+const MaxBetClaim = 140
+
+// BetMove is what one plan did to the run's bet: staked a new one (an open one is then
+// abandoned), dropped the open one, or judged a "judged" bet that came due.
+type BetMove struct {
+	Stake   *Bet        `json:"stake,omitempty"`
+	Drop    bool        `json:"drop,omitempty"`
+	Verdict *BetVerdict `json:"verdict,omitempty"`
+}
+
+// BetVerdict is the model's judgment of a "judged" bet at its deadline.
+type BetVerdict struct {
+	Won bool   `json:"won"`
+	Why string `json:"why,omitempty"`
 }
 
 // MaxPlanBytes bounds SummaryResponse.Plan.

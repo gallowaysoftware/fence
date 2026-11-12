@@ -28,6 +28,8 @@ const (
 	KindDay        Kind = "day"
 	KindRunEnd     Kind = "run_end"
 	KindSay        Kind = "say"
+	// KindBet is the strategist's bet being staked or settled (docs/SHOW.md, "Bets").
+	KindBet Kind = "bet"
 	// KindAutopilot is the live autopilot stopping (faulted, or handing a customer to the human) or the
 	// human pausing and resuming it (docs/STREAM.md).
 	KindAutopilot Kind = "autopilot"
@@ -75,7 +77,10 @@ type Event struct {
 	// entry as one where the hands knew more than a player could.
 	HiddenUsed []string        `json:"hidden_used,omitempty"`
 	Autopilot  *AutopilotState `json:"autopilot,omitempty"`
-	Ghost      *Ghost          `json:"ghost,omitempty"`
+	Bet        *BetState       `json:"bet,omitempty"`
+	// Who is the named character the event is with (ledger.go), "" for a passer-by.
+	Who   string `json:"who,omitempty"`
+	Ghost *Ghost `json:"ghost,omitempty"`
 	// Beat names a stream beat the narrator plays up (BeatPromotion, …); "" for the rest.
 	Beat string `json:"beat,omitempty"`
 }
@@ -96,6 +101,11 @@ const (
 	BeatMorning         = "morning_plan"
 	BeatMilestone       = "milestone"
 	BeatAppraisalStreak = "appraisal_streak"
+	// The bet: staked in the morning plan, then won, lost or abandoned.
+	BeatBetMade      = "bet_made"
+	BeatBetWon       = "bet_won"
+	BeatBetLost      = "bet_lost"
+	BeatBetAbandoned = "bet_abandoned"
 	// BeatPace is the run changing pace against its book, or leaving or re-entering its band.
 	BeatPace = "pace"
 	// BeatRouteChoice is the strategist's day-0 route and thesis; BeatFork a run-shaping decision it
@@ -103,6 +113,21 @@ const (
 	BeatRouteChoice = "route_choice"
 	BeatFork        = "fork"
 )
+
+// BetState is a bet as staked (Outcome "staked") or settled: "won", "lost", "abandoned",
+// "due" (a judged bet waiting for the model's verdict) or "expired" (never judged).
+type BetState struct {
+	Claim   string `json:"claim"`
+	Kind    string `json:"kind"`
+	Target  int64  `json:"target,omitempty"`
+	Item    string `json:"item,omitempty"`
+	By      int    `json:"by"`
+	Staked  int    `json:"staked"`
+	Outcome string `json:"outcome"`
+	// Fact is what settled it ("cash 9,120 on day 51"); Judged is set when the model judged it.
+	Fact   string `json:"fact,omitempty"`
+	Judged bool   `json:"judged,omitempty"`
+}
 
 // AutopilotState is the autopilot's state after a stop, pause or resume. NeedsHuman is a stop the
 // autopilot cannot recover from by itself.
@@ -267,6 +292,9 @@ type Say struct {
 	MS int64 `json:"ms,omitempty"`
 	// Mood is the narrator's read of the shop's position when it spoke (MoodOf).
 	Mood string `json:"mood,omitempty"`
+	// Callback names the history the line was given to call back to: "bet" (the bet's claim)
+	// and/or "ledger" (a character's past dealings).
+	Callback []string `json:"callback,omitempty"`
 }
 
 // BoardRow is one run on the scoreboard.

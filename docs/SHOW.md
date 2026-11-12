@@ -41,6 +41,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 | `text` | a complete caption; every consumer can fall back to it |
 | `clock` | when the event changes money: `cash`, `net_worth`, `rent_due`, `rent_days`, `arrears`, `grace`, `owned`, `buyout_price`, `mortgage_weekly`/`mortgage_weeks_left`, `offer_down`/`offer_weekly`, `weekday`. While a mortgage runs its weekly payment falls on the rent day in place of the rent (`rent_days` counts to it) |
 | `beat` | a stream beat the narrator is told about (below), absent on the rest |
+| `who` | the named character the event is with (below), absent for a passer-by |
 
 | Kind | Payload | From |
 |---|---|---|
@@ -58,7 +59,8 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 | `day` | `summary`: `cash_delta`, `net_worth_delta`, `sold`/`sold_items`, `bought`/`bought_items`, `customers`, `rep` (faction → change) | `day_ended` + the close snapshot |
 | `ghost` | `ghost`: `route`, `fallback`, `status` (`ahead`, `on pace`, `behind`), `zone` (`above`, `inside`, `below` the 10–90 % band), `net_worth`, `p10`, `p50`, `p90` (this morning's), `path` (the run's mornings so far, `[day, net worth]`) | each morning's snapshot against the run's book (below, "The ghost band") |
 | `run_end` | `end`: `ending`, `day`, `cash`, `net_worth`, `won` (a buyout) | `run_end` |
-| `say` | `say`: `line`, `audio` (URL path or absent), `voice`, `for` (the moment's seq), `source` (`llm`/`caption`), `check` (`pass`, `retry`, `fallback`), `faults` (the first try's), `ms` (LLM time for the line), `mood` (`MoodOf` when it spoke) | the narrator |
+| `bet` | `bet`: `claim`, `kind`, `target`, `item`, `by`, `staked` (day), `outcome` (`staked`, `won`, `lost`, `abandoned`, `due`, `expired`), `fact` (what settled it), `judged` (the model judged it) | the bridge's `bet` lines (replay) or `/v1/summary`'s `bet` (live), settled by the builder (below) |
+| `say` | `say`: `line`, `audio` (URL path or absent), `voice`, `for` (the moment's seq), `source` (`llm`/`caption`), `check` (`pass`, `retry`, `fallback`), `faults` (the first try's), `ms` (LLM time for the line), `mood` (`MoodOf` when it spoke), `callback` (`bet`, `ledger`: the history the line was given) | the narrator |
 
 Levels are the loudness contract. Moments (level 2) are: the first plan and plans that change
 the run (permit, mortgage, engine, upgrades, cash floor, augs, selling down), trades of 500+ or a
@@ -93,6 +95,47 @@ the fact check covers them, and the narrator may tell them twice as late as `-ma
 `-max-lag` allow the rest: a night out is still news 30 s on, a rent payment is not. The dress
 rehearsal's 98 days have 409 moments instead of 81: 127 counter, 92 morning plan (10 plans were
 moments before), 85 night, 32 streak and 3 milestones.
+
+## Bets and callbacks
+
+The narration used to report and not build ("163 more credits", "another spacer drained"):
+nothing was set up, so nothing paid off. Two things now carry a thread through the run.
+
+**The bet.** With the bridge's `-bets`, each morning's delta plan may stake at most one bet: a
+claim with a deadline day that the state can check ("Cash past 2,500 by day 21", "the Medkits
+sold by day 30 for 400 or more", "Showcase I bought by day 25"), or, flagged as model-judged,
+one it cannot, which the model judges from the state the morning after its deadline. The kinds,
+the fields and the bridge's lint are in `docs/PROTOCOL.md`, "Bets". The builder runs the same
+checker (`internal/bet`) over the decision log as the bridge does, so a replay and the live
+hook settle the bet on the same snapshot the bridge did, from player-visible values only. The
+feed gets a `bet` event when it is staked (beat `bet_made`, a moment: the narrator says the claim
+in its own words, so viewers can hold it to it) and when it is settled: `bet_won`, `bet_lost`,
+`bet_abandoned` (a later plan dropped or replaced it) are moments ranked with money, above
+trades, and may be spoken twice as late as `-max-age` allows. A judged bet coming due and one
+never judged are notable lines. The caption holds the claim, its stake day and the settling fact
+("Bet won: "Cash past 2,500 by day 21", staked on day 14. Cash 2,612 on day 19."), so the fact
+check knows its numbers; it also faults a line that says a won bet was lost or the reverse. The
+cue asks for a callback to the claim: crowing on a win, rueful or gallows humour on a loss, wry
+on a dropped bet. While a bet is open, the morning plan, the night and the day summary are given
+it as background ("mention it only if this moment moves you toward or away from it") with its
+numbers added to the facts, so lines can build toward the deadline.
+
+**The ledger** (`internal/show/ledger.go`). The narrator keeps the run's named characters, up to
+12, each with up to 3 lines of history in words and no numbers: "sold us Furnace", "walked out on
+our haggle", "borrowed money from us", "a night at his place brought home Scrap Metal". Every line
+comes from a feed event. The builder marks events with `who`: Georgio's loan and payback, the
+landlord's rent, the loan shark's mortgage, a night at Dr. Jackson's, and trades and haggles with
+a customer whose name is a character's: a title and a name ("Dr. Jackson", "Officer Lun"), "The"
+and one word, a relative ("Eleanor's Uncle"), or one word that has held a dialogue with the shop.
+Type names ("Spacer", "Lower Level Citizen", "Security Officer") are passers-by and never get a
+history, since the next spacer is someone else; two-word personal names without a dialogue
+("John Smith") are missed. When a moment's character has history from before it, the prompt
+says so and invites a callback in a few words ("Jackson again; last time he walked out on me").
+
+**The night diary.** The night beat (what the outing brought home) also carries the morning's plan
+headline and the day's cash from morning to night, and the prompt asks for a few words on how the
+day went against the plan and the open bet. The plan's numbers are facts, so "the Satchel still
+needs a buyer to hit that 1,000 target" passes the check.
 
 ## The ghost band
 
@@ -703,6 +746,64 @@ board pays" (a real one, from the streak line before).
 Drift's 27B as player and narrator through the drift gate, on the same replay (days 30–41): 1.34
 lines a minute, 61 % in character, the rest captions while the morning plan holds drift; alone 1.43
 and 82 %. Table and lines: docs/STREAM-OPS.md, "The drift gate".
+
+### Measured: bets and callbacks (2026-11-11)
+
+Six hard gym runs of the Shark on the sprinter route with Qwen 3.8 27B as the delta planner with
+`-bets` (`league/b1-bets-qwen.json`, 36 days, seeds 2950001–003, 005, 007; `league/b2-bets-qwen.json`,
+60 days, seed 2950004), each decision log replayed through the narrator as in the table above
+(`-recorded-pace -narration-paced=false -fill-after 40s`, Qwen 3.8 27B, CPU Kokoro `am_fenrir`) at
+`-speed 0.3` (0.5 for 2950007). The rules changed between runs as the runs showed what went wrong
+(the Code column). Load was heavy: up to 60 other gym processes and three CPU Kokoros, and the
+gym runs that shared the planner's slot took 3–4 minutes a game day at that speed instead of 2,
+so lines per game day compare better across rows than lines per minute. "Made" counts stakes the
+bridge kept (in brackets, the ones it rejected over the whole run); "called back" counts settlements the narrator spoke in its
+own words; "ledger" counts lines given a character's history.
+
+| Seed | Code | Days | Lines/min | Lines/day | On air | Silence median / p90 / max | Fact check | Bets made | Settled (won / lost / abandoned) | Called back | Ledger |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2950001 | first cut | 36 | 0.83 | 1.7 | 8.0 % | 68 / 134 / 296 s | 45 / 12 / 4 | 4 (5) | 1 / 0 / 2 | 3 of 3 | 0 |
+| 2950002 | + same-day deadlines | 36 | 0.63 | 1.9 | 6.1 % | 39 / 301 / 338 s | 48 / 15 / 4 | 9 (2) | 1 / 5 / 3 | 7 of 9 | 2 |
+| 2950003 | + steadier prompt | 36 | 0.44 | 1.8 | 3.9 % | 127 / 310 / 337 s | 44 / 15 / 5 | 10 (1) | 1 / 7 / 2 | 8 of 10 | 0 |
+| 2950005 | + no repeats for 3 days | 36 | 0.45 | 1.9 | 4.2 % | 118 / 317 / 327 s | 52 / 11 / 4 | 11 (5) | 5 / 5 / 1 | 5 of 11 | 1 |
+| 2950007 | + deadline tomorrow at the earliest | 36 | 1.00 | 1.8 | 9.1 % | 45 / 128 / 178 s | 50 / 12 / 4 | 7 (4) | 3 / 2 / 2 | 7 of 7 | 4 |
+| 2950004 | as 2950003 | 46 of 60 (stopped at the GPU cutoff) | 0.40 | 1.8 | 3.6 % | 173 / 325 / 336 s | 70 / 7 / 6 | 15 (1) | 2 / 7 / 4 | 10 of 13 | 3 |
+
+The bet lines themselves passed the fact check first time 46 times of 65, on the retry 14 and
+fell back to the caption 5 times. The planner staked a bet on a quarter to a third of its plans.
+The lint caught the filler it tried ("Cash reaches 220 by day 14 after rent" with 363 in the
+till); twice a cash bet was already true by the time its plan landed and was won the moment it
+was staked (2950005 day 11, 2950007 day 13). What it over-staked was one upgrade, "Buyer
+Referral Service bought by tonight", which the executor does not buy unless `upgrades_buy` names
+it: four times in nine days on 2950002, lost each time. Same-day bets settled before they could be set up, so the stake
+went unspoken (it and the settlement land together and the settlement outranks it). From
+2950007 a deadline is tomorrow at the earliest and a just-settled bet is not staked again for 3
+days: deadlines then ran 1–7 days out, four of the seven stakes were spoken and every
+settlement was called back.
+
+Lines from the runs (our generated narration; the claim in brackets is the planner's):
+
+| Seed, day | Moment | Line |
+|---|---|---|
+| 2950007, 13 | bet staked ("Cash exceeds 800 by close of day 14 after paying rent") | Eight hundred by tomorrow night. Rent is paid, so watch me clear that line or I'm buying you all drinks. |
+| 2950007, 13 | bet won (cash 982) | Told you I'd clear eight hundred. Rent's gone, and I'm still sitting on nine eighty. |
+| 2950007, 28 | bet staked ("Net worth reaches 5000 by day 35") | Five thousand credits by day thirty-five. I'm not just betting, I'm promising. |
+| 2950007, 30 | bet won (net worth 5,251) | I staked it on day 28 that we'd clear 5,000. We hit it early, 5,251. |
+| 2950007, 8 | judged bet won ("Lower Levels rep stays above 0 through day 7") | Told you on day three they held. See? |
+| 2950003, 8 | bet lost (upgrade not bought) | I swore I'd lock that referral down by tonight. Looked at my empty pockets and laughed at my own greed. |
+| 2950005, 21 | bet won (rent paid) | Told you the rent clears. 242 gone, no grace needed. |
+| 2950001, 20 | bet abandoned | Dropped that referral bet. I keep my own angles, no need to stake them on other people's luck. |
+| 2950007, 33 | ledger (Dr. Jackson) | Jackson sold me that neon sign last week. Now he's here again. |
+| 2950003, 6 | night diary | Five bags of scrap, two guns. The Satchel still needs a buyer to hit that 1,000 target. |
+
+What did not work: on 2950002 the lost upgrade bet was called back as "the market ate it" (no
+market was involved), so the cue now asks for what settled it and no other reason; a ledger
+line said Jackson "bought that neon sign" when the history said he sold it, which the fact check
+cannot see (it reads numbers and a few claims, not who sold what); the diary lines mostly say
+"the plan holds" rather than weighing the day against it; the model-judged verdicts are lenient
+("current state implies ownership", 2950002 day 31) and are flagged only by "(judged by the model)" in the caption. Density did not move: about 1.8 lines a game day in every run, since a gym day's events
+land in a burst after its plan and the narrator still drops what ages out; the bet lines took
+the place of routine ones rather than adding to them.
 
 ### TTS setup
 

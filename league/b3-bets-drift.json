@@ -1,0 +1,31 @@
+{
+  "name": "b3-bets-drift",
+  "players": [
+    {
+      "id": "drift-bets",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-bets"
+      ]
+    }
+  ],
+  "seeds": [
+    2950006
+  ],
+  "routes": [
+    {
+      "route": "sprinter",
+      "persona": "shark"
+    }
+  ],
+  "days": 24,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

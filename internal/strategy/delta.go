@@ -33,6 +33,10 @@ const (
 	deltaKeys = `Keys: "cash_floor", "buy" {"wholesale_max_pct","single_max_pct","max_spend","prefer_types","avoid_types","hot_stock_cap"}, "sell" {"min_pct","sell_down_to_cash","hold_uids"}, "bargain" ("never"|"ev_positive"|"aggressive"), "window" {"show_uids"}, "services" [ids], "upgrades_buy" [ids, in order], "permit" ("buy"|"bribe"), "augs", "scavenge", "engine" ("wine", "water", "furnace", "rats" joined by "+", or "none"), "mortgage" ("auto": the rule above | "take": sign at the next offer | "later": not today, the offer comes back next week | "decline": FINAL, the loan shark never offers again, so the only win left is the cash buyout | "accept_if_rent": sign only to bridge a rent the cash cannot pay), "buyout_by_day" (answer "later" while the cash buyout projects by this day), "mortgage_margin" (a decimal), "mortgage_float", "mortgage_window" [first day, last day] it may sign, "mortgage_save_from_day" (from that day stop buying and save toward the offer), "mortgage_max_spend" (daily buying cap while paying), "appraisal" ("join": the appraisal board's clients and fees | "off").
 Numbers are plain integers (mortgage_margin may be a decimal); a uid is the number after "#".`
 	deltaAsk = executorRules + deltaWrite + deltaKeys
+	// betAsk is shown when the run keeps bets (Options.Bets): the show calls each one back
+	// when it is settled, so a filler bet is noise on stream.
+	betAsk = `
+BET (optional; at most one open at a time; it needs no "why"): a claim about this run that today's plan stakes and that a viewer can check later. Add "bet" only when the plan commits to something you could be wrong about (holding stock for a rise, a cash or net worth target, an upgrade by a day, a payment you mean to cover). Never a filler bet, never one already true, never a restatement of the rules. Shape: "bet": {"claim": "<one sentence in your voice, at most 120 characters, with its number and day>", "kind": "<kind>", "by": <deadline day: tomorrow at the earliest, at most 42 days from today; a bet needs time to play out>, plus the kind's fields}. Kinds: "cash" or "net_worth" with "target": reaches it by the day; "sell" with "uids" (or "item": a name in stock) and an optional "target", the least the sale brings: sold by the day; "hold" with "uids" or "item": still held at the day's close; "upgrade" with "item" (an upgrade id on offer): bought by the day; "event" with "item" (a market item type): a price rise for it is active by the day; "payment": the next rent or mortgage payment made by the day, none missed; "judged": anything else, which you judge yourself at the deadline from the state. An upgrade bet needs "upgrades_buy" to name it (the executor buys nothing else); a bet stands until its deadline, so drop one only when the state has changed against it; a bet just settled is not staked again for 3 days.`
 )
 
 // DraftDeltaDirectives asks c, in the plan's conversation, for today's changes to the
@@ -40,6 +44,9 @@ Numbers are plain integers (mortgage_margin may be a decimal); a uid is the numb
 // defaults.
 func DraftDeltaDirectives(ctx context.Context, c llm.Client, d *PlanDraft) DirectivesResult {
 	prompt := deltaAsk + baseNote(d.base) + deltaFacts(d.snap)
+	if d.bets {
+		prompt += betAsk + "\n" + d.bet
+	}
 	msgs := append(slices.Clip(d.messages), llm.Message{Role: llm.RoleUser, Content: prompt})
 	var raw json.RawMessage
 	resp, err := c.Complete(ctx, llm.Request{System: d.system, Messages: msgs, MaxTokens: directivesMaxTokens})
@@ -61,6 +68,7 @@ func finishDelta(raw json.RawMessage, rawErr error, s *snapshot, day int, base s
 		r.Directives.Day = day
 		return r
 	}
+	r.Bet, r.Fixes = betMove(m)
 	why, _ := m["why"].(map[string]any)
 	// Models often give one reason for every change.
 	all, _ := m["why"].(string)
@@ -95,6 +103,45 @@ func finishDelta(raw json.RawMessage, rawErr error, s *snapshot, day int, base s
 	r.Fixes = append(r.Fixes, protectBuying(&r.Directives, s)...)
 	r.Fixes = append(r.Fixes, lintLocked(&r.Directives, base)...)
 	return r
+}
+
+// betMove takes the bet keys out of a delta answer: "bet" (an object, "drop" or "keep") and
+// "bet_verdict" ({"won": bool, "why"}). An unreadable bet is dropped with a fix.
+func betMove(m map[string]any) (*protocol.BetMove, []string) {
+	var mv protocol.BetMove
+	var fixes []string
+	switch v := m["bet"].(type) {
+	case string:
+		mv.Drop = strings.EqualFold(strings.TrimSpace(v), "drop")
+	case map[string]any:
+		b, _ := json.Marshal(v)
+		var bet protocol.Bet
+		if err := json.Unmarshal(b, &bet); err != nil {
+			fixes = append(fixes, "bet dropped: "+err.Error())
+		} else {
+			mv.Stake = &bet
+		}
+	}
+	if v, ok := m["bet_verdict"].(map[string]any); ok {
+		won, isBool := v["won"].(bool)
+		if o, _ := v["outcome"].(string); !isBool && o != "" {
+			won, isBool = strings.EqualFold(o, "won"), true
+		}
+		if isBool {
+			why, _ := v["why"].(string)
+			mv.Verdict = &protocol.BetVerdict{Won: won, Why: strings.TrimSpace(why)}
+		}
+	}
+	delete(m, "bet")
+	delete(m, "bet_verdict")
+	if why, ok := m["why"].(map[string]any); ok {
+		delete(why, "bet")
+		delete(why, "bet_verdict")
+	}
+	if mv == (protocol.BetMove{}) {
+		return nil, fixes
+	}
+	return &mv, fixes
 }
 
 // lintDelta reverts the deviations that have cost runs, leaving the executor's default in

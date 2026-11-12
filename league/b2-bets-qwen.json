@@ -1,0 +1,31 @@
+{
+  "name": "b2-bets-qwen",
+  "players": [
+    {
+      "id": "qwen27-bets",
+      "endpoint": "localmodel",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-bets"
+      ]
+    }
+  ],
+  "seeds": [
+    2950004
+  ],
+  "routes": [
+    {
+      "route": "sprinter",
+      "persona": "shark"
+    }
+  ],
+  "days": 60,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

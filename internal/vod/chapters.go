@@ -297,6 +297,8 @@ func titleBody(ev show.Event) string {
 			pct, _ := strconv.Atoi(m[1])
 			t = map[int]string{25: "A quarter of the way to the deed", 50: "Halfway to the deed", 75: "Three quarters of the way to the deed"}[pct]
 		}
+	case ev.Kind == show.KindBet && ev.Bet != nil:
+		t = map[string]string{show.BeatBetMade: "A bet: ", show.BeatBetWon: "Bet won: ", show.BeatBetLost: "Bet lost: ", show.BeatBetAbandoned: "Bet abandoned: "}[ev.Beat] + strings.TrimSuffix(ev.Bet.Claim, ".")
 	case show.PlanPivot(ev):
 		t = "Change of plan: " + firstChange(ev.Plan.Changes)
 	case ev.Kind == show.KindTrade && ev.Trade != nil:

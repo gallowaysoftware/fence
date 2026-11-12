@@ -25,10 +25,28 @@ type Facts struct {
 	// Side is a trade's side ("sell", "buy"); Profit its profit when known.
 	Side   string
 	Profit *int64
+	// Bet is a settled bet's outcome ("won", "lost", "abandoned"), "" for none.
+	Bet string
 	// Ghost is the run's standing against its lab book, on a ghost event.
 	Ghost *Ghost
 	// numbers is every other number the narrator was shown.
 	numbers []int64
+	// history is what the line may call back to (Narrator.history), shown after the facts.
+	history string
+}
+
+// allow adds the numbers of text the narrator is also shown (an open bet's claim) to the facts.
+func (f *Facts) allow(text string, ns ...int64) {
+	for _, m := range digitsRe.FindAllString(text, -1) {
+		if v, ok := parseDigits(m); ok {
+			ns = append(ns, v)
+		}
+	}
+	for _, v := range ns {
+		if v != 0 {
+			f.numbers = append(f.numbers, abs(v))
+		}
+	}
 }
 
 type RentFact struct {
@@ -107,6 +125,10 @@ func FactsOf(ev Event) Facts {
 	}
 	if h := ev.Heat; h != nil {
 		add(h.Evidence, int64(h.HotItems))
+	}
+	if bt := ev.Bet; bt != nil {
+		f.Bet = bt.Outcome
+		add(bt.Target, int64(bt.By), int64(bt.Staked))
 	}
 	if e := ev.End; e != nil {
 		add(e.Cash, e.NetWorth, int64(e.Day))
@@ -210,6 +232,8 @@ var (
 	lossRe    = regexp.MustCompile(`\b(?:at a loss|lost money|took a loss)\b`)
 	weekdayRe = regexp.MustCompile(`\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b`)
 	profitRe  = regexp.MustCompile(`\b(?:a profit|turned a profit|for a profit|made a killing)\b`)
+	betWonRe  = regexp.MustCompile(`\b(?:won|win)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:won|paid off|came (?:good|in|through))\b|\bcalled it\b`)
+	betLostRe = regexp.MustCompile(`\b(?:lost|lose)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:lost|failed|fell through|went bust)\b`)
 	bookRe    = `(?:the )?(?:book|ghost|lab|pace)\b`
 	aheadRe   = regexp.MustCompile(`\b(?:ahead of|beating|outpacing|in front of|ahead on) ` + bookRe)
 	behindRe  = regexp.MustCompile(`\b(?:behind|trailing|chasing|lagging|off) ` + bookRe)
@@ -265,6 +289,12 @@ func CheckLine(line string, f Facts) []Fault {
 		}
 	}
 
+	switch {
+	case f.Bet == "won" && betLostRe.MatchString(l):
+		fault("says the bet was lost but it was won")
+	case (f.Bet == "lost" || f.Bet == "abandoned") && betWonRe.MatchString(l):
+		fault("says the bet was won but it was %s", f.Bet)
+	}
 	// Ahead and behind are against the book's median; the status holds them a little past it.
 	if g := f.Ghost; g != nil {
 		if m := aheadRe.FindString(l); m != "" && g.NetWorth < g.P50 {
