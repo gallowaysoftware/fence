@@ -98,6 +98,10 @@ const (
 	BeatAppraisalStreak = "appraisal_streak"
 	// BeatPace is the run changing pace against its book, or leaving or re-entering its band.
 	BeatPace = "pace"
+	// BeatRouteChoice is the strategist's day-0 route and thesis; BeatFork a run-shaping decision it
+	// was asked mid-run (docs/STREAM.md, "Model agency").
+	BeatRouteChoice = "route_choice"
+	BeatFork        = "fork"
 )
 
 // AutopilotState is the autopilot's state after a stop, pause or resume. NeedsHuman is a stop the

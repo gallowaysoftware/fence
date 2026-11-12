@@ -64,6 +64,12 @@ type config struct {
 
 	planner     string
 	plannerWait time.Duration
+
+	// The strategist's agency (docs/STREAM.md, "Model agency"): the day-0 choice file, the
+	// forks, and the plan cadence.
+	choice    string
+	forks     bool
+	planEvery int
 }
 
 func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (config, error) {
@@ -100,6 +106,9 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.route, "route", env("FENCE_ROUTE", ""), "the run's route ("+route.DefaultDir+" name or a file path): the morning plans are written as that shop, and its directives are the base unless -base-directives is set (env FENCE_ROUTE)")
 	fs.StringVar(&c.persona, "persona", env("FENCE_PERSONA", ""), "play style for the morning plans: an id in "+strategy.DefaultPersonaDir+" or a file path (env FENCE_PERSONA)")
 	fs.StringVar(&c.planner, "planner", env("FENCE_PLANNER", ""), "llm: the model writes the morning plans under any -policy, so -policy heuristic follows LLM plans; empty: plans only with -policy llm (env FENCE_PLANNER)")
+	fs.StringVar(&c.choice, "choice", "", "the day-0 route choice (fenceleague's choice.json): its thesis goes to the feed and the plans")
+	fs.BoolVar(&c.forks, "forks", false, "put the run's high-stakes decisions (mortgage, cash sprint, fountain, engines, trading style, holding through an event) to the model as forks")
+	fs.IntVar(&c.planEvery, "plan-every", 1, "write the morning plan every N days and hold it, with the forks, in between")
 	fs.DurationVar(&c.plannerWait, "planner-wait", 0, "hold a day's first decision up to this long for that day's plan; for the gym, which outruns the model")
 	fs.StringVar(&c.chatTally, "chat-tally", env("FENCE_CHAT_TALLY", ""), "fencetwitch's chat vote (-tally): the morning plan it is for reads its tally as one fact; empty: none (env FENCE_CHAT_TALLY)")
 	if err := fs.Parse(args); err != nil {
@@ -263,7 +272,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 			return err
 		}
 	}
-	var base, routeText string
+	var base, routeText, start string
 	switch {
 	case c.format != "":
 		if base, routeText, err = formatRoute(c.format, c.route); err != nil {
@@ -274,7 +283,14 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		if err != nil {
 			return err
 		}
-		base, routeText = r.Base, r.Text()
+		base, routeText, start = r.Base, r.Text(), r.Start
+	}
+	var choice *strategy.Choice
+	if c.choice != "" {
+		if choice, err = readChoice(c.choice); err != nil {
+			return err
+		}
+		routeText += "\nYour day-0 thesis for this run: " + choice.Thesis
 	}
 	if c.baseDirectives != "" {
 		b, err := os.ReadFile(c.baseDirectives)
@@ -301,6 +317,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		}()
 	}
 	// The strategist needs a model; it is closed after the server, which drains into it.
+	var dlogRef *decisionlog.Logger
 	var plan policy.Planner
 	var planner server.Planner
 	var watch *modelWatch
@@ -309,7 +326,8 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 			return fmt.Errorf("-directives %q: want full or delta", c.directives)
 		}
 		watch = &modelWatch{Client: client}
-		so := strategy.Options{LLM: watch, Logger: log, MaxTokens: c.maxTokens, Persona: persona, DeltaDirectives: c.directives == "delta", BaseDirectives: base, Route: routeText, Exemplars: exemplars}
+		so := strategy.Options{LLM: watch, Logger: log, MaxTokens: c.maxTokens, Persona: persona, DeltaDirectives: c.directives == "delta", BaseDirectives: base, Route: routeText, Exemplars: exemplars,
+			Agency: strategy.Agency{Choice: choice, Forks: c.forks, PlanEvery: c.planEvery, Start: start, Show: showTo(&dlogRef)}}
 		if mem != nil {
 			so.Recall = mem
 		}
@@ -329,6 +347,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 	if err != nil {
 		return fmt.Errorf("decision log: %w", err)
 	}
+	dlogRef = dlog
 	defer func() {
 		dlog.Close()
 		if n := dlog.Dropped(); n > 0 {

@@ -38,6 +38,79 @@ second plus the game's own walk-ins, dialogue and blackscreens, a day takes 3–
 normal run to buyout is ~10–12 hours: a run spans several streams (the game saves every night;
 the autopilot resumes from a save).
 
+### Model agency: the decisions viewers argue about
+
+A delta strategist over the scripted executor reads as a script with a commentator (Qwen won every league game but
+2–5 days slower, never better). So the model also gets the run-shaping decisions, each one on screen with its reason;
+the executor keeps the routine.
+
+- **Day 0: the route.** Before day 1 the model sees the route menu (`docs/research/ROUTES.md`: each route's start,
+  perks, persona, brief and lab record, from `internal/agency/lab.json`) and either picks a route or composes its own:
+  a menu route as the base plus levers from a documented list (`agency.LeverText`). A composition is validated before
+  it plays: contract keys against `protocol/schema/directives.schema.json`, gym-only levers against their bounds, and
+  the combinations the executor cannot play (rats off the rancher start, water off the water merchant's, a fountain
+  without water, the Board switched off) are refused; one repair round, then the menu's default. When the match fixes
+  the start, only routes that play it are offered. The model writes a one-paragraph thesis: it goes to the feed as a
+  `plan` event (level 2) and into every later plan and fork prompt. The stream's previous runs are named in the prompt
+  so the choice rotates. League: `"choose_route": "any" | "start"` on a plan player (`cmd/fenceleague/agency.go`; the
+  match keeps its scheduled route slot as its id, `match.json` records `chosen_route`, the answer is `choice.json`, a
+  composition `route.json`); bridge: `-choice FILE`.
+- **Forks** (`-forks`, `internal/strategy/forks.go`): when the morning shows one arising, the model is asked before the
+  plan, with the visible facts and the options, and answers `{"choice", "why"}`. The choice is a directive patch held
+  over every later day (until the event ends, for a hold); an unusable answer leaves the route's own rule.
+  | Fork | Arises | Options |
+  |---|---|---|
+  | `mortgage` | the loan shark's offer is on the table and the cash covers the down payment; again a week after "later" | later / sign / decline (final); the facts include the lab's cost of signing (a mortgage wins only at its last payment, ~day 170 when signed near day 55). "sign" also moves the route's `buyout_by_day` to day 1, which would otherwise answer "later" for it |
+  | `sprint` | first morning from day 54, not owned, not paying, the route saves for a cash buyout | sprint as the route says / all in (cut insurance and upgrades from today, cash by day 112) / keep the insurance / give up the race and sign |
+  | `fountain` | the route runs water, Wild offers the fountain and the cash covers it + rent + 500 (up to 3 asks, a week apart) | not now / buy Wild's / the landlord's |
+  | `engine` | once, from day 7, cash ≥ 1 500 + rent, and the route lacks the furnace (or the rats on the rancher start) | stay / light the furnace / start the rats |
+  | `style` | day 28 and day 63 on a route without a trading style | the generalist / the six styles of TRADING-STYLES.md, each with its lab Δ |
+  | `hold` | a market event lifts medical, food, water or materials by 30 %+ and the shop holds 3+ of them (once per event, a week apart) | sell into it / hold those items to the event's end / buy more of the type. **Never arises yet:** the snapshot's inventory items carry no type (gym and mod), so neither this fork nor the style fork's stock mix can see them |
+
+  Each fork is a `candidates` feed event (metric `choice`: the panel shows the options and marks the chosen one, no
+  score), level 2 for the mortgage, the sprint and the fountain or when the model leaves the route's rule; the bridge
+  log has a `fork` line per decision. The directive keys the forks need beyond the contract's (`buyout_save`,
+  `buyout_save_from`, `fountain`, `bargain_buy`, `speculate`, `specialty`) are now in the contract (PROTOCOL.md).
+- **Plan cadence** (`-plan-every N`): the morning plan is written every N days and held, with the forks' patches, in
+  between (the mid-day re-plans are off). N = 7 keeps a game to ~40 model calls instead of ~350.
+- **Lean day-0 prompt** (`"agency_lean": true` on a league player): the menu as one line a route (its levers over the
+  appraiser's and its record) and the levers by name, ~1.6k tokens instead of ~6.8k; drift's MLX server refused the full
+  prompt for memory (HTTP 507).
+- **Inventor** (`cmd/fenceinvent`, offline): the model proposes routes the menu lacks (compositions plus a thesis and
+  a novelty claim); the gym screens each on 30 hard seeds against the `appraiser`, and only a 57/60 confirmation on 60
+  fresh seeds puts one on the menu (ROUTES.md, "Invented routes").
+
+**Measured (2026-11-11, hard, Qwen-27B local, `-forks -plan-every 7`, against the scripted `appraiser` on the same
+seeds; `league/a1`–`a4-agency-qwen.json`, seeds 8510001–032).** Every game won on both sides (32/32 each). Paired win
+day **+13.3 ± 11.1** for the model (median day 100.5 against 90). Splitting it with a third arm, the scripted executor on
+the route the model chose: the route choice itself costs nothing (+0.2 ± 8.5), the in-run layer (forks + weekly plans)
+costs +13.1 ± 13.4, and almost all of that is the mortgage. Until a3 the fork's "sign" was silently overruled by the
+route's cash rule; a3 made it real and the model signed in 3 of 8 runs, each won by the mortgage on day 167–174 (+70 to
++91 days). a4 added the lab's cost of signing to the fork's facts and the model declined in all 8 runs: paired
+**+0.0 ± 13.0**, within noise of the script.
+
+| League | Menu | Mortgage "sign" | Paired Δ win day | Route alone | In-run |
+|---|---|---|---|---|---|
+| a1 | 22 routes | overruled (bug) | +6.1 ± 13.1 | −2.6 ± 13.9 | +8.8 ± 8.9 |
+| a2 | 26 (4 invented) | overruled (bug) | +18.4 ± 26.2 | +5.2 ± 5.0 | +13.1 ± 26.4 |
+| a3 | 34 (12 invented) | real | +28.9 ± 29.7 | −3.5 ± 7.8 | +32.4 ± 34.5 |
+| a4 | 34, the cost of signing shown | real | +0.0 ± 13.0 | +1.8 ± 31.2 | −1.8 ± 29.6 |
+
+Routes chosen (32): rancher 8, smelter 7, apothecary 5, pharma 2, rancher_sprinter 2 (invented), fountain, watchman,
+bulk_buyer, outlaw, appraiser (a fallback: levers held `perks` and `persona`; now lifted), and three compositions:
+`ironclad` (watchman + two eco furnaces on phoned ore), `iron_sprinter` (smelter, one furnace, sales to 50 %, cash by day
+92) and `pharma_smelter` (on the rancher). The rotation prompt ("the stream's previous runs played …") is what spreads
+them: the first choice of every league was smelter, rancher or rancher_sprinter, the fastest medians. Forks asked: 128
+(sprint 32: "sprint" 31, "keep the insurance" 1; style 54: generalist 26, speculator 11, fair dealer 9, apothecary 3,
+clean shop 4, hardware 1; mortgage 40: decline 19, sign 13, later 8;
+engine 2: stay), none unparsable. Latency on the 27B (2 slots shared with another league): day-0 choice 11–17 s median
+(~4.8–6.8k prompt tokens), a fork 4–6 s (~830 tokens), a plan 40–70 s; ~40–65 calls and 15–30 minutes a game.
+**drift** (Qwen3.8-27B on MLX, lean prompt, one request at a time, 3 seeds before the cost-of-signing fix): day-0 8.2 s
+median (2.3k tokens), a fork 3.9 s median (830 tokens), a plan 31 s median; it chose rancher_sprinter, ore_monopolist
+and pharma (two invented routes), and signed the mortgage in 2 of 3 (+98 and +70 days); the third won 28 days early.
+After the fix (2 seeds, `league/d2-agency-drift.json`): rancher_sprinter and rancher, declined both offers citing the
+lab line, won on day 90 both (−14 and −14 against the script); day-0 7.6 s, a fork 3.5 s, a plan 23 s median; 10–12 minutes a game.
+
 ## 2. Where we are
 
 - **Executor** (gym): the best hard policy, `-start apprentice -perks vending+short_sleeper -directives

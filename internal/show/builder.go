@@ -1153,7 +1153,8 @@ func (b *Builder) Plan(in PlanInput) Event {
 // hybridPlan is today's plan in a hybrid game: the chosen candidate of a slate
 // (docs/research/HYBRID.md), whose reason is the plan's why. A hybrid replay has no other plan.
 func (b *Builder) hybridPlan(ev Event) (Event, bool) {
-	if ev.Kind != KindCandidates || ev.Candidates == nil {
+	// A strategist's fork (metric "choice") patches the plan in force; it is not a new plan.
+	if ev.Kind != KindCandidates || ev.Candidates == nil || ev.Candidates.Metric == "choice" {
 		return Event{}, false
 	}
 	i := slices.IndexFunc(ev.Candidates.Options, func(o Candidate) bool { return o.Chosen })

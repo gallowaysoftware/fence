@@ -107,6 +107,12 @@ func Priority(ev Event) int {
 	case BeatNight, BeatAppraisalStreak:
 		return 2
 	}
+	switch ev.Beat {
+	case BeatRouteChoice:
+		return 5
+	case BeatFork:
+		return 4
+	}
 	switch ev.Kind {
 	case KindRunEnd:
 		return 6
@@ -553,6 +559,8 @@ var beatCues = map[string]string{
 	BeatAug:             "you just pulled the gun on an aug at your counter. Tense, quick, then the relief.",
 	BeatHandover:        "the autopilot just handed the controls to its human operator. Say plainly that it is over to the human, and why, in a few words.",
 	BeatTakeBack:        "the human handed the shop back; the AI is in control again.",
+	BeatRouteChoice:     "before day one you chose what kind of shop this run is. Say the choice and your thesis in your own words, and what you passed over.",
+	BeatFork:            "a big decision just came up and you made the call. Say what was on the table, what you chose and why.",
 }
 
 // smallBeatCues say what an everyday moment is, so the line tells it rather than reads it.

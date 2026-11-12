@@ -138,7 +138,7 @@ func TidyWindfall(text string) string {
 // noteWindfalls queues a re-plan for each engine item not yet re-planned today, within
 // the day's limit. Callers hold s.mu.
 func (s *Strategist) noteWindfalls(session string, r *run, day int, ws []windfall) {
-	if s.opt.LLM == nil || r.plan == "" {
+	if s.opt.LLM == nil || r.plan == "" || s.opt.Agency.PlanEvery > 1 {
 		return
 	}
 	d := r.day(day)

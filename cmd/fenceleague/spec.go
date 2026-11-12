@@ -89,6 +89,11 @@ type Player struct {
 	BridgeFlags []string `json:"bridge_flags,omitempty"`
 	// RolloutFlags are added to a hybrid player's fence-rollout command line.
 	RolloutFlags []string `json:"rollout_flags,omitempty"`
+	// ChooseRoute ("any" or "start") has a plan player's model pick or compose the route
+	// before day 1 (cmd/fenceleague/agency.go); the spec's routes are then only slots.
+	ChooseRoute string `json:"choose_route,omitempty"`
+	// AgencyLean shortens the day-0 prompt for a small model on a tight context.
+	AgencyLean bool `json:"agency_lean,omitempty"`
 }
 
 const (
@@ -181,6 +186,12 @@ func (s *Spec) normalize() error {
 			return fmt.Errorf("player id %q: empty, duplicate or not lower-case", p.ID)
 		}
 		seen[p.ID] = true
+		if p.ChooseRoute != "" && (p.Mode != ModePlan || len(s.Routes) == 0 || p.ChooseRoute != ChooseAny && p.ChooseRoute != ChooseStart) {
+			return fmt.Errorf("player %s: choose_route %q needs mode plan, routes, and any or start", p.ID, p.ChooseRoute)
+		}
+		if p.ChooseRoute != "" && slices.ContainsFunc(s.Routes, func(rr RouteRun) bool { return rr.Format != "" }) {
+			return fmt.Errorf("player %s: choose_route with a format (the format fixes the route)", p.ID)
+		}
 		switch p.Mode {
 		case ModePlan, ModeLLM:
 			if p.Endpoint == "" {
@@ -307,11 +318,17 @@ type Match struct {
 	// Route is the route's name, "" for a match without one; RoutePath its file.
 	Route     string
 	RoutePath string
+	// id keeps a match played on another route than scheduled (the model's day-0 choice)
+	// under its scheduled id.
+	id string
 	// Format is the match's stream format, "" for none.
 	Format string
 }
 
 func (m Match) ID() string {
+	if m.id != "" {
+		return m.id
+	}
 	if m.Route != "" {
 		id := m.Player.ID + "__r-" + m.Route + "__s" + strconv.Itoa(m.Seed)
 		if m.Format != "" {

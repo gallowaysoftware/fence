@@ -1,0 +1,16 @@
+{
+  "name": "d2-agency-drift",
+  "players": [
+    {"id": "player", "mode": "local"},
+    {"id": "drift-agency", "endpoint": "drift", "mode": "plan", "choose_route": "any", "agency_lean": true,
+     "bridge_flags": ["-directives", "delta", "-forks", "-plan-every", "7"]}
+  ],
+  "baseline": "player",
+  "seeds": [8520004, 8520005],
+  "routes": [{"route": "appraiser"}],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {"human": "player"},
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

@@ -57,6 +57,8 @@ type Options struct {
 	BaseDirectives string
 	// Route is the run's route (route.Route.Text): its plans are written as that shop; "" for none.
 	Route string
+	// Agency (agency.go): the day-0 choice, the forks and the plan cadence.
+	Agency Agency
 }
 
 // Strategist implements the server's Recorder (it sees the stripped views only) and
@@ -76,6 +78,8 @@ type Strategist struct {
 	latest   *run
 	// personas are per-session style overrides from sim_run.
 	personas map[string]string
+	// choiceShown are the sessions whose feed has the day-0 choice.
+	choiceShown map[string]bool
 }
 
 // run is one playthrough as far as the strategist can tell; sessions of the same save
@@ -96,6 +100,7 @@ type run struct {
 	directives      *protocol.Directives
 	reviewDay       int
 	tail            chan struct{}
+	agencyRun
 }
 
 type dayState struct {
@@ -143,7 +148,7 @@ func (s *Strategist) Close() {
 	s.wg.Wait()
 }
 
-func (s *Strategist) Hello(string, protocol.HelloRequest) {}
+func (s *Strategist) Hello(session string, _ protocol.HelloRequest) { s.showChoice(session) }
 
 func (s *Strategist) Event(session string, ev protocol.Event) {
 	if ev.Kind == "sim_run" {
@@ -180,7 +185,7 @@ func (s *Strategist) Event(session string, ev protocol.Event) {
 			r.wine.note(n, snap)
 			d.planGen++
 			gen := d.planGen
-			s.enqueue(r, func(ctx context.Context) { s.planDay(ctx, session, r, n, gen) })
+			s.enqueue(r, func(ctx context.Context) { s.morning(ctx, session, r, n, gen) })
 		case "close":
 			d.close = snap
 		}
@@ -498,6 +503,7 @@ func (s *Strategist) planDay(ctx context.Context, session string, r *run, n, gen
 	if d.planGen != gen {
 		return
 	}
+	s.overlayForks(r, n, &dr.Directives)
 	d.plan, d.model, d.directives = draft.Plan, draft.Model, &dr.Directives
 	if n >= r.planDay || r.plan == "" {
 		r.plan, r.planModel, r.planDay, r.directives = draft.Plan, draft.Model, n, &dr.Directives

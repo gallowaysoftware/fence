@@ -237,7 +237,8 @@
       if (o.chosen) tr.className = "chosen";
       tr.insertCell().textContent = (o.chosen ? "▸ " : "") + o.label;
       const s = tr.insertCell(); s.className = "n";
-      s.textContent = (Math.round(o.score * 10) / 10) + (o.stderr ? " ±" + Math.round(o.stderr * 10) / 10 : "");
+      // A fork the model decided has no score, only the choice.
+      s.textContent = ev.candidates.metric === "choice" ? "" : (Math.round(o.score * 10) / 10) + (o.stderr ? " ±" + Math.round(o.stderr * 10) / 10 : "");
       const r = tr.insertCell(); r.className = "n"; r.textContent = o.rollouts ? o.rollouts + "×" : "";
     }
   }

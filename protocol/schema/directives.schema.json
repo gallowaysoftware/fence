@@ -220,6 +220,42 @@
       "type": "integer",
       "minimum": 0,
       "description": "gym executor: daily cap on trading purchases while paying the mortgage"
+    },
+    "buyout_save": {
+      "type": "array",
+      "items": {"enum": ["insurance", "upgrades", "inputs", "vending"]},
+      "description": "gym executor: spending cut while saving for the cash buyout, from buyout_save_from"
+    },
+    "buyout_save_from": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "gym executor: the day buyout_save starts"
+    },
+    "fountain": {
+      "enum": ["buy", "landlord"],
+      "description": "gym executor: buy Wild's water fountain, or take the landlord's (+150 weekly rent)"
+    },
+    "bargain_buy": {
+      "enum": ["never", "ev_positive", "discount", "aggressive"],
+      "description": "gym executor: haggling with sellers (bargain is with buyers)"
+    },
+    "speculate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "types": {"$ref": "#/$defs/ids"},
+        "max_days": {"type": "integer", "minimum": 1}
+      },
+      "description": "gym executor: hold goods of these types from ordinary buyers until a market event or an Upper Levels buyer with tips, or max_days"
+    },
+    "specialty": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "types": {"$ref": "#/$defs/ids"},
+        "lot_share": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "description": "gym executor: buy only goods of these types (a lot when they are lot_share of its estimate)"
     }
   }
 }

@@ -312,6 +312,9 @@ type MatchMeta struct {
 	GymArgs    []string `json:"gym_args"`
 	GymDir     string   `json:"gym_dir"`
 	StartedAt  string   `json:"started_at"`
+
+	// ChosenRoute is the route the model chose on day 0 (choice.json), when it chose.
+	ChosenRoute string `json:"chosen_route,omitempty"`
 }
 
 func (l *League) runMatch(ctx context.Context, m Match) (err error) {
@@ -361,6 +364,8 @@ func (l *League) runMatch(ctx context.Context, m Match) (err error) {
 		return l.runHybrid(ctx, m, ep, meta, dir)
 	}
 	var bridgeURL string
+	// pm is the match as played: its route may be the model's day-0 choice.
+	pm := m
 	if m.Player.Mode != ModeLocal {
 		model := ""
 		if ep != nil {
@@ -374,12 +379,24 @@ func (l *League) runMatch(ctx context.Context, m Match) (err error) {
 			defer l.proxy.Unregister(id)
 		}
 		meta.Model = model
+		if m.Player.ChooseRoute != "" {
+			played, ch, err := l.chooseRoute(ctx, m, ep, model, dir)
+			if err != nil {
+				return err
+			}
+			meta.ChosenRoute, meta.Start, meta.Perks, meta.Persona = ch.Route, played.Start, played.Perks, played.Persona
+			meta.Executor.Directives = played.RoutePath
+			pm = played
+		}
 		port, err := freePort()
 		if err != nil {
 			return err
 		}
 		addr := "127.0.0.1:" + strconv.Itoa(port)
-		meta.BridgeArgs = l.bridgeArgs(m, ep, model, addr, dir)
+		meta.BridgeArgs = l.bridgeArgs(pm, ep, model, addr, dir)
+		if pm.Player.ChooseRoute != "" {
+			meta.BridgeArgs = append(meta.BridgeArgs, "-choice", filepath.Join(dir, choiceFile))
+		}
 		stop, err := l.startBridge(ctx, l.bridgeBin(m.Player), meta.BridgeArgs, dir)
 		if err != nil {
 			return err
@@ -388,7 +405,7 @@ func (l *League) runMatch(ctx context.Context, m Match) (err error) {
 		bridgeURL = "http://" + addr
 	}
 
-	meta.GymArgs = l.gymArgs(m, bridgeURL, dir)
+	meta.GymArgs = l.gymArgs(pm, bridgeURL, dir)
 	if err := writeJSON(filepath.Join(dir, "match.json"), meta); err != nil {
 		return err
 	}

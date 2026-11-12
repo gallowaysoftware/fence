@@ -322,6 +322,17 @@ func TestRouteRunSpec(t *testing.T) {
 	if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[{"id":"h","mode":"heuristic"}],"routes":[{"route":"nope"}]}`)); err == nil {
 		t.Error("an unknown route must fail")
 	}
+	for _, p := range []string{`{"id":"h","mode":"heuristic","choose_route":"any"}`, `{"id":"q","mode":"plan","endpoint":"e","choose_route":"all"}`} {
+		if _, err := LoadSpec(write(`{"name":"r","seeds":[7],"players":[` + p + `],"routes":[{"route":"` + smelter + `"}]}`)); err == nil || !strings.Contains(err.Error(), "choose_route") {
+			t.Errorf("%s: err %v", p, err)
+		}
+	}
+	// A match played on the model's route keeps its scheduled id, so it pairs with the baseline's.
+	played := m
+	played.id, played.Start, played.Persona, played.RoutePath = m.ID(), "rancher", "rancher", "/m/route.json"
+	if played.ID() != m.ID() || !strings.Contains(strings.Join(l.gymArgs(played, "", "/m"), " "), "-start rancher") {
+		t.Errorf("played %s, scheduled %s", played.ID(), m.ID())
+	}
 }
 
 // TestFormatRunSpec: a format entry plays the format's route on the format's difficulty only, its

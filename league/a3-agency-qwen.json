@@ -1,0 +1,16 @@
+{
+  "name": "a3-agency-qwen",
+  "players": [
+    {"id": "player", "mode": "local"},
+    {"id": "qwen27-agency", "endpoint": "localmodel", "mode": "plan", "choose_route": "any",
+     "bridge_flags": ["-directives", "delta", "-forks", "-plan-every", "7"]}
+  ],
+  "baseline": "player",
+  "seeds": [8510017, 8510018, 8510019, 8510020, 8510021, 8510022, 8510023, 8510024],
+  "routes": [{"route": "appraiser"}],
+  "days": 1000,
+  "difficulty": "hard",
+  "executor": {"human": "player"},
+  "plan_wait": "100s",
+  "deadline_ms": 110000
+}

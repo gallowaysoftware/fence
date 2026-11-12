@@ -282,6 +282,15 @@ func titleBody(ev show.Event) string {
 		t = "Over to the human"
 	case ev.Beat == show.BeatTakeBack:
 		t = "Back on autopilot"
+	case ev.Beat == show.BeatRouteChoice:
+		t = "The plan for the run"
+	case ev.Beat == show.BeatFork && ev.Candidates != nil:
+		t = "A decision"
+		for _, o := range ev.Candidates.Options {
+			if o.Chosen {
+				t = "The call: " + o.Label
+			}
+		}
 	case ev.Beat == show.BeatMilestone:
 		t = "A milestone on the road to the deed"
 		if m := pctRe.FindStringSubmatch(ev.Text); m != nil {

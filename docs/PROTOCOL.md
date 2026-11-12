@@ -291,6 +291,14 @@ except an engine that names only part of the base's (a restated `wine` would sto
 | `mortgage_save_from_day` | gym executor: from this day, stop buying and save toward the offer |
 | `mortgage_max_spend` | gym executor: daily buying cap while paying the mortgage |
 | `appraisal` | gym executor: `join` the appraisal board and serve its clients, or `off` |
+| `buyout_save`, `buyout_save_from` | gym executor: the spending cut while saving for the cash buyout (`insurance`, `upgrades`, `inputs`, `vending`) and the day it starts |
+| `fountain` | gym executor: buy Wild's water fountain (`buy`) or take the landlord's (`landlord`, +150 weekly rent) |
+| `bargain_buy` | gym executor: haggling with sellers (`never`, `ev_positive`, `discount`, `aggressive`); `bargain` is with buyers |
+| `speculate` | gym executor: `{types, max_days}`, hold those goods from ordinary buyers until a market event or an Upper Levels buyer with tips, or `max_days` |
+| `specialty` | gym executor: `{types, lot_share}`, buy only those goods |
+
+The last five are route levers a strategist's fork may change mid-run (docs/STREAM.md, "Model agency"); the gym
+reads them from the morning's directives like any route file's.
 
 ## `POST /v1/outcome`
 Sent when the game resolves something a decision started. Fire-and-forget; a decision may

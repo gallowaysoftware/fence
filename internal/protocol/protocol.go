@@ -210,6 +210,24 @@ type Directives struct {
 	BuyoutByDay *int64 `json:"buyout_by_day,omitempty"`
 	// Appraisal is the gym's appraisal board lever: join, or off.
 	Appraisal string `json:"appraisal,omitempty"`
+	// Route levers of the gym's executor that a strategist's fork may change mid-run
+	// (docs/research/ROUTES.md, sim/gym/README.md).
+	BuyoutSave     []string             `json:"buyout_save,omitempty"`
+	BuyoutSaveFrom *int64               `json:"buyout_save_from,omitempty"`
+	Fountain       string               `json:"fountain,omitempty"`
+	BargainBuy     string               `json:"bargain_buy,omitempty"`
+	Speculate      *SpeculateDirectives `json:"speculate,omitempty"`
+	Specialty      *SpecialtyDirectives `json:"specialty,omitempty"`
+}
+
+type SpeculateDirectives struct {
+	Types   []string `json:"types,omitempty"`
+	MaxDays *int64   `json:"max_days,omitempty"`
+}
+
+type SpecialtyDirectives struct {
+	Types    []string `json:"types,omitempty"`
+	LotShare *float64 `json:"lot_share,omitempty"`
 }
 
 type BuyDirectives struct {

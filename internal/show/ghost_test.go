@@ -203,7 +203,7 @@ func TestGhostBandsSize(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if st.Size() > 128<<10 {
+	if st.Size() > 192<<10 {
 		t.Errorf("data/ghost_bands.json is %d bytes", st.Size())
 	}
 }

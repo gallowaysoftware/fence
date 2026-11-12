@@ -46,7 +46,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 |---|---|---|
 | `run_start` | `player`: `id`, `model`, `persona`, `persona_name`, `persona_tagline`, `route`, `route_brief`, `difficulty`, `start`, `perks`, `seed`, `planner`, `book` (the route's lab band: `route`, `fallback`, `runs`, `wins`, `median_win_day`, `p10`/`p50`/`p90` by morning), `prev_run` (`label`, `path`), `format` (the format's card, below) | `run_start` event + match.json + `internal/show/data/ghost_bands.json` |
 | `plan` | `plan`: `day`, `source` (`llm` prose, `directives` only, `executor` when the model changed nothing), `headline` (≤ 4 lines from GOALS/CASH/RISK), `sections`, `directives` (in words), `changes` vs the previous plan, `change`, `why` (the model's reasons, "bargain: …", then the bridge's corrections, "overruled: …"), `goals` (the standing plan: the last prose goal, mortgage savings, rent cover, buyout progress, the base directives' engine and permit) | `/v1/summary` (live); bridge.log (replay) |
-| `candidates` | `candidates`: `day`, `metric`, `options[]`: `label`, `source`, `directives`, `score`, `stderr`, `rollouts`, `chosen`, `note` | the hybrid planner, a `show` line in its decision log (or `/v1/ingest`) |
+| `candidates` | `candidates`: `day`, `metric`, `options[]`: `label`, `source`, `directives`, `score`, `stderr`, `rollouts`, `chosen`, `note` | the hybrid planner, a `show` line in its decision log (or `/v1/ingest`); the strategist's forks (metric `choice`: no score, the chosen option carries the model's `why`; docs/STREAM.md, "Model agency") and its day-0 route choice (a `plan` event with the thesis), `show` lines in the bridge's decision log |
 | `thought` | `hidden_used` (names only) when an autopilot rule read a hidden value; the panel marks it ◆ | a customer and the executor's reason (gym), a model's own rationale (advise/act), services, outings, concealment, every live autopilot action with its reason |
 | `autopilot` | `autopilot`: `state` (`paused`, `running`, `faulted`, `handover`), `reason`, `needs_human` | the live autopilot paused or resumed by the player (notable), or stopped and waiting for a human (moment) |
 | `trade` | `trade`: `side`, `items` (grouped names), `count`, `cash`, `estimate`, `cost`, `profit`/`has_profit` (sold: vs what was paid; bought: estimate − price), `customer`, `faction`, `wholesale`, `fakes` (items whose shown name says counterfeit) | barter decisions + `trade` outcomes |
@@ -100,7 +100,7 @@ A sports scoreline for the run: its net worth each morning against the **book**,
 play of the same route did in the lab by that morning, like a split time against a record.
 
 - **The book.** `internal/show/data/ghost_bands.json`, built by `sim/lab/scripts/ghost_bands.py` from 60
-  fresh hard seeds per route (8100001–060, 1000-day horizon, the gym of c4a484d) for all 22 routes in
+  fresh hard seeds per route (8100001–060, 1000-day horizon, the gym of c4a484d) for all 34 routes (the twelve invented on 2026-11-11 included) in
   `sim/lab/scripts/directives/routes/*.json`, each with its `_route` start and perks: the 10th, 25th, 50th,
   75th and 90th percentile of net worth on every morning, the wins and the median win day. It lives next to
   the only code that reads it and is embedded in fenceshow (like the panel), so the show needs no path or
@@ -152,7 +152,7 @@ play of the same route did in the lab by that morning, like a split time against
   rebuilds the same file. Rebuild after a route or gym change; `TestBooksCoverEveryRoute` fails when a
   route file has no book.
 
-Some books (net worth on the morning of the day, 10th / **median** / 90th percentile; all 22 in the file). 60/60
+Some books (net worth on the morning of the day, 10th / **median** / 90th percentile; all 34 in the file). 60/60
 everywhere but `rock_bottom` (57/60), median win day 88–126, within a week of docs/research/ROUTES.md's on
 other seeds.
 

@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Twenty-two hard-difficulty policies that win, each with a different start, perk set, engine or trading style, so a stream
+Thirty-four hard-difficulty policies that win (twelve of them invented by the model: below, "Invented routes"), each with a different start, perk set, engine or trading style, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -47,6 +47,18 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `sprinter` | apprentice / vending + short sleeper | `buyout_by_day: 140`, `buyout_save: ["insurance"]` from day 56 | 60/60 (94–100 %) | **98** (175) | 6 383 / 28 158 / — | — | Tells the loan shark "later", drops the insurance from day 56 (burglars take ~1 000 of goods a run, the fee would be ~5 000) and buys the shop outright for cash, eleven weeks before the mortgage would end (60/60 on 2910001–060, days 70–119). The appraiser's policy and kit with the shark's persona; the hard incumbent since 2026-11-11. |
 | `rancher` | rancher / vending + short sleeper | `engine: "wine+furnace+rats"` | 120/120 (97–100 %) | **90 / 83** | — | — | The Rat Wrangler start: a cage of rats bred, fed from the dispenser and cut up at 400 g for the counter (~2 500 of meat a run), with the Board, wine and a furnace. Paired win day against `appraiser` −3.6 ± 4.3 / −8.4 ± 4.7 on seeds 4700001–060 / 4710001–060 (docs/research/ARCHETYPES-NEW.md). |
 | `pharma` | apprentice / vending + short sleeper | `pharma: "phone"` | 120/120 (97–100 %) | **90 / 90** | — | — | Dale's courier brings five pink injectors a call at a fifth off, sold to addicts and medics (~80 a run): a supplier on screen. Paired win day against `appraiser` +2.3 ± 5.0 / −2.2 ± 3.2 on the `rancher` seeds. |
+| `ore_monopolist` | apprentice / vending + short sleeper | `smelter` + `bargain: "never"`, `sell.liquidate_min_pct: 95`, `buyout_by_day: 95` | 60/60 (94–100 %) on 8700001–060 | **90** | — | — | Invented by Qwen: the smelter that never haggles and will not sell for rent below 95 % of the estimate; the busiest counter of any route (~1 180 a week). Paired win day against `appraiser` +6.8 ± 9.9. |
+| `water_night_shift` | water merchant / vending + short sleeper | `fountain` + `purify_raw`, `restock_missed`, `buyout_by_day: 110` | 60/60 (94–100 %) on 8700001–060 | **100** | — | — | Invented by Qwen: tap water purified raw, the fountain at night, the counter restocking what buyers missed. +23.1 ± 11.3 days. |
+| `fence_fortress` | fence / vending + short sleeper | `outlaw` + `alarm: "perfect"`, `transmitters: ["sec"]`, `sell.hot_max_heat: 100`, `buyout_by_day: 100` | 59/60 (91–100 %) on 8700001–060 | **195** | — | — | Invented by Qwen: the Fence start's stolen goods behind an alarm and a line to Security. Slow: 43 of its wins are the mortgage (+79 ± 13 days), one arrest. |
+| `luxury_gambler` | apprentice / vending + short sleeper | `appraiser` + `specialty` luxury, `speculate` luxury and art 10 days, `georgio: "no"`, `buyout_by_day: 115` | 60/60 (94–100 %) on 8700001–060 | **195** | — | — | Invented by Qwen: a luxury boutique that turns most sellers away; a third of the generalist's resale, won by the Board and the mortgage (46 of 60, +87 ± 11 days). |
+| `rancher_sprinter` | rancher / vending + short sleeper | `sprinter` + `engine: "rats"`, lots to 85 %, sales to 50 %, `buyout_by_day: 90` | 60/60 (94–100 %) on 8710001–060 | **76** | — | — | Invented by Qwen: rats and nothing else in the back room. The fastest median on the menu; paired win day −3.0 ± 10.8 against `appraiser`. |
+| `smelter_sprinter` | apprentice / vending + short sleeper | `sprinter` + one eco furnace on phoned ore, lots to 85 %, sales to 50 %, `buyout_by_day: 92` | 60/60 (94–100 %) on 8710001–060 | **83** | — | — | Invented by Qwen: a one-furnace smelter racing for cash. +12.1 ± 12.6 days. |
+| `pharma_vintner` | apprentice / vending + short sleeper | `vintner` + `pharma: "phone"`, sales to 55 %, `buyout_by_day: 95` | 60/60 (94–100 %) on 8710001–060 | **97** | — | — | Invented by Qwen: a wine cellar with Dale's injectors; 22 of 60 by the mortgage, +33.6 ± 14.1 days. |
+| `gunsmith_farm` | gunsmith / vending + short sleeper | `farmer`'s policy on the Gunsmith start, 3 bays, wine only, `pharma: "phone"` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: guns, wine and medicine on one counter; 34 of 60 by the mortgage. |
+| `fountain_pharma` | water merchant / vending + short sleeper | `fountain` + `pharma: "phone"`, sales to 50 %, `buyout_by_day: 105` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: water at night, injectors in the back; 34 of 60 by the mortgage. |
+| `household_sprinter` | apprentice / vending + short sleeper | `sprinter` + `specialty` household (lot share 0.3), lots to 85 %, sales to 52 %, `buyout_by_day: 94` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: a discount store; 37 of 60 by the mortgage. |
+| `med_speculator` | apprentice / vending + short sleeper | `speculator` + `specialty` medical, `speculate` medical 5 days, sales to 60 %, `buyout_by_day: 100` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: a medical depot waiting for shortages (22 % of sales into events); 34 of 60 by the mortgage. |
+| `luxury_sprinter` | apprentice / vending + short sleeper | `sprinter` + `specialty` and `speculate` luxury and art 8 days, sales to 55 %, `buyout_by_day: 96` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: `luxury_gambler` with a cash target; 38 of 60 by the mortgage. |
 
 **On the current main** (55902b7: the outing fix and fair aug detection; this branch's final build, whose alarm
 refits worn modules), 60 more fresh seeds 2203001–060: `appraiser` 60/60, day 175, NW 6 682 / 20 234 / 26 211;
@@ -127,6 +139,49 @@ that is not significant on either set (pooled about −900 ± 1 550). The lever 
 the gym's summaries match the previous build on 10 hard (2620901–910, the incumbent) and 10 normal (2620951–960)
 seeds, so no other route changes. `water_baron`, the poorest winner in the menu, wins 60/60 on 2600001–060 on this
 main (NW 5 778 / 17 394 / 19 187, median day 175), so it got no change.
+
+## Invented routes (2026-11-11)
+
+`cmd/fenceinvent` (docs/STREAM.md, "Model agency") asked Qwen-27B (thinking off) for four routes unlike the menu: each a
+menu route plus levers, with a thesis and a novelty claim, validated like a day-0 composition. The gym screened each
+against `appraiser` on 30 hard seeds (8600001–030), then confirmed on 60 fresh seeds (8700001–060), 1000-day horizon,
+the gym of c4a484d. Promotion bar: 57/60 on the confirmation. Δ is the paired win day against `appraiser` (seeds both
+won, ± 1.96 SE). Income is the split Board / counter / production / Georgio (`income.py`'s method), "nearest" the menu
+route whose published split is closest (L1, points). Trade is `fenceinvent`'s fingerprint distance to the `appraiser`
+run on the same seeds (mean relative difference of resale and buying a week, wholesale, hot, stock, event and Upper
+Levels shares, plus half the resale mix's L1); it is TRADING-STYLES.md's method on a subset, computed from the demand
+trace with the engines' goods left out, so its absolute sales figures run lower than that table's.
+
+| Route | Screen (30) | Confirm (60) | Median win day | Δ win day | Endings (confirm) | Income B/C/P/G | Nearest | Trade | Resale a week | Mix |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `appraiser` (reference) | 30/30 | 60/60 | 90 | — | buyout 60 | 59/29/0/12 | gunsmith (3) | 0 | 844 | medical 22, material 15 |
+| `ore_monopolist` | 30/30, −4.9 ± 11.1 | **60/60** | 90 | +6.8 ± 9.9 | buyout 53, mortgage 7 | 58/22/8/12 | smelter (5) | 0.19 | 1 183 | medical 23, material 16 |
+| `water_night_shift` | 30/30, +29.4 ± 18.2 | **60/60** | 100 | +23.1 ± 11.3 | buyout 50, mortgage 10 | 65/19/7/9 | water_baron (14) | 0.20 | 678 | medical 23, material 13 |
+| `fence_fortress` | 30/30, +78.6 ± 16.8 | **59/60** | 195 | +79.0 ± 12.7 | buyout 16, mortgage 43, arrest 1 | 66/27/2/5 | outlaw (12) | 0.15 | 754 | medical 21, material 16 |
+| `luxury_gambler` | 30/30, +69.3 ± 15.9 | **60/60** | 195 | +87.0 ± 10.7 | buyout 14, mortgage 46 | 70/21/9/0 | rock_bottom (18) | **0.84** | 266 | material 23, substance 17 |
+
+**Round 2** (asked for eight with the round-1 routes already on the menu; screen 8610001–030, confirm 8710001–060):
+
+| Route | Screen (30) | Confirm (60) | Median win day | Δ win day | Endings (confirm) | Income B/C/P/G | Nearest | Trade | Resale a week | Mix |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `appraiser` (reference) | 30/30 | 60/60 | 97 | — | buyout 60 | 60/28/1/11 | appraiser (2) | 0 | 854 | medical 22, material 14 |
+| `rancher_sprinter` | 30/30, +8.6 ± 18.3 | **60/60** | **76** | −3.0 ± 10.8 | buyout 53, mortgage 7 | 53/29/0/18 | farmer (9) | 0.31 | 1 227 | medical 20, material 18 |
+| `smelter_sprinter` | 30/30, +6.3 ± 16.3 | **60/60** | 83 | +12.1 ± 12.6 | buyout 48, mortgage 12 | 58/21/9/13 | ore_monopolist (2) | 0.18 | 1 108 | medical 23, material 16 |
+| `pharma_vintner` | 30/30, +41.3 ± 20.2 | **60/60** | 97 | +33.6 ± 14.1 | buyout 38, mortgage 22 | 60/31/1/8 | vintner (7) | 0.36 | 1 029 | narcotic 21, medical 18 |
+| `gunsmith_farm` | 30/30, +57.2 ± 21.4 | **60/60** | 195 | +55.9 ± 14.1 | buyout 26, mortgage 34 | 59/31/3/6 | vintner (9) | 0.41 | 1 130 | narcotic 20, medical 17 |
+| `fountain_pharma` | 30/30, +55.5 ± 19.2 | **60/60** | 195 | +65.3 ± 13.7 | buyout 26, mortgage 34 | 72/18/5/6 | rock_bottom (11) | 0.30 | 729 | medical 19, narcotic 19 |
+| `household_sprinter` | 30/30, +64.6 ± 20.5 | **60/60** | 195 | +62.0 ± 14.0 | buyout 23, mortgage 37 | 69/24/1/7 | water_baron (5) | 0.85 | 344 | household 28, material 20 |
+| `med_speculator` | 30/30, +62.5 ± 20.8 | **60/60** | 195 | +61.4 ± 13.3 | buyout 26, mortgage 34 | 66/22/6/6 | water_night_shift (8) | **0.97** | 498 | **medical 53**, material 11 |
+| `luxury_sprinter` | 30/30, +56.0 ± 17.7 | **60/60** | 195 | +65.0 ± 13.0 | buyout 22, mortgage 38 | 66/21/7/6 | water_night_shift (6) | 0.81 | 286 | material 22, substance 18 |
+
+All twelve clear the bar, so all twelve joined the menu (their files, `internal/agency/lab.json` rows and ghost-band books).
+Ranked by trading novelty: `med_speculator` (0.97: half its resale medical, 22 % into events), `household_sprinter`, `luxury_gambler`, `luxury_sprinter` (0.81–0.85: a third to two fifths of the generalist's resale) are the shops whose counter looks different; in round 1, `luxury_gambler` is the only one whose counter looks different (a third of the resale, 29 %
+wholesale, nothing hot, no Georgio); `water_night_shift` and `fence_fortress` differ from their bases mostly in income
+split; `ore_monopolist` is a smelter with a price list (nearest split 5 points from the smelter's). The model's
+theses were wrong about speed in three of four: it promised earlier buyouts, and the two slow ones miss their cash
+target (`buyout_by_day` 100 and 115) and win by the mortgage. What it got right is variety: each still wins, and in round 2 it found the fastest median on the menu (`rancher_sprinter`, rats only, day 76; within noise of the appraiser paired). Every proposal in both rounds won at least 59/60: with the Board in every file, the bar measures the Board more than the idea, so the slow ones (median 195, most wins by the mortgage) are on the menu as flavour with their numbers, not as contenders. Reproduce:
+`fenceinvent propose -dir DIR -n 4 -base-url URL -model M`, then `fenceinvent screen -dir DIR -tag screen -from 8600001
+-seeds 30` and `-tag confirm -from 8700001 -seeds 60`.
 
 ## Trading-style routes (2026-11-11)
 
@@ -300,6 +355,18 @@ by its own buy list: on a route the route's base policy does the buying.
 | `rock_bottom` | shark | | its native start: nothing but nerve |
 | `rancher` | rancher | | its native start: the rats are the run's engine |
 | `pharma` | honest-broker | magnate | legal medicine from a phone supplier, a clean name |
+| `ore_monopolist` | smelter | | the smelter's furnaces with a fixed price list |
+| `water_night_shift` | water-baron | | the tap by day, the fountain by night |
+| `fence_fortress` | fence | shark | stolen goods behind an alarm |
+| `luxury_gambler` | magnate | shark | luxuries and art held for the right buyer |
+| `rancher_sprinter` | rancher | | rats only |
+| `smelter_sprinter` | smelter | | one furnace and a race |
+| `pharma_vintner` | vintner | honest-broker | wine and medicine |
+| `gunsmith_farm` | armourer | | guns, wine and medicine |
+| `fountain_pharma` | water-baron | | water by night, injectors in the back |
+| `household_sprinter` | magnate | | a discount store |
+| `med_speculator` | shark | | waits for the shortage |
+| `luxury_sprinter` | magnate | shark | luxuries and art, in a hurry |
 
 The cook has no route: the drug-dealer start ends on day 8 (`cartel_retired`).
 

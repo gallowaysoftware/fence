@@ -3,6 +3,42 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Model agency — 2026-11-11: the model picks the route, takes the forks, and invents twelve routes
+
+**Result.** Qwen-27B now chooses each run's route before day 1 (from the 22–34-route menu with its lab record, or a
+composition of documented levers it validates against the directives schema), states a thesis that goes to the feed,
+and is asked the run's big decisions as forks when they arise (mortgage, cash sprint, fountain, engine, trading style,
+holding through an event), planning only every 7 days in between. On 32 hard seeds it won **32/32**, like the script;
+paired win day **+13.3 ± 11.1** (median 100.5 against 90). A third arm (the script on the model's chosen route) splits
+it: the route choice is free (+0.2 ± 8.5), the in-run layer costs +13.1 ± 13.4, nearly all of it signing the mortgage.
+With the lab's cost of signing in the fork's facts (league a4) it declined all 8 offers and played **+0.0 ± 13.0**,
+within noise of the script. It picked 11 different menu routes and composed 3 of its own (`ironclad`, `iron_sprinter`,
+`pharma_smelter`); every one won. Table, fork tallies and latencies: docs/STREAM.md, "Model agency".
+
+**Inventor.** `cmd/fenceinvent` ran two rounds (4 and 8 Qwen proposals): all 12 were valid compositions, all won 30/30
+on the screen and 59–60/60 on 60 fresh seeds, so all 12 are on the menu with route files, `internal/agency/lab.json`
+rows, ghost-band books (`internal/show/data/ghost_bands.json`, size test raised to 192 KiB) and ROUTES.md rows
+("Invented routes"). Two are fast (`rancher_sprinter`, rats only: median day 76, the menu's fastest, −3.0 ± 10.8 against
+the appraiser; `smelter_sprinter` 83), eight win mostly by the mortgage around day 195. The most novel counters by the
+trading fingerprint are `med_speculator`, `household_sprinter` and the two luxury shops. The bar (57/60) measures the
+Appraisal Board, which every file keeps, more than the idea.
+
+**What did not work.** (1) The mortgage fork's "sign" was overruled by every route's `buyout_by_day` rule (the gym
+answers "later" while the cash projects, always before day 84) in leagues a1–a2; fixed by moving `buyout_by_day` to day
+1 with the signature, after which signing became the most expensive choice the model makes (+70 to +98 days). (2) The
+hold fork never arose and the style fork never saw a stock mix: the morning snapshot's items carry no type, in the gym
+and the mod. (3) The fountain fork never arose (the only fountain run's route already buys it). (4) drift's MLX server
+refused the full day-0 prompt (6.8k tokens, HTTP 507 for memory); the lean prompt (1.6k) works. (5) One day-0 answer
+put `perks` and `persona` among the levers and fell back to the appraiser; such keys are now lifted. (6) Without the
+rotation line the model picks the fastest median (smelter, rancher, rancher_sprinter) every time.
+
+**Drift.** Flash-Next (before the owner's switch; partial, one seed): day-0 choice rancher_sprinter, plans 18–46 s, one
+plan refused (507). Qwen3.8-27B on MLX (lean prompt, one request at a time, 3 seeds, before the cost-of-signing fix):
+day-0 8.2 s median, a fork 3.9 s median (~830 tokens), a plan 31 s median; chose rancher_sprinter, ore_monopolist and
+pharma; 3/3 wins, two by a signed mortgage (+98, +70 days), one 28 days early. After the fix, 2 more seeds: rancher_sprinter
+and rancher, both offers declined citing the lab's cost, both won on day 90 (−14 days each against the script); day-0 7.6 s,
+a fork 3.5 s, a plan 23 s median.
+
 ## Twitch — 2026-11-11: predictions on the bets, chat votes for the plan; dry run only, never connected
 
 **Result.** `cmd/fencetwitch` (`internal/twitch`) follows fenceshow's feed and runs Twitch's one prediction slot
