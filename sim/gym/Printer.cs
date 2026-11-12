@@ -10,19 +10,20 @@ namespace Fence.Gym
     // them, then adds 24 progress a night (8 power) and drops the chip's output in its output grid; the chip is never
     // used up. Each morning, at the printer's window: the output goes to stock, a charged cell into the battery and,
     // when the printer is idle, the first chip in `printer_chips` that is owned, fits the printer's modules and whose
-    // inputs are owned goes into the chip slot with those inputs. The default order is by computed margin per night:
-    // the silencer and improved springs (one night on scrap), the sights (plastic or scrap and an electronic), then the
-    // melee blades. Printed pistols are contraband and are left out. Chips, plastic and a spare cell
+    // inputs are owned goes into the chip slot with those inputs. The default order is by computed margin per scrap.
+    // Printed pistols are contraband and are left out. Chips, plastic and a spare cell
     // are bought as engine inputs (chips from the retired gunsmith's stock); the output is ordinary stock.
     internal static class Printer
     {
         public static bool On => Directives.Current.Raw.Value<string>("printer") == "run";
 
+        // Scrap, not printer time, is what runs short (docs/re/RECIPES.md §1.8): the melee blades on furnace ingots and the
+        // chips with the most margin per scrap come first; the first two are the gunsmith's every-visit chips.
         static readonly string[] DefaultChips =
         {
-            "printer_chip_silencer", "printer_chip_internal_springs_improved", "printer_chip_makeshift_rds", "printer_chip_rds", "printer_chip_laser_sight",
-            "printer_chip_combat_machete", "printer_chip_combat_knife", "printer_chip_kitchen_knife", "printer_chip_kitchen_cleaver", "printer_chip_hatchet",
-            "printer_chip_box_cutter",
+            "printer_chip_internal_springs_improved", "printer_chip_makeshift_rds", "printer_chip_combat_machete", "printer_chip_combat_knife",
+            "printer_chip_kitchen_knife", "printer_chip_hatchet", "printer_chip_laser_sight", "printer_chip_kitchen_cleaver", "printer_chip_rds",
+            "printer_chip_silencer", "printer_chip_box_cutter",
         };
 
         static IList<string> Chips => (Directives.Current.Raw["printer_chips"] as JArray)?.Select(x => (string)x).ToList() ?? (IList<string>)DefaultChips;

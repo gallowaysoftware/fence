@@ -39,7 +39,13 @@ ascending difficulty, the cartel last.
 | 9 | Chemist | Cook | none | not measured | gym support; the cartel's weekly quota, stipend and protection (docs/personas/cook.md); the chemistry engine |
 | — | Junker, Organ Trader, Street Food Vendor, Moonshiner, Pharmacist | — | — | — | coming soon in this build: not playable |
 
-Season 1 is ready to stream for starts 1–7 today; 8 and 9 need their engines and gym starts first.
+**The lab column overstates readiness.** Those wins are mostly the Appraisal Board winning from any start, not
+the start's own trade: the `gunsmith` route is the Board plus wine and a furnace, and never buys a weapon permit,
+fills a gun order, mods a gun or runs the printer. A Gauntlet run plays the start's **native path** at the best its
+kit allows (the Gunsmith's arms trade, the Farmer's bays, the Water Merchant's water, the Rancher's rats, the
+Fence's stolen goods, the Chemist's lab, the Aquafarmer's tanks), so each start needs a native route measured
+on hard before it airs; the Board is allowed alongside unless the card bans it. Native engines in progress:
+chemistry, water/hydroponics/wine quality, fish and rats, the arms trade.
 
 ## Season 2, the Specialists: niche runs with jeopardy
 

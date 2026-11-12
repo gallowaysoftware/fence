@@ -106,7 +106,7 @@ var gymLevers = map[string]lever{
 // contractLevers are the directives-contract keys a composition may set; their values are
 // checked against protocol/schema/directives.schema.json, plus the bounds below.
 var contractLevers = map[string]lever{
-	"engine":                {`production: "wine", "water", "furnace", "rats" joined by "+", or "none" (rats need the rancher start, water the water_merchant start)`, nil},
+	"engine":                {`production: "wine", "water", "furnace", "rats", "fish" joined by "+", or "none" (rats need the rancher start, fish the aquafarmer start, water the water_merchant start)`, nil},
 	"bargain":               {`haggling with buyers: "never", "ev_positive", "discount" ("aggressive" loses every run to the Lower Levels mob)`, oneOf("never", "ev_positive", "discount")},
 	"bargain_buy":           {`haggling with sellers: "never", "ev_positive", "discount"`, oneOf("never", "ev_positive", "discount")},
 	"permit":                {`"buy", or null to leave it to the executor (buys once evidence reaches 30)`, nil},
@@ -286,6 +286,9 @@ func crossCheck(d map[string]any, start string) []string {
 	parts := strings.Split(engine, "+")
 	if slices.Contains(parts, "rats") && start != "rancher" {
 		errs = append(errs, "engine rats needs the rancher start (its cage)")
+	}
+	if slices.Contains(parts, "fish") && start != "aquafarmer" {
+		errs = append(errs, "engine fish needs the aquafarmer start (its tanks)")
 	}
 	if slices.Contains(parts, "water") && start != "water_merchant" {
 		errs = append(errs, "engine water needs the water_merchant start")

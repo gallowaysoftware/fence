@@ -28,6 +28,22 @@ against docs/re and the executor: docs/research/HIDDEN-SYSTEMS.md, ranked gap ta
 Corrections went into AUGS, CONCEALMENT, MITIGATIONS, CLIENTS (a new "The wanted list" section) and VERIFIED.md;
 the decomp-only corrections that still need a lab check are listed at the end of HIDDEN-SYSTEMS.md.
 
+## Livestock chains from the source — 2026-11-12: fish engine, rats at their peak, every chain listed
+
+**Result.** The game's production code was read end to end and written up in our own words:
+docs/re/AQUACULTURE.md (fish), docs/re/HUSBANDRY.md (rats, genes, dispenser, auto-butcher, rat trap) and
+docs/re/CHAINS.md (every `Machine*` class and night handler: what makes something, what is support, what is
+unreleased); RECIPES.md's printer, desequencer, bottle printer and fridge sections were checked and completed. The
+finding that matters: **a fish's meat is 0.9 × every kcal it has swallowed, its stomach included**, so a
+three-day-old tilapia that fills up overnight fillets for ~70 (lab-confirmed, docs/sim/VERIFIED.md). The new
+`engine: fish` breeds, feeds and fillets on that rule. Hard, 60 paired seeds, Aquafarmer start: ~7 700 of fillets a
+run (~80 a day), +1 200 net worth by day 30, win rate unchanged (53/60 against 52/60 without the engine): the start's
+−450 cash and +40 rent outweigh the tanks. Board off: 0/60 with or without fish. `rats_cut: "peak"` (cut each rat at
+the best weight its growth stat can reach, 401 g or 351 g, never past age 10) doubles `rancher_sprinter`'s meat
+(3 190 against 1 540 a run) and moves its median win day 76 → 69 (paired −7.2 ± 12.7, within noise). Both levers
+are off by default; existing routes are unchanged (byte-identical on a checked seed). docs/research/ROUTES.md, "The
+fish engine on the Aquafarmer start".
+
 ## Panel layout — 2026-11-11: one column that fits, whatever is live
 
 **Result.** The format card, the ghost band, Twitch's prediction and vote and the model's forks each added to

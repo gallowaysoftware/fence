@@ -9966,6 +9966,557 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isfish",
+      "type": "AquacultureHelper",
+      "member": "IsFish",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isgroup",
+      "type": "AquacultureHelper",
+      "member": "IsGroup",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.islivestock",
+      "type": "AquacultureHelper",
+      "member": "IsLiveStock",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getspecies",
+      "type": "AquacultureHelper",
+      "member": "GetSpecies",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "FishSpecies",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isdead",
+      "type": "AquacultureHelper",
+      "member": "IsDead",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getstage",
+      "type": "AquacultureHelper",
+      "member": "GetStage",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "FishStage",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.fishspecies.canbreed",
+      "type": "FishSpecies",
+      "member": "CanBreed",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.getdispenserslot",
+      "type": "MachineRAS",
+      "member": "GetDispenserSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.gettankgrid",
+      "type": "MachineRAS",
+      "member": "GetTankGrid",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.isworthrunning",
+      "type": "MachineRAS",
+      "member": "IsWorthRunning",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.getwaterslot",
+      "type": "MachineRAS",
+      "member": "GetWaterSlot",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameSlotInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getwaterml",
+      "type": "AquacultureHelper",
+      "member": "GetWaterMl",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gettotalwaterneedml",
+      "type": "AquacultureHelper",
+      "member": "GetTotalWaterNeedMl",
+      "kind": "method",
+      "params": [
+        "GameInventory"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.getfreecapacity",
+      "type": "WaterHelper",
+      "member": "GetFreeCapacity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinehelper.canpower",
+      "type": "MachineHelper",
+      "member": "CanPower",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.haslivestock",
+      "type": "MachineRAS",
+      "member": "HasLiveStock",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gethunger",
+      "type": "AquacultureHelper",
+      "member": "GetHunger",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getwastepercent",
+      "type": "AquacultureHelper",
+      "member": "GetWastePercent",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getweightgrams",
+      "type": "AquacultureHelper",
+      "member": "GetWeightGrams",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getmeatkcal",
+      "type": "AquacultureHelper",
+      "member": "GetMeatKcal",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gethealth",
+      "type": "AquacultureHelper",
+      "member": "GetHealth",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getgrowthspeed",
+      "type": "AquacultureHelper",
+      "member": "GetGrowthSpeed",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.getfiltergrid",
+      "type": "MachineRAS",
+      "member": "GetFilterGrid",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GridPixelElement",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.canupgradepowerefficiency",
+      "type": "MachineRAS",
+      "member": "CanUpgradePowerEfficiency",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.canupgradewidth",
+      "type": "MachineRAS",
+      "member": "CanUpgradeWidth",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.canupgradeheight",
+      "type": "MachineRAS",
+      "member": "CanUpgradeHeight",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.fishspecies.guttertilapia",
+      "type": "FishSpecies",
+      "member": "GutterTilapia",
+      "kind": "field",
+      "returns": "FishSpecies",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isintank",
+      "type": "AquacultureHelper",
+      "member": "IsInTank",
+      "kind": "method",
+      "params": [
+        "GameInventory"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.iscarcass",
+      "type": "AquacultureHelper",
+      "member": "IsCarcass",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getexpecteddraintonight",
+      "type": "AquacultureHelper",
+      "member": "GetExpectedDrainTonight",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "FishSpecies"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.fishspecies.oldagedays",
+      "type": "FishSpecies",
+      "member": "oldAgeDays",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.onfishdead",
+      "type": "AquacultureHelper",
+      "member": "OnFishDead",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.createfilletpieces",
+      "type": "AquacultureHelper",
+      "member": "CreateFilletPieces",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridpixelelement.getelement",
+      "type": "GridPixelElement",
+      "member": "GetElement",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "PixelElement",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.upgradepowerefficiency",
+      "type": "MachineRAS",
+      "member": "UpgradePowerEfficiency",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.upgradewidth",
+      "type": "MachineRAS",
+      "member": "UpgradeWidth",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineras.upgradeheight",
+      "type": "MachineRAS",
+      "member": "UpgradeHeight",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

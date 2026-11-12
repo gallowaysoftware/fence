@@ -629,6 +629,7 @@ namespace Fence.Gym
             DemandTrace.Trade(sold, item, amount);
             Suppliers.Trade(sold, item, amount);
             Rats.Trade(sold, item, amount);
+            Fish.Trade(sold, item, amount);
             Crops.Trade(sold, item, amount);
             Lab.Trade(sold, item, amount);
             SupplyProbe.Trade(sold, item, amount);
@@ -776,6 +777,7 @@ namespace Fence.Gym
             today["production"] = Production.Status();
             if (Furnace.Status() is JObject furnace) today["furnace"] = furnace;
             if (Rats.Status() is JObject rats) today["rats"] = rats;
+            if (Fish.Status() is JObject fish) today["fish"] = fish;
             if (Lab.Status() is JObject lab) today["lab"] = lab;
             if (Conceal.Status() is JObject bay) today["smuggler_bay"] = bay;
             if (Vending.Status() is JObject vend) today["vending"] = vend;
@@ -816,6 +818,7 @@ namespace Fence.Gym
             if (Suppliers.BeerOn) s["beer_orders"] = Suppliers.Orders;
             if (Suppliers.Status() is JObject sup) s["suppliers"] = sup;
             if (Rats.Status() is JObject rats) s["rats"] = rats;
+            if (Fish.Status() is JObject fish) s["fish"] = fish;
             if (Printer.Status() is JObject printer) s["printer"] = printer;
             if (SupplyProbe.Totals() is JObject probe) s["supply_probe"] = probe;
             s["jackson"] = new JObject

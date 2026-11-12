@@ -35,7 +35,7 @@ Equipment conditions: New +25, Excellent +12, Good 0, Fair −12, Poor −25 (`I
   2. **Button machines**: the bottle printer (§3).
   3. **Item-on-item targeting** (`GameItem.onThisTargetItemFunc` / `onItemTargetThisFunc`): combine,
      dismantle, unpack and upgrade (§4–§6). These recipes are hard-coded in lambdas, not data.
-  4. **Livestock**: RAS fish, rats, feed dispenser, auto-butcher (§7).
+  4. **Livestock**: RAS fish, rats, feed dispenser, auto-butcher (§7, [`AQUACULTURE.md`](AQUACULTURE.md), [`HUSBANDRY.md`](HUSBANDRY.md)).
   5. **The fridge**, which adds a value feature instead of making a new item (§8).
 - The best non-chemistry margins are **3D-printed melee weapons** from cheap metal (§1.4). The
   combat machete chip turns 3 Fair ingots (150) into 3 machetes worth ~456 for 60 power, over 5
@@ -50,107 +50,147 @@ Equipment conditions: New +25, Excellent +12, Good 0, Fair −12, Poor −25 (`I
 
 | Fact | Value | Vis. | Evidence |
 |---|---|---|---|
-| Item | `printer`, unitValue 350, `STANDARD_MACHINE_TAG` (turbo-boostable) | VISIBLE | `MachinePrinter.Printer()` |
-| Panels | battery, module bay (`MODULE_TYPE_UNIVERSAL`, `MODULE_TYPE_PRINTER`), input grid 9×6 (owned, no containers, no turbo boosters), chip slot (owned `PRINTER_CHIP_TAG`), output grid 9×5, note | VISIBLE | `CreateMachineInventoryWindow(...)` |
-| Timing | **Per night** (main window). In `STATE_READY` with a chip whose inputs are present and whose machine tags match, it consumes the inputs, locks the chip, draws power and adds one night of progress at once. In `STATE_WORKING` it draws power and adds progress. When finished, it outputs and unlocks the chip | progress VISIBLE (default tooltip) | `Printer()` cycle lambda, `MachineProgressHelper.ContinueProgressTypeMachine(GameItem)` |
-| Speed / power | 24 progress per night (`InitProgressTypeMachine(…, 24)`), 8 power per **working** night. Nights = ceil(work / speed) | DERIVABLE | `InitMachinery(machine, 8)` |
-| Chip | **Never consumed**: one chip prints forever | VISIBLE | `FinishPrinting(...)` unlocks it |
-| Quality | `MACHINE_QUALITY_RATIO_INT` 4: adjusted quality = module quality % / 4 (`ModuleHelper.GetAjustedQuality(GameItem)`) | HIDDEN (module tooltip shows %) | |
-| Input matching quirk | Inputs are counted per **item object**, not per stack unit, and each matched item is destroyed whole (`MachineProgressHelper.HasRequiredAdditionalItems`, `GetItemsToConsume`). The printer materials do not stack (inferred: no `SetStack` in their factories), so this does not bite in practice | | |
-| Obtained | `RETIRED_GUNSMITH` network upgrade (650). The `retired_gunsmith` client sells a prebuilt printer, a screwdriver, plastic and chips (§1.3) | | `StoreClientListSpec.CreateRetiredGunsmith()` |
+| Item | `printer`, unitValue 350, not contraband, `STANDARD_MACHINE_TAG` (turbo booster and bay kit eligible) | VISIBLE | `MachinePrinter.Printer()` |
+| Panels | battery, module bay (the standard 26-cell bay, `MODULE_TYPE_UNIVERSAL` + `MODULE_TYPE_PRINTER`, owned only), input grid 9×6 (owned, no containers, no turbo boosters), chip slot (owned `PRINTER_CHIP_TAG`), output grid 9×5 (owned, no containers), note slot | VISIBLE | `CreateMachineInventoryWindow(...)`, `RefuseTurboBoosters` |
+| Night cycle | Nothing happens unless the battery can pay the full draw (`MachineHelper.CanPower`). In `STATE_READY`, if a chip is in the slot, its machine tags are present and the input grid holds its inputs: it records the ingot bonus, destroys the inputs, locks the chip and the module bay, draws power and adds one night of progress at once. In `STATE_WORKING` it draws power and adds progress. On the night progress reaches the target it outputs, unlocks chip and bay and returns to ready | progress VISIBLE (default tooltip) | `Printer()` cycle lambda, `MachineProgressHelper.ContinueProgressTypeMachine(GameItem)` |
+| Restart | The chip **stays in the slot** after a print. If the input grid still holds another run's inputs, the next night starts the next run with no player action. The input grid holds 54 cells, so one load can cover many runs (inferred from the cycle; see §1.9 lab list) | DERIVABLE | same |
+| Speed / power | 24 progress per night, 8 power per **working** night. Nights = ceil(work / speed). Overshoot is lost | DERIVABLE | `InitProgressTypeMachine(…, 24)`, `InitMachinery(machine, 8)`, `FinishProgressTypeMachine` |
+| Speed 0 | Performance −100 or lower gives speed ≤ 0: the run starts, draws power every night and never finishes (computed: metal + two batch modules with nothing to offset them) | HIDDEN | `ModuleHelper.ApplyBasicModuleEffect` |
+| Chip | **Never consumed**; locked only while a run is in progress | VISIBLE | `FinishPrinting(...)` unlocks it |
+| Quality | Adjusted quality q = trunc(module quality % / 4) (`MACHINE_QUALITY_RATIO_INT` 4, re-set every night) | HIDDEN (module tooltip shows %) | `ModuleHelper.GetAjustedQuality(GameItem)` |
+| Input matching | Counts **item objects** by id, not stack units, and destroys each matched item whole; it takes the matching items nearest the **end** of the grid's item list (the last ones added, inferred) | | `MachineProgressHelper.HasRequiredAdditionalItems`, `GetItemsToConsume` |
+| Stolen inputs | The input grid checks only ownership, so bought stolen inputs are accepted; outputs are fresh items with no stolen flag (inferred: `DirectoryMaster.Item` makes new items) | HIDDEN | `ContainerHelper.AllowOnlyOwnedItemsExcludeContainers`, `FinishPrinting` |
+| Overflow | Outputs that do not fit the output grid go to the back room, then stock, showcase, front counter; destroyed only if all are full | | `GraphUtils.EmporiumTryAdd` |
+
+**How a player gets one** (prices before the hard ×1.5 network multiplier, `MITIGATIONS.md`):
+
+| Source | What comes with it | Evidence |
+|---|---|---|
+| Gunsmith start (−450 cash, +50 rent) | `CreateOldGunPrinter`: shabby printer, 100-charge cell, shabby pistol chip, and two **stuck** square modules in the bay: an eco module (−16 / +32) and a glitched module (+15 / −15). Net P −1, E +17: speed 24, draw 7 (computed). Also 4 plastic, the firearm sign, mods and ammo. `RETIRED_GUNSMITH` is set unlocked | `NewGameData` (GUNSMITH branch), `PreBuiltItemHelper.CreateOldGunPrinter()` |
+| `RETIRED_GUNSMITH` network upgrade (650; 975 on hard) | Shabby printer, 100-charge cell, shabby pistol chip, 2 plastic, a screwdriver, a gun part and a handful of gun mods to the back room; queues the retired gunsmith for the next day | `NetworkUpgradeList` (RETIRED_GUNSMITH action), `CreateRetiredGunsmithUnlock()` |
+| Retired gunsmith client | Visits on every day with day % 7 = 4 (Gunsmith start or the upgrade). Every visit offers a printer (350), a screwdriver and 4 plastic; chips and modules below | `StoreClientManager` (day % 7 = 4 branch), `StoreClientListSpec.CreateRetiredGunsmith()` |
+
+The retired gunsmith's goods carry `premiumBuy15` = `retiredSupplierMarkup`: +0 / +15 / +30 / +45 % on
+cozy / normal / hard / challenge (`ItemFeatureList.PremiumBuy15`, `Difficulty`). A machete chip costs 624 on hard.
 
 ### 1.2 Printer modules (`ModuleDirectory`)
 
-| Module (value) | Performance / efficiency / quality % | Effect | Base printer after it |
-|---|---|---|---|
-| `printer_module_metal` (300) | 0 / −50 / 0 | Sets machine tag `Metal Printing Module` (re-synced every night by `MachinePrinter.SyncModuleTags`) | speed 24, power 12 |
-| `printer_module_cnc` (400) | −25 / −25 / 0 | Sets `CNC Module`; frame and gun-part chips need **both** tags | metal + CNC: speed 18, power 14 |
-| `printer_module_melee_batch` (250) | −50 / −50 / 0 | +1 weapon per melee print **per module** (`CountMeleeBatchModules`) | metal + batch: speed 12, power 16 |
+All three are 1×4 (`long_module1/2/3`) printer-type modules. A standard bay takes one long + four squares,
+two longs + two squares, three longs + one square, or four longs, placed by hand; a bay kit adds room
+(`MODULES.md` §1.1).
 
-Speed = 24 × (1 + perf%/100). Power = 8 × (1 − eff%/100), with a minimum of 1
-(`ModuleHelper.ApplyBasicModuleEffect(GameInventory, GameItem, GameItem)`).
+| Module (value) | P / E / Q % | Effect | Sold (retired gunsmith, per visit) |
+|---|---|---|---|
+| `printer_module_metal` (300) | 0 / −50 / 0 | Machine tag `Metal Printing Module` (re-synced every night by `SyncModuleTags`): needed by the 10 mm mag, combat knife, machete, frame and gun-part chips | 33 % + 15 per gun permit tier |
+| `printer_module_cnc` (400) | −25 / −25 / 0 | Machine tag `CNC Module`; frame and gun-part chips need **both** tags | 25 % + 15 per tier |
+| `printer_module_melee_batch` (250) | −50 / −50 / 0 | +1 weapon per melee print **per module**; the extra weapons roll condition like the rest | 25 % + 15 per tier |
+
+"Per gun permit tier": +1 step each for `GUN_PERMIT_II` (600) and `GUN_PERMIT_III` (900), so up to +30
+(`CreateRetiredGunsmith`, local `Chance`). Universal modules (`MODULES.md` §2.1) work too.
+
+Speed = 24 + trunc(24 × P / 100). Draw = 8 − trunc(8 × E / 100), minimum 1
+(`ModuleHelper.ApplyBasicModuleEffect`). With the printer modules alone (computed):
+
+| Bay | P / E | Speed | Draw |
+|---|---|---|---|
+| bare | 0 / 0 | 24 | 8 |
+| metal | 0 / −50 | 24 | 12 |
+| metal + CNC | −25 / −75 | 18 | 14 |
+| metal + batch | −50 / −100 | 12 | 16 |
+| metal + batch + overclock + performance | +2 / −144 | 24 | 19 |
+| metal + CNC + batch | −75 / −125 | 6 | 18 |
+| metal + 2 batch | −100 / −150 | **0: never finishes** | 20 |
 
 ### 1.3 Chip recipes
 
 The chip tags `REQUIRED_ITEM_ID_n` / `REQUIRED_ITEM_COUNT_n`, `PROGRESS_ITEM_TARGET_TAG`,
-`PROGRESS_ITEM_TARGET_ITEM_ID_TAG` and `PROGRESS_ITEM_TARGET_ITEM_COUNT_TAG` are set by
-`MachineProgressHelper.SetSingle/SetDualAdditionalRequiredItem` and
-`InitProgressSourceItem(GameItem, int, string, bool, int, string)`. They are VISIBLE in the chip
-tooltip (`AddAdditionalItemRequirementsTooltip`). Inputs: `printer_plastic` 12, `scrap_metal` 10,
-`common_electronic` 33, `metal_ingot` 50 (Fair; 37.5–150 by purity, `PRODUCTION.md` §3). Nights and
-power assume the minimum module set the chip needs.
+`PROGRESS_ITEM_TARGET_ITEM_ID_TAG`, `PROGRESS_ITEM_TARGET_ITEM_COUNT_TAG` and
+`PROGRESS_ITEM_REQUIRED_MACHINE_TAG[_n]` are set by `MachineProgressHelper.SetSingle/SetDualAdditionalRequiredItem`,
+`InitProgressSourceItem(GameItem, int, string, bool, int, string)` and `AddRequiredMachineTag`; the
+melee chips are built by `ModuleDirectory.CreateMeleeChip` and the frame and gun-part chips by
+`CreateCncChip`. Work, inputs and required modules are VISIBLE in the chip tooltip
+(`CreateSourceItemDefaultTooltip`). Matches `progress_recipes` in `var/gamedata/recipes.json`.
+List input values: `printer_plastic` 12, `scrap_metal` 10, `common_electronic` 33, `metal_ingot` 50
+(Fair). Nights and power assume the minimum module set the chip needs. "Margin" here = output at list
+value − inputs at list value − power (chip price left out; §1.8 uses prices a player pays).
 
-| Chip (value) | Inputs | Output ×n (value each) | Work | Needs | Nights / power | Margin per run (computed) |
-|---|---|---|---|---|---|---|
-| `printer_chip_small_bottle` (100) | 1 plastic | `small_bottled_water` ×6 (4) | 10 | — | 1 / 8 | +4 |
-| `printer_chip_internal_springs_improved` (150) | 2 scrap | `internal_springs_improved` ×4 (20) | 20 | — | 1 / 8 | **+52** |
-| `printer_chip_makeshift_rds` (200) | 1 plastic + 1 electronic | `rds_makeshift` ×4 (25) | 20 | — | 1 / 8 | +47 |
-| `printer_chip_makeshift_toy_laser` (200) | 1 plastic + 1 electronic | `laser_toy` ×4 (18) | 20 | — | 1 / 8 | +19 |
-| `printer_chip_rds` (300) | 3 scrap + 1 electronic | `rds` ×2 (60) | 24 | — | 1 / 8 | +49 |
-| `printer_chip_laser_sight` (300) | 2 scrap + 1 electronic | `laser` ×2 (50) | 24 | — | 1 / 8 | +39 |
-| `printer_chip_silencer` (300) | 5 scrap | `silencer` ×2 (55) | 24 | — | 1 / 8 | **+52** |
-| `printer_chip_22_mag` (250) | 1 plastic | `mag_22` ×2 (15) | 24 | — | 1 / 8 | +10 |
-| `printer_chip_22_mag_high` (300) | 2 plastic | `mag_22_high` ×2 (25) | 36 | — | 2 / 16 | +10 |
-| `printer_chip_22_mag_ext` (350) | 3 plastic | `mag_22_ext` ×2 (35) | 48 | — | 2 / 16 | +18 |
-| `printer_chip_10_mag` (300) | 3 scrap | `mag_10mm` ×2 (30) | 36 | metal | 2 / 24 | +6 |
-| `printer_chip_10_mag_high` (350) | 2 scrap | `mag_10mm_high` ×1 (40) | 48 | metal | 2 / 24 | −4 |
-| `printer_chip_10_mag_ext` (400) | 3 scrap | `mag_10mm_ext` ×1 (50) | 60 | metal | 3 / 36 | −16 |
-| `printer_chip_pistol` (250) | 2 plastic | `printed_gun` ×1 (40; New +25 → 50; contraband 1) | 50 | — | 3 / 24 | +2 |
-| `printer_chip_pistol_double` (400) | 3 plastic | `printed_gun` ×2 (50) | 60 | — | 3 / 24 | +40 |
-| `printer_chip_box_cutter` (150) | 2 scrap + 1 plastic | `box_cutter` ×3 (28) | 34 | — | 2 / 16 | +21 |
-| `printer_chip_kitchen_knife` (200) | 3 scrap + 1 plastic | `kitchen_knife` ×4 (45) | 64 | — | 3 / 24 | **+82** |
-| `printer_chip_hatchet` (250) | 4 scrap + 1 plastic | `hatchet` ×4 (55) | 75 | — | 4 / 32 | **+97** |
-| `printer_chip_kitchen_cleaver` (300) | 5 scrap + 2 plastic | `kitchen_cleaver` ×4 (65) | 82 | — | 4 / 32 | **+107** |
-| `printer_chip_combat_knife` (380) | 2 ingots | `combat_knife` ×5 (75) | 98 | metal | 5 / 60 | **+148** (Fair ingots) |
-| `printer_chip_combat_machete` (480) | 3 ingots | `combat_machete` ×3 (185) | 120 | metal | 5 / 60 | **+246** (Fair ingots) |
-| `printer_chip_gun_part` (300) | 1 ingot | `gun_part` ×2–5 by purity (25) | 30 | metal + CNC | 2 / 28 | −3 (Fair), +4.5 (Low) |
-| `printer_chip_handmade_pistol_frame` (350) | 1 ingot | `handmade_pistol_frame` ×1 (70, contraband 1) | 60 | metal + CNC | 4 / 56 | see §1.5 |
-| `printer_chip_heavy_handmade_pistol_frame` (450) | 1 ingot + 1 scrap | `heavy_handmade_pistol_frame` ×1 (100, contraband 2) | 70 | metal + CNC | 4 / 56 | see §1.5 |
+| Chip (value) | Inputs | Output ×n (value each) | Work | Needs | Nights / power | Margin (list) | Offered by the retired gunsmith |
+|---|---|---|---|---|---|---|---|
+| `printer_chip_small_bottle` (100) | 1 plastic | `small_bottled_water` ×6 (4, empty) | 10 | — | 1 / 8 | +4 | every visit |
+| `printer_chip_internal_springs_improved` (150) | 2 scrap | `internal_springs_improved` ×4 (20) | 20 | — | 1 / 8 | +52 | every visit |
+| `printer_chip_makeshift_rds` (200) | 1 plastic + 1 electronic | `rds_makeshift` ×4 (25) | 20 | — | 1 / 8 | +47 | every visit |
+| `printer_chip_makeshift_toy_laser` (200) | 1 plastic + 1 electronic | `laser_toy` ×4 (18) | 20 | — | 1 / 8 | +19 | every visit |
+| `printer_chip_rds` (300) | 3 scrap + 1 electronic | `rds` ×2 (60) | 24 | — | 1 / 8 | +49 | 40 % from day 20, else 15 % |
+| `printer_chip_laser_sight` (300) | 2 scrap + 1 electronic | `laser` ×2 (50) | 24 | — | 1 / 8 | +39 | 40 % / 15 % |
+| `printer_chip_silencer` (300) | 5 scrap | `silencer` ×2 (55) | 24 | — | 1 / 8 | +52 | 40 % / 15 % |
+| `printer_chip_22_mag` (250) | 1 plastic | `mag_22` ×2 (15) | 24 | — | 1 / 8 | +10 | 33 % |
+| `printer_chip_22_mag_high` (300) | 2 plastic | `mag_22_high` ×2 (25) | 36 | — | 2 / 16 | +10 | 20 % |
+| `printer_chip_22_mag_ext` (350) | 3 plastic | `mag_22_ext` ×2 (35) | 48 | — | 2 / 16 | +18 | 25 % |
+| `printer_chip_10_mag` (300) | 3 scrap | `mag_10mm` ×2 (30) | 36 | metal | 2 / 24 | +6 | 25 % |
+| `printer_chip_10_mag_high` (350) | 2 scrap | `mag_10mm_high` ×1 (40) | 48 | metal | 2 / 24 | −4 | 15 % |
+| `printer_chip_10_mag_ext` (400) | 3 scrap | `mag_10mm_ext` ×1 (50) | 60 | metal | 3 / 36 | −16 | 20 % |
+| `printer_chip_pistol` (250) | 2 plastic | `printed_gun` ×1 (40, New +25 % → 50; contraband 1) | 50 | — | 3 / 24 | +2 | every visit |
+| `printer_chip_pistol_double` (400) | 3 plastic | `printed_gun` ×2 (50) | 60 | — | 3 / 24 | +40 | 25 % from day 20 only |
+| `printer_chip_box_cutter` (150) | 2 scrap + 1 plastic | `box_cutter` ×3 (28) | 34 | — | 2 / 16 | +21 | every visit |
+| `printer_chip_kitchen_knife` (200) | 3 scrap + 1 plastic | `kitchen_knife` ×4 (45) | 64 | — | 3 / 24 | +82 | every visit |
+| `printer_chip_hatchet` (250) | 4 scrap + 1 plastic | `hatchet` ×4 (55) | 75 | — | 4 / 32 | +97 | 40 % / 15 % |
+| `printer_chip_kitchen_cleaver` (300) | 5 scrap + 2 plastic | `kitchen_cleaver` ×4 (65) | 82 | — | 4 / 32 | +107 | 40 % / 15 % |
+| `printer_chip_combat_knife` (380) | 2 ingots | `combat_knife` ×5 (75) | 98 | metal | 5 / 60 | +148 (Fair) | 20 % + 10 per tier |
+| `printer_chip_combat_machete` (480) | 3 ingots | `combat_machete` ×3 (185) | 120 | metal | 5 / 60 | +246 (Fair) | 15 % + 10 per tier |
+| `printer_chip_gun_part` (300) | 1 ingot | `gun_part` ×2–5 by purity (25) | 30 | metal + CNC | 2 / 28 | −3 (Fair), +4.5 (Low), +9.5 (High) | 25 % + 10 per tier |
+| `printer_chip_handmade_pistol_frame` (350) | 1 ingot | `handmade_pistol_frame` ×1 (70, New → 87.5; contraband 1) | 60 | metal + CNC | 4 / 56 | §1.5 | 20 % + 10 per tier |
+| `printer_chip_heavy_handmade_pistol_frame` (450) | 1 ingot + 1 scrap | `heavy_handmade_pistol_frame` ×1 (100, New → 125; contraband 2) | 70 | metal + CNC | 4 / 56 | §1.5 | 15 % + 10 per tier |
 
-Melee margins use the expected condition mix of §1.4 (×0.821 of list value). The margins leave
-out the chip's purchase price. Chips are kept, so the chip is capital: the machete chip (480) pays
-back in two runs.
-
-**Where chips come from** (`StoreClientListSpec.CreateRetiredGunsmith()`): small bottle,
-makeshift RDS, toy laser, pistol, springs, box cutter and kitchen knife are **always** offered.
-RDS, laser sight, silencer, hatchet, cleaver and double pistol are offered on rolls (40 % each
-from day 20, 15 % before; double pistol 25 %). Metal module 33 %, melee batch 25 %, CNC 25 %, combat
-knife 20 %, machete 15 %, frame 20 %, heavy frame 15 % and gun part 25 % get **+15/+10 points per
-gun permit tier** (II and III). The .22 and 10 mm mag chips are on flat 15–33 % rolls. A shabby
-pistol chip and 2 plastic come with the gunsmith network upgrade (`NetworkUpgradeList`).
+The melee rows (box cutter to machete) carry `PRINTER_MELEE_CHIP_TAG` and use the expected condition
+mix of §1.4 (×0.821 of list value). The gunsmith's rolls are independent per visit; he also sells
+finished mods on rolls (`silencer2`, `laser2`, mags, springs at 50 %). The shabby pistol chip from the
+start and the network upgrade is the only free chip. No other seller, loot table or crate carries
+printer chips or printer modules (inferred: no other reference in the decompile or
+`var/gamedata/loot_tables.json`).
 
 ### 1.4 What sets output quality
 
 | Output kind | Rule | Vis. | Evidence |
 |---|---|---|---|
-| Melee (`PRINTER_MELEE_CHIP_TAG`) | Each weapon rolls score = uniform 20–30 + adjusted quality + **average ingot bonus** of the consumed ingots (Very low −30, Low −20, Fair 0, High +20, Very high +30, Perfect +100; 0 when no ingots are used). Score < 25 **Poor**, < 60 **Fair**, < 90 **Good**, else **Excellent** | condition VISIBLE on the item; the roll is HIDDEN | `ApplyPrintedMeleeCondition(GameItem, GameItem)`, `CaptureIngotQuality(...)` |
-| Gun-part count | Ingot purity: Very low 2, Low/Fair 3, High/Very high 4, Perfect 5 | VISIBLE (count) | `GUN_PART_COUNT_BY_PURITY` |
-| Frames (`GUN_FRAME_TAG`) | Stores print quality = adjusted quality + ingot bonus in `GUN_FRAME_PRINT_QUALITY_INT`. The finished gun's firepower, style, reliability, recoil and ergonomics are scaled by (100 + quality)% | HIDDEN | `HandlePrintedItemQuality(...)`, `GunHelper.MultiplyBaseStat(GameItem, int)` |
-| `ADV_GUN_TAG` outputs (printed gun) | stats ×(100 + adjusted quality)% | HIDDEN | same |
-| Everything else | none | | |
+| Melee (`PRINTER_MELEE_CHIP_TAG`) | Each weapon, batch extras included, rolls score = uniform integer 20–30 (inclusive) + q + **average ingot bonus** of the consumed ingots (Very low −30, Low −20, Fair 0, High +20, Very high +30, Perfect +100; integer average; 0 when no ingots). Score < 25 **Poor** (−25 %), < 60 **Fair** (−12 %), < 90 **Good** (0), else **Excellent** (+12 %). The condition is an innate % on the sale value | condition VISIBLE on the item; the roll is HIDDEN | `ApplyPrintedMeleeCondition(GameItem, GameItem)`, `CaptureIngotQuality(...)`, `RNG.GetRandomInt` (max inclusive), `ItemConditionList.CreateEquipementCondition*` |
+| Gun-part count | Purity of the consumed ingot: Very low 2, Low 3, Fair 3, High 4, Very high 4, Perfect 5 (3 if none) | VISIBLE (count) | `GUN_PART_COUNT_BY_PURITY` |
+| Frames (`GUN_FRAME_TAG`) | Stores print quality = q + ingot bonus in `GUN_FRAME_PRINT_QUALITY_INT`. The finished gun's firepower, style, reliability, recoil, ergonomics and accuracy are scaled by (100 + quality) % | HIDDEN | `HandlePrintedItemQuality(...)`, `GunHelper.MultiplyBaseStat(GameItem, int)` |
+| Printed gun (`ADV_GUN_TAG`) | Stats × (100 + q) % (no ingot term) | HIDDEN | same |
+| Everything else | none: mods, mags and bottles come out plain | | |
 
-Melee with scrap or plastic chips and no quality module: P(Poor) = 5/11, P(Fair) = 6/11, so expected
-value = list × 0.821 (computed). **Ingot purity barely pays for melee.** With Fair ingots the
-machete run nets +246, with Very high (+30, 75 each) +209, with Low (−20, all Poor) +229 and with
-Very low +244 (computed). Good needs score ≥ 60, i.e. a +30…+40 bonus. Excellent (+12 %) needs
-Perfect ingots (150 each), which cost far more than the 12 % they add. Quality modules
-(÷4) are the cheap way to move the roll.
+Gun stats do not enter the sale value; they matter to gun-order bonus requirements
+(`GunOrderData`, inferred from the only other readers of the stat tags).
 
-Melee batch modules: the machete with metal + one batch module makes 4 per run, takes 10 nights
-and draws 16 per night: +297 per run but +30 per night, against +49 per night without the module
-(computed). **The batch module lowers throughput per night**; it only saves input material.
+Expected value multiplier for melee by s = q + ingot bonus (computed from the 11 equally likely rolls):
+
+| s | ≤ −10 | −5 | 0 | 1…4 | 5…29 | 30 | 35 | 40…59 | 60 | 70+ |
+|---|---|---|---|---|---|---|---|---|---|---|
+| P(Poor) | 11/11 | 10/11 | 5/11 | (5 − s)/11 | 0 | 0 | 0 | 0 | 0 | 0 |
+| best result | Poor | Fair | Fair | Fair | Fair | Good 1/11 | Good 6/11 | Good | Exc 1/11 | Excellent |
+| × list value | 0.750 | 0.762 | 0.821 | — | 0.880 | 0.891 | 0.945 | 1.000 | 1.011 | 1.120 |
+
+- **Fair ingots and no quality module**: 5/11 Poor, 6/11 Fair (×0.821). **Low or Very low ingots**: every
+  weapon Poor (×0.750). High (+20) and Very high (+30, 1/11 Good) are ×0.880 / ×0.891. Only Perfect
+  ingots reach Excellent.
+- **Quality ≥ 20 % (q ≥ 5) removes every Poor roll**: three `system_module_quality` (+8 each, q 6) or one
+  `system_module_fineness` (+25, q 6). +7.2 % on every melee print. Good needs s ≥ 40 (Very high
+  ingots + quality 40, or the capped neural core's +50).
+- Per run (computed, Fair ingots): machete 456 → 488 with a fineness module (+32); kitchen knife 148 →
+  158. Fair ingots + fineness = High ingots without it, so ore is not worth spending on purity here.
 
 ### 1.5 Gun frames → guns (item-on-item)
 
-`gun_part` targeted onto an owned `GUN_FRAME_TAG` frame → the frame's gun
-(`GunFrameHelper.Finish(GameItem, GameItem)`, via `MaterialDirectory.GunPart()`). The part and the
-frame are consumed. A printed frame (it carries a print quality) always yields condition **New**
-(+25 %).
+`gun_part` targeted onto an owned `GUN_FRAME_TAG` frame (both owned, frame in an inventory) → the
+frame's gun (`GunFrameHelper.Finish(GameItem, GameItem)`, via `MaterialDirectory.GunPart()`). The part
+and the frame are consumed. A printed frame (it carries a print quality) always yields condition **New**
+(+25 %); an unprinted frame passes its own condition on (`GunFrameHelper.GetCondition`).
 
-| Chain (computed, Fair ingot, part valued at 25) | Output value | Inputs + power | Margin |
+| Chain (computed, Fair ingot at 50, part at 25) | Output value | Inputs + power | Margin |
 |---|---|---|---|
-| Ingot → `handmade_pistol_frame` + `gun_part` → `handmade_pistol` (120, contraband 1) | 150 | 50 + 25 + 56 | +19 |
-| Ingot + scrap → `heavy_handmade_pistol_frame` + `gun_part` → `heavy_handmade_pistol` (160) | 200 | 60 + 25 + 56 | **+59** |
+| Ingot → `handmade_pistol_frame` + `gun_part` → `handmade_pistol` (120 → 150 New, contraband 1) | 150 | 50 + 25 + 56 | +19 |
+| Ingot + scrap → `heavy_handmade_pistol_frame` + `gun_part` → `heavy_handmade_pistol` (160 → 200 New, contraband 2) | 200 | 60 + 25 + 56 | **+59** |
+
+Both guns are contraband; selling or holding them carries the risks in `CONCEALMENT.md`.
 
 ### 1.6 Disassembly with a screwdriver (`GunHelper.DisassembleWeapon(GameItem)`)
 
@@ -158,50 +198,196 @@ frame are consumed. A printed frame (it carries a print quality) always yields c
 destroys it and gives parts. Use it only when a gun's condition or features push its value below
 the parts; at Poor (−25 %) every gun is still worth more whole (computed).
 
-| Gun (value) | Parts (value) |
+| Gun (value, contraband) | Parts (value) |
 |---|---|
-| `printed_gun` (40) | 2 plastic (24) |
-| `handmade_pistol` (120) | 2 gun parts + 1 plastic + 2 scrap (82) |
-| `heavy_handmade_pistol` (160) | 2 gun parts + 1 plastic + 4 scrap (102) |
-| `glock_receiver` (200) | 4 gun parts (100) |
-| `revolver` (240) | 5 gun parts (125) |
-| `smg` (280) | 6 gun parts (150) |
-| `shotgun` (310) | 7 gun parts (175) |
+| `printed_gun` (40, 1) | 2 plastic (24) |
+| `handmade_pistol` (120, 1) | 2 gun parts + 1 plastic + 2 scrap (82) |
+| `heavy_handmade_pistol` (160, 2) | 2 gun parts + 1 plastic + 4 scrap (102) |
+| `heavy_handmade_pistol_s` (225, 2) | 3 gun parts + 1 plastic + 4 scrap (127) |
+| `glock_receiver` (200, 2) | 4 gun parts (100) |
+| `revolver_short_tac` (230, 2) | 5 gun parts (125) |
+| `revolver` (240, 2) | 5 gun parts (125) |
+| `smg` (280, 3) | 6 gun parts (150) |
+| `shotgun` (310, 3) | 7 gun parts (175) |
 
 **Gun repair** with a gun part (`GunHelper.TryRepairGun(GameItem, GameItem)`, part consumed):
-the success chance is the gun's base repairability × the number of attempts since the last success.
-Base repairability: printed and handmade 100, revolver 60, heavy 80, glock 65, SMG 40, shotgun 35
-(`GunHelper.InitGun(...)`). Success raises the condition one step: Poor → Fair → Good →
-Excellent, never to New. A part (25) buys +12–13 % of the gun's value, so repair pays on every
-gun above ~200 (computed).
+chance = base repairability + the carried chance, which grows by the base after each failure and resets
+to 0 on success (so base × attempts since the last success). Base repairability (`GUN_REPAIRBILITY_TAG`,
+`GunHelper.InitGun`): printed and handmade 100, heavy 80, short tac revolver 75, heavy-s 70, glock 65,
+revolver 60, SMG 40, shotgun 35. Success raises the condition one step: Poor → Fair → Good →
+Excellent, never to New; New and Excellent cannot be repaired (`CanRepair`). A part (25) buys +12–13 %
+of the gun's value, so repair pays on every gun above ~200 (computed).
+
+### 1.7 Who buys the output
+
+| Output | Item types | Buyers | Evidence |
+|---|---|---|---|
+| Melee weapons | `WEAPON`, `MELEE_WEAPON` (knife and cleaver also `HOUSEHOLD_GOOD`, box cutter and hatchet `TOOL`) | merchant, mercenary buyer (300 + 2/day), revolutionary buyer, weapon display buyers, and gun-order clients who fall back to buying a melee weapon | `CLIENTS.md`, `StoreClientListGun.TryStayForMeleeWeapon` |
+| Gun mods (springs, sights, silencer, mags) | `GUN_MOD` only | no general or display buyer lists `GUN_MOD`. They sell to the merchant (anything not contraband), the vending machine at 0.15× its usual sale chance, and inside gun orders: a service order pays the fitted parts' value, a "best" order pays 1.5× the gun's value with its fitted mods, bonus requirements (e.g. suppressed) pay extra | `VendingMachineHelper.GetSaleChance`, `GunOrderData.GetTotalReward/GetPartsValue` |
+| Printed gun, frames, handmade pistols | contraband 1–2 | contraband buyers; risk per `CONCEALMENT.md` | |
+| Gun parts | `MATERIAL` | material buyers (`PRODUCTION.md` §3), gun repair, frames | |
+
+Gun mods are the printer's cheapest outputs to make but have the narrowest market; the gym values
+output at its estimate, which overstates mods if they do not sell (inferred).
+
+### 1.8 Max output
+
+**Input prices a player pays** (hard; computed from the sellers' terms; `PRODUCTION.md` §3 for ore and
+flux). Wholesale lots are bought whole at the discount (`PlayerStore.GetWholesalePrice`).
+
+| Input (list) | Main sellers, per visit | Paid on hard |
+|---|---|---|
+| `scrap_metal` (10) | junker (general pool): 3 + 50 % a fourth, wholesale −15 %. Material seller via `sign_material` in the showcase (75 % a day; scav or thief by reputation): scav 1 + four 50 % rolls, −15…−25 %. Story scrap seller (day 5): 5 at −33 %. Occasional: scav haul 4 at −25 %, salvage pilot 2 at −33 %, material surplus event, Rev quartermaster, scav barter | **8.5** (6.7–8.5) |
+| `printer_plastic` (12) | retired gunsmith: 4 every visit at +30 %. Junker: 2 + 50 % a third, −15 %. Scav material seller: three rolls at 25 + LL rep/2 % (min 10), −15…−25 %. Scav general: three 15 % rolls. Supplier: 4 at `premiumBuy` (+50 % × 2 on hard = +100 %) | **15.6** at the gunsmith; 10.2 junker; 24 supplier |
+| `common_electronic` (33) | junker 1 + 15 %; scav material seller 80 %; scav general 80 %; thief material seller (black-market rep): 1 + four (50 + BM rep/2) % rolls, **stolen**, −15 %; salvage pilot 3 at −33 % | **28** (22–28) |
+| `metal_ingot` (50 Fair) | no seller: the furnace. Fair = 2 scrap + 1 flux + 8 power; blast module: 3 scrap + 1 flux + 16 power → 2 Fair | **29** (23 with blast) |
+| power | ~1 per unit (`PRODUCTION.md` §0) | 1 |
+
+`StoreClientList.CreateJunker`, `StoreClientListSupplier.AddScavMaterialStock/AddThiefMaterialStock`,
+`ShowcaseHelper.GetMaterialSupplierId`, `StoreClientListStory.CreateStoryScrapSeller`,
+`StoreClientList.PlaceSupplierInventory`, `ItemFeatureList.PremiumBuy`. The material sign is sold by
+Dr. Jackson while not owned (`PlaceInventorInventory`, `AddIfNotOwn`) and is the Scav start's sign.
+
+**Ranking, bare minimum modules, paid prices** (computed; "/ scrap" counts an ingot as 2 scrap). Chip
+price left out: chips are capital.
+
+| Chip | Inputs (paid) | Nights / power | Output EV | Margin / run | / night | / power | / scrap |
+|---|---|---|---|---|---|---|---|
+| combat_machete | 3 ingot (87) | 5 / 60 | 456 | +309 | +61.7 | +5.14 | **+51.4** |
+| silencer | 5 scrap (42) | 1 / 8 | 110 | +60 | +59.5 | +7.44 | +11.9 |
+| rds | 3 scrap + 1 elec (54) | 1 / 8 | 120 | +58 | +58.5 | +7.31 | +19.5 |
+| springs | 2 scrap (17) | 1 / 8 | 80 | +55 | +55.0 | +6.88 | +27.5 |
+| makeshift_rds | 1 plastic + 1 elec (44) | 1 / 8 | 100 | +48 | +48.4 | +6.05 | — |
+| laser_sight | 2 scrap + 1 elec (45) | 1 / 8 | 100 | +47 | +47.0 | +5.88 | +23.5 |
+| combat_knife | 2 ingot (58) | 5 / 60 | 308 | +190 | +38.0 | +3.16 | +47.5 |
+| kitchen_knife | 3 scrap + 1 plastic (41) | 3 / 24 | 148 | +83 | +27.6 | +3.44 | +27.6 |
+| cleaver | 5 scrap + 2 plastic (74) | 4 / 32 | 213 | +108 | +26.9 | +3.37 | +21.5 |
+| hatchet | 4 scrap + 1 plastic (50) | 4 / 32 | 181 | +99 | +24.8 | +3.09 | +24.8 |
+| toy_laser | 1 plastic + 1 elec (44) | 1 / 8 | 72 | +20 | +20.4 | +2.55 | — |
+| box_cutter | 2 scrap + 1 plastic (33) | 2 / 16 | 69 | +20 | +10.2 | +1.27 | +10.2 |
+| pistol_double | 3 plastic (47) | 3 / 24 | 100 | +29 | +9.7 | +1.22 | — |
+| gun_part | 1 ingot (29) | 2 / 28 | 75 | +18 | +9.0 | +0.64 | +9.0 |
+| heavy_frame | 1 ingot + 1 scrap (38) | 4 / 56 | 125 | +32 | +7.9 | +0.56 | +10.5 |
+| 22_mag | 1 plastic (16) | 1 / 8 | 30 | +6 | +6.4 | +0.80 | — |
+| 10_mag | 3 scrap (26) | 2 / 24 | 60 | +10 | +5.2 | +0.44 | +3.5 |
+| 22_mag_ext | 3 plastic (47) | 2 / 16 | 70 | +7 | +3.6 | +0.45 | — |
+| 22_mag_high | 2 plastic (31) | 2 / 16 | 50 | +3 | +1.4 | +0.18 | — |
+| frame | 1 ingot (29) | 4 / 56 | 88 | +2 | +0.6 | +0.04 | +1.2 |
+| small_bottle | 1 plastic (16) | 1 / 8 | 24 | +0 | +0.4 | +0.05 | — |
+| 10_mag_high | 2 scrap (17) | 2 / 24 | 40 | −1 | −0.5 | −0.04 | −0.5 |
+| pistol | 2 plastic (31) | 3 / 24 | 50 | −5 | −1.7 | −0.22 | — |
+| 10_mag_ext | 3 scrap (26) | 3 / 36 | 50 | −12 | −3.8 | −0.32 | −3.8 |
+
+**Best module set per chip** (standard bay, universal modules P/E/Q/overclock/eco/fineness plus batch
+modules; computed by search; module prices left out). The one-night chips cannot get faster, so
+modules only cut power: four `system_module_efficiancy` take the draw from 8 to 3 (+5 a run). The rest:
+
+| Chip | Inputs plentiful (max / night) | Inputs bind (max / run) |
+|---|---|---|
+| combat_machete | metal + fineness + 2 overclock + performance: 3 nights, draw 20, +341 a run, **+114 a night** | metal + batch + overclock + performance: 5 nights, draw 19, 4 machetes, **+425 a run (+71 a scrap)** |
+| combat_knife | metal + 3 overclock + quality: 2 nights, draw 22, +215, +107 a night | metal + fineness + 3 performance: 3 nights, +233 (+58 a scrap) |
+| cleaver | batch + 3 overclock + performance: 2 nights, 5 cleavers, +149, +75 a night | batch + fineness + 3 performance: 4 nights, +160 (+32 a scrap) |
+| hatchet | batch + 3 overclock + performance: 2 nights, +132, +66 a night | batch + fineness + overclock + 2 performance: 3 nights, +144 (+36 a scrap) |
+| kitchen_knife | batch + overclock + 3 performance: 2 nights, +114, +57 a night | batch + fineness + 3 performance: 3 nights, +118 (+39 a scrap) |
+| heavy_frame | metal + CNC + 2 overclock: 2 nights, +46 | same |
+| gun_part | metal + CNC + overclock + performance: 1 night, +29 | same |
+| pistol_double | 3 performance + eco: 2 nights, +41 | — |
+
+Batch module math: metal + one batch module alone makes the machete take 10 nights at draw 16 (+361 a
+run, +36 a night); one overclock + one performance cancel the −50 performance, so the fourth machete
+costs no extra night. Two batch modules need +100 performance to move at all and a bay kit for room.
+
+**What to print.**
+- **Printer time is the limit** (inputs plentiful): the machete with metal + fineness + two overclocks +
+  performance (+114 a night), then the combat knife; without the metal module, the cleaver or hatchet
+  with a batch module and overclocks (+66–75 a night); without modules, silencer, RDS and springs tie at
+  +55–60 a night.
+- **Scrap is the limit** (the gym's case, docs/research/ARCHETYPES-NEW.md): margin per scrap decides.
+  Ingot melee through a furnace earns +51 (machete) to +71 (machete + batch) per scrap, the combat knife
+  +48–58, springs +27.5, the kitchen knife +28–39. The silencer (+12) and RDS (+20) waste scrap.
+  Without a furnace and metal module: springs for scrap, makeshift RDS for electronics (+48 per
+  electronic, against +58 for the RDS that also burns 3 scrap worth +82 as springs).
+- **Plastic** (4 a week from the gunsmith) goes to makeshift RDS with an electronic (+48), else to
+  kitchen knives; the .22 mags, pistols and bottles return almost nothing.
+- **Gun mods need a market** (§1.7): springs and sights realize their value through gun orders and
+  the merchant; melee sells to every weapon buyer.
+
+### 1.9 Facts to confirm in the lab
+
+Expected results, from the code above: one-night chip (springs) completes in one night drawing 8;
+the metal module raises the draw to 12; metal + CNC gives speed 18; metal + two batch modules never
+finishes; a batch module adds one weapon; a bare kitchen-knife run over many runs is about 45 % Poor
+and 55 % Fair, and 100 % Fair with a fineness module; Low ingots on the machete give all Poor; gun parts
+per ingot 3 (Low/Fair), 4 (High), 5 (Perfect); a loaded input grid restarts the chip each night
+without tending; stolen inputs are accepted and outputs are not stolen; the Gunsmith start's two stuck
+modules give speed 24 and draw 7, and whether metal + CNC still fit around them.
 
 ## 2. Desequencer (`desequencer`, `MachineDesequencer`)
 
-The row in `PRODUCTION.md` §4 has the summary; these are the recipe numbers. 350 credits,
-**contraband 2**, 10 power per working night, speed 33. A crypto module (kept, contraband 1–4)
-plus **any owned access card** in the input slot (consumed at the finish; use `blank_keycard`, 15)
-gives one keycard (`FinishDesequencer(GameItem, GameSlotInventory, GameSlotInventory)`).
-
-| Module (value, contraband) | Work → nights | Output (value) | Margin with a blank card (computed) |
+| Fact | Value | Vis. | Evidence |
 |---|---|---|---|
-| `crypto_module_ser` (200, 1) | 75 → 3 | `ser_keycard` (40) | −5 |
-| `crypto_module_sup` (200, 1) | 75 → 3 | `sup_keycard` (40) | −5 |
-| `crypto_module_med` (250, 2) | 100 → 4 | `med_keycard` (75) | +20 |
-| `crypto_module_eng` (250, 2) | 100 → 4 | `eng_keycard` (75) | +20 |
-| `crypto_module_sec` (300, 3) | 125 → 4 | `sec_keycard` (100) | +45 |
-| `crypto_module_cmd` (350, 4) | 150 → 5 | `cmd_keycard` (125) | +60 |
+| Item | 350, **contraband 2**, `MACHINE`, `STANDARD_MACHINE_TAG` | VISIBLE | `MachineDesequencer.Desequencer()` |
+| Panels | battery, module bay (standard 26-cell; universal and alarm modules; an alarm module does nothing here), chip slot (an owned crypto module: any non-machine item with `DESEQUENCER_TARGET_ID_TAG`), input slot (one owned `ACCESS_CARD`), output slot (one owned access card, not a blank) | VISIBLE | `CreateMachineInventoryWindow`, slot rules in `Desequencer()` |
+| Recipe | crypto module (kept) + **any** owned access card in the input slot → the module's keycard. The input card is consumed at the finish; a blank (`blank_keycard`, 15) is the cheap input, but a spare keycard works too | VISIBLE (module tooltip, progress text on the card) | `FinishDesequencer(GameItem, GameSlotInventory, GameSlotInventory)` |
+| Night cycle | Needs a battery that can pay the full draw. Ready + card + module + **empty output slot**: draws power, copies the module's target id and work onto the machine, locks the input card and adds one night of progress. Working: if the output slot is empty, draws power and adds progress; on reaching the target, puts the card in the output slot and returns to ready | progress VISIBLE | same |
+| Output slot full | A card left in the output slot **stalls** the machine: no progress, no draw (it does not finish into a fuller slot) | DERIVABLE | same |
+| Module captured at start | Target id and work are copied when the run starts and the module is never locked, so removing or swapping it mid-run changes nothing; one module can start runs on several desequencers in turn (inferred) | HIDDEN | same |
+| Speed / power | 33 a night, 10 power per working night; speed = 33 + trunc(33 × P / 100), draw = 10 − trunc(10 × E / 100), min 1 | DERIVABLE | `InitProgressTypeMachine(machine, 33, …)`, `InitMachinery(machine, 10)`, `ApplyBasicModuleEffect` |
+| One card per run | One input and one output slot: one card per run, then a morning visit to empty the output | VISIBLE | |
 
-The cards' value lies in access and requests, not in the sale price.
+| Crypto module (value, contraband) | Work → nights bare / with modules (computed) | Output (value, contraband) | Margin, blank at 22.5, power 1 (computed) |
+|---|---|---|---|
+| `crypto_module_ser` (200, 1) | 75 → 3; 2 at P ≥ 16 | `ser_keycard` (40, 1) | −12.5; −2.5 in 2 nights |
+| `crypto_module_sup` (200, 1) | 75 → 3; 2 at P ≥ 16 | `sup_keycard` (40, 1) | same; see "sources" |
+| `crypto_module_med` (250, 2) | 100 → 4; 3 at P ≥ 4; 2 at P ≥ 52 | `med_keycard` (75, 1) | +12.5 (3.1 a night); +32.5 in 2 nights (16.3) |
+| `crypto_module_eng` (250, 2) | 100 → 4; 3 at P ≥ 4; 2 at P ≥ 52 | `eng_keycard` (75, 1) | same as med |
+| `crypto_module_sec` (300, 3) | 125 → 4; 3 at P ≥ 28 | `sec_keycard` (100, 2) | +37.5 (9.4); +47.5 in 3 nights (15.8) |
+| `crypto_module_cmd` (350, 4) | 150 → 5; 4 at P ≥ 16; 3 at P ≥ 52 | `cmd_keycard` (125, 3) | +52.5 (10.5); **+72.5 in 3 nights with four performance modules (24.2)** |
+
+Blank card at 22.5 = 15 × 1.5, Dr. Jackson's hard markup (`PRODUCTION.md` §4). Four performance
+modules (P 64, speed 54) are the best set: they reach every breakpoint above (ser/sup, med/eng in 2
+nights, sec and cmd in 3) without raising the draw. Sec in 2 nights would need P ≥ 91 (speed 63).
+
+**What a keycard is worth beyond its price**
+
+| Use | Rule | Evidence |
+|---|---|---|
+| Open a locked crate | A keycard opens a crate with the matching lock and is consumed; **the command card opens any lock** | `LockHelper.CanOpenLock/TryOpenLock`, `MiscItemDirectory` keycard targets |
+| Exchange: command card | 1 `cmd_keycard` → 2 random cards from sec / eng / med (EV 167 against 125), once a night | `ExchangeList.CommandKeycardBarter` |
+| Exchange: crates | 3 sec → a security loot crate; 4 med → a medical crate; 4 eng → an engineering crate (the module source in `MODULES.md`); one a night each, promotional | `ExchangeList` (`sec_crate_barter`, `med_crate_barter`, `eng_crate_barter`) |
+| Sell | Keycards are `ACCESS_CARD` + contraband 1–3: the shady merchant buys them; holding them is a seizure risk (`CONCEALMENT.md`) | `CLIENTS.md` |
+
+Via the exchange the command card is the best recipe: 3 nights with four performance modules, 22.5 +
+30 in, EV 167 out (+114, 38 a night, computed), one a night at most, once the Underground Exchange is open (`MODULES.md` §2.1).
+
+**Sources** (hard prices: Dr. Jackson +50 %).
+
+| Item | Seller and odds per visit | Evidence |
+|---|---|---|
+| desequencer | Dr. Jackson: 66 % while none is owned (with one blank card and crypto rolls ser 10, med 7, eng 7, sec 5, cmd 2 %); 25 % once owned. Guaranteed when the player owns a locked crate whose keycard he lacks | `StoreClientList.PlaceInventorInventory`, `GuaranteeLockedCrateKeycardItems` |
+| crypto modules | Jackson once a desequencer is owned: ser 20, med 15, eng 15, sec 10, cmd 5 %, plus 2 blank cards every visit. Jackson's special stock (`MODULES.md` §2.1): one of each but sup. The thief (black market, stolen): ser 10, med 7, eng 7, sec 5, cmd 2 % × the BM-rep stock multiplier. **`crypto_module_sup`** is offered only by the locked-crate guarantee | `PlaceInventorInventory`, `PlaceInventorSpecialStock`, `StoreClientList.CreateThief`, `GuaranteeLockedCrateKeycardItems` |
+| blank cards | Jackson only (above), plus the locked-crate guarantee tops up to one blank per locked crate | same |
+
+**Max output**: one desequencer with four performance modules makes a command card every 3 nights
+(+72.5 sold, +114 through the exchange); with only a sec module, +47.5 per 3 nights. The machine is
+contraband 2 and its outputs contraband 1–3, so it suits a shop that already hides contraband.
 
 ## 3. Bottle printer (`bottle_printer`, `MachineBottlePrinter`)
 
-| Fact | Value | Evidence |
-|---|---|---|
-| Item | 100, battery slot, output grid 4×4 (+1 column per unlocked size) | `BottlePrinter()` |
-| Recipes (button, **real time**, power only) | `small_bottled_water` (4) for 4 power; `bottled_water` (5) for 6 power after 3 upgrades; `large_bottled_water` (9) for 11 power after 9 upgrades | `SMALL/NORMAL/LARGE_PRINT_COST`, `IsNormalUnlocked`, `IsLargeUnlocked` |
-| Upgrade | `common_electronic` (33) targeted onto it: +1 count (max 9), and **the printer's value rises by 33** | `UpgradePrinter(GameItem, GameItem)` |
-| Margin | 0 / −1 / −2 per empty bottle. A bottle's value comes from filling it with water (`WATER.md`). The printer's small-bottle chip makes empties at ~0.7 power each, cheaper | (computed) |
-| Obtained | Starting kit (Water Merchant start, shabby); Dr. Jackson with `WATER_TRADER` (`PRODUCTION.md` §4) | |
+| Fact | Value | Vis. | Evidence |
+|---|---|---|---|
+| Item | 100, `IMPORTANT_TAG`, no item type (not a `MACHINE`), battery slot, output grid 4×4 (+1 column when normal unlocks, +1 when large unlocks: up to 6×4); output accepts only owned liquid containers | VISIBLE | `BottlePrinter()`, `ApplyUpgradeState` |
+| Recipes | Three **buttons**, real time, no night cycle, power only: `small_bottled_water` (450 ml, 4) for 4 power; `bottled_water` (750 ml, 5) for 6 power once 3 upgrades are in; `large_bottled_water` (2 L, 9) for 11 power once 9 are in. A press does nothing if the battery cannot pay or the grid has no room | VISIBLE (buttons, tooltip) | `SMALL/NORMAL/LARGE_PRINT_COST`, `TryPrint`, `IsNormalUnlocked` (≥ 3), `IsLargeUnlocked` (≥ 9) |
+| Upgrade | `common_electronic` (owned) targeted onto it: +1 count, max 9; **the printer's value rises by the electronic's 33**; Tinkerer keeps the electronic 20 % of the time | VISIBLE (tooltip counts) | `UpgradePrinter(GameItem, GameItem)`, `MaterialDirectory.Electronic()`, `StartingPerkContent.ConsumeUpgradeMaterial` |
+| Bottles | Come out empty and owned; their value is the container price (4 / 5 / 9) until filled (`WATER.md`) | | `FoodItemDirectory.SmallBottledWater/BottledWater/LargeBottledWater` |
+| Obtained | Water Merchant start (shabby, with a 25-charge cell; `WATER_TRADER` set unlocked). Dr. Jackson offers one every visit while none is owned, but only with the `WATER_TRADER` network upgrade (300; 450 on hard) | | `NewGameData` (WATER_MERCHANT branch), `StoreClientList.PlaceInventorInventory` (`AddIfNotOwn`), `NetworkUpgradeList` (`WATER_TRADER`) |
+
+**Max output** (computed, power at 1): as products the bottles lose 0 / 1 / 2 each (4−4, 5−6, 9−11).
+As containers for water, power per litre is 8.9 (small), 8.0 (normal) and 5.5 (large). The 3D printer's
+small-bottle chip makes 6 small bottles from 1 plastic + 8 power: 3.3 each with plastic at 12, 3.9 at the
+gunsmith's 15.6, against 4 power on the bottle printer, so the chip saves at most 0.7 a bottle and
+costs a printer night. Unlocking large costs 9 electronics (297, kept in the printer's value). Which
+size to print is a water question (`WATER.md`).
 
 `scrap_metal` (10) targeted onto a `small_bottled_water` (4) → `silencer_makeshift` (15). Both
 inputs are consumed: margin +1 (`MaterialDirectory.OnScrapMetalTargetItem(GameItem, GameItem)`).
@@ -218,8 +404,8 @@ inputs are consumed: margin +1 (`MaterialDirectory.OnScrapMetalTargetItem(GameIt
 | `screwdriver` → `system_module_ruined` (30) | `common_electronic` + `printer_plastic` + `junk` (48) | the module | 30 → 48, **+18** | `ToolDirectory.CreateScrewdriver()` |
 | `screwdriver` → ADV gun | parts | the gun | §1.6 | `GunHelper.DisassembleWeapon` |
 | water ration → `wine_bottle` | fills the bottle | the ration | `PRODUCTION.md` §2 | `WineHelper.PourRationIntoBottle` |
-| `surgery_tool` → live sturgeon | caviar / roe jars | fish health | §7.3 | `AquacultureHelper.StripEggs(GameItem)` |
-| blade → fish / rat | carcass, then cuts | the animal | §7.2, §7.5 | `HusbandryHelper.InitBladeItem` |
+| `surgery_tool` → live sturgeon | caviar / roe jars | fish health | AQUACULTURE.md §2.5 | `AquacultureHelper.StripEggs(GameItem)` |
+| blade → fish / rat | carcass, then cuts | the animal | AQUACULTURE.md §2.4, HUSBANDRY.md | `HusbandryHelper.InitBladeItem` |
 
 ## 5. Unpacking, dismantling and clearing
 
@@ -265,124 +451,24 @@ the Tinkerer perk.
 
 ## 7. Livestock: fish and rats
 
-Water quality, waste and filters in the RAS are in `WATER.md` §2.4. This section covers the
-production side. Feed prices per kcal (computed): `industrial_fish_feed` 5000 kcal at 100 = 0.02
-per kcal; `gutterflow_pellet` 4000 kcal at 40 = 0.01; rat `raw_meat` 1200 kcal at 159 = 0.13;
-`fish_scrap` 0.04 (its value is kcal × 4 / 100). Fillets and cuts are **fixed-price items**; there
-is no per-gram pricing.
+The full notes moved to their own files (2026-11-12): **fish, the RAS tank and its water** in
+[`AQUACULTURE.md`](AQUACULTURE.md), **rats, cages, genes, the feed dispenser, the auto-butcher, the rat trap and the
+retired rancher** in [`HUSBANDRY.md`](HUSBANDRY.md). The short version and the corrections to this section's old text:
 
-### 7.1 RAS tank (`ras`, `MachineRAS`, `AquacultureHelper.TickTank(...)`)
-
-| Fact | Value | Evidence |
-|---|---|---|
-| Item | `ras` 300 (+ upgrade values), tank 8×4 → 12×8, water slot `ras_water_tank` 12 L (value 0) | `MachineRAS` |
-| Power | 5 per night (+2 per width, +3 per height upgrade, −2 per efficiency upgrade, min 1). Drawn only with water and live stock | `UpdatePowerUsage`, `IsWorthRunning` |
-| Window | main night pass; electric eels make power in the Early pass (1/2/3/3 per night at Juvenile/Adolescent/Adult/Elder, none while starving) | `AquacultureHelper.GeneratePower` |
-| Breeding | Tilapia kinds only. A fed adult female (hunger ≥ 50 %) spawns 1 roe at 15 % per night. Roe beside a fed adult male is fertilised, hatches next night into a fry group of 6, and 2 growth-days later becomes 6 juveniles. Eels and sturgeon do not breed | `TryBreed`, `AgeOne`, `HatchRoe`, `GrowFry` |
-| Growth | +1 age day per night if hunger ≥ 37.5 %. Speed = 1 − 0.25 × industrial-feed share + 0.25 × meat share (tilapia only). Pure industrial feed is ×0.75 | `GetGrowthSpeed` |
-| Hunger | max(5, upkeep + grown grams × 1.2 kcal) per night; upkeep = weight/100 × rate (halved for Elders) | `HandleHunger` |
-| Feeding order | dispenser (to its target %, default 85), carcasses, loose pellets/feed, any edible item, then **predation** of live stock ≤ 20 % of the eater's weight | `TryFeed`, `TryPredation` |
-| Death | 2 nights at hunger 0; 50 % per night past old age; any fish outside a tank at night | `HandleStarvation` |
-
-| Species (`FishSpecies`) | Stage start days (Roe…Elder) | Weights g (Juv…Elder) | Old age | Upkeep kcal/100 g | Conversion | Diet |
-|---|---|---|---|---|---|---|
-| Tilapia | 0,1,3,5,8,13 | 50, 200, 450, 600 | 27 | 2 | 0.9 | omnivore |
-| Gutter tilapia | 0,1,3,6,10,16 | same | 33 | 2 | 0.85 | omnivore; ignores waste, pellet-taint immune, cleans water |
-| Graft tilapia | as tilapia | same | 27 | 2 | 0.7 | omnivore; skin grafts, medical roe |
-| Eel | 0,0,0,5,10,18 | 150, 600, 1400, 2400 | 36 | 3 | 0.9 | carnivore |
-| Electric eel | as eel | same | 36 | 5.25 | 0.75 | carnivore; makes power |
-| Sturgeon (female) | 0,0,0,10,18,34 | 500, 1500, 3500, 5000 | 80 | 2 | 0.9 | carnivore; eggs |
-
-Carnivores cannot use pellets, industrial feed or "other" food, only meat.
-
-### 7.2 Fish → fillets (`AquacultureHelper.CreateFilletPieces(GameItem)`)
-
-Trigger: a blade (first use kills, second fillets), the auto-butcher, or the feed dispenser.
-Meat kcal = floor((kcal eaten − egg grams × egg kcal/g) × conversion) (`GetMeatKcal`). A carcass
-freezes it at death. Meat splits greedily (`AquacultureItems.BreakDownMeat`):
-
-| Piece | kcal | Value |
-|---|---|---|
-| `large_fish_fillet` (luxury) | 900 | 143 |
-| `fish_fillet` | 400 | 57 |
-| `small_fish_fillet` | 200 | 26 |
-| `tiny_fish_fillet` | 100 | 13 |
-| `eel_fillet` (luxury) | 500 | 136 |
-| `small_eel_fillet` (luxury) | 250 | 68 |
-| remainder ≥ 25 kcal | `fish_scrap` | kcal × 4/100 |
-
-Tilapia and sturgeon use the fish pieces; both eels use the eel pieces. Byproducts: graft tilapia
-give floor(weight / 200) `tilapia_skin_graft` (24, medical, heals 2), and a gravid sturgeon gives
-floor(egg g / 100) caviar. **Pellet taint**: if > 25 % of lifetime kcal came from pellets
-(gutter tilapia exempt), every fillet and egg jar becomes trash grade (−75, not food)
-(`IsPelletTainted`, `GutterflowPelletHelper.ApplyTrashGrade`).
-
-| Fully fed yield (`GetExpectedKcalEatenAtAge`) | Pieces | Value | Feed (computed, approx.) |
-|---|---|---|---|
-| Tilapia day 8 (511 kcal) | fillet + tiny | 70 | ~600 kcal industrial ≈ 12 |
-| Tilapia day 13 (716) | fillet + small + tiny | 96 | ~900 kcal ≈ 18 |
-| Graft tilapia day 13 (557) | fillet + tiny + scrap, + 3 grafts | 70 + 72 | |
-| Eel day 18 (3024) | 6 eel fillets | **816** | ~3800 kcal of **meat** |
-| Sturgeon day 34 (6619) | 7 large + small + tiny | 1040, plus eggs | carnivore |
-
-Bred tilapia cost only feed (≈ +60–80 each, computed, ignoring power), and a breeding pair compounds
-at 6 fry per hatch. Eels are bought (juveniles 100) and must eat meat. At rat-meat prices (0.13
-per kcal) the feed costs about as much as the fillets sell for (computed). They pay when fed fish scrap,
-offal or tilapia (0.04 per kcal or self-bred).
-
-### 7.3 Sturgeon eggs (`AquacultureHelper.StripEggs(GameItem)`)
-
-From Adult, with health ≥ 135/150, eggs grow +40 g per aged day up to 15 % of stage weight (525 g
-Adult, 750 g Elder). They cost 2.5 kcal/g, which is taken out of the meat. `surgery_tool` (200, kept)
-strips floor(egg g / 100) jars of 100 g. A fish's jars 1–10 are `caviar` (240), jars 11–16
-alternate caviar and `sturgeon_roe` (120), and later jars are all roe (`GetSurgeryYield`). Each
-strip costs 30–75 health. A full Adult load is 5 jars, **1200 credits** of caviar per strip
-(computed). This is the most valuable livestock output.
-
-### 7.4 Feed dispenser and feeds
-
-- `livestock_feed_dispenser` (300, no power, 40 000 kcal). Its button or auto-blend kills and
-  butchers or fillets any animals and fish inside, then turns every calorie item into kcal 1:1 in
-  buckets: rat meat (tracks prion), other meat, other food, pellet, industrial.
-  `MachineFeedDispenser.BlendContentsUnguarded`, `TryBlendItem`. Draws are proportional across the
-  buckets an animal may eat.
-- `industrial_fish_feed` (5000 kcal, 100) and `gutterflow_pellet` (4000 kcal, 40) are **never
-  crafted**, only bought or granted. They split in half (≥ 1000 kcal) and merge up to their max
-  (`IndustrialFishFeedHelper`, `GutterflowPelletHelper.Merge`).
-- Roe as food: `tilapia_roe` 30, `gutter_tilapia_roe` 15, `graft_tilapia_roe` 60 (medical, heals 3);
-  60 kcal each (`AquacultureItems.Roe`).
-
-### 7.5 Rats (`HusbandryHelper`, `AnimalSpecies.Rat`, `animal_cage`)
-
-| Fact | Value | Evidence |
-|---|---|---|
-| Cage | `animal_cage` 250, no power, 10×3. Wear per night = live size / 4 (×2 overcrowded); escape chance 5–25 % below 20 health | `AnimalCage` |
-| Growth | stage days 0,1,3,5,11,14 → 5, 50, 200, 350, 450, 400 g; per night Δweight/Δdays × growth gene, reduced up to 50 % when hunger < 400; hunger 65/night | `GetAnimalCurrentWeightChange`, `GrowAnimal` |
-| Breeding | mature at day 3; mating chance = the lower fertility (base 50 %); litter 3 ± 1; gestation 3 nights | `CheckMate`, `GiveBirth` |
-| Cannibalism | eating rat meat: prion at (100 − immunity) % (certain if the meat is prion-tagged); prion −20 % growth, immunity, longevity | `CheckCannibalism` |
-| Feces | `feces_small/medium/large` (0 value; organic waste, debris, microbes) when a night's growth ≥ 30 g | `Poop` |
-| Value | a live rat's `unitValue` is reset to 0 every night: **sell meat, not rats** (the rancher sells age-5 rats at 120) | `OnAnimalItemDayEnd` |
-| Butchering | weight (×0.75 if diseased) split greedily: `raw_meat` per 400 g (159), `small_raw_meat` 200 g (65), `morsel` 100 g (30), `small_morsel` 50 g (15), any remainder +1 small morsel. A 450 g adult → raw meat + small morsel = **174** | `HusbandryHelper.CreateButcherCuts(GameItem)` |
-
-### 7.6 Auto-butcher (`auto_butcher`, `MachineAutoButcher.Run(GameItem, bool)`)
-
-400 credits, **no power**, 10×10 tray. Runs in the **Late** night pass, or by button, by dropping
-a creature on it, or by "butcher content". It sits in a cage or RAS slot. Modes: off (the
-default, so it does nothing out of the box), carcasses, weight, age. Defaults: cage 400–1000 g or
-10–30 days; tank 600–5000 g or 20–100 days. It always keeps the 2 youngest females and the
-youngest male as breeders. Cage options: spare pregnant, cull sick, cull prion. Tank options: spare egg-layers,
-fillet carcasses, optional cuts-to-dispenser and roe collection. A creature is skipped if the
-tray cannot hold all its pieces.
-
-### 7.7 How livestock is obtained
-
-`AQUACULTURE` (400, needs `WATER_TRADER`): RAS + tank, fertilised tilapia roe, 2 industrial feed,
-knife, marking pen. It also queues `retired_aquafarmer`, who sells the RAS, dispenser, auto-butcher,
-cleaver, filter, pellets, feed, and roe (tilapia ×2, gutter, graft). `AQUACULTURE_II` (1200): an eel
-pair, and the aquafarmer adds 3 random big fish. `RETIRED_RANCHER` (750): cage + dispenser, 6
-rats, cleaver, labeler, marking pen; the `retired_rancher` client sells cages, dispensers, the
-auto-butcher, the vacuum robot (250), serums and rats. The Rancher and Aquafarmer starts begin
-with the same kit (`NewGameData`).
+- **Fish meat is 0.9 × every kcal swallowed, stomach included** (`AquacultureHelper.GetMeatKcal`): a three-day-old
+  tilapia that fills up overnight is worth a fish fillet and a tiny one (~70), the same as a fully fed adult on the
+  growth curve. Weight does not enter the fillet count. AQUACULTURE.md §2.2, §2.4.
+- **Rats peak at age 10 and then lose ~17 g a night**; a base-gene rat peaks at 407 g, and the cut value steps from
+  125 (351–399 g) to 174 at **401 g** (exactly 400 g is 159). HUSBANDRY.md §3, §12.2.
+- Cage wear is never doubled (nothing sets the overcrowding tag); overcrowding attacks are 5 % a night above 70 %
+  occupancy and 15 % above 90 %. HUSBANDRY.md.
+- The auto-butcher's keepers are chosen each night from that night's candidates (0–10 of each sex, marked or named
+  animals protected and counted); spare-pregnant, cull-sick and cull-prion default on. HUSBANDRY.md.
+- The Rancher and Aquafarmer starts have **different** kits: the Aquafarmer gets two shabby RAS tanks, a tilapia pair,
+  fertilised roe, two bags of industrial feed and two jugs of ghost water, for −450 cash and +40 rent
+  (`NewGameData`). AQUACULTURE.md §4.
+- Rats cannot draw pellet or industrial-fish-feed kcal from a dispenser; fish can draw rat meat. HUSBANDRY.md,
+  AQUACULTURE.md §2.2.
 
 ## 8. Fridge (`fridge`, `MachineFridge`)
 
@@ -390,17 +476,33 @@ The fridge adds an innate % feature to items; it makes no new item.
 
 | Fact | Value | Vis. | Evidence |
 |---|---|---|---|
-| Item | 100, `TURBO_BOOST_ELIGIBLE_TAG`, chill zone 5×2 and freeze zone 3×2 (+1 row each per scrap upgrade) | VISIBLE | `Fridge()`, `ApplyStorageSize` |
-| Accepts | owned liquid containers, BREVAGE and WATER_RATION items, `bottled_water_premium`, `beis_icecream`, `nudka`; never machines, storage or `wine_bottle` | VISIBLE | `MayZoneAcceptItem(GameItem)` |
-| Power | 2 per night (+2 per storage upgrade, −2 per efficiency upgrade, floor 2), drawn only if not empty | DERIVABLE | `UpdateFridgePowerUsage` |
-| Night effect | Chillables in **either** zone get `chilled` (+20 %). `nudka` in the chill zone gets chilled (+20 %), in the freeze zone `iceCold` (+25 %). `beis_icecream` in the freeze zone gets `frozen` (+25 %) | VISIBLE (feature line) | `ChillItem`, `IceColdItem`, `FreezeItem` |
-| Expiry | Markers are cleared before the night pass and checked after it (`PlayerStore.EndNight`). An item that was not re-cooled that night loses its feature. **Take it out and it loses the bonus next morning** (inferred from `HandleColdFeatureExpiry`) | | `ClearColdMarkers`, `HandleColdFeatureExpiry` |
-| Real time | Liquid containers move toward 3 °C (chill, 0.5 °/s) or −18 °C (freeze, 1 °/s) while powered | | `CoolZoneContainers` |
-| Obtained | Dr. Jackson (inventor): always offered until owned, then 25 % | | `StoreClientList.CreateInventor()` |
+| Item | 100, `MACHINE`, `TURBO_BOOST_ELIGIBLE_TAG`, battery slot, chill zone 5×2 and freeze zone 3×2 (+1 row to each per storage upgrade, up to 5×9 and 3×9) | VISIBLE | `Fridge()`, `ApplyStorageSize` |
+| Accepts | owned items that are liquid containers (any), chillables (`BREVAGE` or `WATER_RATION` type, or `bottled_water_premium`), `beis_icecream` or `nudka`; never machines, `STORAGE` items or `wine_bottle` | VISIBLE | `MayZoneAcceptItem(GameItem)`, `IsChillable`, `IsFreezable`, `IsSpirit` |
+| Power | Draw = 2 + 2 × storage upgrades − 2 × efficiency upgrades, floor 2. Drawn once a night, only when either zone holds something; if the battery cannot pay, nothing is cooled that night | DERIVABLE | `UpdateFridgePowerUsage`, `MachineHelper.TryDrawCyclePower` |
+| Upgrades | `scrap_metal` → +1 row in both zones, +2 draw (max 7); `common_electronic` → −2 draw (max 7, floor 2). Each adds the material's value to the fridge | VISIBLE (tooltip) | `UpgradeStorage`, `UpgradePowerEfficiency` |
+| Night effect | Chillables in **either** zone get `chilled` (+20 %). `nudka` in the chill zone gets `chilled` (+20 %); in the freeze zone `iceCold` (+25 %, replaces chilled). `beis_icecream` in the freeze zone gets `frozen` (+25 %); in the chill zone nothing. Chilling also reaches chillable items **inside** an accepted item (a `beerCase` is `BREVAGE`, so a full case chills its 8 `red_beer`) | VISIBLE (feature line; not exposable) | `Fridge()` cycle lambda, `ChillItem`, `IceColdItem`, `FreezeItem`, `PreBuiltItemHelper.FullBeer` |
+| Not chilled | Filled water bottles (`small_bottled_water` etc. are `HOUSEHOLD_GOOD`), wine, food other than ice cream: they sit in the fridge and only their liquid temperature changes | | `IsChillable` |
+| Expiry | Before the night's machine pass every "kept cold" marker is cleared; after it, any item with a cold feature but no fresh marker loses it. An item keeps its bonus through the next day only if it spent the night in a powered fridge | DERIVABLE | `PlayerStore` night (`ClearColdMarkers` … `HandleColdFeatureExpiry`) |
+| Real time | While the battery holds ≥ 1, non-empty liquid containers move toward 3 °C (chill, 0.5 °/s) or −18 °C (freeze, 1 °/s). Temperature carries no value feature (inferred) | | `CoolZoneContainers` |
+| Obtained | Dr. Jackson: every visit while none is owned, then 25 % | | `StoreClientList.PlaceInventorInventory` |
 
-Per-night value (computed, 2 power): `bottled_water_premium` 325 → +65, `nudka` 85 → +21, ice cream
-40 → +10, `water_ration` 30 → +6, drinks 14–18 → +3. A fridge pays only for premium water and spirits,
-or when it is full.
+**Max output** (computed). The bonus is **once per item**, not per night: one powered night in the fridge
+makes the item sell for +20 / +25 % the next day, and every further night only keeps it. The gain is
+the bonus on what is sold, less 2 power a night.
+
+| Item (value) | Zone | Gain when sold |
+|---|---|---|
+| `bottled_water_premium` (325) | either | +65 |
+| `beerCase` with 8 `red_beer` (18 each) | either | +28.8 |
+| `nudka` (85) | freeze | +21.3 (chill zone +17) |
+| `liquid_luck` (100) | either | +20 |
+| `beis_icecream` (40) | freeze | +10 |
+| `water_ration` (30) / `water_ration_small` (15) | either | +6 / +3 |
+| `energy_drink`, `red_beer` (18), `processed_milk` (16), `soda_red` (15), `processed_juice` (14) | either | +2.8–3.6 |
+
+A fridge pays when the shop sells premium water, spirits, beer cases or rations steadily: 2 power a
+night against +3 to +65 per item sold. Rotate stock through it the night before it goes on sale;
+leaving items in longer earns nothing more.
 
 ## 9. Unreleased or unobtainable (one line each)
 
@@ -428,6 +530,8 @@ without that stub harness**. Under it, every item below builds except those in
 | Printer and desequencer recipes | each chip or crypto item from `DirectoryMaster.Item(id)` (`ModuleDirectory` factories, incl. `CreateMeleeChip`, `CreateCncChip`) | tags `PROGRESS_ITEM_TARGET_TAG`, `…_TARGET_ITEM_ID_TAG`, `…_TARGET_ITEM_COUNT_TAG`, `REQUIRED_ITEM_ID_n/COUNT_n`, `PROGRESS_ITEM_REQUIRED_MACHINE_TAG[_n]`, `PRINTER_MELEE_CHIP_TAG`, `PRINTER_FRAME_CHIP_TAG`, `PRINTER_GUN_PART_CHIP_TAG`, `DESEQUENCER_TARGET_ID_TAG` | yes, factory under stubs; **already emitted** as `progress_recipes` in `var/gamedata/recipes.json` (it does not yet record the melee/frame/gun-part chip-kind tags or `DESEQUENCER_TARGET_ID_TAG`) |
 | Printer speed / power / quality ratio | `DirectoryMaster.Item("printer")` tags `BASE_PROCESSING_SPEED`, `machinery_drawn_power`, `MACHINE_QUALITY_RATIO_INT` | 24 / 8 / 4 | yes (already in `machines`) |
 | Printer module effects | `printer_module_*` tags `BONUS_PERCENTAGE_PERFORMANCE_INT/EFFICIENCY_INT/QUALITY_INT` | module % | yes |
+| Chip, module and input sellers | `StoreClientListSpec.CreateRetiredGunsmith` (roll odds, local `Chance`), `StoreClientList.CreateJunker`, `PlaceInventorInventory`, `GuaranteeLockedCrateKeycardItems`, `StoreClientListSupplier.AddScavMaterialStock/AddThiefMaterialStock` | `AddDirectSellingItemToTable` calls inside dialogue end actions | **code only**: transcribe (§1.3, §1.8, §2) |
+| Keycard exchanges | `ExchangeList.CommandKeycardBarter`, `SecCrateBarter`-style builders (`sec/med/eng_crate_barter`) | `ExchangeBarter` objects (conditions, counter) | yes, plain objects; `onAccept` is code |
 | Gun-part count by purity | `MachinePrinter.GUN_PART_COUNT_BY_PURITY` (*private static readonly Dictionary*) | purity id → parts | yes, plain data (reflection) |
 | Ingot quality bonus | `MachinePrinter.INGOT_QUALITY_BONUS` (*private static readonly*) | purity id → bonus | yes, plain data |
 | Melee condition thresholds | `MachinePrinter.MELEE_ROLL_MIN/MAX`, `MELEE_CONDITION_*_SCORE` (public const) | 20/30, 25/60/90 | yes, constants |

@@ -414,7 +414,7 @@ replay spoke as the default magnate ("a respectable cushion against the inevitab
 |---|---|---|---|---|
 | scav | 20/20 | 175 | 30 366 | close to the appraiser; not distinct enough |
 | rancher | 20/20 | 175 | 28 001 | its livestock is not used by any engine (and ran loose in the stock grid: 7–13 days slower; now the `rancher` route) |
-| aquafarmer | 20/20 | 182 | 26 618 | its RAS tank is not used by any engine |
+| aquafarmer | 20/20 | 182 | 26 618 | its RAS tank was not used by any engine (now `engine: fish`: below) |
 | moonshiner, pharmacist, street food vendor, organ trader | 20/20 | 175 | 28 550 | identical net worth day by day: the gym gives each the same bare start (600 cash, no kit), so not a route |
 | drug dealer | 0/20 | — | — | `cartel_retired` on day 8 in every run: the cartel start ends the run before the policy can play it |
 | apprentice, `vending + proficient_scavenger` / `alert + short_sleeper` / `+ bad_lease` | 20/20 each | 175 | 28 758 / 28 865 / 29 331 | within noise of the incumbent |
@@ -422,6 +422,31 @@ replay spoke as the default magnate ("a respectable cushion against the inevitab
 | `smelter` with one furnace (`ore_phone` only) | 20/20 | 175 | 24 957 | two furnaces + eco is better |
 | water merchant, `wine+water` | 20/20 | 175 | 23 876 | less water (6k), more wine: a weaker water route |
 | water merchant, incumbent unchanged | 20/20 | 175 | 25 787 | sells little water (3k): not a water route |
+
+## The fish engine on the Aquafarmer start (2026-11-12): a candidate, not on the menu
+
+`engine: "fish"` (`sim/gym/Fish.cs`, docs/re/AQUACULTURE.md) on `rancher_sprinter`'s policy with the Aquafarmer start
+(`directives/fish/aquafarmer_sprinter.json`; the fish arms add `jackson_equipment` and `jackson_need: 7` so Dr. Jackson's
+cells and converter reach the tanks). Hard, 60 paired seeds 8710001–060, 200 days, build f31474b
+(`sim/lab/scripts/arms-fish.txt`, `var/sim/exp/fish3/`). Wins = any buyout (cash or the mortgage's end), Wilson 95 %;
+McNemar exact against `aqua_none`:
+
+| Arm | Wins | Cash buyouts | Median cash day | Fillets sold / run (median) | Paired days vs `aqua_none` | nw30 / nw100 |
+|---|---|---|---|---|---|---|
+| `aqua_none` (Aquafarmer start, no engine) | 52/60 (76–93 %) | 18/60 (20–43 %) | 80 | — | — | 4 100 / 21 836 |
+| `aqua_fish` | 53/60 (78–94 %), p = 1.0 | 23/60 (27–51 %), p = 0.38 | 83 | 7 721 (82 a day) | −7.9 ± 17.3 | 5 282 / 24 327 |
+| `rancher_sprinter` (rancher start) | 58/60 (89–99 %) | 53/60 | 76 | 19 a day of rat meat | — | 5 209 / 26 752 |
+| `sprinter` (apprentice start) | 60/60 (94–100 %) | 60/60 | 97 | — | — | 5 046 / 29 119 |
+| `aqua_none`, Board off | 0/60 (0–6 %) | 0 | — | — | — | 3 062 / 3 122 |
+| `aqua_fish`, Board off ("Water to Fish") | 0/60 (0–6 %) | 0 | — | 7 853 (50 a day) | −5.8 ± 8.3 | 3 580 / 4 700 |
+
+The engine works: ~84 fish filleted a run, ~80 credits a day of fillets for ~600 of feed, +1 200 net worth by day
+30. It does not move the win rate: the
+Aquafarmer start's −450 cash and +40 rent cost more than the tanks earn before the buyout, so the start stays behind
+`rancher_sprinter` and `sprinter`. Without the Board nothing wins (0/60 both; the fish arm lives 6 days less on
+average: 7 arrests for an unpaid permit, the cash goes to the tanks). As a stream card it is distinct (two tanks,
+breeding, a fillet knife every morning) and decent with the Board; it needs a persona, a ghost band and deadline
+odds before it goes on the menu (`internal/route` tests).
 
 ## The wound rest on weaker routes
 

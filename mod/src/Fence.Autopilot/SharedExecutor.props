@@ -24,6 +24,7 @@
     <Compile Include="$(GymSrc)/Conceal.cs" Link="Gym/Conceal.cs" />
     <Compile Include="$(GymSrc)/Suppliers.cs" Link="Gym/Suppliers.cs" />
     <Compile Include="$(GymSrc)/Rats.cs" Link="Gym/Rats.cs" />
+    <Compile Include="$(GymSrc)/Fish.cs" Link="Gym/Fish.cs" />
     <Compile Include="$(GymSrc)/Crops.cs" Link="Gym/Crops.cs" />
     <Compile Include="$(GymSrc)/Lab.cs" Link="Gym/Lab.cs" />
     <Compile Include="$(GymSrc)/Printer.cs" Link="Gym/Printer.cs" />

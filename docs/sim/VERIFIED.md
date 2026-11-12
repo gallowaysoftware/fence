@@ -131,6 +131,27 @@ item does not fit (`W.Own`), since it measures mechanisms, not space.
 | Wine water term +1/+1/0/−1/−2/−3 from the true grade | bottles with water grades 0–5 | 6 | exact | CONFIRMED |
 | Hydroponics: minerals are food, other contaminants cost health per point | garden table above | 54 bays | as above | CONFIRMED |
 
+## Aquaculture (`docs/re/AQUACULTURE.md`)
+
+`fish.*` in `sim/lab/FishExps.cs`: a RAS on the game's own nights, water from jugs, a 5 000 cell, loose industrial feed.
+
+| Claim | n | Measured | Verdict |
+|---|---|---|---|
+| A hungry tilapia refills to 85 % of its 700 stomach from a loose feed bag | 1 | 595 | CONFIRMED |
+| Meat shown = floor(0.9 × kcal swallowed), the stomach included | 1 | 504 = 504 | CONFIRMED |
+| A three-day-old juvenile at hunger 100 shows that meal as meat the next morning | 1 | 54 → 504 meat (swallowed 500) | INFO (the basis of the fish engine's harvest) |
+| Growth speed on pure industrial feed is 0.75, from the night after the meal | 1 | 1.00 after one night, 0.75 after two | REFINED (the diet is read a night late) |
+| A fed adult female spawns roe 15 % of nights | 120 | 12.5 % (99 % CI 6.6–22.3) | CONFIRMED |
+| Every roe is fertilised by a fed adult male | 15 | 15/15 | CONFIRMED |
+| Unpowered: −34 % max health a night; dead on the third dark night | 1 | 66 after one; dead after three | CONFIRMED |
+| Fertilised roe hatches into fry after 1 night | 1 | 1 | CONFIRMED |
+| Fertilised roe → six juveniles | 1 | 4 nights on industrial feed | INFO |
+| Without a filter, a fed pair's waste kills them within 120 nights; one filter at 1 % keeps the tank clean | 120 | female dead (no filter) / alive (filter) | INFO |
+
+Headless difference: `AquacultureHelper.OnFillet` returns early on every headless item (its guard reads
+`GameItemElement.IsDestroyed`, true without a UI handler), so a blade's second stroke fillets nothing headless. The gym's
+fish engine calls `CreateFilletPieces` and `Destroy` (the body of `OnFillet`) instead; the live game is unaffected.
+
 ## Chemistry (`docs/re/CHEMISTRY.md`)
 
 `sim/lab/ChemExps.cs`, 11 experiments, 73 claims (`fence-lab all -only chem.`; raw lines in

@@ -1,0 +1,3 @@
+# The rats' peak cut against the 400 g rule (docs/re/HUSBANDRY.md §12.2). python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-rats.txt -dir var/sim/exp/rats1 -seeds 60 -days 200 -parallel 7 -- -difficulty hard -perks vending+short_sleeper -seed0 8710000
+rancher_sprinter | -human player -start rancher -directives sim/lab/scripts/directives/routes/rancher_sprinter.json
+rancher_sprinter_peak | -human player -start rancher -directives sim/lab/scripts/directives/rats/rancher_sprinter_peak.json

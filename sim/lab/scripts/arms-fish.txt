@@ -1,0 +1,9 @@
+# The fish engine on hard (docs/re/AQUACULTURE.md), the Aquafarmer start with the Board, against the same start without
+# the engine and the two sprinter routes (other starts, same seeds). Then the "Water to Fish" card with the Board off.
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-fish.txt -dir var/sim/exp/fish3 -seeds 60 -days 200 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 8710000
+aqua_none | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_none.json
+aqua_fish | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish.json
+rancher_sprinter | -human player -start rancher -directives sim/lab/scripts/directives/routes/rancher_sprinter.json
+sprinter | -human player -start apprentice -directives sim/lab/scripts/directives/routes/sprinter.json
+aqua_none_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_none_noboard.json
+aqua_fish_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fish/aqua_fish_noboard.json

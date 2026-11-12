@@ -98,7 +98,7 @@ namespace Fence.Gym
             if (d.Bargain != null && !new[] { "never", "discount", "ev_positive", "aggressive" }.Contains(d.Bargain)) throw new ArgumentException("directives.bargain=" + d.Bargain + " (never|discount|ev_positive|aggressive)");
             if (d.Permit != null && !new[] { "buy", "refuse", "bribe" }.Contains(d.Permit)) throw new ArgumentException("directives.permit=" + d.Permit + " (buy|refuse|bribe)");
             if (d.Augs != null && d.Augs != "shoot" && d.Augs != "serve") throw new ArgumentException("directives.augs=" + d.Augs + " (shoot|serve)");
-            if (d.Engine != null && d.Engine.Split('+').Any(e => e != "wine" && e != "water" && e != "furnace" && e != "rats" && e != "none")) throw new ArgumentException("directives.engine=" + d.Engine + " (wine|water|furnace|rats joined by +, or a list of them; none)");
+            if (d.Engine != null && d.Engine.Split('+').Any(e => e != "wine" && e != "water" && e != "furnace" && e != "rats" && e != "fish" && e != "none")) throw new ArgumentException("directives.engine=" + d.Engine + " (wine|water|furnace|rats|fish joined by +, or a list of them; none)");
             return d;
         }
 

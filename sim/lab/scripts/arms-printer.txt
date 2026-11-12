@@ -1,0 +1,5 @@
+# The printer's chip order: by margin per night (old default) against margin per scrap (RECIPES.md §1.8), on the gunsmith route.
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-printer.txt -dir var/sim/exp/printer1 -seeds 60 -days 200 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 8710000
+gunsmith | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_printer_old | -human player -start gunsmith -directives sim/lab/scripts/directives/printer/gunsmith_printer_old.json
+gunsmith_printer | -human player -start gunsmith -directives sim/lab/scripts/directives/printer/gunsmith_printer.json

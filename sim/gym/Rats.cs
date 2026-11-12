@@ -22,7 +22,20 @@ namespace Fence.Gym
         // `rats_food_cut_g` (default 300): the lightest grower cut when the food would not last two nights.
         static int FoodCutG => Directives.Current.Raw.Value<int?>("rats_food_cut_g") ?? 300;
         static int ButcherG => Directives.Current.Raw.Value<int?>("rats_butcher_g") ?? 400;
-        static double Occupancy => Directives.Current.Raw.Value<double?>("rats_occupancy") ?? 0.7;
+        static double Occupancy => Directives.Current.Raw.Value<double?>("rats_occupancy") ?? (Peak ? 0.85 : 0.7);
+        // `rats_cut: "peak"` (docs/re/HUSBANDRY.md §12.2): a grower is cut the first night it reaches the best value it can
+        // reach by age 10, its weight peak, read off its visible growth stat (peak ≈ 5 + 400 g × growth): 401 g (one raw meat
+        // and a morsel, 174) when it can get there, else 351 g (125); never past age 10, when it starts losing 17 g a night.
+        // A sick rat waits for that weight too (30 % recover a night) instead of being cut at 75 %.
+        static bool Peak => Directives.Current.Raw.Value<string>("rats_cut") == "peak";
+
+        static double CutWeight(GameItem r)
+        {
+            double peak = 5 + 400 * GeneticHelper.GetCurrentStat(r, "ANIMAL_GROWTH_RATE_TAG");
+            return peak >= 401 ? 401 : peak >= 351 ? 351 : peak;
+        }
+
+        static bool Ready(GameItem r) => Peak ? Weight(r) >= CutWeight(r) || Age(r) >= 10 || Old(r) : Weight(r) >= ButcherG || Old(r) || (Sick(r) && Weight(r) >= 100);
         static int Females => (Directives.Current.Raw["rats_breeders"] as JArray)?.Count == 2 ? (int)Directives.Current.Raw["rats_breeders"][0] : 1;
         static int Males => (Directives.Current.Raw["rats_breeders"] as JArray)?.Count == 2 ? (int)Directives.Current.Raw["rats_breeders"][1] : 1;
         // Kcal kept in the dispenser and in held food (a rat burns ~65 a night, a newborn needs ~300).
@@ -30,7 +43,7 @@ namespace Fence.Gym
 
         // Food the executor buys for the dispenser: the foods with the most calories per credit (10 or more). Rats never
         // get rat meat (cannibalism, prions); other meat is fine.
-        static readonly HashSet<string> Feeds = new HashSet<string>(StringComparer.Ordinal)
+        internal static readonly HashSet<string> Feeds = new HashSet<string>(StringComparer.Ordinal)
         {
             "beis_icecream", "processed_milk", "processed_juice", "fat_meat", "meat_scrap", "fish_scrap", "cup_noodle", "nutrifruit", "processed_cheese",
             "galaxy_blend", "li_eat_snackbar", "cat_bar", "fillerweed", "meal_cap",
@@ -161,7 +174,7 @@ namespace Fence.Gym
                 if (alive.Any(r => breeders.Contains(r.uniqueId) && Female(r) == female && Age(r) + 4 >= LifeDays(r)) || alive.Count(r => breeders.Contains(r.uniqueId) && Female(r) == female) < (female ? Females : Males))
                     foreach (var r in alive.Where(r => Female(r) == female && !breeders.Contains(r.uniqueId) && !Sick(r) && !Old(r)).OrderBy(Age).ThenBy(r => r.uniqueId).Take(1))
                         spare.Add(r.uniqueId);
-            foreach (var r in alive.Where(r => !breeders.Contains(r.uniqueId) && !spare.Contains(r.uniqueId) && (Weight(r) >= ButcherG || Old(r) || (Sick(r) && Weight(r) >= 100))).ToList())
+            foreach (var r in alive.Where(r => !breeders.Contains(r.uniqueId) && !spare.Contains(r.uniqueId) && Ready(r)).ToList())
                 Cut(ep, r, stock);
             // Food for fewer than two nights: the heaviest growers go first rather than starve.
             int food = StoredKcal() + HeldFeedKcal();

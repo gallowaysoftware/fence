@@ -441,7 +441,7 @@ namespace Fence.Gym
             return owned.Count(x => x != null && x.identifier == i.identifier) < (i.identifier == "storage_bay" ? 2 : 1);
         }
 
-        static readonly string[] JacksonStock = { "furnace", "furnace_module_junk", "furnace_module_blast", "hydroponic", "water_purifier", "wine_yeast_infinite" };
+        static readonly string[] JacksonStock = { "furnace", "furnace_module_junk", "furnace_module_blast", "hydroponic", "water_purifier", "wine_yeast_infinite", "current_converter" };
         int lastJackson = -1000;
 
         public override NightPlan Night(NightView v)
