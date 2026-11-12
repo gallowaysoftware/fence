@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gallowaysoftware/fence/internal/agency"
 	"github.com/gallowaysoftware/fence/internal/format"
 )
 
 // SetFormat puts a stream format (internal/format) on the name card: its title, handicaps, lab
 // odds and the attempts in the local record so far, except the run except. The format's route
-// stands in for a run that names none.
+// stands in for a run that names none; set the run's route first.
 func (p *Player) SetFormat(dir, name, record, except string) error {
 	if name == "" {
 		return nil
@@ -22,11 +23,20 @@ func (p *Player) SetFormat(dir, name, record, except string) error {
 	if err != nil {
 		return err
 	}
-	c := format.CardOf(f, t)
-	p.Format = &c
 	if p.Route == "" && f.Route != "" {
 		p.SetRoute(f.Route)
 	}
+	// A deadline's odds depend on the route (0 to 54 wins in 60 by day 91 on sprint_91), so
+	// the card quotes the run's own route when the lab measured it under the format.
+	l, own := agency.DeadlineLab(f, p.Route)
+	if own {
+		f.Lab = l
+	}
+	c := format.CardOf(f, t)
+	if own {
+		c.Lab = "on the " + p.Route + " route, " + c.Lab
+	}
+	p.Format = &c
 	if p.Difficulty == "" {
 		p.Difficulty = f.Difficulty
 	}

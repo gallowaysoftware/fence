@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gallowaysoftware/fence/internal/agency"
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 )
 
@@ -36,11 +37,18 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 		return m, agency.Choice{}, err
 	}
 	client := &llm.OpenAI{BaseURL: l.proxy.BaseURL(m.ID()), Model: model, OpenAIOptions: opts}
-	fixed := ""
+	ask := agency.Ask{Recent: l.recentChoices(dir), Lean: m.Player.AgencyLean}
 	if m.Player.ChooseRoute == ChooseStart {
-		fixed = m.Start
+		ask.FixedStart = m.Start
 	}
-	ch := agency.Choose(ctx, client, menu, fixed, l.recentChoices(dir), m.Player.AgencyLean)
+	var f format.Format
+	if m.Format != "" {
+		if f, err = format.Load("", m.Format); err != nil {
+			return m, agency.Choice{}, err
+		}
+		ask.Format = &f
+	}
+	ch := agency.Choose(ctx, client, menu, ask)
 	if ctx.Err() != nil {
 		return m, ch, ctx.Err()
 	}
@@ -64,6 +72,13 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 	} else {
 		e, _ := menu.Get(ch.Route)
 		played.RoutePath = mustAbs(e.Path)
+	}
+	if m.Format != "" {
+		path, err := f.Materialize(played.RoutePath, filepath.Join(dir, "format"))
+		if err != nil {
+			return m, ch, err
+		}
+		played.RoutePath = mustAbs(path)
 	}
 	return played, ch, nil
 }

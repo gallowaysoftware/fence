@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 )
 
@@ -15,6 +16,9 @@ import (
 const DefaultRoute = "appraiser"
 
 const chooseMaxTokens = 1500
+
+// mortgageWeeks is the loan shark's term on hard (shopRules).
+const mortgageWeeks = 16
 
 const chooseSystem = `You are the strategist of a pawn shop in the game Probably Stolen, about to start a run on hard difficulty, live on a stream. The executor (a tuned script) will do the routine work every day: buying, selling, machines, nights. Your choice now decides what kind of shop this run is. Viewers will see your choice and your thesis and judge you by them, so choose for a reason you can state, not for safety alone. Answer with one JSON object and nothing else.`
 
@@ -35,6 +39,8 @@ type Choice struct {
 	Menu       []string `json:"menu"`
 	FixedStart string   `json:"fixed_start,omitempty"`
 	Recent     []string `json:"recent,omitempty"`
+	// Format is the run's stream format, whose deadline odds the menu showed.
+	Format string `json:"format,omitempty"`
 	// Fallback says why the model's answer was not played ("" when it was).
 	Fallback string   `json:"fallback,omitempty"`
 	Errors   []string `json:"errors,omitempty"`
@@ -51,30 +57,51 @@ type answer struct {
 
 var chooseSchema = json.RawMessage(`{"type":"object","properties":{"route":{"type":"string"},"compose":{"type":"object","properties":{"name":{"type":"string"},"base":{"type":"string"},"start":{"type":"string"},"perks":{"type":"string"},"levers":{"type":"object"}},"required":["name","base","levers"]},"thesis":{"type":"string"}},"required":["thesis"]}`)
 
-// ChoosePrompt is the day-0 ask: the start (fixed or free), the menu with its lab record, the
-// levers and the answer's shape.
-//
-// lean cuts the menu to one short line a route (its levers over the appraiser's and its wins)
-// and the levers to their names, for a small model on a tight context (drift).
-func ChoosePrompt(m *Menu, fixedStart string, recent []string, lean bool) string {
+// Ask is the day-0 question's setting beyond the menu.
+type Ask struct {
+	// FixedStart is the start the match fixes, "" for any.
+	FixedStart string
+	// Recent are the routes the stream's previous runs played, which the model is asked to vary from.
+	Recent []string
+	// Lean cuts the menu to one short line a route (its levers over the appraiser's and its wins)
+	// and the levers to their names, for a small model on a tight context (drift).
+	Lean bool
+	// Format is the run's stream format, nil for none. With a deadline, each route shows its odds
+	// of beating it (deadline_odds.json).
+	Format *format.Format
+}
+
+// ChoosePrompt is the day-0 ask: the start (fixed or free), the format, the menu with its lab
+// record, the levers and the answer's shape.
+func ChoosePrompt(m *Menu, a Ask) string {
 	var b strings.Builder
 	b.WriteString(shopRules + "\n\n")
-	if len(recent) > 0 {
-		fmt.Fprintf(&b, "The stream's previous runs played, oldest first: %s. The audience has seen those; playing one again needs a reason of its own.\n\n", strings.Join(recent, ", "))
+	if len(a.Recent) > 0 {
+		fmt.Fprintf(&b, "The stream's previous runs played, oldest first: %s. The audience has seen those; playing one again needs a reason of its own.\n\n", strings.Join(a.Recent, ", "))
 	}
-	if fixedStart != "" {
-		fmt.Fprintf(&b, "This match fixes your start: %s. Only routes that play it are on your menu.\n\n", fixedStart)
+	if a.FixedStart != "" {
+		fmt.Fprintf(&b, "This match fixes your start: %s. Only routes that play it are on your menu.\n\n", a.FixedStart)
 	} else {
 		b.WriteString("You choose the start too: each route names the start and perks it plays.\n\n")
 	}
+	if f := a.Format; f != nil {
+		b.WriteString(f.RulesText() + "\n")
+		if f.DeadlineDay > 0 && f.DeadlineDay < mortgageWeeks*7 {
+			b.WriteString("A mortgage takes 16 weekly payments, longer than the deadline allows: only a cash buyout beats it.\n")
+		}
+		if m.Deadline > 0 && m.Seeds != "" {
+			fmt.Fprintf(&b, "So the record that matters is each route's odds of a buyout by day %d under these rules: the share of the lab's runs (executor alone, seeds %s, this format's rules applied) that bought the shop in time, with its 95 %% range. A route's usual record and median win day are without the deadline.\n", m.Deadline, m.Seeds)
+		}
+		b.WriteString("\n")
+	}
 	b.WriteString("THE MENU (every route was measured in our lab, the gym that runs the game's own rules):\n")
-	if lean {
+	if a.Lean {
 		b.WriteString(m.LeanText())
 	} else {
 		b.WriteString(m.Text())
 	}
 	b.WriteString("\nOr COMPOSE your own route: take a menu route as the base and change levers. A composed route has never been played; the lab numbers above are your only evidence. Levers:\n")
-	if lean {
+	if a.Lean {
 		b.WriteString(LeverNames() + "\n")
 	} else {
 		b.WriteString(LeverText())
@@ -90,19 +117,22 @@ The thesis is one paragraph, 60–120 words, in your own voice: what this shop w
 // Choose asks c for the day-0 route. The result is always playable: an unusable answer
 // falls back to a menu route (the model's named route if it is on the menu, else
 // DefaultRoute) and says why.
-//
-// recent are the routes the stream's previous runs played, which the model is asked to vary from.
-func Choose(ctx context.Context, c llm.Client, menu *Menu, fixedStart string, recent []string, lean bool) Choice {
+func Choose(ctx context.Context, c llm.Client, menu *Menu, a Ask) (ch Choice) {
+	fixedStart := a.FixedStart
 	m := menu.For(fixedStart)
-	ch := Choice{FixedStart: fixedStart, Recent: recent}
+	ch = Choice{FixedStart: fixedStart, Recent: a.Recent}
+	if a.Format != nil {
+		ch.Format = a.Format.Name
+		m = m.WithDeadline(*a.Format)
+	}
 	for _, e := range m.Entries {
 		ch.Menu = append(ch.Menu, e.Name)
 	}
 	start := time.Now()
 	defer func() { ch.MS = time.Since(start).Milliseconds() }()
-	msgs := []llm.Message{{Role: llm.RoleUser, Content: ChoosePrompt(m, fixedStart, recent, lean)}}
+	msgs := []llm.Message{{Role: llm.RoleUser, Content: ChoosePrompt(m, a)}}
 	req := llm.Request{System: chooseSystem, Messages: msgs, Schema: chooseSchema, SchemaName: "route_choice", MaxTokens: chooseMaxTokens}
-	var a answer
+	var ans answer
 	var errs []string
 	for attempt := 0; attempt < 2; attempt++ {
 		resp, err := c.Complete(ctx, req)
@@ -111,7 +141,7 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, fixedStart string, re
 			break
 		}
 		ch.Raw, ch.Model = resp.Text, resp.Model
-		a, errs = parseAnswer(resp.Text, m, fixedStart)
+		ans, errs = parseAnswer(resp.Text, m, fixedStart)
 		if len(errs) == 0 {
 			break
 		}
@@ -120,14 +150,14 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, fixedStart string, re
 			llm.Message{Role: llm.RoleUser, Content: "That answer cannot be played: " + strings.Join(errs, "; ") + ". Answer again with one corrected JSON object."})
 	}
 	ch.Errors = errs
-	ch.Thesis = strings.TrimSpace(a.Thesis)
-	if len(errs) == 0 && a.Compose != nil {
-		base, _ := m.Get(a.Compose.Base)
-		ch.Route, ch.Composed, ch.Composition = a.Compose.Name, true, a.Compose
-		ch.Start, ch.Perks, ch.Persona = a.Compose.start(base), a.Compose.perks(base), base.Persona
+	ch.Thesis = strings.TrimSpace(ans.Thesis)
+	if len(errs) == 0 && ans.Compose != nil {
+		base, _ := m.Get(ans.Compose.Base)
+		ch.Route, ch.Composed, ch.Composition = ans.Compose.Name, true, ans.Compose
+		ch.Start, ch.Perks, ch.Persona = ans.Compose.start(base), ans.Compose.perks(base), base.Persona
 		return ch
 	}
-	name := a.Route
+	name := ans.Route
 	if len(errs) > 0 {
 		ch.Fallback = "unusable answer: " + strings.Join(errs, "; ")
 		if _, ok := m.Get(name); !ok {

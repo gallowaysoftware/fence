@@ -366,4 +366,11 @@ func TestFormatRunSpec(t *testing.T) {
 	if _, err := LoadSpec(p); err == nil || !strings.Contains(err.Error(), "does not") {
 		t.Errorf("a challenge format in a hard league: %v", err)
 	}
+	// The model may pick the route of a hard format that names none; the menu is hard routes only.
+	for format, ok := range map[string]bool{"sprint_91": true, "challenge_clock": false} {
+		os.WriteFile(p, []byte(`{"name":"f","seeds":[7],"difficulties":["hard","challenge"],"players":[{"id":"q","endpoint":"e","mode":"plan","choose_route":"any"}],"routes":[{"format":"`+format+`"}]}`), 0o644)
+		if _, err := LoadSpec(p); (err == nil) != ok {
+			t.Errorf("choose_route on %s: %v", format, err)
+		}
+	}
 }

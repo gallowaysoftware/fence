@@ -261,6 +261,15 @@ func (f Format) HandicapLabels() []string {
 
 // StrategistText is the format as the strategist is told it, after the route.
 func (f Format) StrategistText() string {
+	s := f.RulesText()
+	if f.Lab.Runs > 0 {
+		s += fmt.Sprintf("\nThe executor alone wins this %s.", f.Lab.Odds())
+	}
+	return s
+}
+
+// RulesText is the format's premise, handicaps and deadline, without the lab's record.
+func (f Format) RulesText() string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "THIS RUN'S FORMAT: %s (%s). %s\n", f.Title, f.Difficulty, f.Pitch)
 	if len(f.Handicaps) > 0 {
@@ -272,9 +281,6 @@ func (f Format) StrategistText() string {
 	}
 	if f.DeadlineDay > 0 {
 		fmt.Fprintf(&b, "Deadline: the shop must be bought by day %d; a later buyout counts as a loss.\n", f.DeadlineDay)
-	}
-	if f.Lab.Runs > 0 {
-		fmt.Fprintf(&b, "The executor alone wins this %s.\n", f.Lab.Odds())
 	}
 	return strings.TrimSpace(b.String())
 }

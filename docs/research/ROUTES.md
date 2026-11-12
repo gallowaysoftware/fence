@@ -558,6 +558,64 @@ ten routes (nine policies: `sprinter` plays `appraiser`'s runs) the two levers w
 265 for the three changes alone (paired Δ win day from −6.3 ± 4.1 for `farmer` to +1.9 ± 2.9 for `gunsmith`), and
 540 of 540 on the fresh seeds against 530, so every challenge file takes them.
 
+## Deadline odds (2026-11-12)
+
+Every route wins plain hard; a deadline format (docs/SHOW.md, "Formats") is where they differ. Each route's
+buyouts by day 91 on hard seeds 8100001–060, executor alone, 1000-day horizon: `sprint_91` is the route as it
+is, `purist_sprint` the route with the purist's four vows laid over it and locked (`format.Apply`, through
+`fenceformat lab -route R`). Wins are buyouts on or before day 91; the CI is Wilson 95 %. The numbers are
+`internal/agency/deadline_odds.json`, which the day-0 menu shows (docs/STREAM.md, "Model agency"), written by
+`sim/lab/scripts/deadline_odds.py`. `challenge_clock` is left out: the menu is hard routes only.
+
+| Route | `sprint_91` (95 % CI) | Median win day | `purist_sprint` (95 % CI) | Median win day |
+|---|---|---|---|---|
+| `rancher_sprinter` | 54/60 (80–95 %) | 77 | 41/60 (56–79 %) | 77 |
+| `smelter_sprinter` | 44/60 (61–83 %) | 84 | 29/60 (36–61 %) | 84 |
+| `rancher` | 43/60 (59–81 %) | 84 | 29/60 (36–61 %) | 84 |
+| `ore_monopolist` | 43/60 (59–81 %) | 84 | 28/60 (35–59 %) | 84 |
+| `smelter` | 41/60 (56–79 %) | 84 | 28/60 (35–59 %) | 84 |
+| `lean` | 36/60 (47–71 %) | 84 | 32/60 (41–65 %) | 91 |
+| `no_vending` | 32/60 (41–65 %) | 84 | 20/60 (23–46 %) | 84 |
+| `pharma` | 31/60 (39–64 %) | 84 | 17/60 (19–41 %) | 84 |
+| `gunsmith_farm` | 30/60 (38–62 %) | 84 | 20/60 (23–46 %) | 91 |
+| `farmer` | 29/60 (36–61 %) | 84 | 28/60 (35–59 %) | 84 |
+| `fair_dealer` | 28/60 (35–59 %) | 91 | 19/60 (21–44 %) | 84 |
+| `vintner` | 28/60 (35–59 %) | 91 | 16/60 (17–39 %) | 88 |
+| `bulk_buyer` | 27/60 (33–58 %) | 91 | 21/60 (24–48 %) | 91 |
+| `pharma_vintner` | 27/60 (33–58 %) | 84 | 21/60 (24–48 %) | 91 |
+| `appraiser` | 24/60 (29–53 %) | 84 | 19/60 (21–44 %) | 84 |
+| `sprinter` | 24/60 (29–53 %) | 84 | 19/60 (21–44 %) | 84 |
+| `watchman` | 24/60 (29–53 %) | 91 | 13/60 (13–34 %) | 84 |
+| `labeler` | 24/60 (29–53 %) | 84 | 12/60 (12–32 %) | 84 |
+| `clean_shop` | 23/60 (27–51 %) | 91 | 19/60 (21–44 %) | 84 |
+| `gunsmith` | 20/60 (23–46 %) | 91 | 17/60 (19–41 %) | 91 |
+| `outlaw` | 15/60 (16–37 %) | 84 | 4/60 (3–16 %) | 88 |
+| `apothecary` | 14/60 (14–35 %) | 91 | 9/60 (8–26 %) | 91 |
+| `household_sprinter` | 13/60 (13–34 %) | 91 | 5/60 (4–18 %) | 84 |
+| `luxury_sprinter` | 11/60 (11–30 %) | 84 | 3/60 (2–14 %) | 91 |
+| `speculator` | 10/60 (9–28 %) | 91 | 7/60 (6–22 %) | 91 |
+| `hardware_store` | 9/60 (8–26 %) | 91 | 5/60 (4–18 %) | 91 |
+| `water_baron` | 9/60 (8–26 %) | 91 | 3/60 (2–14 %) | 84 |
+| `med_speculator` | 8/60 (7–24 %) | 91 | 4/60 (3–16 %) | 91 |
+| `fountain_pharma` | 6/60 (5–20 %) | 91 | 4/60 (3–16 %) | 91 |
+| `water_night_shift` | 6/60 (5–20 %) | 91 | 1/60 (0–9 %) | 91 |
+| `fence_fortress` | 5/60 (4–18 %) | 84 | 3/60 (2–14 %) | 91 |
+| `fountain` | 4/60 (3–16 %) | 88 | 4/60 (3–16 %) | 91 |
+| `rock_bottom` | 2/60 (1–11 %) | 91 | 2/60 (1–11 %) | 91 |
+| `luxury_gambler` | 0/60 (0–6 %) | — | 0/60 (0–6 %) | — |
+
+The deadline reorders the menu. The format's own lab route, `sprinter`, is mid-table (24/60 here, 31/60 on
+8300001–060); the fast engines lead: `rancher_sprinter` (rats only, lots to 85 %, sales to 50 %) wins 54/60, and
+the furnace routes and `rancher` about 7 in 10, as docs/research/SEARCH-LABELS.md found for `smelter` against
+`sprinter` (86/120 against 67/120 there; 41/60 against 24/60 here). The specialty and water routes, which win
+plain hard by the mortgage or late, almost never make day 91. The vows cost the leaders about a fifth of their
+wins (`rancher_sprinter` 41/60, the furnaces ~28/60) but barely touch `lean` (32/60, against 36) and `farmer` (28
+against 29), which come up to the furnaces under the vows.
+
+`sprint_91`'s summaries for the 22 routes the ghost band already ran on these seeds are the ghost band's
+(`ghost_bands.py run`: same seeds, horizon and route files); a fresh run of seed 8100060 on this gym reproduced
+all 22 exactly (ending, day, cash). The other 12 routes and every `purist_sprint` run are new.
+
 ## Reproducing
 
 Arms ran with `fence-gym smoke -seed0 2202000 -seeds 60 -days 1000 -parallel 10 -no-trajectory`; summaries

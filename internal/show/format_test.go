@@ -1,11 +1,13 @@
 package show
 
 import (
-	"github.com/gallowaysoftware/fence/internal/format"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gallowaysoftware/fence/internal/agency"
+	"github.com/gallowaysoftware/fence/internal/format"
 )
 
 func TestFormatOnTheCard(t *testing.T) {
@@ -76,5 +78,34 @@ func TestShippedFormatsHaveNoNumbersForTheNarrator(t *testing.T) {
 		if faults := CheckLine(f.Title+". "+formatStakes(&p), Facts{}); len(faults) > 0 {
 			t.Errorf("%s: %v", f.Name, faults)
 		}
+	}
+}
+
+// A deadline format's card quotes the run's own route when the lab measured it under the format.
+func TestFormatCardQuotesTheRoute(t *testing.T) {
+	dir := "../../" + format.DefaultDir
+	f, err := format.Load(dir, "sprint_91")
+	if err != nil {
+		t.Fatal(err)
+	}
+	l, ok := agency.DeadlineLab(f, "smelter")
+	if !ok {
+		t.Fatal("smelter not measured on sprint_91")
+	}
+	p := Player{}
+	p.SetRoute("smelter")
+	if err := p.SetFormat(dir, "sprint_91", filepath.Join(t.TempDir(), "none.jsonl"), ""); err != nil {
+		t.Fatal(err)
+	}
+	if want := "on the smelter route, the lab wins it " + l.Odds(); !strings.HasPrefix(p.Format.Lab, want) || p.Format.Stakes != l.Words() {
+		t.Errorf("card %q, want %q; stakes %q", p.Format.Lab, want, p.Format.Stakes)
+	}
+	q := Player{}
+	q.SetRoute("my_own_composition")
+	if err := q.SetFormat(dir, "sprint_91", filepath.Join(t.TempDir(), "none.jsonl"), ""); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(q.Format.Lab, "the lab wins it "+f.Lab.Odds()) {
+		t.Errorf("unmeasured route: %q", q.Format.Lab)
 	}
 }

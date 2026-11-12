@@ -257,6 +257,10 @@ never shows a plan the hands will not play (`internal/strategy/locked.go`).
 | `clean_shop` | Nothing stolen | `buy.hot_stock_cap: 0` (the `clean_shop` route's) | `buy.hot_stock_cap` |
 | `no_insurance` | No insurance | `services: ["JANITORIAL_SERVICE"]` (the challenge routes') | `services` |
 
+A deadline's odds depend on the route (docs/research/ROUTES.md, "Deadline odds": by day 91 from 0/60 to 54/60), so
+when the run's route was measured on the format the card's lab line and the narrator's stakes are that route's
+("on the smelter route, the lab wins it 41 times in 60 …"); otherwise the format's own `lab`.
+
 A deadline is the show's rule, not the executor's: the executor plays as always and the run's end is
 judged against the day (the lab's odds are therefore the plain route's win days cut at the deadline).
 

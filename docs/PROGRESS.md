@@ -32,6 +32,19 @@ the bridge shows it at hello, before its run's `run_start`, which used to wipe i
 or a hybrid slate's long option labels are cut to one line. The ticker's minimum is three lines; on the
 fullest days the plan shows two.
 
+## Deadline odds — 2026-11-12: the day-0 menu tells the model which routes beat day 91
+
+**Result.** Every hard route's odds of a buyout by day 91, executor alone, on seeds 8100001–060: as it is
+(`sprint_91`) and with the purist's four vows locked over it (`purist_sprint`), 34 routes × 60 seeds each
+(`sim/lab/scripts/deadline_odds.py` → `internal/agency/deadline_odds.json`; docs/research/ROUTES.md, "Deadline
+odds"). The deadline reorders the menu: on `sprint_91` `rancher_sprinter` wins **54/60 (80–95 %)**, the furnace
+routes and `rancher` 41–44/60, the format's lab route `sprinter` 24/60, the specialty and water routes 0–11/60; on
+`purist_sprint` `rancher_sprinter` 41/60, `lean` 32/60, `sprinter` 19/60. When a run has a deadline format the
+day-0 prompt now states the format and shows each route's odds next to its record (the lean menu sorted by them,
++~400 tokens), the league lets `choose_route` run under a hard format that names no route, and the format card
+quotes the chosen route's own odds. On drift (4 calls) Qwen3.8-27B picked the top route, `rancher_sprinter`, every
+time, on both formats and even after three runs of it: it picks for the format but no longer varies there.
+
 ## Bets and callbacks — 2026-11-11: the narration sets things up and pays them off
 
 **Result.** With the bridge's `-bets`, a delta plan may stake one checkable bet a day ("Net worth reaches 5000 by

@@ -4,6 +4,7 @@
 package agency
 
 import (
+	"cmp"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/route"
 )
 
@@ -57,11 +59,16 @@ func LabStats() (map[string]Lab, error) {
 type Entry struct {
 	route.Route
 	Lab Lab
+	// Odds are its odds of beating the run's deadline (Menu.Deadline); nil when unmeasured or none.
+	Odds *Odds
 }
 
 // Menu is every hard route, in name order.
 type Menu struct {
 	Entries []Entry
+	// Deadline is the run's deadline day, 0 for none; Seeds the lab seeds of the entries' Odds.
+	Deadline int
+	Seeds    string
 }
 
 // LoadMenu reads the routes in dir (route.DefaultDir when empty; its challenge/ subdirectory
@@ -107,13 +114,33 @@ func (m *Menu) Get(name string) (Entry, bool) {
 	return Entry{}, false
 }
 
+// WithDeadline is the menu with each route's odds of beating f's deadline, as the lab measured
+// them under f's handicaps; m itself when f has no deadline.
+func (m *Menu) WithDeadline(f format.Format) *Menu {
+	if f.DeadlineDay == 0 {
+		return m
+	}
+	out := &Menu{Entries: slices.Clone(m.Entries), Deadline: f.DeadlineDay}
+	fo, ok := DeadlineOdds(f.Name)
+	if !ok || fo.DeadlineDay != f.DeadlineDay {
+		return out
+	}
+	out.Seeds = fo.Seeds
+	for i, e := range out.Entries {
+		if o, ok := fo.Routes[e.Name]; ok && o.Runs > 0 {
+			out.Entries[i].Odds = &o
+		}
+	}
+	return out
+}
+
 // For is the menu a run may pick from: every route, or only those that play start when the
 // match fixes it ("" for none).
 func (m *Menu) For(start string) *Menu {
 	if start == "" {
 		return m
 	}
-	out := &Menu{}
+	out := &Menu{Deadline: m.Deadline, Seeds: m.Seeds}
 	for _, e := range m.Entries {
 		if e.Start == start {
 			out.Entries = append(out.Entries, e)
@@ -149,17 +176,60 @@ func sortedSet(perks string) string {
 func (m *Menu) Text() string {
 	var b strings.Builder
 	for _, e := range m.Entries {
-		fmt.Fprintf(&b, "- %s (start %s, perks %s, persona %s): %s Lab: %s.\n", e.Name, e.Start, e.Perks, e.Persona, e.Brief, e.Lab.text())
+		fmt.Fprintf(&b, "- %s (start %s, perks %s, persona %s): %s Lab: %s.", e.Name, e.Start, e.Perks, e.Persona, e.Brief, e.Lab.text())
+		if m.Deadline > 0 {
+			b.WriteString(" " + m.deadlineText(e))
+		}
+		b.WriteByte('\n')
 	}
 	return b.String()
 }
 
-// LeanText is the menu in one short line a route: what it changes over the appraiser and its record.
+func (m *Menu) deadlineText(e Entry) string {
+	o := e.Odds
+	if o == nil {
+		return fmt.Sprintf("By day %d under this format: not measured.", m.Deadline)
+	}
+	s := fmt.Sprintf("By day %d under this format: bought in %d of %d runs, %d %% (95 %% range %d–%d %%)", m.Deadline, o.Wins, o.Runs, o.Pct(), o.Lo, o.Hi)
+	if o.MedianWinDay > 0 {
+		s += fmt.Sprintf(", median win day %d", o.MedianWinDay)
+	}
+	return s + "."
+}
+
+// byOdds is the entries, best odds of beating the deadline first; unmeasured routes last.
+func (m *Menu) byOdds() []Entry {
+	es := slices.Clone(m.Entries)
+	slices.SortStableFunc(es, func(a, b Entry) int {
+		return cmp.Compare(oddsKey(b), oddsKey(a))
+	})
+	return es
+}
+
+func oddsKey(e Entry) float64 {
+	if e.Odds == nil {
+		return -1
+	}
+	return float64(e.Odds.Wins) / float64(e.Odds.Runs)
+}
+
+// LeanText is the menu in one short line a route: what it changes over the appraiser and its record;
+// with a deadline, best odds of beating it first.
 func (m *Menu) LeanText() string {
 	ref, _ := m.Get(DefaultRoute)
+	es := m.Entries
+	if m.Deadline > 0 {
+		es = m.byOdds()
+	}
 	var b strings.Builder
-	for _, e := range m.Entries {
-		fmt.Fprintf(&b, "- %s (%s): %s; won %s, median day %d\n", e.Name, e.Start, diffText(ref, e), e.Lab.Wins, e.Lab.MedianWinDay)
+	for _, e := range es {
+		fmt.Fprintf(&b, "- %s (%s): %s; won %s, median day %d", e.Name, e.Start, diffText(ref, e), e.Lab.Wins, e.Lab.MedianWinDay)
+		if o := e.Odds; o != nil {
+			fmt.Fprintf(&b, "; by day %d %d %% (%d–%d)", m.Deadline, o.Pct(), o.Lo, o.Hi)
+		} else if m.Deadline > 0 {
+			fmt.Fprintf(&b, "; by day %d not measured", m.Deadline)
+		}
+		b.WriteByte('\n')
 	}
 	return b.String()
 }

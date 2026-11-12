@@ -76,6 +76,26 @@ the executor keeps the routine.
 - **Lean day-0 prompt** (`"agency_lean": true` on a league player): the menu as one line a route (its levers over the
   appraiser's and its record) and the levers by name, ~1.6k tokens instead of ~6.8k; drift's MLX server refused the full
   prompt for memory (HTTP 507).
+- **Deadline odds at day 0.** When the run has a deadline format (`sprint_91`, `purist_sprint`), the day-0 prompt
+  states the format (premise, handicaps, deadline; that a mortgage's 16 weeks cannot beat a deadline under 112
+  days) and gives every route its odds of a buyout by the deadline under the format's rules: wins of 60, percent and
+  Wilson 95 % range, median win day (`internal/agency/deadline_odds.json`, written by
+  `sim/lab/scripts/deadline_odds.py`; table in docs/research/ROUTES.md, "Deadline odds"). The full menu keeps
+  name order with the odds after each record; the lean menu sorts by the odds and adds "by day 91 90 % (80–95)"
+  to each line (all 34 routes: the lean prompt grows from 6.3 to 7.7 kB, ~400 tokens, so nothing is cut). A
+  composition is unmeasured; its base's line is the nearest evidence. League: `choose_route` now works with a hard
+  format that names no route (`"routes": [{"format": "sprint_91"}]`); the chosen route, or composition, is played
+  with the format's handicaps laid over it and locked, and `choice.json` records `format`. On screen, the format
+  card and the narrator's stakes quote the run's own route's odds when it is measured on the format ("on the
+  smelter route, the lab wins it 41 times in 60"), else the format's lab route's.
+
+  **Checked on drift** (Qwen3.8-27B MLX, lean, temperature 0.2, 4 calls, 7.7–8.3 s for the three timed): on `sprint_91` it picked
+  `rancher_sprinter` (90 %) with no history, again after `rancher_sprinter, smelter_sprinter`, and again after
+  three `rancher_sprinter` runs, each time citing the odds against `smelter_sprinter` (73 %) as its reason to
+  repeat; on `purist_sprint` after one `rancher_sprinter` run, `rancher_sprinter` (68 %) again. So it picks for the
+  format, but where one route leads by ~15 points the odds outweigh the "vary from previous runs" nudge: four
+  calls, one route. Before the mortgage line was added, the first thesis planned to sign the mortgage for a day-91
+  deadline.
 - **Inventor** (`cmd/fenceinvent`, offline): the model proposes routes the menu lacks (compositions plus a thesis and
   a novelty claim); the gym screens each on 30 hard seeds against the `appraiser`, and only a 57/60 confirmation on 60
   fresh seeds puts one on the menu (ROUTES.md, "Invented routes").

@@ -189,8 +189,8 @@ func (s *Spec) normalize() error {
 		if p.ChooseRoute != "" && (p.Mode != ModePlan || len(s.Routes) == 0 || p.ChooseRoute != ChooseAny && p.ChooseRoute != ChooseStart) {
 			return fmt.Errorf("player %s: choose_route %q needs mode plan, routes, and any or start", p.ID, p.ChooseRoute)
 		}
-		if p.ChooseRoute != "" && slices.ContainsFunc(s.Routes, func(rr RouteRun) bool { return rr.Format != "" }) {
-			return fmt.Errorf("player %s: choose_route with a format (the format fixes the route)", p.ID)
+		if p.ChooseRoute != "" && slices.ContainsFunc(s.Routes, func(rr RouteRun) bool { return rr.f != nil && (rr.f.Route != "" || rr.f.Difficulty != "hard") }) {
+			return fmt.Errorf("player %s: choose_route with a format that fixes the route or is not hard (the menu is hard routes)", p.ID)
 		}
 		switch p.Mode {
 		case ModePlan, ModeLLM:

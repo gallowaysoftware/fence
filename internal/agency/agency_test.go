@@ -3,10 +3,13 @@ package agency
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/route"
 )
@@ -107,14 +110,14 @@ const thesis = "A metal shop that hoards its ingots and materials until the mark
 func TestChoose(t *testing.T) {
 	m := testMenu(t)
 	ans := func(v map[string]any) string { b, _ := json.Marshal(v); return string(b) }
-	ch := Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "smelter", "thesis": thesis})}}, m, "", nil, false)
+	ch := Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "smelter", "thesis": thesis})}}, m, Ask{})
 	if ch.Route != "smelter" || ch.Composed || ch.Fallback != "" || ch.Start != "apprentice" || ch.Thesis != thesis {
 		t.Errorf("menu pick: %+v", ch)
 	}
 	// A bad composition is repaired once.
 	bad := ans(map[string]any{"compose": map[string]any{"name": "ratty", "base": "appraiser", "levers": map[string]any{"engine": "rats"}}, "thesis": thesis})
 	good := ans(map[string]any{"compose": map[string]any{"name": "hoard_smelter", "base": "smelter", "levers": map[string]any{"speculate": map[string]any{"types": []string{"MATERIAL"}}}}, "thesis": thesis})
-	ch = Choose(context.Background(), &fakeLLM{answers: []string{bad, good}}, m, "", nil, false)
+	ch = Choose(context.Background(), &fakeLLM{answers: []string{bad, good}}, m, Ask{})
 	if !ch.Composed || ch.Route != "hoard_smelter" || ch.Fallback != "" {
 		t.Errorf("repaired composition: %+v", ch)
 	}
@@ -122,11 +125,11 @@ func TestChoose(t *testing.T) {
 		t.Errorf("route file %s %v", b, err)
 	}
 	// Two bad answers fall back to the default; a fixed start keeps the menu to its routes.
-	ch = Choose(context.Background(), &fakeLLM{answers: []string{bad, bad}}, m, "", nil, false)
+	ch = Choose(context.Background(), &fakeLLM{answers: []string{bad, bad}}, m, Ask{})
 	if ch.Route != DefaultRoute || ch.Fallback == "" {
 		t.Errorf("fallback: %+v", ch)
 	}
-	ch = Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "smelter", "thesis": thesis}), "{}"}}, m, "farmer", nil, false)
+	ch = Choose(context.Background(), &fakeLLM{answers: []string{ans(map[string]any{"route": "smelter", "thesis": thesis}), "{}"}}, m, Ask{FixedStart: "farmer"})
 	if ch.Route != "farmer" || ch.Fallback == "" || len(ch.Menu) != 1 {
 		t.Errorf("fixed start: %+v", ch)
 	}
@@ -134,7 +137,7 @@ func TestChoose(t *testing.T) {
 
 func TestLeanPromptIsSmall(t *testing.T) {
 	m := testMenu(t)
-	full, lean := ChoosePrompt(m, "", nil, false), ChoosePrompt(m, "", nil, true)
+	full, lean := ChoosePrompt(m, Ask{}), ChoosePrompt(m, Ask{Lean: true})
 	if len(lean)*2 > len(full) || !strings.Contains(lean, "- smelter (apprentice): ") {
 		t.Errorf("lean %d bytes, full %d:\n%s", len(lean), len(full), lean)
 	}
@@ -145,5 +148,65 @@ func TestLiftMeta(t *testing.T) {
 	liftMeta(&c)
 	if c.Start != "apprentice" || c.Perks != "vending+short_sleeper" || len(c.Levers) != 1 || len(c.Validate(testMenu(t))) != 0 {
 		t.Errorf("%+v %v", c, c.Validate(testMenu(t)))
+	}
+}
+
+// TestDeadlineOdds: every hard deadline format that leaves the route open has every menu route's
+// odds, so the day-0 menu never shows a route without them.
+func TestDeadlineOdds(t *testing.T) {
+	m := testMenu(t)
+	fs, err := format.List(filepath.Join("..", "..", format.DefaultDir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	n := 0
+	for _, f := range fs {
+		if f.DeadlineDay == 0 || f.Difficulty != "hard" || f.Route != "" {
+			continue
+		}
+		n++
+		fo, ok := DeadlineOdds(f.Name)
+		if !ok || fo.DeadlineDay != f.DeadlineDay || !slices.Equal(fo.Handicaps, f.Handicaps) {
+			t.Errorf("%s: odds %+v", f.Name, fo)
+			continue
+		}
+		for _, e := range m.WithDeadline(f).Entries {
+			if o := e.Odds; o == nil || o.Runs < 60 || o.Wins > o.Runs || o.Lo > o.Pct() || o.Hi < o.Pct() {
+				t.Errorf("%s %s: odds %+v", f.Name, e.Name, o)
+			}
+		}
+	}
+	if n < 2 {
+		t.Errorf("%d deadline formats", n)
+	}
+}
+
+func TestDeadlinePrompt(t *testing.T) {
+	m := testMenu(t)
+	f, err := format.Load(filepath.Join("..", "..", format.DefaultDir), "sprint_91")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dm := m.WithDeadline(f)
+	sm, _ := dm.Get("smelter")
+	a := Ask{Format: &f}
+	full := ChoosePrompt(dm, a)
+	want := fmt.Sprintf("By day 91 under this format: bought in %d of %d runs", sm.Odds.Wins, sm.Odds.Runs)
+	if !strings.Contains(full, "Deadline: the shop must be bought by day 91") || !strings.Contains(full, want) {
+		t.Errorf("full prompt lacks the deadline or %q", want)
+	}
+	a.Lean = true
+	lean := ChoosePrompt(dm, a)
+	if len(lean)*2 > len(full) || len(lean) > len(ChoosePrompt(m, Ask{Lean: true}))*5/4 {
+		t.Errorf("lean %d bytes, full %d", len(lean), len(full))
+	}
+	// The lean menu leads with the best odds.
+	best := dm.byOdds()[0]
+	menu := lean[strings.Index(lean, "THE MENU"):]
+	if first := menu[strings.Index(menu, "\n- ")+3:]; !strings.HasPrefix(first, best.Name+" (") || !strings.Contains(first, fmt.Sprintf("; by day 91 %d %% (", best.Odds.Pct())) {
+		t.Errorf("lean menu starts %q, want %s", first[:80], best.Name)
+	}
+	if m.WithDeadline(format.Format{}) != m {
+		t.Error("no deadline, same menu")
 	}
 }
