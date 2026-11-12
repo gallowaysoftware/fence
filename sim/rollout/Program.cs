@@ -17,7 +17,7 @@ namespace Fence.Rollout
     {
         const string Usage = "usage: fence-rollout play|check -seed N [-difficulty normal] [-days 1000] [-every 7] [-horizon 14] [-samples 2] [-par 7]\n" +
                              "       [-follow best|base] [-margin 0] [-max-upgrades 3] [-exclude name,prefix_,...] [-focus mortgage] [-to-payoff] [-screen] [-rows FILE.jsonl] [-summary FILE.json] [-work DIR] [-directives FILE]\n" +
-                             "       [-start none] [-perks ids+...] [-decision-log FILE.jsonl] [-hybrid llm|blind -propose-dir DIR -propose-timeout 600 -blind 3 -review 7 -cooldown 2 -window-horizon 42 -switch-se 1.0 -no-commit-payoff]";
+                             "       [-start none] [-perks ids+...] [-deadline 91 -gate 2.0 -rules FILE.json] [-decision-log FILE.jsonl] [-hybrid llm|blind -propose-dir DIR -propose-timeout 600 -blind 3 -review 7 -cooldown 2 -window-horizon 42 -switch-se 1.0 -no-commit-payoff]";
 
         static int Main(string[] args)
         {
@@ -66,6 +66,11 @@ namespace Fence.Rollout
                 SwitchSE = a.Dbl("switch-se", 1.0),
                 CommitPayoff = !a.Flag("no-commit-payoff"),
             };
+            if (a.Int("deadline", 0) is int deadline && deadline > 0)
+            {
+                cfg.Sprint = new SprintConfig { Deadline = deadline, Gate = a.Dbl("gate", 2.0) };
+                if (a.Str("rules", null) is string rules) cfg.Sprint.Rules = Sprint.LoadRules(rules);
+            }
             string hybrid = a.Str("hybrid", null);
             if (hybrid != null)
             {
@@ -117,7 +122,7 @@ namespace Fence.Rollout
             {
                 ["seed"] = o.Seed, ["difficulty"] = o.Difficulty, ["start"] = o.Start, ["human_role"] = "player",
                 ["policy"] = cfg.Follow ? "rollout" : "player",
-                ["search"] = new JObject { ["focus"] = cfg.Focus, ["every"] = cfg.Every, ["horizon"] = cfg.Horizon, ["samples"] = cfg.Samples, ["par"] = cfg.Par, ["margin"] = cfg.Margin, ["max_upgrades"] = cfg.MaxUpgrades,
+                ["search"] = new JObject { ["deadline"] = cfg.Sprint?.Deadline, ["gate"] = cfg.Sprint?.Gate, ["rules"] = cfg.Sprint?.Rules != null, ["focus"] = cfg.Focus, ["every"] = cfg.Every, ["horizon"] = cfg.Horizon, ["samples"] = cfg.Samples, ["par"] = cfg.Par, ["margin"] = cfg.Margin, ["max_upgrades"] = cfg.MaxUpgrades,
                     ["hybrid"] = cfg.Hybrid?.Source, ["window_horizon"] = cfg.Hybrid == null ? null : cfg.WindowHorizon, ["review"] = cfg.Hybrid?.Review, ["cooldown"] = cfg.Hybrid?.Cooldown, ["blind"] = cfg.Hybrid?.Blind, ["switch_se"] = cfg.Hybrid == null ? null : cfg.SwitchSE, ["commit_payoff"] = cfg.Hybrid == null ? null : cfg.CommitPayoff },
                 ["perks"] = o.Perks,
                 ["hybrid"] = search.Hybrid == null ? null : new JObject

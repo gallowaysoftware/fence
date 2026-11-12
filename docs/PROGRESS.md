@@ -102,6 +102,39 @@ in character (8 gate drops in the mornings, 5 timeouts), every model line throug
 narrator or a second model on drift (~58 GB free) are the upgrades. Runbook and table:
 docs/STREAM-OPS.md, "The drift gate".
 
+## Search labels for the day-91 sprint — 2026-11-11: search does not beat the executor; the route does
+
+**Question.** Before training anything: can rollout search label decisions that beat the scripted executor on
+`sprint_91` (hard, `sprinter`, bought by day 91; the executor wins 31/60 on 8300001–060)? Write-up:
+docs/research/SEARCH-LABELS.md.
+
+**Result: no.** Seven fixed fork mornings (style 28, save 42/56/70, sell-down 77/84/88, reusing the model-agency
+sprint and style forks) with 2–4 candidate directive changes, each rolled to day 91 with re-seeded futures (no
+hindsight), 12 samples, a switch only at paired z ≥ 2. Labels: 674 rows on 8700001–100 (`var/search/`, not
+committed); 19 (2.8 %) are switches, fewer than sign-flipped noise gives (28). On 120 fresh seeds (8800001–060,
+8810001–060), against the executor's 67:
+
+| Arm | Wins /120 | +won −lost | McNemar p |
+|---|---|---|---|
+| online rollout policy (search at every fork) | 66 | +0 −1 | 1.00 |
+| rule policy, all 7 fitted rules | 54 | +8 −21 | 0.024 (worse) |
+| rule policy, the 3 that validate on split halves | 62 | +10 −15 | 0.42 |
+| day-70 `save_all` rule alone (the strongest label pattern) | 68 | +10 −9 | 1.00; 149 = 149 on 300 more seeds |
+| **`smelter` route, executor alone** | **86** | **+38 −19** | **0.016** |
+
+Why: the levers move P(win) by ~0.025 a fork (pooled `save_all`), a sprint is mostly decided by day 70 (P(win) 0
+or 1 in 14 of 20 pilot states), and any directive change decorrelates the future (paired branches end identically
+14 % of the time), so a fork's rollouts cannot see the effect and a rule fitted across forks overfits noise.
+**Training on these labels would teach the executor.** The format's gain is the day-0 route: `smelter` also takes
+`purist_sprint` from 20/60 to 36/60 (+22 −6, p = 0.004) on 8800001–060, where online search ties the executor
+(20/60, +0 −0); on `challenge_clock` (a mortgage format) the route does nothing (45 against 42, p = 0.68). Route it to the format default or the
+agency's route choice, and to drift's prompt as advice; nothing from the mid-run forks.
+
+**Code.** `fence-rollout play -deadline 91 [-gate 2] [-rules FILE]` (`sim/rollout/Sprint.cs`; without
+`-deadline` the search is unchanged, `check` still replays the main line); `sim/rollout/sprint.py` (driver),
+`sprint_report.py` (Wilson, McNemar, paired win day, label statistics), `sprint_fit.py` (threshold rules with a
+split-half check). Gym and executor untouched.
+
 ## Second engine — 2026-11-11: no engine closes the Board-free gap on hard; supply, not demand, is the wall
 
 **Result.** Built and measured a cash-crop lever for the hydroponic bays (`crops`, with tap water for the crop bays)

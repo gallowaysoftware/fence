@@ -41,6 +41,8 @@ namespace Fence.Rollout
         public bool CommitPayoff = true;
         // The main line's decision log and the show feed's `candidates` events (ShowLog.cs).
         public ShowLog Show;
+        // Deadline sprint (Sprint.cs): fixed fork days, candidates held to the deadline, a format-aware score.
+        public SprintConfig Sprint;
     }
 
     // One step of policy iteration by Monte Carlo (Bertsekas; docs/research/SOLVER.md §7): at a decision
@@ -84,6 +86,15 @@ namespace Fence.Rollout
             int day = ep.Day;
             if (firstDay < 0) { firstDay = day; nextDecision = day; }
             if (IsChild) return day < childUntil ? childPlan : null;
+            if (cfg.Sprint != null)
+            {
+                if (!PlayerStore.Instance.IsPropertyPaid && Sprint.ForkAt(day) is string fork)
+                {
+                    if (cfg.Sprint.Rules != null) ApplyRules(ep, fork);
+                    else if (Decide(ep, null, fork)) return childPlan;
+                }
+                return hold;
+            }
             if (Hybrid != null)
             {
                 var triggers = Hybrid.Triggers(ep);
@@ -105,7 +116,7 @@ namespace Fence.Rollout
         static int SampleSeed(int seed, int day, int m) => (int)((uint)(seed * 1000003 + day * 7919 + m * 104729 + 0x2545F491) & 0x7fffffff);
 
         // True in a branch (which then plays `childPlan`); false in the main line once it has chosen.
-        bool Decide(Episode ep, List<Trigger> triggers = null)
+        bool Decide(Episode ep, List<Trigger> triggers = null, string fork = null)
         {
             int day = ep.Day;
             var ps = PlayerStore.Instance;
@@ -123,8 +134,12 @@ namespace Fence.Rollout
                 commit = cfg.CommitPayoff && Commitment(ep, cands);
                 if (commit) horizon = Math.Max(horizon, payoff);
             }
+            else if (fork != null) cands = Sprint.Candidates(fork, day, holdJson, Sprint.PriceOn(cfg.Sprint.Deadline));
             else cands = cfg.Focus == "mortgage" ? Candidates.Mortgage(ep, cfg.Every) : Candidates.Build(ep, cfg.MaxUpgrades);
+            // A sprint branch plays through the deadline's rent morning: its label is the format's outcome.
+            if (fork != null) horizon = cfg.Sprint.Deadline + 1 - day;
             int end = Math.Min(day + horizon, firstDay + o.Days);
+            var features = fork != null ? Sprint.Features(ep, cfg.Sprint.Deadline) : null;
             Log(cands.Count + " candidates");
             if (cfg.OnlyBase) cands = cands.Take(1).ToList();
             cands = cands.Where(c => c.Name == "base" || !cfg.Exclude.Any(x => x.EndsWith("_") ? c.Name.StartsWith(x, StringComparison.Ordinal) : c.Name == x)).ToList();
@@ -153,7 +168,7 @@ namespace Fence.Rollout
                     IsChild = true;
                     Log("child up");
                     childPlan = Directives.Parse(cands[job.c].Directives);
-                    childUntil = day + cfg.Every;
+                    childUntil = fork != null ? int.MaxValue : day + cfg.Every;
                     childDay0 = day;
                     childNw0 = ep.Stats.NetWorthByDay.Count;
                     childOut = JobPath(day, job.c, job.m);
@@ -165,7 +180,7 @@ namespace Fence.Rollout
                 running[pid] = job;
             }
             while (running.Count > 0) Reap(running, failed);
-            if (stage == 0 && Enumerable.Range(0, cfg.Samples).All(m => BaseWon(day, m))) cands = cands.Take(1).ToList();
+            if (stage == 0 && Enumerable.Range(0, cfg.Samples).All(m => BaseWon(day, m, fork != null ? cfg.Sprint.Deadline : int.MaxValue))) cands = cands.Take(1).ToList();
             if (cands.Count == 1) break;
             }
             sw.Stop();
@@ -180,7 +195,7 @@ namespace Fence.Rollout
                     string p = JobPath(day, c, m);
                     JObject r = File.Exists(p) ? JObject.Parse(File.ReadAllText(p)) : new JObject { ["crash"] = "no result" };
                     if (File.Exists(p)) File.Delete(p);
-                    double s = Score(r, day, end) + (Hybrid != null ? Risk(r, day, end) : 0);
+                    double s = fork != null ? Sprint.Score(r, cfg.Sprint.Deadline) : Score(r, day, end) + (Hybrid != null ? Risk(r, day, end) : 0);
                     r["score"] = Math.Round(s, 1);
                     sum += s;
                     samples.Add(r);
@@ -203,10 +218,14 @@ namespace Fence.Rollout
             if (Hybrid != null)
                 best = evals.Where(e => e.c == baseEval.c || cfg.Samples < 2 || PairedZ(baseEval.samples, e.samples) >= cfg.SwitchSE)
                     .OrderByDescending(e => e.score).ThenBy(e => evals.IndexOf(e)).First();
+            // Sprint: `keep` (first) is the default; a switch must clear the paired gate against it.
+            if (fork != null)
+                best = evals.Where(e => e.c == baseEval.c || PairedZ(baseEval.samples, e.samples) >= cfg.Sprint.Gate)
+                    .OrderByDescending(e => e.score).ThenBy(e => evals.IndexOf(e)).First();
             var chosen = cfg.Follow ? best : baseEval;
             hold = chosen.c.Name == "base" || chosen.c.Directives.Count == 0 ? null : Directives.Parse(chosen.c.Directives);
             holdJson = hold == null ? null : chosen.c.Directives;
-            holdUntil = Hybrid != null ? int.MaxValue : day + cfg.Every;
+            holdUntil = Hybrid != null || fork != null ? int.MaxValue : day + cfg.Every;
 
             Decisions.Add(new JObject
             {
@@ -217,6 +236,7 @@ namespace Fence.Rollout
                 ["triggers"] = triggers == null ? null : new JArray(triggers.Select(t => t.Id)),
                 ["sources"] = new JArray(cands.Select(c => c.Source)),
                 ["played_source"] = chosen.c.Source,
+                ["fork"] = fork,
             });
             if (Hybrid != null) cfg.Show?.Show(ShowLog.Candidates(day, triggers, evals, bi, chosen.c, argmax, cfg.Samples, end - day));
             if (cfg.RowsPath != null)
@@ -245,6 +265,7 @@ namespace Fence.Rollout
                     ["margin_over_base"] = Math.Round(best.score - baseScore, 1),
                 };
                 if (Hybrid != null) row["search"]["score"] = ScoreDoc + "; " + RiskDoc;
+                if (fork != null) SprintRow(row, fork, features, evals, baseEval.samples);
                 File.AppendAllText(cfg.RowsPath, row.ToString(Formatting.None) + "\n");
             }
             return false;
@@ -257,10 +278,55 @@ namespace Fence.Rollout
             return sd < 1e-9 ? (mean > 0 ? double.PositiveInfinity : 0) : mean / (sd / Math.Sqrt(d.Count));
         }
 
-        bool BaseWon(int day, int m)
+        bool BaseWon(int day, int m, int deadline)
         {
             string p = JobPath(day, 0, m);
-            return File.Exists(p) && (((string)JObject.Parse(File.ReadAllText(p))["game_over"]) ?? "").StartsWith("buyout", StringComparison.Ordinal);
+            if (!File.Exists(p)) return false;
+            var r = JObject.Parse(File.ReadAllText(p));
+            return ((string)r["game_over"] ?? "").StartsWith("buyout", StringComparison.Ordinal) && (r.Value<int?>("last_day") ?? int.MaxValue) <= deadline;
+        }
+
+        // Sprint rows add the fork, the morning's features, each candidate's win rate and its paired record
+        // against `keep` (samples it wins that keep loses, and the reverse), and the label: the gated winner.
+        void SprintRow(JObject row, string fork, JObject features, List<(Candidate c, double score, JArray samples)> evals, JArray keep)
+        {
+            int dl = cfg.Sprint.Deadline;
+            row["search"]["score"] = Sprint.ScoreDoc;
+            row["search"]["gate_z"] = cfg.Sprint.Gate;
+            row["search"]["deadline"] = dl;
+            row["fork"] = fork;
+            row["features"] = features;
+            var cj = (JArray)row["candidates"];
+            for (int i = 0; i < evals.Count; i++)
+            {
+                var s = evals[i].samples;
+                int n = s.Count, w = s.Count(x => Sprint.Won((JObject)x, dl));
+                double p = n == 0 ? 0 : (double)w / n;
+                cj[i]["p_win"] = Math.Round(p, 4);
+                cj[i]["p_win_se"] = Math.Round(n > 1 ? Math.Sqrt(p * (1 - p) / n) : 0, 4);
+                cj[i]["samples"] = n;
+                cj[i]["score_se"] = Math.Round(n > 1 ? Math.Sqrt(s.Sum(x => Math.Pow((double)x["score"] - evals[i].score, 2)) / (n - 1) / n) : 0, 1);
+                int m = Math.Min(n, keep.Count);
+                cj[i]["wins_gained"] = Enumerable.Range(0, m).Count(k => Sprint.Won((JObject)s[k], dl) && !Sprint.Won((JObject)keep[k], dl));
+                cj[i]["wins_lost"] = Enumerable.Range(0, m).Count(k => !Sprint.Won((JObject)s[k], dl) && Sprint.Won((JObject)keep[k], dl));
+                cj[i]["z_vs_keep"] = s.Count < 2 ? null : Math.Round(Math.Min(99, Math.Max(-99, PairedZ(keep, s))), 2);
+            }
+            row["label"] = (string)row["best"] == "keep" ? "default" : (string)row["best"];
+        }
+
+        // Rule policy: today's fork answered by the fitted rules, no rollouts.
+        void ApplyRules(Episode ep, string fork)
+        {
+            var features = Sprint.Features(ep, cfg.Sprint.Deadline);
+            var fired = Sprint.Fire(cfg.Sprint.Rules, fork, ep.Day, features);
+            var opts = Sprint.Options(fork, ep.Day, Sprint.PriceOn(cfg.Sprint.Deadline));
+            var d = holdJson ?? new JObject();
+            foreach (var name in fired)
+                if (opts.FirstOrDefault(x => x.name == name).delta is JObject delta) d = Sprint.Over(d, delta);
+            hold = d.Count == 0 ? null : Directives.Parse(d);
+            holdJson = hold == null ? null : d;
+            holdUntil = int.MaxValue;
+            Decisions.Add(new JObject { ["day"] = ep.Day, ["fork"] = fork, ["played"] = fired.Count == 0 ? "keep" : string.Join("+", fired), ["features"] = features, ["in_force"] = holdJson });
         }
 
         string JobPath(int day, int c, int m) => Path.Combine(cfg.WorkDir, $"d{day:000}-c{c:00}-m{m}.json");
