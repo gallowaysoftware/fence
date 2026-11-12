@@ -320,6 +320,24 @@
       },
       "description": "gym executor: the arms engine (docs/re/ARMS.md): weapon permits on display for gun-order clients, orders filled from stock with mods and repairs, permits II and III bought near their Security gates, guns held and printed for orders"
     },
+    "stolen": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "on": {"type": "boolean"},
+        "legal_only": {"type": "boolean"},
+        "clean_value": {"type": "boolean"},
+        "single_max_pct": {"$ref": "#/$defs/pct"},
+        "wholesale_max_pct": {"$ref": "#/$defs/pct"},
+        "crime_cap": {"type": "integer", "minimum": 0},
+        "max_heat": {"type": "integer", "minimum": 0, "maximum": 100},
+        "save_stop": {"type": "boolean"},
+        "blackmail": {"type": "boolean"},
+        "blackmail_min_odds": {"$ref": "#/$defs/pct"},
+        "bm_bargain": {"enum": ["never", "discount", "ev_positive", "aggressive"]}
+      },
+      "description": "gym executor: the stolen-goods trade (docs/re/STOLEN.md): legal goods staged from a seller's mixed lot, stolen lots judged at their clean estimate, warm goods sold under a trafficking cap, no bargaining with Black Market sellers"
+    },
     "lab": {
       "description": "gym executor: the chemistry lab (docs/research/CHEMISTRY-ENGINE.md), off when absent. \"caffeine\" is the older form of {products: [\"caffeine_pill\"]}",
       "oneOf": [

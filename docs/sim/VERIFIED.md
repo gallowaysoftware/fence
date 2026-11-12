@@ -262,6 +262,20 @@ the game makes them (the lab's `W.Make` skips the identifier and the permit chec
 | The Gunsmith start's old printer: pistol chip loaded, 7 power a night, a printed pistol in 3 nights, legal under Permit I, New, estimate 50 | 2 plastic, quiet nights | 1 | as stated | CONFIRMED |
 | A permit in stock brings no gun-order client; on display it brings ~0.6 a day | gym: the `gunsmith` route (permit moved to stock on day 1) against `arms` (permit kept on display) | 70 days / 16 runs | 0 in 70 days / 59–85 in ~100–120 days | CONFIRMED (gym) |
 
+## Stolen goods (`docs/re/STOLEN.md`)
+
+`fence-lab stolen.start|startnormal|discount|report|crackdown|thiefrate`, items made through the game's own seller path
+(`TryAddDirectSellingItemToTable(…, isStolen)`) where a client is seated.
+
+| Claim | Method | n | Result | Verdict |
+|---|---|---|---|---|
+| The Fence start's rep offsets scale with difficulty: Security −30, BM +30 on normal; −37.5 / +22.5 on hard | new game, one world a process | 1 each | exact | CONFIRMED (the route notes' "Security −30 on hard" is −37.5) |
+| The Fence start's kit: a shabby smuggler's bay, 2 dream dust, a heavy handmade pistol and 2 ammo, med/eng/sec keycards, 2 shabby black lamps; cash 450, rent 250, the BM exchange open | owned items on day 1 | 1 | as stated (plus the skip-intro tutorial kit every start gets) | CONFIRMED |
+| A seller's stolen item shows a −10/−15/−20/−25 % "five finger" discount at heat ≤25/≤50/≤75/more, in its estimate as well as its price; bought, the estimate is the clean one | a 200 surgery tool at heat 25/50/75/100 on a thief's counter | 1 each | 180/170/160/150 → 200 every time | CONFIRMED |
+| Reporting a seller of plain stolen goods: 50 + 4 % of their price, Security +0, the seller's faction its escalating report penalty | thief, petty thief, food thief with 2 stolen items | 1 each | +58 cash; Security 0; BM −20, −25, −30 (hard) | CONFIRMED |
+| A crackdown queues a (normal) inspector at each opening while active | `ActivateEvent(Crackdown)`, open | 30 | 30/30 (control days 0/30) | CONFIRMED (CONCEALMENT §4 left it open) |
+| BM sellers by BM rep, from the queue generated at the opening | 150 days per rep level | 150 × 7 | 0.05 a week below 40; 2.3–2.6 at 40–60 (the weekly thief and the 20 % petty thief) | INFO: the BM pool fires during the day, not at the opening; the gym measures it (STOLEN.md §6) |
+
 ## Formula exploits (`docs/research/FORMULA-EXPLOITS.md`)
 
 `sim/lab/FormulaExps.cs` (`fence-lab all -only formula.`). Each experiment runs the optimiser's version of a

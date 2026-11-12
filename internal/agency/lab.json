@@ -10,6 +10,7 @@
     "no_vending": {"wins": "60/60", "median_win_day": 91, "seeds": "2910001-060", "income": "58/27/4/11", "note": "48 door-shut nights a run"},
     "gunsmith": {"wins": "60/60", "median_win_day": 91, "seeds": "2910001-060", "income": "60/29/0/11"},
     "armourer": {"wins": "60/60", "median_win_day": 98, "seeds": "2910001-060", "income": "62/28/0/10", "note": "the arms engine on the Gunsmith start: ~4 gun orders a run, Permit II at day ~62; win day +11.6 ± 9.3 against gunsmith (4 of 60 by the mortgage)"},
+    "fence": {"wins": "60/60", "median_win_day": 105, "seeds": "2910001-060", "income": "63/28/0/9", "note": "the stolen engine on the Fence start: ~2 500 of stolen goods a run (3x outlaw), BM 40 in 36 of 60 runs; win day −1.4 ± 8.3 against outlaw, +14.6 ± 5.1 against the appraiser"},
     "outlaw": {"wins": "60/60", "median_win_day": 105, "seeds": "2910001-060", "income": "62/28/0/9"},
     "smelter": {"wins": "60/60", "median_win_day": 84, "seeds": "2910001-060", "income": "55/22/8/15", "note": "the only engine clearly ahead in cash"},
     "lean": {"wins": "60/60", "median_win_day": 91, "seeds": "2910001-060", "income": "57/22/3/17"},

@@ -38,7 +38,7 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `labeler` | apprentice / vending + short sleeper | `labeler: "per_buyer"` | 60/60 (94–100 %) | **91** (175) | 6 750 / 21 956 / 28 127 | −1 240 ± 1 136 | Reads the fakes under the magnifier, labels ~30 of them honestly, and sells ~5 a run as genuine to buyers who cannot tell. |
 | `no_vending` | apprentice / short sleeper + proficient scavenger | no vending perk | 60/60 (94–100 %) | **91** (175) | 6 358 / 20 564 / 28 472 | −1 148 ± 1 144 | No vending machine: more counter trading (54k sold, against 44k) and the most dump nights, and the wounds to show for it (48 door-shut nights a run). |
 | `gunsmith` | gunsmith / vending + short sleeper | the Gunsmith start | 60/60 (94–100 %) | **91** (175) | 6 330 / 20 756 / 27 412 | −1 640 ± 1 334 | The gunsmith's kit and Security's goodwill from day one (ends at 65). |
-| `outlaw` | fence / vending + short sleeper | the Fence start (Security −30 on hard) | 60/60 (94–100 %) | **105** (175) | 6 340 / 20 913 / 27 504 | −1 898 ± 962 | Starts in Security's bad books and stays there (ends at 10), and wins anyway. |
+| `outlaw` | fence / vending + short sleeper | the Fence start (Security −37.5, BM 22.5 on hard: −30/+30 scaled) | 60/60 (94–100 %) | **105** (175) | 6 340 / 20 913 / 27 504 | −1 898 ± 962 | Starts in Security's bad books and stays there (ends at 10), and wins anyway. |
 | `smelter` | apprentice / vending + short sleeper | `engine: "furnace"`, `ore_phone`, `furnaces: 2`, `furnace_eco` | 60/60 (94–100 %) | **84** (175) | 6 018 / 20 526 / 27 399 | −1 991 ± 1 126 | A metal shop: no wine, two blast furnaces fed by phoned ore, ~330 ingots a run and the busiest counter (61k sold). |
 | `lean` | apprentice / vending + short sleeper | `engine: "none"` | 60/60 (94–100 %) | **91** (175) | 5 546 / 19 910 / 23 283 | −6 128 ± 1 093 | No production at all: buy, sell, appraise. Proves the Board alone carries hard. |
 | `water_baron` | water merchant / vending + short sleeper | `engine: "furnace+water"` | 60/60 (94–100 %) | **112** (182) | 5 496 / 16 413 / 17 860 | −10 938 ± 1 224 | Purifies and bottles water (~16k sold a run) beside the furnace; the poorest winner, a week later, one arrest. |
@@ -55,6 +55,7 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `smelter_sprinter` | apprentice / vending + short sleeper | `sprinter` + one eco furnace on phoned ore, lots to 85 %, sales to 50 %, `buyout_by_day: 92` | 60/60 (94–100 %) on 8710001–060 | **83** | — | — | Invented by Qwen: a one-furnace smelter racing for cash. +12.1 ± 12.6 days. |
 | `pharma_vintner` | apprentice / vending + short sleeper | `vintner` + `pharma: "phone"`, sales to 55 %, `buyout_by_day: 95` | 60/60 (94–100 %) on 8710001–060 | **97** | — | — | Invented by Qwen: a wine cellar with Dale's injectors; 22 of 60 by the mortgage, +33.6 ± 14.1 days. |
 | `armourer` | gunsmith / vending + short sleeper | `gunsmith` + `arms: {"permit_from": 60}` | 60/60 (94–100 %) | **98** | — | — | The arms trade: the weapon permit stays in the window, gun-order clients are served from the counter's guns (modded to clear the order's rows), Weapon Permit II once Security reaches 50 after Georgio's loan. A week slower than `gunsmith` (below, "The Armourer"). |
+| `fence` | fence / vending + short sleeper | `outlaw` + `stolen: {"single_max_pct": 90, "wholesale_max_pct": 95}` | 60/60 (94–100 %) | **105** | — | — | The Fence start's native trade: thieves' lots bought for their legal goods at the clean value under the five-finger discount, cooled in the bay and sold at heat 0, no haggling with the Black Market, which reaches Safe Hands (a thief a week) in 36 of 60 runs. Three times `outlaw`'s stolen trade, the same win day (below, "The Fence"). |
 | `gunsmith_farm` | gunsmith / vending + short sleeper | `farmer`'s policy on the Gunsmith start, 3 bays, wine only, `pharma: "phone"` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: guns, wine and medicine on one counter; 34 of 60 by the mortgage. |
 | `fountain_pharma` | water merchant / vending + short sleeper | `fountain` + `pharma: "phone"`, sales to 50 %, `buyout_by_day: 105` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: water at night, injectors in the back; 34 of 60 by the mortgage. |
 | `household_sprinter` | apprentice / vending + short sleeper | `sprinter` + `specialty` household (lot share 0.3), lots to 85 %, sales to 52 %, `buyout_by_day: 94` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: a discount store; 37 of 60 by the mortgage. |
@@ -403,6 +404,53 @@ the cheapest way to show orders; the printer arm shows printed guns at two weeks
 would take that gun. Without that, it hands the order over with the gun back in stock. A refused order is dismissed,
 and a client the game keeps on as a melee buyer is served by the counter.
 
+## The Fence (2026-11-12)
+
+`fence` is the Fence start played as its native trade (docs/re/STOLEN.md; the engine is `stolen` in docs/PROTOCOL.md,
+sim/gym/Stolen.cs). `outlaw` and `fence_fortress` win on the Fence start through the Board and barely trade stolen
+goods: `outlaw` buys ~860 of them a run and makes ~570 on them (1.3 % of its money). It judged a seller's stolen goods
+by the estimate the counter shows, which carries the five-finger discount (−10 to −25 % by heat), so its 75 % limit
+asked thieves for ~56 % of the clean value; it sent a thief away whenever his lot held a keycard or a drug; and it
+haggled with Black Market sellers, whose walk-outs cost BM rep twice. `fence_fortress` adds selling at any heat, which
+writes FENCING, starts the inspection countdown and is why it pays for the alarm.
+
+Hard, seeds 2910001–060, 1000-day horizon (`sim/lab/scripts/arms-stolen.txt`, gym of e8e28ae before the merge of main 77606f6; `outlaw` is the same build's run). Δ is
+the paired win day (mean ± 1.96 SE, seeds both won); McNemar on paired wins (no discordant pair: every Board arm wins
+60/60).
+
+| Arm | Wins (95 %) | Median win day | Δ vs `outlaw` | Δ vs `appraiser` | Stolen bought / margin a run | Stolen share of income | BM end (runs at 40) | Security end | Lost to seizure etc. | Arrests |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `appraiser` | 60/60 (94–100 %) | 91 | — | — | — | — | — | — | — | 0 |
+| `outlaw` | 60/60 (94–100 %) | 105 | — | +16.0 ± 7.0 | 859 / 572 | 1.3 % | 27 (0) | 12 | 70 | 0 |
+| **`fence`** | 60/60 (94–100 %) | 105 | −1.4 ± 8.3 | +14.6 ± 5.1 | 2 458 / 785 | 1.9 % | 44 (36, median day 77) | 7 | 361 | 0 |
+
+Income split (Board / counter / production / Georgio): both 63/28/0/9 %. The thief became `fence`'s main supplier (1 466
+a run against 17); BM sellers come ~1.0 a week below BM 25, 1.4 at 25–40 and 3.8 from 40 (STOLEN.md §6).
+
+**Without the Board** (`appraisal` removed), 0/60 for both (Wilson 0–6 %): `outlaw` lasts to day 168 (median; rent 57,
+repo 2, arrest 1), `fence` to 150.5, paired −15.2 ± 8.3 days, with 5 arrests (evidence 100: unlicensed trading and the
+kit's contraband sales, not stolen goods). A stolen-goods shop cannot outrun the rent: the trade's ~1 300 a run margin
+Board-free is a week of hard's rent by day 100.
+
+**Screens that did not help** (20 seeds 3300001–020, paired against the route's settings):
+
+- Buying limits: 75/88 % of the clean value (+9.1 ± 18.9 days against `outlaw`), 85/92 (+6.7 ± 11.7), 80/90 (+6.3 ±
+  11.9), 90/95 (+4.2 ± 11.1); without `save_stop` (no stolen lot while saving for the buyout) two runs in twenty slid to
+  the mortgage. The route takes 90/95 with `save_stop`: the most trade at no measurable cost.
+- `crime_cap` (the formula sweep's crime allowance: warm goods sold while trafficking plus their FENCING stays ≤ 40–45,
+  crimes falling 20 a type a night): +7.3 ± 20.9 days at 45, 32 warm sales a run, FENCING 516 against 280; two mortgages.
+- `blackmail` (the sweep's ×0.8 on thieves): −4.5 ± 11.4 days, but the successful blackmails turn each trade's rep
+  multiplier to −6 and the refusals cost 12.5 BM: BM ends at −9 instead of 46, the thieves stop coming and the stolen
+  trade halves (1 115 bought). Off: it trades the native path for a few days of noise.
+
+On the ghost-band seeds 8100001–060 `fence` wins 60/60, median day 105; its deadline odds are 12/60 (12–32 %) for
+`sprint_91` and 5/60 (4–18 %) for `purist_sprint` (`outlaw`: 15/60 and 4/60).
+
+**Why the trade cannot speed hard up.** A stolen lot pays 10–25 % over a few nights of cooling; ~3 000 a run of it is
+~800 of margin, against the Board's ~26 000. The cash it ties up competes with the buyout savings. The route is a
+stream route, not a speed route: it puts the Fence start's own story on screen (thieves at the counter, the bay
+filling and emptying, BM rep climbing to Safe Hands) at no cost to the win.
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
@@ -419,6 +467,7 @@ by its own buy list: on a route the route's base policy does the buying.
 | `no_vending` | shark | | scavenges hardest and wears the wounds |
 | `gunsmith` | armourer | | its native start: Security's goodwill from day one |
 | `outlaw` | fence | shark | its native start: Security's bad books, no courting the police |
+| `fence` | fence | shark | its native start played as the stolen-goods trade: thieves, the bay, the Black Market |
 | `smelter` | smelter | | trash into metal |
 | `lean` | honest-broker | magnate | pure trading and appraisal with a clean name |
 | `water_baron` | water-baron | | the tap |
@@ -705,6 +754,7 @@ is, `purist_sprint` the route with the purist's four vows laid over it and locke
 | `outlaw` | 15/60 (16–37 %) | 84 | 4/60 (3–16 %) | 88 |
 | `apothecary` | 14/60 (14–35 %) | 91 | 9/60 (8–26 %) | 91 |
 | `household_sprinter` | 13/60 (13–34 %) | 91 | 5/60 (4–18 %) | 84 |
+| `fence` | 12/60 (12–32 %) | 91 | 5/60 (4–18 %) | 91 |
 | `luxury_sprinter` | 11/60 (11–30 %) | 84 | 3/60 (2–14 %) | 91 |
 | `speculator` | 10/60 (9–28 %) | 91 | 7/60 (6–22 %) | 91 |
 | `hardware_store` | 9/60 (8–26 %) | 91 | 5/60 (4–18 %) | 91 |

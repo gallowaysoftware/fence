@@ -223,6 +223,7 @@ namespace Fence.Gym
             Hooks.On("PlayerStore::ExecuteGameOver", (self, a) => GameOver ??= a[0] as string ?? "unknown");
             Hooks.On("WildNetworkUI::Open", (self, a) => wildOpened = true);
             RegisterAugHooks();
+            RegisterStolenHooks();
             foreach (var name in ModSide.MoneyHooks.Keys)
             {
                 string n = name;

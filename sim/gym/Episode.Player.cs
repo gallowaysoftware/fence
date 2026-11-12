@@ -828,6 +828,7 @@ namespace Fence.Gym
             if (Fish.Status() is JObject fish) s["fish"] = fish;
             if (Printer.Status() is JObject printer) s["printer"] = printer;
             if (Arms.Status() is JObject arms) s["arms"] = arms;
+            if (StolenLedger.Json() is JObject stolen) s["stolen"] = stolen;
             if (SupplyProbe.Totals() is JObject probe) s["supply_probe"] = probe;
             s["jackson"] = new JObject
             {

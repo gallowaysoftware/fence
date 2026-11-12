@@ -112,7 +112,7 @@ Worked examples (luck 0):
 | Showcase inspector | none, but it is your own doing: it only comes when the showcase holds contraband or stolen goods at the opening |
 | Security visitors | none (patrol officer is a one-off minor client; the requisition officer comes every `day % 7 == 4` with `SEC_REQUISITION`; story officers on fixed days) |
 | Fake inspector | none (wanted poster tells you who he is) |
-| Security operations (crackdown, raids, extra patrols, martial law) | queued 4 days ahead; the calendar shows them only with `SEC_TRUSTED` (Security ≥ 60). A crackdown blocks going out at night. The game's event-action table has an inspector keyed "crackdown"; whether it is ever wired to the operation was not checked. There are no THREAT-type events (their blueprint list is empty, `docs/sim/SPEC.md`) — CODE |
+| Security operations (crackdown, raids, extra patrols, martial law) | queued 4 days ahead; the calendar shows them only with `SEC_TRUSTED` (Security ≥ 60). A crackdown blocks going out at night. A crackdown sends one normal inspector at each opening while it is active (MEASURED, `STOLEN.md` §5), unannounced by the early warning. There are no THREAT-type events (their blueprint list is empty, `docs/sim/SPEC.md`) — CODE |
 | Burglary | the night log after the fact; uninsured nights are announced as they accrue |
 
 ## 5. Strategies

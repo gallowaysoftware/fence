@@ -100,7 +100,7 @@ namespace Fence.Gym
             if (Contraband(i) && (c.isSecurity || c.noAcceptingContraband)) return "contraband";
             // Water held through a surplus (an event pushing its price down), sold into shortages.
             if (Production.WaterSellOn && i.GetGameItemType().Contains("WATER") && i.GetCurrentValue(false, true, true, false, 0L) < i.GetCurrentValue(false, true, false, false, 0L)) return "water_surplus";
-            if (StolenHelper.IsStolenItem(i) && (c.isSecurity || !(D.SellHot ?? false) && !(HotMaxHeat is int mh && Heat(i) <= mh))) return "stolen";
+            if (StolenHelper.IsStolenItem(i) && (c.isSecurity || !(D.SellHot ?? false) && !(HotMaxHeat is int mh && Heat(i) <= mh) && !StolenTrade.SellsWarm(i, c))) return "stolen";
             if (Style.Speculating(i, c)) return "speculating";
             return null;
         }
@@ -149,6 +149,7 @@ namespace Fence.Gym
                 picked.Add(i);
                 sum += v;
             }
+            picked = StolenTrade.CapWarm(picked, client).ToList();
             Breadth.Saw(client, P.Day);
             DemandTrace.Buyer(client, owned, picked, room);
             defaults.Take("player:stage_for_buyer", picked.Count + " of " + wanted.Count + (liq ? " (liquidating)" : ""));
@@ -179,7 +180,7 @@ namespace Fence.Gym
                 return inputs;
             }
             var avoid = D.AvoidTypes;
-            var picked = theirs.Where(i => !(avoid.Count > 0 && TypeIs(i, avoid))).OrderBy(i => i.uniqueId).ToList();
+            var picked = StolenTrade.Legal(theirs.Where(i => !(avoid.Count > 0 && TypeIs(i, avoid))).OrderBy(i => i.uniqueId).ToList()).ToList();
             if (Style.SpecialtyTypes is List<string> only)
             {
                 var mine = picked.Where(i => TypeIs(i, only)).ToList();
@@ -755,8 +756,8 @@ namespace Fence.Gym
                 if (Conceal.Bays().Count > 0 && hot.Sum(i => PlayerStock.CellsOf(i.Value<int?>("uid") ?? -1)) <= Conceal.FreeCells()) return true;
                 return PlayerStock.HotCount() + hot.Count <= cap;
             }
-            bool stagedOk = !staged.Any(Bad) && HotFits(staged);
-            bool lotOk = !theirs.Any(Bad) && HotFits(theirs);
+            bool stagedOk = !staged.Any(Bad) && HotFits(staged) && !StolenTrade.Stops(staged);
+            bool lotOk = !theirs.Any(Bad) && HotFits(theirs) && !StolenTrade.Stops(theirs);
             if (!stagedOk && !lotOk)
             {
                 why = staged.Any(Bad) ? "contraband" : "hot stock cap";
@@ -765,6 +766,11 @@ namespace Fence.Gym
             long est = staged.Sum(i => i.Value<long?>("estimated_value") ?? 0);
             long price = staged.Sum(i => i.Value<long?>("price") ?? 0);
             long estAll = theirs.Sum(i => i.Value<long?>("estimated_value") ?? 0);
+            if (StolenTrade.On)
+            {
+                est = StolenTrade.CleanEst(staged);
+                estAll = StolenTrade.CleanEst(theirs);
+            }
             long? wholesale = c["client"]?["wholesale"]?.Type == JTokenType.Object ? c["client"]["wholesale"].Value<long?>("price") : null;
             long floor = p?.Floor ?? 0;
             long spendLeft = d.MaxSpend.HasValue ? d.MaxSpend.Value - (p?.Spent ?? 0) : long.MaxValue;
@@ -782,6 +788,8 @@ namespace Fence.Gym
             bool repoShort = pst.isPayingMortgage && PlayerStock.RepoValue() < pst.mortgageWeeklyPayment * (d.Raw.Value<double?>("repo_reserve_payments") ?? 1.5);
             bool restock = (!liq && PlayerStock.Value() < (d.RestockBelow ?? 0)) || repoShort;
             double singleMax = (d.SingleMaxPct ?? (liq ? 70 : restock ? 100 : 85)) / 100.0;
+            if (StolenTrade.AllStolen(staged) && StolenTrade.SingleMax is double ssm) singleMax = ssm;
+            if (StolenTrade.AllStolen(theirs) && StolenTrade.WholesaleMax is double swm) wsMax = swm;
             bool inputsOnly = staged.Count > 0 && staged.All(i => Production.IsInput(i.Value<string>("id")));
             // The plan's preferred types (an announced shortage, a persona's line) are bought up to their estimate.
             // Types buyers asked for this week and found nothing of (H16, stock breadth): restock them at
@@ -863,12 +871,17 @@ namespace Fence.Gym
 
             // Demanding a discount from a seller risks a walk-out (-3 rep): only under ev_positive/aggressive, or the
             // plan's own `bargain_buy` (never | ev_positive | aggressive).
-            string mode = d.Raw.Value<string>("bargain_buy") ?? d.Bargain ?? "ev_positive";
+            string mode = StolenTrade.BargainBuy(c["client"]?.Value<string>("faction"), d.Raw.Value<string>("bargain_buy") ?? d.Bargain ?? "ev_positive");
             // A demanded discount is a bad bargain for the rep; near -20 Lower Levels (Poor Reviews: a daily
             // customer lost) stop demanding from their sellers.
             double llRep = c["reputation"]?["lower_levels"]?.Value<double?>("value") ?? 0;
             bool hardRules = PlayerStore.Instance.difficultyId == "hard" || PlayerStore.Instance.difficultyId == "challenge";
             if (c["client"]?.Value<string>("faction") == "lower_levels" && llRep <= (d.Raw.Value<double?>("ll_rep_guard") ?? (hardRules ? 0 : -12))) mode = "never";
+            if (Has(req, "blackmail") && StolenTrade.Blackmails(c, staged, Odds(req, "blackmail").accept))
+            {
+                why = "blackmail a seller of stolen goods";
+                return "blackmail";
+            }
             if (mode == "ev_positive" || mode == "aggressive")
             {
                 double g0 = Math.Max(0, Math.Max(wsOk ? estAll - wholesale.Value : 0, buyOk ? est - price : 0));

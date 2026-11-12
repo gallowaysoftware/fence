@@ -57,6 +57,7 @@ namespace Fence.Gym
             Fish.Reset();
             Printer.Reset();
             Arms.Reset();
+            StolenTrade.Reset();
             Crops.Reset();
             Lab.Reset();
             Quality.Reset();

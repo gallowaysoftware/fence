@@ -3,6 +3,39 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## The stolen-goods trade — 2026-11-12: the Fence start's native path; three times the trade, the same win day
+
+**Result.** The Fence start's stolen-goods trade from the decompiled source (docs/re/STOLEN.md), checked in the lab
+(`fence-lab stolen.*`, docs/sim/VERIFIED.md "Stolen goods") and played by a new executor engine, `stolen`
+(sim/gym/Stolen.cs, off by default; contract in docs/PROTOCOL.md and the directives schema). New route `fence`
+(docs/research/ROUTES.md, "The Fence"): 60/60 on hard, median win day 105, paired −1.4 ± 8.3 days against `outlaw`
+and +14.6 ± 5.1 against the appraiser; 0/60 without the Board, like every route. The run summary gains
+`player.stolen` (sim/gym/Episode.Stolen.cs): every item bought stolen followed to its sale, the vending machine or
+its loss.
+
+**Found.**
+
+- On hard the Fence start is Security **−37.5** and BM **22.5** (start offsets scale with the difficulty), not −30/+30.
+- A seller's stolen item shows a five-finger discount (−10/−15/−20/−25 % by heat) in its estimate as well as its
+  price; bought, it is worth the clean estimate. `outlaw` judged stolen lots by the discounted estimate, so its 75 %
+  limit asked thieves for ~56 % of the value; it also sent away every thief whose lot held a keycard or drug, and
+  haggled with BM sellers (a walk-out is −7.5 BM on hard). It bought ~860 of stolen goods a run (1.3 % of its money).
+- Heat falls 18 a night everywhere; the bay only hides. Selling at heat 0 writes no crime, so a fence that never sells
+  warm never starts the inspection countdown; a **crackdown** still sends an unannounced inspector each day it runs
+  (measured; CONCEALMENT.md had left it open).
+- BM sellers come ~1.0 a week below BM 25, 1.4 at 25–40 and **3.8 from 40** (Safe Hands). Reporting a thief pays 58,
+  no Security, and −20/−25/−30 BM; blackmail (the formula sweep's ×0.8) sinks BM below 0 and the thieves stop
+  coming; the crime allowance (warm sales under a trafficking cap) adds inspections and no speed. Both are levers,
+  off in the route.
+- The trade is thin: tripled (~2 500 bought, ~800 margin, BM 40 in 36 of 60 runs) it is 1.9 % of a winning run's
+  money against the Board's 63 %.
+
+**Left.** The Butcher (`wanted2_return`) offers ~8 000 of stolen meat a run that the executor treats as a bounty:
+buy-or-report is unmeasured. The executor leaves goods on the back counter when stock is full, and they sell warm to
+the next buyer (~2–3 a run). The mod needs the `stolen` engine's reads (the discount feature on the counter, the
+trafficking total) checked live; `threaten-trade-shoot` on augs and Lower Levels under-labelling (the sweep's other
+two items for this branch) belong to the aug and label code and were not folded in.
+
 ## The day-0 thesis in persona — 2026-11-12
 
 **Result.** The card's archetype now writes the day-0 thesis. `agency.Ask.Persona` / `PersonaText` (the persona's prompt
