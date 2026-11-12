@@ -66,10 +66,12 @@ type config struct {
 	stratProvider, stratURL, stratModel           string
 	narrURL, narrModel, anthropicKey              string
 	narrTest                                      bool
-	ttsURL, voice, persona, personas, wavOut      string
-	obsDirs                                       []string
-	minFreeMB, minDiskMB                          int64
-	timeout                                       time.Duration
+	// narrRemote: the narrator's URL is fencegate in front of another machine.
+	narrRemote                               bool
+	ttsURL, voice, persona, personas, wavOut string
+	obsDirs                                  []string
+	minFreeMB, minDiskMB                     int64
+	timeout                                  time.Duration
 	// hooks for tests
 	runCompat func(ctx context.Context, c config) (int, string, error)
 	gpuFree   func(ctx context.Context) (freeMB, totalMB int64, err error)
@@ -181,6 +183,8 @@ func Checks(ctx context.Context, c config) []Result {
 		c.diskFree = diskFree
 	}
 	hc := &http.Client{Timeout: c.timeout}
+	g := probeGates(ctx, hc, c)
+	c.narrRemote = g.narrRemote()
 	build, out := checkBuild(c)
 	results := []Result{out}
 	results = append(results,
@@ -190,6 +194,11 @@ func Checks(ctx context.Context, c config) []Result {
 		checkBridge(ctx, hc, c),
 		checkStrategist(ctx, hc, c),
 		checkNarrator(ctx, hc, c),
+	)
+	if r, ok := checkGate(c, g); ok {
+		results = append(results, r)
+	}
+	results = append(results,
 		checkTTS(ctx, c),
 		checkShow(ctx, hc, c),
 		checkSoundcheck(ctx, hc, c),
@@ -559,7 +568,7 @@ func checkNarrator(ctx context.Context, hc *http.Client, c config) Result {
 		case !found:
 			r.Status, r.Detail = Warn, host+" does not serve "+c.narrModel+": captions only"
 			return r
-		case status == "unloaded" && strings.HasPrefix(host, "localhost"):
+		case status == "unloaded" && strings.HasPrefix(host, "localhost") && !c.narrRemote:
 			r.Status, r.Detail = Warn, c.narrModel+" is listed but not loaded on this machine: a line would load it next to the strategist"
 			return r
 		}
@@ -829,7 +838,7 @@ func checkGame(c config) Result {
 	r := Result{Name: "game process", Status: Go}
 	if c.gameUp() {
 		r.Detail = "Probably Stolen.exe is running: fenceshow's narrator yields a local LLM to it (-yield-to-game)"
-		if hostOf(c.narrURL) != "the remote endpoint" && c.anthropicKey == "" && c.narrURL != "" {
+		if hostOf(c.narrURL) != "the remote endpoint" && !c.narrRemote && c.anthropicKey == "" && c.narrURL != "" {
 			r.Status = Warn
 			r.Detail += ", so a local narrator speaks captions only; use the API or a remote model, or -yield-to-game=false"
 		}

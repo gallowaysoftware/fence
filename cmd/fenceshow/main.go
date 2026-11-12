@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/gallowaysoftware/fence/internal/format"
+	"github.com/gallowaysoftware/fence/internal/gate"
 	"github.com/gallowaysoftware/fence/internal/llm"
 	"github.com/gallowaysoftware/fence/internal/show"
 )
@@ -56,7 +57,7 @@ type config struct {
 	llmURL, llmModel, llmProvider, thinking            string
 	anthropicURL, anthropicModel, anthropicKey         string
 	tts, ttsURL, piperBin, piperModel, voice, audioDir string
-	minGap, maxAge, maxLag, fillAfter                  time.Duration
+	minGap, maxAge, maxLag, fillAfter, llmTimeout      time.Duration
 	yieldToGame                                        bool
 }
 
@@ -116,6 +117,7 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.DurationVar(&c.fillAfter, "fill-after", 60*time.Second, "after this much silence a notable event may be spoken too (0: moments only)")
 	fs.DurationVar(&c.maxAge, "max-age", 15*time.Second, "never narrate a moment older than this")
 	fs.DurationVar(&c.maxLag, "max-lag", 25*time.Second, "drop a line that is ready later than this after its moment")
+	fs.DurationVar(&c.llmTimeout, "llm-timeout", 8*time.Second, "live: give the narrator's model this long for a line (queue included) before the caption is spoken; a replay paced by the narration gives it 30 s")
 	fs.BoolVar(&c.yieldToGame, "yield-to-game", true, "no narrator LLM while Probably Stolen.exe runs (captions instead), when that LLM is served on this machine")
 	if err := fs.Parse(args); err != nil {
 		return c, err
@@ -354,7 +356,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 
 func narrator(c config, hub *show.Hub, log *slog.Logger) (*show.Narrator, error) {
 	n := &show.Narrator{Voice: c.voice, PersonaD: c.personas, Persona: c.defaultPersona, AudioDir: c.audioDir, MinGap: c.minGap, FillAfter: c.fillAfter, MaxAge: c.maxAge,
-		MaxLag: c.maxLag, Log: log, Publish: hub.Publish}
+		MaxLag: c.maxLag, Timeout: c.llmTimeout, Log: log, Publish: hub.Publish}
 	client, desc, err := narratorLLM(c)
 	if err != nil {
 		return nil, err
@@ -362,10 +364,11 @@ func narrator(c config, hub *show.Hub, log *slog.Logger) (*show.Narrator, error)
 	n.LLM = client
 	if c.yieldToGame && sharesGPU(c) {
 		var gaming atomic.Bool
-		gaming.Store(show.GameRunning())
+		poll := func() { gaming.Store(show.GameRunning() && !behindRemoteGate(c.llmURL)) }
+		poll()
 		go func() {
 			for range time.Tick(30 * time.Second) {
-				gaming.Store(show.GameRunning())
+				poll()
 			}
 		}()
 		n.LLMOff = gaming.Load
@@ -411,6 +414,16 @@ func sharesGPU(c config) bool {
 	h := u.Hostname()
 	ip := net.ParseIP(h)
 	return h == "localhost" || (ip != nil && ip.IsLoopback())
+}
+
+// behindRemoteGate reports whether a loopback narrator URL is fencegate in front of another
+// machine (drift): that model does not share the GPU with the game. Asked at each poll, since the
+// gate may start after fenceshow.
+func behindRemoteGate(llmURL string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	st, ok := gate.Probe(ctx, http.DefaultClient, llmURL)
+	return ok && !st.UpstreamLocal
 }
 
 // narratorLLM picks the narrator's model: the Anthropic API when asked for, or under auto

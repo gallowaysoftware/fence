@@ -2,9 +2,12 @@ package main
 
 import (
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/gallowaysoftware/fence/internal/gate"
 	"github.com/gallowaysoftware/fence/internal/show"
 )
 
@@ -97,6 +100,33 @@ func TestSharesGPU(t *testing.T) {
 		if got := sharesGPU(cfg); got != c.want {
 			t.Errorf("env %v args %q: %v", c.env, c.args, got)
 		}
+	}
+}
+
+// fencegate on loopback in front of another machine does not share the GPU; in front of this
+// machine's server it does, and so does a plain local server.
+func TestBehindRemoteGate(t *testing.T) {
+	plain := httptest.NewServer(http.NotFoundHandler())
+	defer plain.Close()
+	for _, tc := range []struct {
+		name, upstream string
+		want           bool
+	}{
+		{"gate to another machine", "http://model.invalid:9002/v1", true},
+		{"gate to this machine", "http://127.0.0.1:9000/v1", false},
+	} {
+		g, err := gate.New(gate.Config{Upstream: tc.upstream})
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := httptest.NewServer(g)
+		if got := behindRemoteGate(s.URL + "/narrate/v1"); got != tc.want {
+			t.Errorf("%s: %v, want %v", tc.name, got, tc.want)
+		}
+		s.Close()
+	}
+	if behindRemoteGate(plain.URL + "/v1") {
+		t.Error("a plain local server counted as a remote gate")
 	}
 }
 

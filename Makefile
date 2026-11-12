@@ -1,12 +1,12 @@
 GAME_DIR ?= $(HOME)/.local/share/Steam/steamapps/common/Probably Stolen
 export GAME_DIR
 
-# drift: the roaming MacBook serving Qwen3.8-Flash-Next through MTPLX. It may be offline;
+# drift: the roaming MacBook serving Qwen3.8-27B through MLX (Flash-Next before 2026-11-11). It may be offline;
 # the bridge then defers every decision.
 # Machine-specific endpoints live in local.mk (untracked); see local.mk.example.
 -include local.mk
 DRIFT_URL ?= http://localhost:9002/v1
-DRIFT_MODEL ?= qwen38fn-mlx
+DRIFT_MODEL ?= qwen38-27b-mlx
 DRIFT_FLAGS = -policy llm -base-url $(DRIFT_URL) -model $(DRIFT_MODEL) -no-schema -thinking off -temperature 0.2
 
 .PHONY: show-demo knowledge knowledge-status data-status data-export service-install service-status service-logs service-uninstall bridge-drift-act test test-go test-mod mod mod-install compat compat-proposed bridge bridge-drift fakemod eval eval-drift backup-saves
@@ -186,3 +186,10 @@ show-demo:
 .PHONY: stream-preflight
 stream-preflight:
 	go run ./cmd/preflight $(ARGS)
+
+# The drift gate (docs/STREAM-OPS.md, "The drift gate"): one drift slot for the strategist
+# ($(GATE_URL)/plan/v1) and the narrator ($(GATE_URL)/narrate/v1), the strategist first.
+GATE_URL ?= http://127.0.0.1:7380
+.PHONY: gate
+gate:
+	go run ./cmd/fencegate -upstream $(DRIFT_URL) $(ARGS)

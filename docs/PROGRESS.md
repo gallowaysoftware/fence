@@ -25,6 +25,24 @@ Replay demo on the dress rehearsal's days 30–41 with four synthetic bets and a
 the owner's setup (Affiliate, app, scopes `channel:manage:predictions` and `user:read:chat`, token outside the
 repo, env vars): docs/STREAM-OPS.md section 11.
 
+## Drift gate — 2026-11-11: drift plays and narrates through one slot; plans keep their pace, 61 % of lines in character
+
+**Result.** The stream's rule is now one persona that plays and narrates, on drift (Qwen3.8-27B since
+today), with the 5090 left to the game and OBS's encoder. drift serves one request at a time, so
+`cmd/fencegate` (`internal/gate`) sits on loopback in front of it: one request upstream at a time, the
+strategist's (`/plan/v1`) first, the narrator's (`/narrate/v1`) next; a narrator line queued over 5 s is
+answered 503 and the caption is spoken; upstream 503s are retried; per-role waits, latencies and drops at
+`/gate`. fenceshow gains `-llm-timeout` and asks the gate whether its model is local (so it does not
+yield to the game); the pre-flight gains a "drift gate" row. Measured on the dress rehearsal's days
+30–41 at the recorded pace with a live-like strategist load (the bridge's own plan and directives
+builder, one morning per replayed day): with the narrator sharing, plans p50 31.8 s / p95 52.6 s against
+30.9 / 40.7 alone (mornings 45 vs 40 s at p50), never dropped; the narrator 1.34 lines a minute, 19 of 31
+in character (8 gate drops in the mornings, 5 timeouts), every model line through the fact check; alone
+1.43 a minute, 82 % in character. The 8 s default timeout left 1 line in 27 in character on the 27B
+(some calls hang past 15 s on drift's side); use 15 s. Density stays under the 1.5–2 target; the API
+narrator or a second model on drift (~58 GB free) are the upgrades. Runbook and table:
+docs/STREAM-OPS.md, "The drift gate".
+
 ## Second engine — 2026-11-11: no engine closes the Board-free gap on hard; supply, not demand, is the wall
 
 **Result.** Built and measured a cash-crop lever for the hydroponic bays (`crops`, with tap water for the crop bays)

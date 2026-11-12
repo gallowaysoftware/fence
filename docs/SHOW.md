@@ -601,7 +601,7 @@ in the player's persona and voice, and publishes a `say` event with the WAV the 
   never one just used.
   With `-record` on a live source, a restarted fenceshow reads the run's spoken lines back, so a
   restart no longer clears the memory.
-  Measured with drift's qwen38fn-mlx on t5-hard-drift/drift-delta__apprentice__s970001:
+  Measured with drift's qwen38fn-mlx (Flash-Next) on t5-hard-drift/drift-delta__apprentice__s970001:
   `make show-demo` (days 38–46) 7/8 lines passed first time, the 8th on the retry
   ("Georgio's seventy-three" for a 730 loan), none fell back; days 2–37 without TTS 20/20.
   LLM time per line: median 4.7 s and 7.1 s, worst 15 s. The check reads numbers, not
@@ -611,13 +611,17 @@ in the player's persona and voice, and publishes a `say` event with the WAV the 
   default claude-haiku-5-5) when `ANTHROPIC_API_KEY` is set, else the local model at
   `-llm-url` (OpenAI-compatible), else captions. `openai`, `anthropic` or `none` force one.
   The key comes from the environment only.
-- **Degrades.** LLM down, slow (8 s live, 30 s replay) or yielding to the game (only a model
+- **Degrades.** LLM down, slow (`-llm-timeout`, 8 s live; 15 s for drift's 27B; 30 s replay) or yielding to the game (only a model
   served on this machine yields: an OpenAI-compatible URL on loopback) → the caption is the line. Kokoro down → piper (`~/.local/bin/piper`, en_US-lessac-medium) →
   no audio, caption only. Nothing ever blocks the feed.
 - **Sharing the GPU.** `-yield-to-game` (on) checks every 30 s for `Probably Stolen.exe` and
   stops calling a narrator model served on this machine while it runs; the API and a remote node
-  keep narrating in character (the stream's plan: `docs/STREAM-OPS.md`). Point `-llm-url` at drift (`DRIFT_URL` in `local.mk`;
-  `make show-demo` does) or at an API; a narrator line is ~400 prompt tokens and ~40 out, one
+  keep narrating in character (the stream's plan: `docs/STREAM-OPS.md`). On stream drift both plays
+  and narrates: point `-llm-url` at the drift gate, `http://127.0.0.1:7380/narrate/v1`
+  (`docs/STREAM-OPS.md`, "The drift gate"), which queues the line behind the strategist's plans and
+  answers 503 for a line that waited over 5 s, so the caption is spoken. fenceshow asks the gate
+  whether its model is on this machine, so `-yield-to-game` leaves drift speaking. Off stream, point
+  it at drift directly (`DRIFT_URL` in `local.mk`; `make show-demo` does) or at an API; a narrator line is ~400 prompt tokens and ~40 out, one
   every 15–30 s. Do not point it at llama-swap on 127.0.0.1:9000 by a model name that is not
   already loaded: llama-swap would load a second 27B next to the one the leagues use.
 
@@ -696,6 +700,10 @@ Two of the after lines got a number past the check: "Eleven niner" (119) and "Th
 are retries that still repeated: "then hitting the" (grammar, not a repeat since `ff64e14`) and "the
 board pays" (a real one, from the streak line before).
 
+Drift's 27B as player and narrator through the drift gate, on the same replay (days 30–41): 1.34
+lines a minute, 61 % in character, the rest captions while the morning plan holds drift; alone 1.43
+and 82 %. Table and lines: docs/STREAM-OPS.md, "The drift gate".
+
 ### TTS setup
 
 Kokoro is the same service llm-economic-domination's video pipeline uses
@@ -726,7 +734,7 @@ go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded li
 go run ./cmd/fenceshow -replay var/rehearsal/run1 -route sprinter -prev-run var/sim/prev.summary.json  # a rehearsal against its book and an earlier run
 go run ./cmd/fenceshow -live-match var/league/<l>/<match> -record var/show/feed.jsonl
 go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
-   -player drift -model qwen38fn-mlx -persona shark -llm-url "$DRIFT_URL" -llm-model qwen38fn-mlx
+   -player drift -model $DRIFT_MODEL -persona shark -llm-url http://127.0.0.1:7380/narrate/v1 -llm-model $DRIFT_MODEL
 go run ./cmd/fencevod -feed var/show/stream-2026-11-20.jsonl \
    -recording "var/stream/2026-11-20/2026-11-20 19-58-12.mkv" -out var/vod/2026-11-20   # the VOD kit
 ```

@@ -14,6 +14,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/gallowaysoftware/fence/internal/gate"
 )
 
 func write(t *testing.T, path, body string) {
@@ -207,5 +209,62 @@ func TestRunExitCodes(t *testing.T) {
 		"-tts-url", "http://127.0.0.1:1", "-repo", t.TempDir(), "-timeout", "1s"}, env, &out, &out)
 	if err != nil || code != 1 || !strings.Contains(out.String(), "VERDICT: NO-GO") {
 		t.Errorf("code %d err %v\n%s", code, err, out.String())
+	}
+}
+
+// The gate row appears when a role goes through fencegate, or when both roles share one model
+// without it.
+func TestGateRow(t *testing.T) {
+	newGate := func(t *testing.T, upstream string) string {
+		g, err := gate.New(gate.Config{Upstream: upstream})
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := httptest.NewServer(g)
+		t.Cleanup(s.Close)
+		return s.URL
+	}
+	cases := []struct {
+		name   string
+		setup  func(t *testing.T, c *config)
+		want   Status
+		detail string
+	}{
+		{"no gate, different models", func(*testing.T, *config) {}, "", ""},
+		{"same model without the gate", func(_ *testing.T, c *config) { c.narrURL, c.narrModel = c.stratURL, c.stratModel }, Warn, "make gate"},
+		{"both through a remote gate", func(t *testing.T, c *config) {
+			g := newGate(t, c.stratURL)
+			c.stratURL, c.narrURL = g+"/plan/v1", g+"/narrate/v1"
+		}, Go, "strategist and narrator"},
+		{"only the narrator", func(t *testing.T, c *config) { c.narrURL = newGate(t, c.narrURL) + "/narrate/v1" }, Warn, "point the bridge"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := rig(t)
+			tc.setup(t, &c)
+			// The rig's model server is on loopback; a gate in front of it would warn, so the gate's
+			// view of its upstream is what the remote cases fake.
+			g := probeGates(context.Background(), http.DefaultClient, c)
+			for _, st := range []*gate.Status{g.strat, g.narr} {
+				if st != nil {
+					st.UpstreamLocal = false
+				}
+			}
+			r, ok := checkGate(c, g)
+			if tc.want == "" {
+				if ok {
+					t.Errorf("row %+v, want none", r)
+				}
+				return
+			}
+			if !ok || r.Status != tc.want || !strings.Contains(r.Detail, tc.detail) {
+				t.Errorf("row %+v (shown %v), want %s with %q", r, ok, tc.want, tc.detail)
+			}
+		})
+	}
+	c := rig(t)
+	c.narrURL = newGate(t, c.narrURL) + "/narrate/v1"
+	if r, _ := checkGate(c, probeGates(context.Background(), http.DefaultClient, c)); r.Status != Warn || !strings.Contains(r.Detail, "this machine") {
+		t.Errorf("gate to a local model: %+v", r)
 	}
 }

@@ -17,38 +17,51 @@ Three places can run a model. None is named here by address; endpoints live in `
 
 | Node | Hardware | Serves | Notes |
 |---|---|---|---|
-| **The game box** | Linux, RTX 5090 (32 607 MiB), Proton | the game, the mod, the bridge (`:7341`), fenceshow (`:7350`), Kokoro, OBS | llama-swap on `:9000` serves the 27B the leagues use |
-| **drift** | MacBook, MTPLX | `qwen38fn-mlx` (Qwen3.8 Flash) | may be offline; one request at a time: a second caller gets HTTP 503 while it generates |
-| **The API** | Anthropic | the narrator (`claude-haiku-5-5`), optionally the strategist | only when `ANTHROPIC_API_KEY` is set in the environment |
+| **The game box** | Linux, RTX 5090 (32 607 MiB), Proton | on stream: the game and OBS's encoder on the GPU; the mod, the bridge (`:7341`), fenceshow (`:7350`), the drift gate (`:7380`) and CPU Kokoro (`:8881`) | llama-swap on `:9000` serves the 27B the leagues use, **off stream only** |
+| **drift** | MacBook, MLX behind a llama-swap peer | `$DRIFT_MODEL` (`DRIFT_MODEL` in `local.mk`; Qwen3.8-27B, `qwen38-27b-mlx`, since 2026-11-11; Qwen3.8 Flash, `qwen38fn-mlx`, before) | the stream's player and narrator, through the gate; may be offline; one request at a time: a second caller gets HTTP 503 while it generates. ~58 GB free beside the 27B, so a second model (a narrator of its own) could live there later |
+| **The API** | Anthropic | optionally the narrator (`claude-haiku-5-5`) or the strategist | only when `ANTHROPIC_API_KEY` is set in the environment |
+
+**The rule on stream (owner, 2026-11-11).** The agent stands in for a human streamer: one persona
+that plays and narrates, so drift is both the *strategist* and the *narrator*, through the drift
+gate (below). The 5090 runs only the game and OBS's encoder: no LLM on it during a stream.
 
 **Roles.** The *strategist* writes each morning's plan (the bridge, `-planner llm -directives
 delta`); the *hands* are the executor inside the mod (no model); the *narrator* is fenceshow's
-(one short line per moment); *TTS* is Kokoro (piper as fallback). Two strategists are proven on
+(one short line per moment); *TTS* is Kokoro on the CPU (piper as fallback). The API (Haiku) is an
+optional narrator upgrade: faster and never queued behind a plan, at a per-line cost, and a
+different voice from the player. Two strategists are proven on
 the stream's policy: in the t7 hard league both `qwen27-delta` (the 27B on the 5090) and
 `drift-delta` (drift) bought the shop on day 175 in 3 of 3 games, the same as the executor alone
-(`var/league/t7-hard-*/REPORT.md`). Plan latency p50: drift 3.8 s, the 27B 7.3 s; a live day takes
-3–6 minutes, so either keeps up.
+(`var/league/t7-hard-*/REPORT.md`). Plan latency p50: drift on Flash 3.8 s, the 27B 7.3 s; a live day takes
+3–6 minutes, so either keeps up. drift on the 27B: see "The drift gate", measured.
 
-**GPU budget on the 5090.** Measured 2026-11-10 with the leagues' 27B loaded: 29 427 of 32 607
-MiB used, 3 180 MiB free. GPU Kokoro needs 2–3 GB (`docs/SHOW.md`, "TTS setup"), and the game
-itself needs VRAM too (unmeasured: read `nvidia-smi` while it runs on the first stream). So:
+**GPU budget on the 5090.** On stream it holds the game and OBS's encoder (NVENC) only; the
+game's own VRAM is still unmeasured (read `nvidia-smi` while it runs on the first stream). Off
+stream, the leagues' 27B takes 29 427 of 32 607 MiB (measured 2026-11-10).
 
-| Strategist this run | TTS | Narrator LLM | Why |
+| TTS | VRAM | Speed | When |
 |---|---|---|---|
-| the 27B on the 5090 | **CPU Kokoro** (`fence-show-kokoro`, `:8881`) | the API, else drift | the 27B, the game and GPU Kokoro do not fit together |
-| drift or the API | **GPU Kokoro** (`vibe start tts_kokoro`, `:8880`) | the API, else drift | the 5090 holds only the game and Kokoro |
+| **CPU Kokoro**, the default (`fence-show-kokoro`, `:8881`) | none | 6 s a short line idle, 12 s under load (pre-flight, 2026-11-10); 1.5 s median, 15 s worst in the rehearsal | every stream |
+| GPU Kokoro, an owner option (`vibe start tts_kokoro`, `:8880`) | 2–3 GB beside the game | well under a second | when `nvidia-smi` shows the game leaves 3 GB free; fenceshow `-tts-url http://127.0.0.1:8880` |
 
-CPU Kokoro took 6 s for a short line idle and 12 s under load (pre-flight, 2026-11-10); the live
-narrator drops a line that is ready later than 25 s after its moment, so on the CPU it says
-less. GPU Kokoro is well under a second.
+The live narrator drops a line that is ready later than 25 s after its moment, so on the CPU under
+load it says a little less.
 
-**The narrator's LLM.** Prefer the API: it never competes with the game or the strategist. drift
-works but refuses a second request while it plans (HTTP 503; the narrator then speaks the
-caption, and fact-checking means it never says a wrong number either way). Never point the
-narrator at llama-swap by a model name that is not loaded: it would load a second model next to
-the strategist. fenceshow's `-yield-to-game` now applies only to a narrator served on this machine
-(an OpenAI-compatible URL on loopback); the API and drift keep speaking in character while the
-game runs.
+**The narrator's LLM.** drift, through the gate, as the player's own voice. A narrator line waits
+behind a plan, never the other way round; a line that waits too long is dropped and the caption is
+spoken, and the fact check means it never says a wrong number either way. The API (Haiku) is the
+upgrade when the owner wants every line in character regardless of the plans: `-llm-provider
+anthropic`, or `auto` with `ANTHROPIC_API_KEY` set. Never point the narrator at llama-swap on the
+5090. fenceshow's `-yield-to-game` applies only to a narrator served on this machine: a loopback
+URL that is not the gate, or the gate in front of a local model (fenceshow asks the gate's `/gate`
+every 30 s); drift through the gate keeps speaking while the game runs.
+
+**When drift is offline.** The pre-flight's strategist row is NO-GO (the gate answers 502 for an
+unreachable upstream). Options, in order: wait for drift; the API as strategist and narrator
+(`-provider anthropic` on the bridge, `ANTHROPIC_API_KEY` for fenceshow); the 27B on the 5090 as
+strategist (`make bridge … -base-url http://127.0.0.1:9000/v1`), which breaks the stream rule and
+costs the GPU Kokoro option, with the narrator on the API or captions. Mid-stream: section 6, "Model
+endpoint down".
 
 **Leagues on stream night.** Stop them (`max_gyms_while_gaming` only throttles gyms; a league's
 local endpoint yields to the game and unloads its model, which then reloads on the next plan).
@@ -60,18 +73,110 @@ run the hybrid on another run.
 | Lost | What the stream does |
 |---|---|
 | the strategist | no new plan reaches `/v1/summary`; the autopilot plays on the directives it has: the base policy (`autopilot_directives`) and the last plan the bridge still serves. The plan box keeps the standing plan |
-| the narrator LLM | the caption is the line (`say.source: caption`) |
+| the narrator LLM | the caption is the line (`say.source: caption`); also when the gate drops a line that queued behind a plan too long |
+| the drift gate | the bridge keeps its last plan and fenceshow speaks captions until it is back; restart `make gate` (it holds no state) |
 | Kokoro | piper (`~/.local/bin/piper`), then captions only |
 | the bridge | the mod defers every decision and buffers its events; the autopilot plays on the base directives; fenceshow follows the new session when the bridge is back |
 | fenceshow | OBS's browser source goes blank; restart it with the same flags (section 6) |
+
+### The drift gate
+
+drift serves one request at a time, so the strategist and the narrator share it through
+`cmd/fencegate` (`internal/gate`): a loopback, OpenAI-compatible proxy that sends one request at a
+time to drift. The role is the path's first segment, so neither client changes; only its base URL
+does.
+
+```sh
+make gate                                           # fencegate on 127.0.0.1:7380, upstream $DRIFT_URL from local.mk
+make bridge ARGS="-mode observe -planner llm -directives delta -route sprinter -persona shark \
+  -provider openai -base-url http://127.0.0.1:7380/plan/v1 -model $DRIFT_MODEL -no-schema -thinking off"
+go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player drift -model $DRIFT_MODEL \
+  -persona shark -route sprinter -fill-after 40s -tts-url http://127.0.0.1:8881 -llm-timeout 15s \
+  -llm-provider openai -llm-url http://127.0.0.1:7380/narrate/v1 -llm-model $DRIFT_MODEL
+```
+
+(or `FENCE_BASE_URL` / `FENCE_SHOW_LLM_URL` in the environment or `bridge.env`.)
+
+- **Order.** One request upstream at a time: `/plan/v1` (the strategist's plans, directives,
+  windfall re-plans, lessons and any fork calls: everything the bridge asks) first, `/narrate/v1`
+  next, `/filler/v1` last, first come first served within a role. A request never preempts the one
+  in flight. Header `X-Fence-Role` overrides the path; `/v1/…` with no role is the strategist's.
+- **Drops.** A queued request that waits longer than its role's limit gets HTTP 503 from the gate
+  (`X-Fence-Gate: dropped`, error type `fencegate_dropped`): narrator 5 s (`-max-wait-narrate`),
+  filler 3 s, the strategist never (`-max-wait-plan 0`); `X-Fence-Max-Wait` overrides per request.
+  The narrator treats it like any failure and speaks the caption, so a line never waits out a plan.
+  A caller that gives up (the narrator's `-llm-timeout`) leaves the queue, and the gate cancels its
+  upstream call if it was in flight.
+- **Retries.** An upstream 503 (someone outside the gate holds drift) is retried with backoff (250 ms
+  doubling to 4 s) for up to 20 s (`-retry-for`), holding the slot.
+- **Metrics.** `curl 127.0.0.1:7380/gate` (also `/metrics`): per role the requests, served, dropped,
+  cancelled, errors, retries, queued, and p50/p95/max of the queue wait and the upstream time; a
+  summary line in the log every 5 minutes (`-log-every`). No address appears in it.
+- **Listings** (`GET …/models`) pass straight through without queueing, so the pre-flight can read
+  them while a plan is written; drift unreachable gives 502.
+- **The narrator's timeout.** fenceshow's `-llm-timeout` (default 8 s) covers the queue and the line.
+  On the 27B use 15 s (measured below).
+
+**Measured (2026-11-11, drift on Qwen3.8-27B, `qwen38-27b-mlx`).** The dress rehearsal's decision
+log (section 10: seed 2950001, the Shark on the sprinter route, a game day ≈ 2 minutes), days 30–41
+replayed through fenceshow at the recorded pace (`-replay … -recorded-pace -narration-paced=false
+-fill-after 40s`, so the narrator works under its live limits), the narrator on drift through the gate
+and CPU Kokoro (`am_fenrir`; the box at load 25–66 from other work). Alongside, a strategist load like a
+live run: when the replay reached each morning, that morning's plan and delta directives written with
+the bridge's own builder (`strategy.DraftPlanConversation` and `DraftDirectives`, persona and route as
+the rehearsal, no memory or exemplars) from the log's morning snapshot, through `/plan/v1`. One
+request to drift at a time throughout; no upstream 503 was seen.
+
+| Run | Narrator `-llm-timeout` | Lines/min | Lines in character / caption | Caption why: gate drop / timeout / check | Moments not spoken | Plan call p50 / p95 | Morning (plan + directives) p50 / p95 |
+|---|---|---|---|---|---|---|---|
+| Strategist alone | – | – | – | – | – | 30.9 / 40.7 s | 40.2 / 56.8 s |
+| Narrator alone | 15 s | 1.43 | 27 / 6 (82 %) | 0 / 1 / 5 | 1 | – | – |
+| Both, through the gate | 8 s (default) | 1.16 | 1 / 26 (4 %) | 12 / 14 / 0 | 2 | 43.0 / 68.0 s | 78.8 / 90.1 s |
+| Both, through the gate | **15 s** | **1.34** | **19 / 12 (61 %)** | 8 / 5 / 0 | 2 | 31.8 / 52.6 s | 45.0 / 57.4 s |
+
+- **Plans keep their pace.** With the narrator sharing at 15 s, a plan waited for a narrator line at
+  most 11.4 s (p95 9.4 s); the morning took 45 s at p50 against 40 s alone, well inside a live day
+  (3–6 minutes). The strategist was never dropped.
+- **The 8 s default is too short for the 27B.** A line takes 2.4 s at p50 and 3.1 s at p95 when it
+  runs, but some calls hang past 15 s with nothing ahead of them in the gate (5 of 35 shared, 1 of 44
+  with the narrator alone; drift's side, cause unknown). At 8 s fourteen lines timed out and the
+  plans slowed by a third; abandoned generations seem to hold drift a while. Use `-llm-timeout 15s`.
+- **Where the captions come from.** Most of the remaining captions are moments that fall inside the
+  45 s morning, when the plan holds drift (the morning plan beat itself, the pace line): the gate
+  drops them after 5 s and the caption is spoken. Every line the model wrote passed the fact check;
+  its faults were all repeats (`docs/SHOW.md`, "Variety").
+- **Density.** 1.34 lines a minute shared, 1.43 alone: under the 1.5–2 target of `docs/SHOW.md`
+  (met there with the 27B on the idle 5090 and an idle CPU); the silence median was 23 s, p90 87 s.
+- **Upgrades if that is not enough:** the API (Haiku) as narrator, which never waits for a plan; or a
+  second, small narrator model on drift (it has ~58 GB free beside the 27B), if drift's server will
+  run two models' requests at once (untested).
+
+Lines from the shared run (15 s), days 30–41 (`llm` in character; `caption` the gate or a timeout):
+
+| Day | Moment | Source | Line |
+|---|---|---|---|
+| 30 | morning plan | caption (drop) | Day 30 plan: Sell Old Hydroponic System (est 515). Target: +515 cash. |
+| 30 | purchase | llm | Showcase two is locked in. Circling slow, patient, letting the shop do the work. |
+| 31 | trade | llm | 475 credits. The hedonist paid up front. |
+| 33 | counter | llm | Servant from the Upper Levels, all stiff collars and sweat. Paid 355 for water and a care package. |
+| 34 | night | llm | Came home with empty pockets and a heavy head. Just the long hustle, one mark at a time. |
+| 35 | appraisal streak | llm | Forty-five straight. The Board loves a steady hand. |
+| 37 | morning plan | llm | Rent is five days out and I’m sitting pretty. Let’s flush the cheap junk and keep the landlord smiling. |
+| 39 | counter | caption (timeout) | Sold BloomBerry Wine to Worn-Out Spacer for 150 (+138 on cost). |
+| 40 | counter | llm | Jackson came in sweating, needed power now. I held his gaze until he blinked, then took the 330 and let him leave lighter. |
+| 41 | night | llm | Ten digs, one trap. Back with 50 credits. |
 
 ## 2. Pre-flight
 
 Run it on the game box, game closed, about 30 minutes before going live:
 
 ```sh
-make stream-preflight ARGS="-strategist-url $DRIFT_URL -strategist-model qwen38fn-mlx -persona shark"
+make gate &        # the drift gate on :7380, in front of $DRIFT_URL
+make stream-preflight ARGS="-strategist-url http://127.0.0.1:7380/plan/v1 -strategist-model $DRIFT_MODEL -persona shark"
 ```
+
+with fenceshow's narrator on the gate too (`FENCE_SHOW_LLM_URL=http://127.0.0.1:7380/narrate/v1`,
+`FENCE_SHOW_LLM_MODEL=$DRIFT_MODEL`).
 
 Endpoints come from flags, the environment (`FENCE_BASE_URL`, `FENCE_MODEL`, `FENCE_SHOW_LLM_URL`,
 `FENCE_SHOW_LLM_MODEL`, `FENCE_SHOW_TTS_URL`, `ANTHROPIC_API_KEY`) or the bridge service's
@@ -87,6 +192,7 @@ address, so the table can be shown on stream.
 | bridge | `/v1/health` answers | start it (`systemctl --user start fence-bridge` or `make bridge ARGS=…`) |
 | strategist | the endpoint lists the model (never a completion: that could load a model) | section 7, "Model endpoint down" |
 | narrator LLM | one short test line within 8 s | WARN: captions only |
+| drift gate | shown when a role goes through fencegate: GO when both do and its upstream is another machine (with plan p50 and narrator drops so far); WARN when only the narrator does, when the gate fronts a model on this machine, or when both roles call one model URL without the gate | `make gate`; point the bridge at `/plan/v1` |
 | TTS test line | Kokoro speaks "Pre-flight check. The narrator is on the air." in the persona's voice, saved to `var/show/preflight.wav`; the persona's file exists | WARN when slower than 3 s a line (CPU) |
 | fenceshow panel | `/state`, `/`, `/column`, `/lower`, `/about` answer; WARN without `-setup` lines | start fenceshow (section 4) |
 | panel soundcheck | with `-soundcheck`: fenceshow's own narrator speaks a test moment with audio | SKIP by default: the moment shows on the panel, so only before going live |
@@ -268,7 +374,9 @@ If it patched anyway, the pre-flight's "game build" row is NO-GO:
 - *Kokoro*: `docker start fence-show-kokoro` (CPU) or `vibe start tts_kokoro` (GPU); piper speaks
   meanwhile if its voice is installed.
 - *drift's HTTP 503* ("background task bypassed while foreground generation…"): drift is busy with
-  another request. If drift is the strategist, do not give it the narrator too.
+  another request. Behind the gate this happens only when a caller outside the gate uses drift; the
+  gate retries for 20 s (`-retry-for`) and logs "upstream busy; retrying". Find the other caller.
+  Never give drift both roles without the gate.
 
 ## 7. After the stream
 
@@ -418,16 +526,16 @@ read from the file, 12 clips of exactly the planned lengths.
   ```sh
   docker start fence-show-kokoro
   FENCE_SHOW_OUT=var/show/demo-full FENCE_SHOW_TTS_URL=http://127.0.0.1:8881 \
-  FENCE_SHOW_LLM_URL=$DRIFT_URL FENCE_SHOW_LLM_MODEL=qwen38fn-mlx FENCE_SHOW_SHOT_EVERY=60 \
+  FENCE_SHOW_LLM_URL=$DRIFT_URL FENCE_SHOW_LLM_MODEL=$DRIFT_MODEL FENCE_SHOW_SHOT_EVERY=60 \
     scripts/show-demo.sh var/league/t7-hard-drift/drift-delta__apprentice__s2100001__p-short_sleeper+vending 1-175 1
   docker stop fence-show-kokoro
   ```
 
 ## 9. Watchability: the full replay (2026-11-10)
 
-One complete winning hard game, `t7-hard-drift/drift-delta__apprentice__s2100001` (qwen38fn-mlx
-planning delta directives over the appraisal policy; buyout by mortgage on day 175), replayed
-through fenceshow at speed 1, narration-paced, narrator qwen38fn-mlx on drift, CPU Kokoro
+One complete winning hard game, `t7-hard-drift/drift-delta__apprentice__s2100001` (qwen38fn-mlx,
+Flash-Next, planning delta directives over the appraisal policy; buyout by mortgage on day 175), replayed
+through fenceshow at speed 1, narration-paced, narrator qwen38fn-mlx (Flash-Next) on drift, CPU Kokoro
 (`bm_george`, the Magnate). Under `var/show/demo-full/`: `feed.jsonl`, `transcript.txt`,
 `narration.wav`, 124 panel screenshots (`shots/full-N.png`, one a minute; `column.png`,
 `lower.png`, `about.png`), and `after/` (days 60–75 again with the fixes below).
@@ -584,10 +692,11 @@ or two moments, so most of the air is the game and the panel.
 
 **Recommended stream-night settings.**
 
-- Leagues stopped; strategist the 27B (thinking off) or drift; narrator the API (Haiku), else the
-  27B with one request at a time. Pre-flight GO on the narrator row (it now asks without thinking).
-- GPU Kokoro when the strategist is off the 5090, else CPU Kokoro (rehearsed: no backlog, a line in median 1.5 s,
-  p90 10 s, max 15 s under load, nothing dropped for TTS).
+- Leagues stopped; since 2026-11-11 drift plays and narrates through the gate (section 1, "The drift
+  gate"), the narrator with `-llm-timeout 15s`; the API (Haiku) as an optional narrator upgrade.
+  Pre-flight GO on the narrator and drift gate rows (it now asks without thinking).
+- CPU Kokoro by default (rehearsed: no backlog, a line in median 1.5 s, p90 10 s, max 15 s under
+  load, nothing dropped for TTS); GPU Kokoro, 2–3 GB beside the game, is the owner's option (section 1).
 - fenceshow: `-route sprinter` (or `-base-directives` matching the bridge's) so the plan box has the
   base policy; `-fill-after 40s`; the defaults for `-min-gap` (8 s), `-max-age` (15 s), `-max-lag` (25 s).
 - Autopilot pace 800–1200 as in section 5; a slower pace only lengthens the silences.
