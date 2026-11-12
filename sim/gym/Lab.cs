@@ -188,7 +188,7 @@ namespace Fence.Gym
 
         static int Total(GameItem c) => WaterHelper.GetTotalVolume(c);
         static int Capacity(GameItem c) => c.GetTagReadonly("LIQUID_CONTAINER_CAPACITY").GetInt();
-        static int Tag(GameItem c, string liquid) => c.GetTagReadonly("CURRENT_PART_" + liquid.ToUpperInvariant()).GetInt();
+        static int Tag(GameItem c, string liquid) => Known.Spectrometer(c, liquid) ?? 0;
 
         static bool Scans => Owned().Any(i => i.identifier == Scanner);
 
@@ -201,10 +201,19 @@ namespace Fence.Gym
 
         static void Nominal(string liquid, int delta) => nominal[liquid] = Math.Max(0, (nominal.TryGetValue(liquid, out int n) ? n : 0) + delta);
 
-        // A supply bottle: a loose container that is mostly one reagent (the bottle's label says which). Its share is the
-        // spectrometer's reading, or the supply bottles' typical 70 % (mini alcohol), 48 % (precursor), 95 % (the rest).
+        // A supply bottle: a loose container that is mostly one reagent. Without the spectrometer the bottle says which
+        // (PreBuildChemHelper: each supply comes in its own bottle); with it, the reading. Its share is the reading, or
+        // the supply bottles' typical 70 % (mini alcohol), 48 % (precursor), 95 % (the rest).
         static IEnumerable<GameItem> Bottles(string liquid) => Owned().Where(i => Loose(i) && i.IsTag("LIQUID_CONTAINER_TAG") && i.identifier != "wine_bottle"
-            && !Vessels.Contains(i.identifier) && !Glass.Contains(i.identifier) && Total(i) > 0 && Tag(i, liquid) >= Total(i) * (liquid == "alcohol" ? 0.6 : 0.4)).OrderBy(i => i.uniqueId);
+            && !Vessels.Contains(i.identifier) && !Glass.Contains(i.identifier) && Total(i) > 0 && (Scans ? Tag(i, liquid) >= Total(i) * (liquid == "alcohol" ? 0.6 : 0.4) : Supplies(i, liquid))).OrderBy(i => i.uniqueId);
+
+        static readonly Dictionary<string, string[]> SupplyBottles = new Dictionary<string, string[]>(StringComparer.Ordinal)
+        {
+            ["med_bottle_red"] = new[] { "acid" }, ["med_bottle_blue"] = new[] { "base" }, ["med_bottle_orange"] = new[] { "reducing_agent" },
+            ["med_bottle_small_pink"] = new[] { "lipobond_agent" }, ["mini_bottle"] = new[] { "alcohol" }, [Precursor] = new[] { "methylol", "stabilizing_agent" },
+        };
+
+        static bool Supplies(GameItem i, string liquid) => SupplyBottles.TryGetValue(i.identifier ?? "", out var l) && l.Contains(liquid);
 
         static double Share(GameItem b, string liquid)
         {
@@ -222,7 +231,8 @@ namespace Fence.Gym
         public static bool Holds(GameItem i) => On && Mine(i);
 
         static bool IsReagentBottle(GameItem i) => i.IsTag("LIQUID_CONTAINER_TAG") && Loose(i) && Total(i) > 0 && i.identifier != "wine_bottle"
-            && (Reagents.Any(l => Tag(i, l) >= Total(i) * (l == "alcohol" ? 0.6 : 0.85)) || (Makes(Phanta) && Tag(i, "methylol") > 0));
+            && (Scans ? Reagents.Any(l => Tag(i, l) >= Total(i) * (l == "alcohol" ? 0.6 : 0.85)) || (Makes(Phanta) && Tag(i, "methylol") > 0)
+                : Reagents.Any(l => Supplies(i, l)) || (Makes(Phanta) && Supplies(i, "methylol")));
 
         // Produce that blends into a batch: the recipe's own input and, for caffeine, `caffeine_inputs` (bred produce that
         // carries the caffeine Production trait, docs/re/PLANTS.md; the gene-lines engine grows it). The doses read the
@@ -286,13 +296,16 @@ namespace Fence.Gym
             var back = EmporiumEntry.Instance.backInvinvElement;
             int n = 0;
             // The count exactly (more is +1 rep a unit, but the next week's visit with none is the end of the run).
-            foreach (var d in DustHeld().Where(i => !ReferenceEquals(i.parentInventory, back)).OrderBy(ChemicalProductHelper.GetPurity).Take(Math.Max(1, QuotaCount)))
+            foreach (var d in DustHeld().Where(i => !ReferenceEquals(i.parentInventory, back)).OrderBy(Grade).Take(Math.Max(1, QuotaCount)))
                 if (Chore.Accept(back, d, -1) == 0) n++;
             QuotaStaged += n;
             QuotaVisits++;
         }
 
         public static int QuotaStaged, QuotaVisits;
+
+        // Lowest first: the spectrometer's purity, else the label's grade (the truth at pressing).
+        static double Grade(GameItem d) => Known.Spectrometer(d) ?? ChemicalProductHelper.GetChemicalFeature(d)?.GetCurrentItemCondition()?.modValue ?? 0;
 
         // `lab.on_shelf` (default 6) of our own contraband units of each kind stay out for buyers; the rest go to the
         // smuggler's bays with the conceal policy (an inspection searches machine grids, so the finisher is no hiding place).
@@ -749,7 +762,7 @@ namespace Fence.Gym
             var input = Slot(blender, 1);
             var cslot = Slot(blender, 2);
             if (Chore.Accept(cslot, v, -1) != 0) { Stall("blender"); return false; }
-            int loaded = 0;
+            int loaded = 0, before = Total(v);
             foreach (var b in inputs.Take(n))
                 if (Chore.Accept(input, b, -1) == 0) loaded++;
             var press = ep.MachineButton(blender, LocHelper.GetLocalizedMechanic("mech_blender_btn_start"));
@@ -760,7 +773,7 @@ namespace Fence.Gym
             // protein, physical; a cap 22 mush, 2 protein.
             if (r.Id == Caffeine) { Nominal(mushId, (int)(44800 * keep * loaded)); Nominal("protein", (int)(8000 * keep * loaded)); Nominal("fat", (int)(8000 * keep * loaded)); }
             else { Nominal(mushId, (int)(22000 * keep * loaded)); Nominal("protein", (int)(2000 * keep * loaded)); }
-            if (press == null || Tag(v, mushId) == 0) { Stall("blend"); return false; }
+            if (press == null || Total(v) <= before) { Stall("blend"); return false; }
             int mush = Part(v, mushId);
             // Acid equal to the protein (1:1 on the net excess) and lipobond an eighth of the fat, both cold: lipobond
             // boils from 55 °C before it binds.

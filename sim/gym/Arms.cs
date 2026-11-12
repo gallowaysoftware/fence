@@ -158,7 +158,7 @@ namespace Fence.Gym
 
         static bool IsFrame(GameItem i) => i != null && i.IsTag(Frame);
         static string FrameGun(GameItem frame) => frame.GetTagReadonly("GUN_FRAME_GUN_ID_STRING").GetString();
-        static bool IsNew(GameItem g) => g.FindItemFeatureByCategory("CATEGORY_EQUIPMENT_CONDITION")?.realCondition?.identifier == "equipment_condition_new";
+        static bool IsNew(GameItem g) => g.FindItemFeatureByCategory("CATEGORY_EQUIPMENT_CONDITION")?.GetCurrentItemCondition()?.identifier == "equipment_condition_new";
 
         // A frame-built gun: New, which no seller's gun is (sellers bring Poor to Good).
         static bool Built(GameItem g) => IsGun(g) && IsNew(g) && (g.identifier == "handmade_pistol" || g.identifier == "heavy_handmade_pistol");

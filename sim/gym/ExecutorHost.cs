@@ -51,7 +51,12 @@ namespace Fence.Gym
         public static int Accept(GraphNodeStorage to, GameItem item, int amount = -1) =>
             Hands != null ? Hands.Accept(to, item, amount) : GraphUtils.TryAcceptAll(to, item, amount);
 
-        public static T Act<T>(string what, GameItem target, Func<T> act) => Hands != null ? Hands.Act(what, target, act) : act();
+        public static T Act<T>(string what, GameItem target, Func<T> act)
+        {
+            var r = Hands != null ? Hands.Act(what, target, act) : act();
+            Known.Chore(what, target);
+            return r;
+        }
 
         public static void Act(string what, GameItem target, Action act) => Act(what, target, () =>
         {

@@ -44,6 +44,7 @@ namespace Fence.Gym
             Fountain.Reset();
             Appraisal.Reset();
             Labels.Reset();
+            Known.Reset();
             Modules.Reset();
             Suppliers.Reset();
             treatedOn.Clear();
@@ -613,7 +614,7 @@ namespace Fence.Gym
                     {
                         var w = MachineHydroponic.GetWaterSlotItem(b);
                         var sd = MachineHydroponic.GetInputSlot(b).childItem;
-                        return (JToken)$"charge {Charge(b)} water {(w == null ? 0 : WaterHelper.GetCurrentCapacityML(w))}ml@{Label(w)} seed {sd?.identifier ?? "-"} health {(sd == null ? -1 : HydroponicHelper.GetHealthPercent(sd))} in {b.parentInventory?.GetType().Name}";
+                        return (JToken)$"charge {Charge(b)} water {(w == null ? 0 : WaterHelper.GetCurrentCapacityML(w))}ml@{Label(w)} seed {sd?.identifier ?? "-"} health {(sd == null ? -1 : Known.PlantAnalyser(sd) ?? -1)} in {b.parentInventory?.GetType().Name}";
                     })),
                     ["tap"] = TapOn,
                     ["water_treated_ml"] = WaterTreatedMl,

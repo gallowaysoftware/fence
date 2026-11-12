@@ -57,8 +57,9 @@ namespace Fence.Barter
                 return "intent " + (c.RawIntent ?? c.Intent.ToString());
             if (!c.Dismissable) return "not dismissable";
             if (c.IsSecurity) return "security";
-            // Logged where the player can read it, so it must not reveal a stealth-wanted client.
-            if (c.IsWanted) return "special client";
+            // A poster's face is a special client; a stealth-wanted one has no poster, so the player serves him like
+            // anyone else (docs/research/FAIR-PLAY.md).
+            if (c.IsWanted && !c.IsStealthWanted) return "special client";
             return null;
         }
 

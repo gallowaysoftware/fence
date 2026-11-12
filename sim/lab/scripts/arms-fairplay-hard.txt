@@ -1,0 +1,8 @@
+# Fair play's cost (docs/research/FAIR-PLAY.md): the six routes on hard; run once per build (FENCE_GYM_DLL) into its own -dir.
+# FENCE_GYM_DLL=… python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-fairplay-hard.txt -dir var/sim/exp/fp-<build>-hard -seeds 60 -days 1000 -parallel 8 -- -seed0 2910000 -no-trajectory
+appraiser | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/appraiser.json
+sprinter | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/sprinter.json
+rancher_sprinter | -difficulty hard -start rancher -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/rancher_sprinter.json
+outlaw | -difficulty hard -start fence -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/outlaw.json
+water_baron | -difficulty hard -start water_merchant -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/water_baron.json
+armourer | -difficulty hard -start gunsmith -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/armourer.json

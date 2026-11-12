@@ -217,13 +217,15 @@ namespace Fence.Tests
         [InlineData(ClientIntent.Sell, false, false, false, "not dismissable")]
         [InlineData(ClientIntent.SellAndBuy, true, true, false, "security")]
         [InlineData(ClientIntent.Buy, true, false, true, "special client")]
-        public void Coverage(ClientIntent intent, bool dismissable, bool security, bool wanted, string gap)
+        [InlineData(ClientIntent.Buy, true, false, true, null, true)]
+        public void Coverage(ClientIntent intent, bool dismissable, bool security, bool wanted, string gap, bool stealth = false)
         {
             var c = Client(intent);
             c.RawIntent = "BARTER";
             c.Dismissable = dismissable;
             c.IsSecurity = security;
             c.IsWanted = wanted;
+            c.IsStealthWanted = stealth;
             Assert.Equal(gap, BarterRules.CoverageGap(c));
         }
 

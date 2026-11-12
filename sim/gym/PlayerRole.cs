@@ -68,10 +68,8 @@ namespace Fence.Gym
         // Never staged for a buyer: held by the plan, an engine's input, or (by default) still hot.
         public static bool IsSign(GameItem i) => (i.identifier ?? "").StartsWith("sign_", StringComparison.Ordinal);
 
-        // A condition shown better than it is and not yet exposed: what any buyer able to check it would find
-        // (StoreClient.CanClientExposeThisFeature without the buyer's capacity).
-        public static bool HidesFake(GameItem i) =>
-            new[] { i }.Concat(StoreClient.GetInspectableChildren(i)).Any(g => g.itemFeatures.Any(f => !f.isDisabled && !f.IsExposed() && !f.IsFeatureMatch() && !f.IsRealFeatureCheaper() && (f.useCondition || f.isExposable)));
+        // A claim the player knows or suspects to be better than the truth: what any buyer able to check it would find.
+        public static bool HidesFake(GameItem i) => Known.MayHideFake(i);
 
         public static bool Keep(GameItem i, StoreClient c) => KeepWhy(i, c) != null;
 
@@ -83,14 +81,10 @@ namespace Fence.Gym
             if (Style.KeepsPerfume(i)) return "tool";
             // `inspect`: the magnifier is the inspection tool, not stock.
             if (i.identifier == "magnifier" && D.Raw.Value<string>("inspect") != null) return "tool";
-            // Water sold under a label its true grade does not match is exposed by the buyer's test (rep loss,
-            // and a crime tracker); a bought container's label is the seller's word. Only matching labels sell.
-            if (i.IsTag("LIQUID_CONTAINER_TAG") && !WaterHelper.IsEmpty(i) && i.identifier != "wine_bottle"
-                && WaterFeatureHelper.GetWaterFeature(i) is ItemFeature wf
-                && WaterFeatureHelper.GetPurityArrayIndex(wf.customIntValue1) < WaterFeatureHelper.GetPurityArrayIndex(WaterHelper.GetWaterPurity(i))) return "water_label";
             // Placing an item the buyer can expose (a fake seal, an unusable injector, a mislabeled jug) costs
-            // its faction's rep at once, sale or not. Reads the true condition, as the water check above does.
-            if (c != null && c.CanClientExposeAnyFeatureDeep(i)) return "exposable";
+            // its faction's rep at once, sale or not; with no buyer in view, any buyer. A bought container's water
+            // label is the seller's word until a test.
+            if (Known.MayExpose(c, i)) return i.IsTag("LIQUID_CONTAINER_TAG") && Known.WaterUnverified(i) ? "water_label" : "exposable";
             if (D.HoldUids.Contains(i.uniqueId) || P.Reserved(i)) return "reserved";
             if (Contraband(i) && !(D.Raw["sell"]?.Value<bool?>("sell_contraband") ?? false) && !Lab.SellsOwn(i)) return "contraband";
             // `wine_min_age`: finished wine ages +3 a night x its grade; held until this many nights unless the
@@ -118,6 +112,9 @@ namespace Fence.Gym
         {
             bool liq = P.Liquidating;
             int max = liq ? 12 : 8;
+            // Water this buyer wants on the seller's word gets a strip first, while strips last.
+            foreach (var w in owned.Where(i => Known.WaterUnverified(i) && client.IsClientBuyingThisItem(i, false)).OrderBy(i => i.uniqueId).ToList())
+                if (!Production.TestWater(w)) break;
             var wanted = owned.Where(i => client.IsClientBuyingThisItem(i, false) && !Keep(i, client)).ToList();
             // `hold_for` (gym): {types, k, faction}: the k most valuable of each type are kept for that faction's
             // buyers (Upper Levels by default: +15 % tips once UL_TIPS is unlocked, GameItem's selling features),

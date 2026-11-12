@@ -52,7 +52,7 @@ namespace Fence.Gym
                 if (k == null && i.GetNegociatedValue() > room) k = "over_room";
                 if (k == null) continue;
                 why[k] = (why.Value<int?>(k) ?? 0) + 1;
-                if (blocked.Count < 8) blocked.Add(i.identifier + ":" + k + (k == "exposable" ? ":" + string.Join(",", i.itemFeatures.Where(f => !f.isDisabled && !f.IsExposed() && !f.IsFeatureMatch()).Select(f => f.identifier)) : ""));
+                if (blocked.Count < 8) blocked.Add(i.identifier + ":" + k + (k == "exposable" ? ":" + string.Join(",", i.itemFeatures.Where(f => !f.isDisabled && !f.IsExposed() && f.useCondition).Select(f => f.identifier)) : ""));
                 if (k == "over_room") overRoom++;
             }
             var top = new HashSet<GameItem>(owned);

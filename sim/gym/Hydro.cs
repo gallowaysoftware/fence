@@ -103,7 +103,7 @@ namespace Fence.Gym
         static readonly Dictionary<int, int> mineralBp = new Dictionary<int, int>();
         const int TabletUl = 15000;
 
-        static int MineralBp(GameItem w) => Scanner() ? WaterHelper.GetContaminantPercentage(w, "mineral") : mineralBp.TryGetValue(w.uniqueId, out int bp) ? bp : 0;
+        static int MineralBp(GameItem w) => Known.AquaScan(w, "mineral") ?? (mineralBp.TryGetValue(w.uniqueId, out int bp) ? bp : 0);
 
         static void TendBayWater(IExecutorHost ep, GameItem bay, GameItem seed, GameGridInventory stock)
         {
@@ -180,7 +180,7 @@ namespace Fence.Gym
                         water = best;
                         grade = LabelGrade(best);
                         pool.Remove(best);
-                        mineralBp[water.uniqueId] = Scanner() ? WaterHelper.GetContaminantPercentage(water, "mineral") : 0;
+                        mineralBp[water.uniqueId] = Known.AquaScan(water, "mineral") ?? 0;
                         BaySwaps++;
                     }
                     else water = ws.childItem;

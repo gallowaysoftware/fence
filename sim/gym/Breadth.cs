@@ -7,8 +7,8 @@ namespace Fence.Gym
 {
     // `breadth` (gym, off unless set): stock what the shop's buyers ask for. The player remembers each buyer's
     // visible interests (the tablet's tags) and budget; the `top` types by budget over the last `window` days
-    // (default 6, 14) are kept at `k` sellable units each (default 2). With `queue: true` the tags of the
-    // buyers still waiting today count too (one unit per waiting buyer). A seller's goods of a short type are
+    // (default 6, 14) are kept at `k` sellable units each (default 2). (`queue` is gone: the queue's buyers are
+    // hidden until they reach the counter.) A seller's goods of a short type are
     // staged on their own (not the whole lot) and bought at up to `max_pct` of their estimate (default 95)
     // while the staged price is at most `lot_max` (default 600); the whole lot still goes wholesale when the
     // usual limits allow it.
@@ -23,7 +23,6 @@ namespace Fence.Gym
         static int Top => Cfg?.Value<int?>("top") ?? 6;
         static int K => Cfg?.Value<int?>("k") ?? 2;
         static int Window => Cfg?.Value<int?>("window") ?? 14;
-        static bool Queue => Cfg?.Value<bool?>("queue") ?? false;
         public static double MaxPct => (Cfg?.Value<int?>("max_pct") ?? 95) / 100.0;
         public static int LotMax => Cfg?.Value<int?>("lot_max") ?? 600;
 
@@ -61,15 +60,6 @@ namespace Fence.Gym
                     score[t] = (score.TryGetValue(t, out double v) ? v : 0) + budget / (double)tags.Length;
             foreach (var t in score.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(Top).Select(kv => kv.Key))
                 need[t] = K;
-            if (Queue)
-            {
-                var waiting = new Dictionary<string, int>(StringComparer.Ordinal);
-                foreach (var c in PlayerStore.Instance.storeClientManager.clientStack.Where(c => c != null && c.IsClientBuying()))
-                    foreach (var t in Visible(c))
-                        waiting[t] = (waiting.TryGetValue(t, out int n) ? n : 0) + 1;
-                foreach (var kv in waiting)
-                    need[kv.Key] = Math.Max(need.TryGetValue(kv.Key, out int n) ? n : 0, kv.Value);
-            }
             foreach (var t in need.Keys.ToList())
             {
                 int left = need[t] - Have(t);

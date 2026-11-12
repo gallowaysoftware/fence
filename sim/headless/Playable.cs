@@ -67,7 +67,7 @@ namespace Fence.Sim
             "PlayerStore::OnItemBought", "StoreClient::OnItemBought", "PlayerStore::DismissCurrentClient",
             "PlayerStore::TryPlayerDismissCurrentClient", "PlayerStore::ExecuteGameOver", "PlayerStore::AddedItemToWeightedArea",
             "PlayerStore::RemovedItemToWeightedArea", "PlayerStore::AddedItemToDisplayCase", "PlayerStore::RemovedItemToDisplayCase",
-            "PlayerStore::QueueFuturClient", "DialogUIManager::SelectChoice", "DialogUIManager::StartDialogue",
+            "PlayerStore::QueueFuturClient", "StoreClient::ClientExposeFeature", "DialogUIManager::SelectChoice", "DialogUIManager::StartDialogue",
             "ContrabandHelper::StartInspection", "PlayerStore::OnShutterOpened", "PlayerStore::EndDay", "PlayerStore::EndNight",
             "PlayerStore::BeginDay", "AugHelper::OnGoodKill", "AugHelper::CleanupKill", "AugHelper::OnAugLeftAlive",
             // SpriteDict is presentation (stubbed): which pool an aug's portrait came from is seen here instead.

@@ -190,6 +190,10 @@ namespace Fence.Gym
         // Nights until the worst contaminant is under 10 bp of water: faucet water carries 30 % of its impurity as chemical,
         // the slowest to go, and the reed takes ~29 % of what is left a night (lab verdict.reedcure: rust 90.75 % in 10,
         // gutter 85 % in 12; the filter leaves the chemical as it is).
+        // The label shows a grade, not its basis points: the grade's floor (gutterflow's at the tap's 80 %, WATER.md §1.4).
+        static readonly int[] GradeFloor = { 9990, 9900, 9800, 9600, 9000, 8000 };
+        static int LabelFloor(GameItem c) => GradeFloor[LabelGrade(c)];
+
         static int SafeNights(int purityBp)
         {
             double chem = 0.30 * (10000 - purityBp) * 10000.0 / Math.Max(1, purityBp);
@@ -235,7 +239,7 @@ namespace Fence.Gym
                     c = v;
                     if (!WaterHelper.IsEmpty(c))
                     {
-                        batches[c.uniqueId] = new Batch { Day = ep.Day, From = Label(c) };
+                        batches[c.uniqueId] = new Batch { Day = ep.Day, From = LabelFloor(c) };
                         ReedFills++;
                     }
                 }
@@ -256,7 +260,7 @@ namespace Fence.Gym
                 if (poweredBay.Contains(bay.uniqueId)) b.Nights++;
                 int need = SafeNights(b.From);
                 bool cured = Scanner()
-                    ? new[] { "heavy_metal", "chemical_contaminant", "microbe", "organic_waste", "physical_contaminant" }.All(id => WaterHelper.GetContaminantPercentage(c, id) <= 10)
+                    ? new[] { "heavy_metal", "chemical_contaminant", "microbe", "organic_waste", "physical_contaminant" }.All(id => Known.AquaScan(c, id) <= 10)
                     : b.Nights >= need;
                 // `pure`: a twice-filtered batch stays to the reed's floors (~12 nights), then the UV filter turns its
                 // microbes to water: 9990 bp, Pure (docs/research/FORMULA-EXPLOITS.md §7).
@@ -379,7 +383,7 @@ namespace Fence.Gym
                 }
             if (WaterHelper.IsEmpty(c)) return;
             // The faucet's fill is labelled with the tap's purity (filtered or not): today's truth before the filter.
-            batches[c.uniqueId] = new Batch { Day = ep.Day, From = Label(c), Filtered = filtered, Twice = twice };
+            batches[c.uniqueId] = new Batch { Day = ep.Day, From = LabelFloor(c), Filtered = filtered, Twice = twice };
             Vouch(c);
             ReedFills++;
             if (filtered) ReedFiltered++;

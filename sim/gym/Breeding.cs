@@ -91,7 +91,7 @@ namespace Fence.Gym
             {
                 string t = l.Edits[k];
                 need[t] = (need.TryGetValue(t, out int n) ? n : Innate(l.Crop, t)) + 1;
-                if (PlantGeneticsHelper.GetTraitRank(seed, t) < need[t]) return k;
+                if (Rank(seed, t) < need[t]) return k;
             }
             return l.Edits.Length;
         }
@@ -110,7 +110,10 @@ namespace Fence.Gym
             return l == null ? 0 : Progress(seed, l) * 1000 + Bank(seed, l);
         }
 
-        static int Bank(GameItem seed, Line l) => l.Bank.Sum(t => Math.Max(0, PlantGeneticsHelper.GetTraitRank(seed, t) - Innate(l.Crop, t)));
+        // The gene scanner's reading: nothing without one (Known.GeneScanner).
+        static int Rank(GameItem seed, string trait) => Known.GeneScanner(seed, trait) ?? 0;
+
+        static int Bank(GameItem seed, Line l) => l.Bank.Sum(t => Math.Max(0, Rank(seed, t) - Innate(l.Crop, t)));
 
         static bool Growing(GameItem s) => s.IsTag("GROWING_TAG");
 
@@ -178,7 +181,7 @@ namespace Fence.Gym
             if (t == null) return null;
             var kept = KeptLineSeeds();
             var cands = Owned().Where(i => i.IsTag("SEED_ITEM_TAG") && Parent(i) == null && !Growing(i) && HydroponicHelper.GetPlant(i) != null && !StolenHelper.IsStolenItem(i)
-                && PlantGeneticsHelper.GetTraitRank(i, trait) > 0 && !kept.Contains(i.uniqueId) && !taken.Contains(i.uniqueId) && !Crops.Reserved(i)).ToList();
+                && Rank(i, trait) > 0 && !kept.Contains(i.uniqueId) && !taken.Contains(i.uniqueId) && !Crops.Reserved(i)).ToList();
             var precision = m == null ? null : MachineDnaManipulator.GetPrecisionTrait(m);
             double Score(GameItem s)
             {
@@ -295,7 +298,7 @@ namespace Fence.Gym
             pending.Remove(m.uniqueId);
             var seed = MachineDnaManipulator.GetSeedSlot(m).childItem;
             bool ok;
-            if (p.op == "apply") ok = seed != null && PlantGeneticsHelper.GetTraitRank(seed, p.trait) > p.rank;
+            if (p.op == "apply") ok = seed != null && Rank(seed, p.trait) > p.rank;
             else
             {
                 var disk = (MachineDnaManipulator.GetOutputDiskSlot(m).childItem ?? MachineDnaManipulator.GetEjectGrid(m)?.childItems.FirstOrDefault(x => x != null && IsDisk(x)));
@@ -386,15 +389,15 @@ namespace Fence.Gym
             if (plan == null || plan.blockedReason.Length > 0) { Unload(m); BreedStall("blocked:" + op); return false; }
             taken.Add(seed.uniqueId);
             taken.Add(disk.uniqueId);
-            pending[m.uniqueId] = (apply ? "apply" : op, trait, PlantGeneticsHelper.GetTraitRank(seed, trait), PlantGeneticsHelper.IsWrittenDisk(disk) ? PlantGeneticsHelper.GetDiskUses(disk) : 0);
+            pending[m.uniqueId] = (apply ? "apply" : op, trait, Rank(seed, trait), PlantGeneticsHelper.IsWrittenDisk(disk) ? PlantGeneticsHelper.GetDiskUses(disk) : 0);
             BreedOps++;
             DnaOps++;
             if (op == "apply") BreedApplied++;
             else if (op == "bank") BreedBankOps++;
             else if (op == "refill") BreedRefills++;
             else BreedExtracts++;
-            if (breedLog.Count < 120) breedLog.Add(new JObject { ["day"] = ep.Day, ["load"] = op, ["trait"] = trait, ["seed"] = seed.identifier, ["uid"] = seed.uniqueId, ["rank"] = PlantGeneticsHelper.GetTraitRank(seed, trait), ["chance"] = plan.successChance, ["elite"] = Lines().Where(x => x.Clones).Select(x => Elite(x)).DefaultIfEmpty(0).Max() });
-            ep.Human("production", null, ep.Uid(m), new JObject { ["op"] = "dna_" + op, ["trait"] = trait, ["seed"] = seed.identifier, ["seed_rank"] = PlantGeneticsHelper.GetTraitRank(seed, trait), ["chance"] = plan.successChance, ["work"] = plan.progress }, "player:dna");
+            if (breedLog.Count < 120) breedLog.Add(new JObject { ["day"] = ep.Day, ["load"] = op, ["trait"] = trait, ["seed"] = seed.identifier, ["uid"] = seed.uniqueId, ["rank"] = Rank(seed, trait), ["chance"] = plan.successChance, ["elite"] = Lines().Where(x => x.Clones).Select(x => Elite(x)).DefaultIfEmpty(0).Max() });
+            ep.Human("production", null, ep.Uid(m), new JObject { ["op"] = "dna_" + op, ["trait"] = trait, ["seed"] = seed.identifier, ["seed_rank"] = Rank(seed, trait), ["chance"] = plan.successChance, ["work"] = plan.progress }, "player:dna");
             return true;
         }
 

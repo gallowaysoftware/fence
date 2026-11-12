@@ -30,7 +30,8 @@ namespace Fence.Gym
 
         public static int DnaOps, DnaReplanted;
 
-        static int Hardy(GameItem seed) => PlantGeneticsHelper.GetTraitRank(seed, Trait);
+        // A seed's traits show only through the gene scanner (docs/re/PLANTS.md §5; Wild's PLANT_DNA brings one).
+        static int Hardy(GameItem seed) => Known.GeneScanner(seed, Trait) ?? 0;
 
         static GameItem Manipulator() => Owned().FirstOrDefault(i => i.identifier == "plant_dna_manipulator" && Parent(i) == null);
 

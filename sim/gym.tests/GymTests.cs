@@ -402,6 +402,18 @@ namespace Fence.Gym.Tests
             Assert.DoesNotContain("\"gun_order\"", File.ReadAllText(Path.Combine(d, "none.jsonl")));
         }
 
+        // The permit official is handed plain stock only (PlayerCounter.Donatable; `fence-lab barter.donations` checks
+        // the predicate on a printer holding its modules): bribing with a fridge a day in stock, none is donated.
+        [Fact]
+        public void BribesNeverDonateMachines()
+        {
+            string d = Dir("bribe");
+            File.WriteAllText(Path.Combine(d, "bribe.json"), "{\"permit\":\"bribe\",\"buy\":{\"single_max_pct\":0,\"wholesale_max_pct\":0},\"supply_probe\":{\"fridge\":{\"per_day\":1}},\"supply_probe_from\":1}");
+            var r = Play(3, 60, Path.Combine(d, "bribe.jsonl"), x => { x["human"] = "player"; x["directives"] = Path.Combine(d, "bribe.json"); });
+            Assert.True((int)r["player"]["permit_bribes"] > 0, "no donation to test: " + r["player"]);
+            Assert.Equal(0, (int)r["player"]["permit_machines_donated"]);
+        }
+
         // `engine: wine+furnace` on hard: Dr. Jackson's day-6 furnace is bought, scrap and ore go in, ingots come
         // out and sell; the furnace, its modules and inputs are never sold. A list parses like the joined form.
         [Fact]

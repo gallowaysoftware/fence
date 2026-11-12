@@ -42,7 +42,6 @@ namespace Fence.Gym
             claimedGenuine.Clear();
             HonestDelta = UpgradeDelta = 0;
             upgraded.Clear();
-            reference = null;
         }
 
         public static bool IsTool(GameItem i) => On && (i.identifier == "labeler" || i.identifier == "magnifier");
@@ -65,45 +64,19 @@ namespace Fence.Gym
             }
         }
 
-        // What the inspection view shows means one condition (InsInjectorHelper.SetExpired/SetUnusable/SetCounterfeit,
-        // InsCigaretteHelper.SetConterfeit; docs/re/INSPECT.md).
-        static string InjectorTruth(GameItem i)
-        {
-            int indicator = i.GetTagReadonly("INJECTOR_INDICATOR").GetInt(), body = i.GetTagReadonly("INJECTOR_BODY").GetInt();
-            if (indicator == 1) return "expiredInjector";
-            if (indicator == 3 || (body >= 1 && body <= 3)) return "unusableInjector";
-            if (body == -1) return "counterfeitInjector";
-            // The guide's reference: a freshly made injector is genuine by construction.
-            if (reference == null)
-            {
-                var g = DirectoryMaster.Item("large_purple_injector");
-                reference = (g.GetTagReadonly("INJECTOR_COMPANY").GetString(), g.GetTagReadonly("INJECTOR_MODEL").GetString());
-            }
-            if (i.GetTagReadonly("INJECTOR_COMPANY").GetString() != reference.Value.company || i.GetTagReadonly("INJECTOR_MODEL").GetString() != reference.Value.model) return "counterfeitInjector";
-            string serial = i.GetTagReadonly("INJECTOR_SERIAL").GetString() ?? "";
-            if (serial.Length != 7 || !serial.All(char.IsDigit)) return "counterfeitInjector";
-            int prefix = int.Parse(serial.Substring(0, 3));
-            if (prefix < 125 || prefix > 455) return "counterfeitInjector";
-            if (InsInjectorHelper.RECALLED_PREFIX.Contains(prefix)) return "unusableInjector";
-            return "genuineInjector";
-        }
-
-        static (string company, string model)? reference;
-
-        static string CigaretteTruth(GameItem i) =>
-            new[] { "CIGARETTE_SEAL", "CIGARETTE_LETTERING", "CIGARETTE_LOGO", "CIGARETTE_BOX" }.Any(t => i.GetTagReadonly(t).GetInt() != 0) ? "counterfeitCigarette" : "genuineCigarette";
-
         static void HonestLabel(IExecutorHost ep, GameItem i)
         {
             ItemFeature f;
             string truth;
-            if (i.IsTag("INS_INJECTOR_TAG") && (f = i.FindItemFeatureByCategory("CATEGORY_GENUINE_INJECTOR")) != null) truth = InjectorTruth(i);
-            else if (i.IsTag("CIGARETTE_TAG") && (f = i.FindItemFeatureByCategory("CATEGORY_GENUINE_CIGARETTE")) != null) truth = CigaretteTruth(i);
+            bool recalled = false;
+            if (i.IsTag("INS_INJECTOR_TAG") && (f = i.FindItemFeatureByCategory(Known.Injector)) != null) truth = Known.InjectorRead(i, out recalled);
+            else if (i.IsTag("CIGARETTE_TAG") && (f = i.FindItemFeatureByCategory(Known.Cigarette)) != null) truth = Known.CigaretteRead(i);
             else return;
             if (f.IsExposed() || f.isDisabled || !LabelerHelper.IsEditableLabelFeature(f)) return;
             string claim = f.GetCurrentItemCondition()?.identifier;
             if (claim == truth || (claim != "genuineInjector" && claim != "genuineCigarette")) return;
             known[i.uniqueId] = (f.category, truth);
+            Known.Record(i, f.category, truth, recalled);
             Relabel(ep, i, f, truth, honest: true);
         }
 
@@ -126,7 +99,7 @@ namespace Fence.Gym
                 var f = Feature(i, cat);
                 if (f == null) continue;
                 Set(f, cat == "CATEGORY_GENUINE_INJECTOR" ? "genuineInjector" : "genuineCigarette");
-                if (c.CanClientExposeAnyFeatureDeep(i)) Set(f, truth);
+                if (Known.MayExpose(c, i)) Set(f, truth);
                 else claimedGenuine.Add(i.uniqueId);
             }
         }
@@ -157,6 +130,7 @@ namespace Fence.Gym
                 var best = ItemConditionList.conditionLookup[f.category].OrderByDescending(c => c.modValue).First();
                 var cur = f.GetCurrentItemCondition();
                 if (cur == null || cur.modValue >= best.modValue) continue;
+                Known.Record(i, f.category, cur.identifier);
                 Relabel(ep, i, f, best.identifier, honest: false);
             }
         }

@@ -451,7 +451,8 @@ namespace Fence.Gym
                 if (Move(e.backInvinvElement, i))
                 {
                     moved++;
-                    Mod.Human(HumanActions.Stage, Advice(), Mod.Game.Uid(i), new JObject { ["owned"] = true, ["donation"] = true }, "player:bribe");
+                    if (i.IsGameItemType("MACHINE") || i.IsGameItemType("MODULE")) Ledger.MachinesDonated++;
+                    Mod.Human(HumanActions.Stage, Advice(), Mod.Game.Uid(i), new JObject { ["owned"] = true, ["donation"] = true, ["item"] = i.identifier }, "player:bribe");
                 }
             Scheduler.Settle();
             moved -= PullExposable(c);
@@ -595,7 +596,7 @@ namespace Fence.Gym
 
     internal sealed class PlayerLedger
     {
-        public int Bribes, GoodKills, WrongfulKills, LeftAlive;
+        public int Bribes, GoodKills, WrongfulKills, LeftAlive, Exposures, MachinesDonated;
         public List<JObject> Days = new List<JObject>();
         JObject today, customer;
         JArray customers = new JArray();
@@ -814,8 +815,9 @@ namespace Fence.Gym
         {
             var s = new JObject
             {
-                ["permit_bribes"] = Bribes, ["aug_good_kills"] = GoodKills, ["aug_wrongful_kills"] = WrongfulKills, ["aug_left_alive"] = LeftAlive,
+                ["permit_bribes"] = Bribes, ["permit_machines_donated"] = MachinesDonated, ["aug_good_kills"] = GoodKills, ["aug_wrongful_kills"] = WrongfulKills, ["aug_left_alive"] = LeftAlive,
                 ["production"] = Production.Totals(),
+                ["fair_play"] = new JObject { ["buyer_exposures"] = Exposures, ["inspections"] = Known.Inspections, ["suspect_hits"] = Known.Suspects },
             };
             if (Furnace.On) s["furnace"] = Furnace.Totals(Days.Count > 0 ? (int)Days[Days.Count - 1]["day"] : 0);
             if (Vending.Status() is JObject vend) s["vending"] = vend;

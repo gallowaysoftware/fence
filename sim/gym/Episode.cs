@@ -222,6 +222,8 @@ namespace Fence.Gym
             Hooks.On("PlayerStore::DismissCurrentClient", (self, a) => BeforeDismiss());
             Hooks.On("PlayerStore::ExecuteGameOver", (self, a) => GameOver ??= a[0] as string ?? "unknown");
             Hooks.On("WildNetworkUI::Open", (self, a) => wildOpened = true);
+            // The truth side of fair play: each item a buyer exposes (FAIR-PLAY.md), never read by the executor.
+            Hooks.On("StoreClient::ClientExposeFeature", (self, a) => { if (Ledger != null) Ledger.Exposures++; });
             RegisterAugHooks();
             RegisterStolenHooks();
             foreach (var name in ModSide.MoneyHooks.Keys)

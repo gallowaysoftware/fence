@@ -3,6 +3,31 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Fair play — 2026-11-12: the executor reads only what a player could; it costs no wins
+
+**Result.** Every executor read of hidden per-item truth now goes through `sim/gym/Known.cs`, the measurement layer:
+the magnifier's cue reads, water labels the executor made true (faucet, test), its own pressings and labeler records,
+and instruments only while owned. On six routes, hard and normal, 60 paired seeds: no win lost (all 60/60, McNemar
+p = 1); paired win days within noise except `water_baron` on normal, +1.8 ± 1.4 days against the truth-reading guard.
+Full audit, rules and numbers in docs/research/FAIR-PLAY.md.
+
+**Found.**
+
+- The fake-exposure guard (`KeepWhy`, `BribePicks`, `PullExposable`, `Labels.ForBuyer`) asked the game whether this
+  buyer would catch a fake; the `water_label` check compared the label with the true purity. Replaced by
+  `Known.MayExpose`: what the player has read or suspects, against each client type's checks (a rule).
+- `HidesFake` (the case and the vending machine) was inverted: it held under-claims and let real fakes through.
+- A stealth-wanted client was dismissed (a hidden flag); the lab used bottle compositions and dust purities without
+  the spectrometer; the reed used the label's exact basis points; DNA breeding read trait ranks without the gene
+  scanner; `breadth.queue` read the queue. All fixed.
+- The permit official could be handed an engine's machine (the frame forge's printer, both modules inside): donations
+  are plain stock only (`PlayerCounter.Donatable`, `fence-lab barter.donations`).
+- `FairPlayTests` fails on any hidden accessor outside the measurement layer and a listed set of environment and log
+  reads; it caught the frame-forge merge's two reads and the breeding merge's seven (trait ranks without the gene
+  scanner) on arrival.
+- Doubling the strip stock does not recover the water cost; real-time play (holding a day open) is allowed: fair play
+  is about information, not time.
+
 ## The chemistry supply loop — 2026-11-12: every wall closed or measured; the lab still loses
 
 **Result.** The caffeine lab's supply walls, closed one by one on the chemistry engine (docs/research/CHEMISTRY-ENGINE.md,

@@ -17,6 +17,13 @@ namespace Fence.Gym
             return In(e.invElement).Concat(In(e.showcaseElement));
         }
 
+        // What may go to the permit official: plain stock. Never an engine's machine, module, kit or input (the forge's
+        // printer with both modules went once), nothing holding other items, no sign or tool, nothing stolen or contraband.
+        internal static bool Donatable(GameItem i) =>
+            !Production.Reserved(i) && !Directives.Current.HoldUids.Contains(i.uniqueId) && !StolenHelper.IsStolenItem(i) && ContrabandHelper.GetContrabandLevelInInt(i) == 0
+            && !i.IsGameItemType("MACHINE") && !i.IsGameItemType("MODULE") && StoreClient.GetInspectableChildren(i).Count == 0
+            && !PlayerRole.IsSign(i) && !Appraisal.IsKit(i) && !Labels.IsTool(i) && i.identifier != "magnifier";
+
         // Goods set aside for the permit official's next visit (from day 40 while bribing): the cheapest
         // items covering what is owed plus the week's maximum (95), so the shelf is never bare on his day.
         public static HashSet<int> BribeReserve(int day)
@@ -26,7 +33,7 @@ namespace Fence.Gym
             if (ps.hasBusinessPermit || day < 40 || Directives.Current.Permit == "buy" || Directives.Current.Permit == "refuse") return held;
             int need = Math.Max(0, ps.storeClientData.businessPermitBribeAmount) + 95;
             long sum = 0;
-            foreach (var i in StockAndCase().Where(i => !Production.Reserved(i) && !StolenHelper.IsStolenItem(i) && ContrabandHelper.GetContrabandLevelInInt(i) == 0)
+            foreach (var i in StockAndCase().Where(Donatable)
                          .OrderBy(i => i.GetNegociatedValue()).ThenBy(i => i.uniqueId))
             {
                 if (sum >= need) break;
@@ -56,7 +63,7 @@ namespace Fence.Gym
             need = ps.storeClientData.businessPermitBribeAmount;
             // Cheapest goods first that the official takes, never an engine's input or a held item.
             var pool = StockAndCase()
-                .Where(i => !Production.Reserved(i) && !Directives.Current.HoldUids.Contains(i.uniqueId) && !StolenHelper.IsStolenItem(i) && ContrabandHelper.GetContrabandLevelInInt(i) == 0 && c.IsClientBuyingThisItem(i, false) && !c.CanClientExposeAnyFeatureDeep(i))
+                .Where(i => Donatable(i) && c.IsClientBuyingThisItem(i, false) && !Known.MayExpose(c, i))
                 // The official checks what he is given on placement (TradeBoardExposeCapacity): each fake he
                 // finds costs Lower Levels rep (-5 on hard). Own goods (wine, berries) carry no fakes; they go first.
                 .OrderBy(i => i.identifier == "wine_bottle" || i.identifier == "wine_berry" ? 0 : 1).ThenBy(i => i.GetDonationCreditValue()).ThenBy(i => i.uniqueId).ToList();
@@ -86,10 +93,9 @@ namespace Fence.Gym
         }
 
         // The buyer re-inspects each item before a sale (TryReinspectBeforeSale) and exposes what he can: -5
-        // rep a find on hard, sale or not. Some fakes only become exposable once on the counter. Reads what the
-        // buyer could expose (a hidden value; the feed marks it).
+        // rep a find on hard, sale or not. What the player knows or suspects he would find goes back.
         public static List<GameItem> Exposable(StoreClient c) =>
-            In(EmporiumEntry.Instance.backInvinvElement).Where(i => GeneralHelper.IsItemOwned(i) && c.CanClientExposeAnyFeatureDeep(i)).ToList();
+            In(EmporiumEntry.Instance.backInvinvElement).Where(i => GeneralHelper.IsItemOwned(i) && Known.MayExpose(c, i)).ToList();
 
         // Dr. Jackson's goods worth buying tonight, in the order they are staged: `stage` moves one to his back
         // counter and says whether it went (headless the move itself; live a queued move, assumed to go).

@@ -92,7 +92,7 @@ namespace Fence.Gym
         // with a dirt bonus of at least 1, so a smaller removal can only mean the cap stopped it. The AquaScan reads it.
         static bool PurifierDone(GameItem m, GameItem c)
         {
-            if (Scanner()) return WaterHelper.GetWaterPurity(c) >= PurifierCap(m);
+            if (Known.AquaScan(c) is int p) return p >= PurifierCap(m);
             int removedUl = m.GetTagReadonly("TOTAL_CONTAMINANT_REMOVED_TAG").GetInt();
             int ml = Math.Min(10000, WaterHelper.GetCurrentCapacityML(c));
             double floorUl = (ml * 3 + 25000) * 1.25 * Math.Max(0, 1 + MachineryHelper.GetCurrentPerformanceBonus(m) / 100.0);

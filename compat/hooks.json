@@ -11942,6 +11942,102 @@
       ],
       "required": false,
       "why": "LiveHands.Accept places an item a machine or a blade has just made (no inventory yet), never a destroyed one."
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getchemicalfeature",
+      "type": "ChemicalProductHelper",
+      "member": "GetChemicalFeature",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "ItemFeature",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getconditionfrompurity",
+      "type": "WaterFeatureHelper",
+      "member": "GetConditionFromPurity",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "ItemCondition",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemcondition.comparevalue",
+      "type": "ItemCondition",
+      "member": "compareValue",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.istag",
+      "type": "StoreClient",
+      "member": "IsTag",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.itemconditionlist.conditionwaterpurity",
+      "type": "ItemConditionList",
+      "member": "conditionWaterPurity",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<ItemCondition>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.ammoboxhelper.isammobox",
+      "type": "AmmoBoxHelper",
+      "member": "IsAmmoBox",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.canexposechem",
+      "type": "StoreClient",
+      "member": "CanExposeChem",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

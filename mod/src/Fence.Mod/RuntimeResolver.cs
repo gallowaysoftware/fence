@@ -112,6 +112,7 @@ namespace Fence.Mod
                 case "GraphUtils": found = GraphUtilsMembers(member); break;
                 case "HydroponicHelper": found = HydroponicHelperMembers(member); break;
                 case "IngotPurityHelper": found = IngotPurityHelperMembers(member); break;
+                case "AmmoBoxHelper": found = AmmoBoxHelperMembers(member); break;
                 case "Interactable": found = InteractableMembers(member); break;
                 case "MachineBottlePrinter": found = MachineBottlePrinterMembers(member); break;
                 case "MachineHelper": found = MachineHelperMembers(member); break;
@@ -308,6 +309,7 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GraphUtilsMembers(string m) => typeof(GraphUtils).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HydroponicHelperMembers(string m) => typeof(HydroponicHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IngotPurityHelperMembers(string m) => typeof(IngotPurityHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] AmmoBoxHelperMembers(string m) => typeof(AmmoBoxHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InteractableMembers(string m) => typeof(Interactable).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineBottlePrinterMembers(string m) => typeof(MachineBottlePrinter).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineHelperMembers(string m) => typeof(MachineHelper).GetMember(m, All);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fence.Gym;
 using Fence.Sim;
 
 namespace Fence.Lab
@@ -352,6 +353,26 @@ namespace Fence.Lab
 
         // The wanted list (no docs/re file yet): each poster client's bounty and faction terms, and what reporting one
         // pays on hard (PlayerStore.OnCustomerReported, then the alarm's onSecAlarmLeftAction).
+        // What the permit official may be handed (PlayerCounter.Donatable): plain stock, never a machine with its modules
+        // (the frame forge's printer went once as a 1 528 donation), a module, or a box holding goods.
+        public static void Donations(int seed)
+        {
+            W.New(seed, "hard");
+            Directives.Current = Directives.Parse(Newtonsoft.Json.Linq.JObject.Parse("{\"permit\": \"bribe\"}"));
+            GameItem Mine(GameItem it) { GeneralHelper.SetItemOwned(it, true); W.Place(W.E.invElement, it); return it; }
+            var printer = Mine(PreBuiltItemHelper.CreatePrinter());
+            foreach (var m in new[] { "printer_module_metal", "printer_module_cnc" })
+            {
+                var mod = DirectoryMaster.Item(m);
+                GeneralHelper.SetItemOwned(mod, true);
+                GraphUtils.TryAcceptAll(MachineHelper.GetBodyStorage(printer, 1), mod, -1);
+            }
+            R.Exact("donations: a printer holding its metal and CNC modules is never donated", false, PlayerCounter.Donatable(printer));
+            R.Exact("donations: a loose fridge (a machine) is never donated", false, PlayerCounter.Donatable(Mine(DirectoryMaster.Item("fridge"))));
+            R.Exact("donations: a loose module is never donated", false, PlayerCounter.Donatable(Mine(DirectoryMaster.Item("blank_module"))));
+            R.Exact("donations: junk is donated", true, PlayerCounter.Donatable(Mine(DirectoryMaster.Item("junk"))));
+        }
+
         public static void Wanted(int seed)
         {
             W.New(seed, "hard");

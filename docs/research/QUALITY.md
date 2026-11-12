@@ -140,9 +140,8 @@ needs a purifier the wine routes rarely own).
 | Per-liquid composition (minerals, chemical) | AquaScan only | the mineral ledger is replaced by the reading when one is owned; the reed's done-check likewise |
 | True purity, the wine score, plant health | no (tests, dev tooltip, plant analyser) | only the summary's `production.quality` counters (measurement, never a decision) |
 
-Still reading truth (documented, not in these engines): `PlayerRole`'s counter check that holds over-labelled
-water off the shelf (`water_label`) compares the label with the true grade; a player would have to test every
-bought bottle.
+`PlayerRole`'s counter check that holds over-labelled water off the shelf (`water_label`) no longer reads the true
+grade: a bought or poured-into container gets a strip before a buyer sees it, else it is held (FAIR-PLAY.md).
 
 ## 5. Clean water at scale
 
@@ -222,7 +221,7 @@ branch with the defaults (`quality.bays` and `bottles` on, `reeds` 0). Hard, rou
    it lost without reading the truth.
 4. **The wine-bottle purifier trick, the furnace's leftover ore, `wine_dna_trait: purifying`** (built, not
    measured).
-5. **PlayerRole's `water_label` check** still reads the hidden truth (§4).
+5. **PlayerRole's `water_label` check** reads only the label and tests (FAIR-PLAY.md).
 6. **The mod.** The engines are shared executor files (`mod/src/Fence.Autopilot/SharedExecutor.props` now
    includes `Quality.cs` and `Hydro.cs`), so the live autopilot runs them. `make mod` and `make test-mod` are green:
    - nine new game members in `compat/hooks.json`;
