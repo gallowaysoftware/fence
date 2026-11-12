@@ -297,6 +297,7 @@ except an engine that names only part of the base's (a restated `wine` would sto
 | `bargain_buy` | gym executor: haggling with sellers (`never`, `ev_positive`, `discount`, `aggressive`); `bargain` is with buyers |
 | `speculate` | gym executor: `{types, max_days}`, hold those goods from ordinary buyers until a market event or an Upper Levels buyer with tips, or `max_days` |
 | `specialty` | gym executor: `{types, lot_share}`, buy only those goods |
+| `lab` | gym executor: the chemistry lab (`docs/research/CHEMISTRY-ENGINE.md`), off when absent: `{products: ["caffeine_pill", "dream_dust", "fanta_pill"], modules: auto\|none\|max, payback_weeks, jackson_need, ratio, …}`; `"caffeine"` is the older form |
 
 The last five are route levers a strategist's fork may change mid-run (docs/STREAM.md, "Model agency"); the gym
 reads them from the morning's directives like any route file's.

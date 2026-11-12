@@ -92,7 +92,7 @@ namespace Fence.Gym
             // its faction's rep at once, sale or not. Reads the true condition, as the water check above does.
             if (c != null && c.CanClientExposeAnyFeatureDeep(i)) return "exposable";
             if (D.HoldUids.Contains(i.uniqueId) || P.Reserved(i)) return "reserved";
-            if (Contraband(i) && !(D.Raw["sell"]?.Value<bool?>("sell_contraband") ?? false)) return "contraband";
+            if (Contraband(i) && !(D.Raw["sell"]?.Value<bool?>("sell_contraband") ?? false) && !Lab.SellsOwn(i)) return "contraband";
             // `wine_min_age`: finished wine ages +3 a night x its grade; held until this many nights unless the
             // shop is short of cash.
             // At most `wine_hold_max` bottles (default 20) are held back, the youngest.
@@ -316,6 +316,12 @@ namespace Fence.Gym
                     if (other != null) return Took("player:decline_inspector_bribe", v, other.Index);
                 }
             }
+            // The Chemist start's cartel (docs/re/CHEMISTRY.md §7.3): never report it (−20 cartel rep), take the handler's
+            // materials when the next quota is short of them, and put the dust on the counter for the weekly count.
+            if (v.ClientId == "cartelSec" && v.Choices.Count(c => c.Enabled) >= 2) return Took("player:cartel_quiet", v, v.Choices.Where(c => c.Enabled).ElementAt(1).Index);
+            if (v.ClientId == "cartelHandlerCheckin" && v.Choices.Count(c => c.Enabled) >= 2)
+                return Took(Lab.CartelMaterials() ? "player:cartel_materials" : "player:cartel_all_good", v, v.Choices.Where(c => c.Enabled).ElementAt(Lab.CartelMaterials() ? 0 : 1).Index);
+            if (v.ClientId == "cartelHandlerWeekly" && v.Choices.Any(c => c.Enabled)) Lab.StageQuota();
             if (v.ClientId == "businessPermitOfficial")
             {
                 string mode = PermitMode(v.Cash, v.RentDue);
@@ -427,6 +433,7 @@ namespace Fence.Gym
         {
             if (JacksonEquipment && Production.IsInput(i.identifier) && (i.identifier != "energy_credit" || Production.Charged(i))
                 && staged < Production.Wants(i.identifier)) return true;
+            if (Lab.JacksonBuys(i.identifier) && staged < Lab.Wants(i.identifier)) return true;
             var ids = (D.Raw["jackson"] as Newtonsoft.Json.Linq.JArray)?.Select(x => (string)x).ToList()
                 ?? new List<string> { "sign_water" };
             if (WindowSigns is List<string> signs) ids = ids.Concat(signs).ToList();
@@ -455,7 +462,8 @@ namespace Fence.Gym
             // `jackson_need: N` (gym, with `jackson_equipment`): also go when an engine wants equipment he always or often
             // stocks, at most once in N nights.
             int need = D.Raw.Value<int?>("jackson_need") ?? 0;
-            bool needed = need > 0 && v.Day - lastJackson >= need && JacksonEquipment && JacksonStock.Any(id => Production.Wants(id) > 0);
+            bool needed = need > 0 && v.Day - lastJackson >= need && JacksonEquipment && JacksonStock.Any(id => Production.Wants(id) > 0)
+                || Lab.JacksonNeed is int ln && v.Day - lastJackson >= ln && (Lab.Wants("chem_module") > 0 || Lab.Wants("energy_credit") > 0);
             if ((due || needed) && v.Locations.Contains("dr_jackson") && v.Cash > v.RentDue + 800)
             {
                 plan.Outing = "dr_jackson";
@@ -728,7 +736,7 @@ namespace Fence.Gym
             // Contraband and heat are judged on what each option buys: buy_all takes the staged items,
             // wholesale the whole lot (a seller's other goods may be contraband the player never stages).
             bool buyContraband = d.Raw["buy"]?.Value<bool?>("contraband") ?? false;
-            bool Bad(JToken i) => !buyContraband && ((i.Value<bool?>("serious_contraband") ?? false) || (i.Value<int?>("contraband_level") ?? 0) > 0);
+            bool Bad(JToken i) => !buyContraband && !Lab.ContrabandInput(i.Value<string>("id")) && ((i.Value<bool?>("serious_contraband") ?? false) || (i.Value<int?>("contraband_level") ?? 0) > 0);
             bool HotFits(IEnumerable<JToken> lot)
             {
                 var hot = lot.Where(i => (i.Value<int?>("stolen_heat") ?? 0) > 0 || (i.Value<int?>("contraband_level") ?? 0) > 0).ToList();

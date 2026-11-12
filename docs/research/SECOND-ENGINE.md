@@ -1,5 +1,9 @@
 # A second money engine on hard (2026-11-11)
 
+> **2026-11-12:** the chemistry engine that makes the best grade a kit allows, the Cook (Chemist start) and the
+> closed loop with coffee bays are in docs/research/CHEMISTRY-ENGINE.md; the old `lab: "caffeine"` below is kept as
+> it was.
+
 **Question.** Every winning hard route gets 55–71 % of its money from the Appraisal Board, and without the Board a
 shop grows its net worth by 700–900 a week from day 70 against a rent that needs ~1 000–1 500 a week more
 (ROUTES.md, "Without the Appraisal Board"). Can a second engine close that gap?

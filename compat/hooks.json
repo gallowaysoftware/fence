@@ -10517,6 +10517,173 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.newgamedata.instance",
+      "type": "NewGameData",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "NewGameData",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.newgamedata.starttype",
+      "type": "NewGameData",
+      "member": "startType",
+      "kind": "field",
+      "returns": "NewGameData+StartType",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.iscartelexited",
+      "type": "PlayerStore",
+      "member": "isCartelExited",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.cartelrequiredcount",
+      "type": "PlayerStore",
+      "member": "cartelRequiredCount",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.cartelrequiredpurity",
+      "type": "PlayerStore",
+      "member": "cartelRequiredPurity",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.cartelexitstage",
+      "type": "PlayerStore",
+      "member": "cartelExitStage",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getpurity",
+      "type": "ChemicalProductHelper",
+      "member": "GetPurity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Double",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getcurrentchemicalconditionid",
+      "type": "ChemicalProductHelper",
+      "member": "GetCurrentChemicalConditionId",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineblender.getloss",
+      "type": "MachineBlender",
+      "member": "GetLoss",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.tagstate.getdouble",
+      "type": "TagState",
+      "member": "GetDouble",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Double",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.liquid.liquids",
+      "type": "Liquid",
+      "member": "Liquids",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<Liquid>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.liquid.identifier",
+      "type": "Liquid",
+      "member": "identifier",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storereputation.getcartelreputation",
+      "type": "StoreReputation",
+      "member": "GetCartelReputation",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

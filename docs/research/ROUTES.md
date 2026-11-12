@@ -68,6 +68,13 @@ the alarm's bay, so the Security race gives back about a third of the alarm's in
 end with the alarm short of performance 50, against 1 without the transmitter). The plain alarm is worth adding
 to any route that does not race Security.
 
+**A candidate: `caffeine_lab` (2026-11-12).** `sprinter` plus a legal caffeine lab at the best grade its kit
+allows (`sim/lab/scripts/directives/lab/caffeine_lab.json`, persona `cook`): 60/60 (94–100 %) on 2910001–060, median
+win day 125, paired +56.6 ± 14.2 days against `sprinter`, 21 of 60 by the mortgage; ~286 pharma-grade pills and
+~4 200 of sales a run (docs/research/CHEMISTRY-ENGINE.md). Slower than every plain route but a different show (a
+chemist at work). Not on the menu yet: it needs its ghost band (`ghost_bands.py run -only caffeine_lab`) and
+deadline odds (`deadline_odds.py run -only caffeine_lab`) before it moves into `routes/`.
+
 ## Every route buys for cash (2026-11-11)
 
 Each route got `buyout_by_day: 140`, `buyout_save: ["insurance"]` and `buyout_save_from: 56`. Paired against

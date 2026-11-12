@@ -171,6 +171,7 @@ namespace Fence.Gym
             Scheduler.Reset();
             Hooks.Clear();
             Production.Reset();
+            Lab.Thermostat = true;
             SupplyProbe.Reset();
             GameOverField.SetValue(null, null);
             Scheduler.OnError = e => GameError("coroutine", e);
@@ -184,7 +185,8 @@ namespace Fence.Gym
             Game.MarkAlive(ngd);
             ngd.difficultyId = Options.Difficulty;
             ngd.hardMode = Options.Difficulty == "hard" || Options.Difficulty == "challenge";
-            ngd.startType = (NewGameData.StartType)Enum.Parse(typeof(NewGameData.StartType), Options.Start, ignoreCase: true);
+            // The new-game screen's Chemist start ("chemist", docs/re/CHEMISTRY.md §7.3) is StartType.DRUG_DEALER.
+            ngd.startType = (NewGameData.StartType)Enum.Parse(typeof(NewGameData.StartType), string.Equals(Options.Start, "chemist", StringComparison.OrdinalIgnoreCase) ? "DRUG_DEALER" : Options.Start, ignoreCase: true);
             var warm = WarmStart.Parse(Options.Warm);
             ngd.skipIntro = Options.SkipIntro || warm != null;
             ngd.startingPerks = StartingPerks.Parse(string.IsNullOrEmpty(Options.Perks) ? warm?.Perks : Options.Perks);
@@ -287,7 +289,8 @@ namespace Fence.Gym
                 }
                 Mod.PollSummary();
                 PlayerMorning();
-                PassTime(Options.SecondsPerDay * GymOptions.MorningShare);
+                PassTime(Options.SecondsPerDay * GymOptions.MorningShare, Lab.Second);
+                Guard("lab", Lab.EndMorning);
                 yield return Phase;
 
                 Phase = Phase.Window;
@@ -380,7 +383,7 @@ namespace Fence.Gym
                 if (it is GameItemElement el && !ReferenceEquals(el.handler, null)) Game.MarkAlive(el.handler);
         }
 
-        void PassTime(double seconds)
+        void PassTime(double seconds, Action perSecond = null)
         {
             Guard("handlers", MarkHandlersAlive);
             itemClock += seconds;
@@ -400,6 +403,7 @@ namespace Fence.Gym
                             item.onOneSecondItemFunc(item, item.parentInventory, null);
                         }
                 });
+                if (perSecond != null) Guard("per second", perSecond);
             }
         }
 

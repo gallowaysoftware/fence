@@ -52,21 +52,24 @@ Storage, purity of water and grades of water are in `WATER.md` §1. For chemistr
 
 | Fact | Value | Vis. | Evidence |
 |---|---|---|---|
-| Amounts | integer µL per liquid on the container (`CURRENT_PART_<ID>` tags); also on chemical items (caps, pills) | VISIBLE with the composition spectrometer (`chem_scanner`, 400): every liquid in µL and % of total, total volume, toxicity (lethal ×doses / toxic), euphoria level, synaprest and birth-control flags | `ChemScannerUIManager`, `ChemicalHelper.InitChemItem` |
-| Volumes otherwise | only graduated containers (cylinders 25/50/100 ml, droppers 1/5 ml, pitcher, water tank) show exact ml; the Experienced Chemist starting perk shows them on every container | VISIBLE | `WaterHelper.CreateWaterContainerTooltip` (`StartingPerk.IsExperiencedChemist`) |
+| Amounts | integer µL per liquid on the container (`CURRENT_PART_<ID>` tags); also on chemical items (caps, pills) | VISIBLE with the composition spectrometer (`chem_scanner`, 400): every liquid in µL and % of total, total volume, toxicity (lethal ×doses / toxic), euphoria level, synaprest and birth-control flags; for containers also with the AquaScan (200, composition only). §4.1 | `ChemScannerUIManager`, `WaterScannerUIManager`, `ChemicalHelper.InitChemItem` |
+| Volumes otherwise | every liquid container's tooltip shows a fill bar and "current / capacity" in whole ml (rounded): the graduated-or-Experienced-Chemist branch is always taken because `StartingPerk.IsExperiencedChemist` returns true unconditionally in this build. Below 1 ml the tooltip cannot resolve it (use a scanner) | VISIBLE | `WaterHelper.CreateWaterContainerTooltip`, `StartingPerk.IsExperiencedChemist` |
 | Pouring | `WaterHelper.TransferLiquid`: moves `min(target free space, source total)`, every liquid **in proportion**. There is no "pour X ml": you measure by pouring into a dropper/cylinder (it fills to its capacity) and then pouring that | VISIBLE | `TransferLiquid`, `SplitProportionally` |
-| Filtering | a pour **into a filter pitcher** with a filter seated: each liquid whose particle size ≥ the filter's size is removed (down to `filterMinimumPurity` × poured volume), costing durability per `filterVolumeRemoved` µL. Microbes always pass (except the UV filter, which removes only microbes) | VISIBLE (result) | `WaterHelper.HandleFilter` |
-| Temperature | `CONTAINER_TEMP_TAG` (°C, double). New/empty containers 24; mixing is volume-weighted; off a plate it decays toward 26 °C each second by `exp(−6.25/(√µL + 11))` | VISIBLE on the plate's panel only | `ChemicalHelper.GetCooledTemp`, `HandleReceiveLiquidTemp` |
-| Dissolving | soluble chem items (pills, dusts, tablets) can be targeted onto an owned container: their whole composition is added; if it overflows, the container first loses the excess in proportion | VISIBLE | `ChemicalHelper.DissolveInto` |
-| Blending | blendable items in the blender: composition × (1 − loss) poured into the slotted container, item destroyed | VISIBLE | `ChemicalHelper.BlendInto` |
+| Filtering | a pour **into a filter pitcher** with a filter seated: each liquid whose particle size ≥ the filter's size is removed down to `filterMinimumPurity` × **that liquid's own poured amount**, in chunks of `filterVolumeRemoved` µL each costing `filterDurabilityUsage` durability; a filter at 0 durability removes nothing (the pour still happens). Microbes always pass (except the UV filter, which removes only microbes) | VISIBLE (result) | `WaterHelper.HandleFilter` |
+| Temperature | `CONTAINER_TEMP_TAG` (°C, double). New/empty containers 24; mixing is volume-weighted (liquid added by `AddLiquid`, e.g. blending, dissolving, pouring a bottle of spirit, arrives at 26 °C); off a plate it decays toward 26 °C each second by `exp(−6.25/(√µL + 11))` | VISIBLE only as the plate's readout: whole °C, **truncated**, only while the plate window is open with the container in its slot. No tooltip, scanner or other UI shows it | `ChemicalHelper.GetCooledTemp`, `HandleReceiveLiquidTemp`, `MachineHeatingPlate` tick |
+| Dissolving | soluble chem items (every chem product, water and nutrient tablets, feces) can be targeted onto a container; item and container must both be owned. The whole composition is added; if it overflows, the container first loses the excess in proportion | VISIBLE | `ChemicalHelper.InitChemItem`, `DissolveInto` |
+| Blending | blendable items in the blender: each liquid × (1 − loss), rounded, poured into the slotted container, item destroyed. Overflow is trimmed **proportionally from the whole container** (old contents included) | VISIBLE | `ChemicalHelper.BlendInto`, `WaterHelper.RemoveExcessLiquid` |
 | "Wet" | > 100 µL of evaporative liquids (water, alcohol, lipobond) | VISIBLE (finisher status) | `WaterHelper.IsWet` |
 
 ### 1.1 The 36 liquids
 
 Particle size decides filtering: **kotton fabric** (size 150, durability 1000, 65) stops ≥150; the
 **water filter** / advanced filter / hydroreed filter (size 22) stop ≥22 — both remove the liquid
-completely except minerals/organic/physical, which keep 0.16 % of the poured volume (lab: 2.5 ml
-mineral → 0.004 ml). Lethality and euphoria are per µL (§5).
+completely except mineral, organic waste and physical contaminant, which keep 0.16 % of their own poured
+amount, and microplastic, 0.2 % (lab: 2.5 ml mineral → 0.004 ml). Lethality and euphoria are per µL (§5).
+Every liquid except water is `canBeRemovedByPurifier`: the water purifier turns **any** non-water liquid,
+the active ingredients included, into water (largest particles first), so a batch must never go in it
+(`MachinePurifier.RemoveLargestFirst`).
 
 | Liquid | Particle | Removed by | Boils at °C | Lethality | Euphoria | Where it comes from |
 |---|---|---|---|---|---|---|
@@ -81,11 +84,11 @@ mineral → 0.004 ml). Lethality and euphoria are per µL (§5).
 | `dream_cap_mush` | 200 | both | | | 0.04 | blended dream cap |
 | `dream_cap_extract` | 5 | — | | | 1.0 | extraction |
 | `plant_matter` | 200 | both | | | | extraction by-product, degraded mush |
-| `alcohol` | 10 | — | 78.37 | | | mini alcohol bottle (70 %), spirits |
+| `alcohol` | 10 | — | 78.37 | | | mini alcohol bottle (70 %); nudka poured on a container (750 ml: 45 % alcohol + base water, `WaterHelper.PourNudka`); wine poured (20 %) |
 | `caffeine` | 5 | — | | | | coffee beans |
 | `protein` | 5 | — | | | | caps, beans, fruit |
 | `fat` | 5 | — | | | | coffee beans |
-| `starch` | 5 | — | | | | nutrifruit, potato; the street "cut" |
+| `starch` | 5 | — | | | | nutrifruit (17.3 % of its weight); the street "cut" |
 | `sugar` | 5 | — | | | | fruit |
 | `coffee_mush` | 200 | both | | | | blended coffee bean |
 | `contraceptive` | 5 | — | | | | birth-control pills only |
@@ -103,11 +106,11 @@ mineral → 0.004 ml). Lethality and euphoria are per µL (§5).
 | `debris` | 200 | both | | | | every precipitation/sedimentation |
 | `lipobond_agent` | 5 | — | **55** | | | common supplies |
 | `livestock_steroid`, `livestock_immunity` | 5 | — | | | | red / green serum (100 each), injected 20 µL into an animal |
-| `wine_extract` | 5 | — | | | | (no recipe) |
+| `wine_extract` | 5 | — | | | | pouring a wine bottle into a container (4 ‰ × quality tier 0–5 of 750 ml, so 0–15 ml; a counterfeit gives 8 ‰ plus 8 ‰ chemical contaminant; `WineHelper.PourWineIntoContainer`); no use in chemistry |
 | `nomore` | 5 | — | | | | dream extract reduction |
 
 No reaction produces zyanide, contraceptive, synaprest or wine extract: cyanide and birth-control pills
-can only be bought and re-dissolved.
+can only be bought and re-dissolved; synaprest exists in no item.
 
 ## 2. Reactions (`ChemicalHelper.HandleTemperatureReaction`, every second)
 
@@ -123,9 +126,9 @@ one tick).
 |---|---|---|---|---|---|---|
 | R1 | **Dream cap extraction** | `dream_cap_mush` + `alcohol` | T ≥ 40 °C | processes max(2 ml, 10 %) of the mush; fraction to extract = 0.5 × min(1, alcohol / **mush still present** / 5) | extract, rest → plant matter. Alcohol is not consumed | `HandleDreamCapMushReaction` |
 | R2 | Nightmare cap extraction | `nightmare_cap_mush` + alcohol | T ≥ 40 | same as R1 | nightmare extract / plant matter | `HandleNightmareCapMushReaction` |
-| R3 | Dream mush rot | mush | T ≥ 50 | 1 % per °C above 50 (to 10 % at 60…70), then 10→90 % over 70–100, 90–100 % above | plant matter | `HandleDreamCapMushDegradation` |
-| R4 | **Dream extract destruction** | extract | T ≥ 60 | 1 % per °C above 60, 10→90 % over 70–100, ≥ 90 % above 100 | destroyed (vanishes) | `HandleDreamCapExtractDegradation` |
-| R5 | Nightmare extract destruction | nightmare extract | T ≥ 50 | **5 % per °C** above 50 (the divisor is 2, not 10: 50 % at 59 °C) | destroyed | `HandleNightmareCapExtractDegradation` |
+| R3 | Dream mush rot | mush | T ≥ 50 | 1 % per °C above 50 (10 % at 60, 19.9 % at 69.9), **drops to 10 % at 70**, then 10→90 % over 70–100, 90→100 % over 100–120 | plant matter | `HandleDreamCapMushDegradation` |
+| R4 | **Dream extract destruction** | extract | T ≥ 60 | 1 % per °C above 60, 10→90 % over 70–100, 90→100 % over 100–120 | destroyed (vanishes) | `HandleDreamCapExtractDegradation` |
+| R5 | Nightmare extract destruction | nightmare extract | T ≥ 50 | **5 % per °C** above 50 (the divisor is 2, not 10: 45 % at 59 °C, 50 % at 60, 99.5 % at 69.9), drops to 10 % at 70, then as R4 | destroyed | `HandleNightmareCapExtractDegradation` |
 | R6 | Nightmare mush rot | nightmare mush | T ≥ 50 | as R3 | plant matter | `HandleNightmareCapMushDegradation` |
 | R7 | **Coffee extraction, solvent** | `coffee_mush` + alcohol | T ≥ 50 | processes max(1 µL, 15 %) of the mush; fraction to caffeine = 0.75 × min(1, alcohol / **this second's chunk** / 5) | caffeine / plant matter | `HandleCoffeeBeanExtractionSolvent` |
 | R8 | Coffee extraction, water | coffee mush + water | T ≥ 80 | 5 % of the mush; fraction 0.125 × min(1, water/chunk/5) | caffeine / plant matter | `HandleCoffeeBeanExtractionWater` |
@@ -134,7 +137,7 @@ one tick).
 | R11 | **Lipobond sedimentation** | `fat` + lipobond | any T | 20 % of min(fat, 8 × lipobond) (min 1 ml) | debris (fat + lipobond); 1 lipobond per 8 fat | `HandleLipobondAgentSedimentation` |
 | R12 | Stabiliser sedimentation | `stabilizing_agent` + acid and/or base | any T | 20 % of min(acid + base, stabiliser) (min 1 ml) → debris; acid and base each lose max(0.1 ml, 5 %) | debris | `HandleStabilizingAgentSedimentation` |
 | R13 | Acid/base neutralisation | acid + base | any T | 10 % of the smaller (min 1 ml) of each | nothing (both vanish; no water, no salt) | `HandleAcidBaseNeutralization` |
-| R14 | **Methylol reduction (Phanta)** | methylol in **excess of the stabiliser** + reducing agent | 110 ≤ T < 120: 2.5 %; 120 ≤ T < 130: 15 % (min 1 ml) of min(methylol − stabiliser, reducing) | methylol consumed, reducing −0.75×, **Phanta +0.1×** | nothing happens while stabiliser ≥ methylol | `HandleMethylolHeatReaction` |
+| R14 | **Methylol reduction (Phanta)** | methylol in **excess of the stabiliser** + reducing agent | 110 ≤ T < 120: 2.5 %; 120 ≤ T < 130: 15 %; both min 1 ml, of min(methylol − stabiliser, reducing) | methylol consumed, reducing −0.75×, **Phanta +0.1×** | nothing happens while stabiliser ≥ methylol | `HandleMethylolHeatReaction` |
 | R15 | Phanta heat damage | fanta | T ≥ 130 | −2 % | destroyed | `HandleFantaHeat` |
 | R16 | Microbe heat | microbe | ≥ 70: −20 %; ≥ 100: all | | killed | `HandleMicrobeHeat` |
 | R17 | Microbe alcohol | microbe | alcohol ≥ 40 % of total | kills up to the alcohol volume (all, in practice) | killed | `HandleMicrobeAlcohol` |
@@ -164,27 +167,33 @@ portions to 100 ml alcohol) exploits the same rule.
 
 ## 3. Equipment
 
-All four chem machines come with the Retired Chemist network upgrade (1000) and the chemist start (§7.3). The
-blender, heating plate and chem finisher take only `chem_module` (250) — **up to 4 each** — and need no
-power; the evaporator takes ordinary universal/evaporator modules and a battery. Values from
+The Retired Chemist network upgrade (1000; 1 500 on hard) brings his weekly visit, which offers all four chem machines on his counter (`StoreClientListSpec.CreateRetiredChemist`); the chemist start (§7.3) has them from day 1. The
+blender, heating plate and chem finisher take only `chem_module` (250) — **up to 4 each**, owned only, and a
+seated chem module is marked stuck (`ModuleHelper.SetModuleStuck`) — and need no power; the evaporator
+takes ordinary universal/evaporator modules and a battery. Every machine slot that takes a container
+accepts only an owned liquid container. Values from
 `var/gamedata/chemistry.json` → `module_effects` (code + extraction):
 
 | Chem modules | 0 | 1 | 2 | 3 | 4 | Evidence |
 |---|---|---|---|---|---|---|
 | Blender loss (all liquids of each item) | 35 % | 20 % | 10 % | 5 % | 0 % | `MachineBlender.GetLoss` |
 | Finisher impurity (share of each unit replaced by physical contaminant) | 12 % | 6 % | 3 % | 1 % | 0 % | `MachineChemFinisher.GetLoss` |
-| Heating plate target | fixed **99 °C** | fixed **160 °C** | settable 26–160 in 5 °C steps | settable | settable | `MachineHeatingPlate` tick |
+| Heating plate target | fixed **99 °C** | fixed **160 °C** | settable 26–160, ±5 per press | settable | settable | `MachineHeatingPlate` tick |
 | Plate heating speed | ×1 | ×1 | ×1 | ×4 | ×16 | `HandleHeating` |
 
 | Machine (id, value) | Panels | Behaviour | Real time vs night | Evidence |
 |---|---|---|---|---|
-| Blender (`blender`, 200) | modules 4×4, input grid 4×4 (any blendable item), container slot | Button: each blendable item in the input poured into the slotted container (composition × (1 − loss)), stops when the container is full. Blendable: dream/nightmare/meal caps, coffee beans, potato, nutrifruit, and every pill or dust made in the finisher | instant, button | `MachineBlender.Blender` |
-| Heating plate (`heating_plate`, 250) | modules, container slot, temperature readout, off/low/high, target ± (≥ 2 modules) | Each second, if not off: T += (target − T) × f/350 + 1, capped at target; f = 10 low / 30 high, ×4 at 3 modules, ×16 at 4. The plate's own cooling bug: it marks the *machine*, not the container, as heating, so the container also cools every second → it settles a little below target (≈ 0.2 °C for 250 ml–3 L at 2 modules; lower for small volumes once water boils off) | **per second, and 360 s every night** — a container left on it overnight sits at target for 6 minutes | `MachineHeatingPlate.HeatingPlate`, `HeatLiquidOnStove`; `ChemicalHelper.HandleAmbientTempDrop` |
-| Evaporator (`evaporator`, 300) | battery, modules (universal, evaporator), container, distillate slot, note | Each night with power (6): removes up to 300 ml × (1 + performance %) of evaporative liquids (water, alcohol, lipobond) split in proportion; distillate = removed × quality % (0 without quality modules); the solvent-recovery module (275) keeps only alcohol in the distillate | night (after the 360 s chemistry) and turbo-boostable | `MachineEvaporator.Evaporator` |
-| Chem finisher (`chem_finisher`, 300) | modules, container slot, output 6×4, configure + output buttons | Configure picks a recipe; Output (if the container holds ≥ the recipe volume and is dry): draws that volume in proportion, replaces loss % of it with physical contaminant, grades the unit. One press = one unit | instant, button | `MachineChemFinisher.ChemFinisher`, `IntroduceImpurity` |
-| Composition spectrometer (`chem_scanner`, 400) | — | Shows any container's or chem item's composition; usable on items you do not own | instant | `MedsItemDirectory.ChemScanner` |
+| Blender (`blender`, 200) | modules 4×4, input grid 4×4 (any blendable item), container slot (owned liquid container) | Button (does nothing without a container or if it is full): each blendable item in the input poured into the slotted container (§1 Blending), checked for "full" before each item. Blendable (`BLENDABLE_TAG`): dream/nightmare/meal caps, coffee beans, nutrifruit, water and nutrient tablets, feces, and every chem product (dusts, pills, nomore injector). Tooltip shows the loss % | instant, button | `MachineBlender.Blender`, `CreateTooltip` |
+| Heating plate (`heating_plate`, 250) | modules, container slot (owned), temperature readout, off/low/high, target − / + (shown only at ≥ 2 modules) | Each second, if not off and the container is not empty: T += (target − T) × f/350 + 1, capped at target (a hotter container is left alone); f = 10 low / 30 high, ×4 at 3 modules, ×16 at 4. The plate's own cooling bug: it marks the *machine*, not the container, as heating, so the container also cools every second → it settles a little below target (≈ 0.2 °C for 250 ml–3 L at 2 modules; lower for small volumes once water boils off). Target: 99 on a new plate; 0/1 modules force 99/160 every tick; at ≥ 2 the stored target is kept and each press moves it 5, clamped to 26…160, so the reachable values depend on where it starts (from 99: …44, 49, 54…124, 129…; after hitting 160: multiples of 5; after hitting 26: 31, 36, 41, 46…). The readout under the target shows the container's T as a truncated whole °C, so a container settled at 44.8 reads 44. Tooltip: max temperature (99 / 160) and slow / fast / very fast. No power | **per second, and 360 s every night** — a container left on it overnight sits at target for 6 minutes | `MachineHeatingPlate.HeatingPlate`, `HeatLiquidOnStove`, `CreateTooltip`; `ChemicalHelper.HandleAmbientTempDrop` |
+| Evaporator (`evaporator`, 300) | battery, modules 4×4 (universal, evaporator), container, distillate slot, note | At cycle end (each night, and on a turbo boost: `TURBO_BOOST_ELIGIBLE_TAG`), if a battery is seated, the container holds any evaporative liquid and the battery pays the draw (base 6, modules change it): removes up to round(300 ml × (1 + P/100)) of the evaporative liquids (water, alcohol, **lipobond**) split in proportion to their amounts; nothing else leaves. Distillate: each removed liquid × Q % (Q clamped 0–100) is added to the distillate container if one is seated (else lost); with `evaporator_module_solvent_recovery` (275, Q +50, E −25) only the alcohol share is kept, water and lipobond are discarded. The distillate add caps each liquid at the container's capacity but not the total. No temperature effect | night (after the 360 s chemistry) and turbo | `MachineEvaporator.Evaporator`, `CanEvaporateContainer`; `MODULES.md` |
+| Chem finisher (`chem_finisher`, 300) | modules, container slot (owned), output 6×4, Configure + Output buttons, target and status lines | Configure lists all 7 recipes (no unlocks), each with its name, required volume (ml, 2 decimals) and a "no wet" note. Status line, every second: no target / ready / wet ingredient (> 100 µL water + alcohol + lipobond) / not enough reagent (total < recipe volume). **No predicted purity or grade.** Output (if ready): draws the recipe volume from the container in proportion, removes loss % of the unit's volume (truncated) and adds the same amount of physical contaminant, places it in the output grid, then grades it. One press = one unit. The finisher never checks that the active ingredient is present: any dry residue can be pressed into any recipe. If the output grid has no room the unit is not placed anywhere (the return value is ignored) and its volume is gone (read, not lab-tested) | instant, button | `MachineChemFinisher.ChemFinisher`, `CanOutput`, `IntroduceImpurity`; `ChemFinisherUIManager.OpenUI`; `ChemFinisherRecipe.CanOutput` |
+| Composition spectrometer (`chem_scanner`, 400) | — | Target any liquid container, chem item or chem product, owned or not; not consumed, no power, no ownership check on the scanner itself. Panel refreshes every second while open (§4.1) | instant | `MedsItemDirectory.ChemScanner`, `ChemScannerUIManager` |
+| AquaScan (`aquascan`, 200) | — | Must be owned; targets liquid containers only (owned or not). Same per-liquid composition list (µL and %) as the spectrometer, plus water purity (tested vs label) and it stamps "last scan" water purity on the container's tooltip. No toxicity/euphoria lines, cannot read pills or dusts | instant | `AmenitiesItemDirectory.AquaScan`, `WaterScannerUIManager.RefreshUI`, `WaterHelper.SetLastScanResult` |
+| Water test strip (3, single use) | — | Water share of a container only (`GetWaterPurity` = water µL / total) | instant | `WaterTestHelper.HandleWaterCheckTestingStrip` |
+| Fridge (`fridge`, 100) | battery, chill zone 5×2, freeze zone 3×2 (+1 row per storage upgrade) | While the battery has charge, every second moves each non-empty liquid container in the chill zone 0.5 °C toward 3 °C, in the freeze zone 1 °C toward −18 °C, and (unlike the plate) flags the container so ambient drift is skipped. Every temperature-gated reaction stops; the room-temperature ones (R10–R13, R17–R19, R21) do not | per second and at night | `MachineFridge.Fridge`, `CoolZoneContainers` |
+| Chemist storage bay (`storage_bay_chem`, 400) | 17×10 grid | Storage only: chem supplies, liquid containers, NARCOTIC / MEDICAL / water-purification items, chem products, both scanners, chem modules. **Not** a concealment bay: inspections search it (§7.5) | — | `ShipSystemDirectory.ChemistStorageBay` |
 | Filter pitcher (`water_pitcher`, 3 L) + filter | — | Pour into it to filter (§1) | instant | `WaterHelper.HandleFilter` |
-| Water purifier, moisture farm, UV, tablets | — | Water tools, `WATER.md` §1.5 | | |
+| Water purifier, moisture farm, UV, tablets | — | Water tools, `WATER.md` §1.5. The purifier destroys every chemical (§1.1) | | |
 
 Heating curves measured on the game's own plate (water; seconds to reach; `chemistry.json` →
 `heating_curves`):
@@ -223,9 +232,13 @@ value (`ItemConditionList.Create*`; the chemistry manual prints the same table):
 | Starch grade (0) | < 30 | −95 % | 1 | 1 | 1 | 3 |
 
 Dream-dust and Phanta rows measured (lab, `chem.finishergrades`); the others are base × modifier. The
-grade a buyer sees is the **label** (the feature's fake condition) until exposed; bought products come
-"street standard" (60–80 % rolled, the rest split between physical contaminant, chemical contaminant and
-starch — `ChemFinisherRecipe.SetCompositionStreetStandard`).
+grade a buyer sees is the **label** (the feature's fake condition) until exposed. A pressed unit is graded
+once, when it leaves the finisher, with label = truth; nothing re-grades it later except the scanner's
+Match. Bought products come "street standard" (active 60–80 % of the recipe volume, rolled; the rest split
+at random between physical contaminant, chemical contaminant and starch —
+`ChemFinisherRecipe.SetCompositionStreetStandard`), except the shop-bought nomore injector, rolled at
+**45–60 % (always cut product)** (`MedsItemDirectory.SetNomoreInjectorPurity`), and the cyanide pill, whose
+zyanide is reset to 1 ml after grading (so its stored grade describes a 0.6 ml roll, not its contents).
 
 | Unit | Draw per unit | Active needed for lab pure | Finisher cap at 0 / 1 / 2 / 3 / 4 modules (pure input) |
 |---|---|---|---|
@@ -247,6 +260,28 @@ starch, e.g. dried nutrifruit) only stretches a count — useful for a cartel qu
 not a price (§7). The exception is Phanta: 60 % street pills earn 40 per ml of Phanta, 74 % pills 32, so
 cut Phanta to just above 60 %.
 
+### 4.1 Player-visible vs hidden
+
+What an executor limited to the player's view can read, and with what:
+
+| Quantity | Where it is visible | Needs | Resolution / limits | Evidence |
+|---|---|---|---|---|
+| Container volume | item tooltip, every container | nothing | whole ml (rounded) + fill bar; capacity | `WaterHelper.CreateWaterContainerTooltip` |
+| Container composition (every liquid) | spectrometer or AquaScan panel | either scanner (400 / 200), no power, not consumed; AquaScan must be owned | per liquid: exact µL below 1 ml, 0.01 ml (truncated) from 1 ml, 0.01 L from 1 L; % of total to 2 decimals; total volume. Live (refreshes each second while open) | `ChemScannerUIManager.RefreshUI`, `WaterScannerUIManager.FormatAmount` |
+| Toxic / lethal (×doses), euphoria level, contraceptive, anti-addiction flags | spectrometer only (containers and items) | `chem_scanner` | thresholds §5 | `ChemScannerUIManager.RefreshUI` |
+| Water share | test strip, AquaScan, container tooltip after an AquaScan ("last scan") | strip (3, single use) or AquaScan | water µL / total, 2 decimals | `WaterHelper.GetWaterPurity`, `SetLastScanResult` |
+| Temperature | plate readout only | container seated on a plate, plate window open | whole °C, truncated | `MachineHeatingPlate` tick |
+| Plate target | plate target line | plate | whole °C | same |
+| Wet / enough volume | finisher status line | recipe selected, container seated | binary | `MachineChemFinisher` tick |
+| Machine module effects | tooltips: blender loss %, finisher contaminant %, plate max temp + speed | nothing | exact % | `*.CreateTooltip` |
+| Product grade (label) | product tooltip "label" line; green/red once checked | nothing | grade band only; equals truth for a freshly pressed unit | `LabelerHelper.CreateLabeledItemTooltip` |
+| Product true purity | spectrometer: "tested" % (2 decimals) + true grade, beside the label grade | `chem_scanner` | exact | `ChemScannerUIManager.RefreshChemMode` |
+| Label vs truth fix | spectrometer Match button (relabels to truth); labeler (any grade) | scanner / labeler | — | `MatchChemLabel`, `LABELER.md` |
+| Predicted unit purity before pressing | **nowhere**; DERIVABLE as residue active % × (1 − finisher loss %) from a scan of the container | scanner | — | §4 |
+| Reaction progress, rates, thresholds | **HIDDEN** (DERIVABLE only by re-scanning over time) | — | — | §2 |
+| Temperature off the plate, in the evaporator, at night | **HIDDEN** (DERIVABLE from the cooling law) | — | — | `GetCooledTemp` |
+| Evaporator removal / distillate amounts | only as volume change (tooltip, scan) | — | — | `MachineEvaporator` |
+
 ## 5. Effects on the customer: euphoria and toxicity
 
 Per unit (`ChemicalFeedbackHelper`): euphoria = Σ µL × euphoria; narcotic if ≥ 750; levels 1 weak (750),
@@ -258,7 +293,7 @@ Per unit (`ChemicalFeedbackHelper`): euphoria = Σ µL × euphoria; narcotic if 
 | Dream dust (2 ml × 1.0) | level 1 at 37.5 %, 2 at 50 %, 3 at 80 %; level 4 is unreachable | never |
 | Phanta pill (0.5 ml × 10) | level 4 from 44 % | **toxic from 75 %, lethal at 100 %** (lab: 74 % clean, 75 % toxic) |
 | Nightmare dust (4 ml) | 0.25/µL: level 1 from 75 % | lethal from 6.25 % — it is a poison, sold as one |
-| Caffeine, nomore, birth control | none | none |
+| Caffeine, nomore, birth control | none | none. MEDICAL-intent products (caffeine, nomore): feedback level +1 below 45 %, +2 below 30 %, + label grades above truth; a reaction then costs −3 rep extra below 45 %. An honest-label unit at ≥ 45 % has level 0: it never rolls a reaction, so no complaint and no return visit (`ChemicalFeedbackHelper.GetItemFeedbackLevel`) |
 | Acid/base residue | — | 0.1/µL: 7.5 ml of acid in a unit would be toxic; irrelevant at drug scale |
 
 What a bad reaction costs (refunds, rep, crime) is in §7.2.
@@ -267,7 +302,10 @@ What a bad reaction costs (refunds, rep, crime) is in §7.2.
 
 Quantities assume the usual containers: a 3 L filter pitcher as the work vessel, mini alcohol bottles
 (250 ml: 175 ml alcohol + 75 ml water), supply bottles from the packs (§7.6). "Hold" means a plate with ≥ 2
-modules set to the target; without it use the lift-off method (§3).
+modules set to the target; without it use the lift-off method (§3). Targets move ±5 from wherever they
+are (§3): from a fresh 99 the in-window values are 44 or 49 (extraction), 54 (nomore), 124 (Phanta); 45 needs a
+trip to the 160 clamp first. The readout truncates, so a held container reads one degree under an
+integer target.
 
 ### 6.1 Lab-pure dream dust (lab: 6 caps → 33 units at 99.2 %, value 1386)
 
@@ -382,8 +420,10 @@ Phanta's value is volume, and every unit is DRUG_TRAFFICKING evidence.
 ### 7.2 Buyers
 
 The grade gate is `ChemicalProductHelper.WillAcceptNarcotic(item, grade)` from `StoreClient.IsClientRefusingItem`:
-every buyer refuses **junk and starch** grade; grade-2 buyers also refuse **cut product**; nothing uses
-grade 3. It reads the **label** (`GetCurrentItemCondition`), so a relabelled unit passes until exposed.
+every buyer refuses **junk and starch** grade (for any chem product, caffeine and nomore included —
+`StoreClient.IsClientRefusingItem` applies it to every `CHEMICAL_PRODUCT_TAG` item; the merchant and shady
+merchant's grade 0 changes nothing); grade-2 buyers also refuse **cut product**; grade 3 (refuse street) is
+coded but nothing uses it. It reads the **label** (`GetCurrentItemCondition`), so a relabelled unit passes until exposed.
 Clients with `CanExposeChem` (the dealer, merchants, nurses, doctors, admins, Odin, trade boards; never
 basic, tourist or Rev clients) expose a label/truth mismatch: label better than truth → **−4 rep** with the
 buyer's faction and the true price; truth better than label → +3 rep and the higher price.
@@ -404,6 +444,16 @@ buyer's faction and the true price; truth better than label → +3 rep and the h
 
 Lower Levels and scav clients refuse contraband 35 % / 25 − LL rep/4 % of the time; Security always;
 Upper Levels and tourists never (`StoreClient.CompleteClientCreation`).
+
+**Underground Exchange** (`ExchangeManager`, `ExchangeList`; unlock and access in `PERKS.md`/`MITIGATIONS.md`).
+Items left in the trash can are matched overnight; each barter once a night, higher priority first, and
+each acceptance gives +75 BM progress. Purity is the **true** `CHEMICAL_PRODUCT_PURITY_TAG`, labels ignored:
+
+| Barter | Takes | Pays |
+|---|---|---|
+| `dream_dust_barter` (always, priority 2) | 2 dream dust | nothing if the two purities (truncated) sum < 60; else one random roll (water filter, meat, fair ingot, electronics, knives, medical crate, birth-control pills, stamp, blood bags…), doubled or unlocked (energy credit 100, breeder credit, scav token) when the sum ≥ 120 |
+| `improved_dream_dust_barter` (promotional: active only while among the 3 of 7 promos drawn by `ResetPromotional`) | 4 dream dust | weighted table by **mean** purity band (< 30, 30–45, 45–60, 60–80, 80–90, 90–99, ≥ 99): from 2 bandages at the bottom to Synaprest + genuine injector (40), 2 blue blood bags (30), 3 genuine injectors (20) or 2 Synaprest (10) at ≥ 99 |
+| `poison_barter` (always, priority 1) | 2 POISON items | energy credit = Σ (purity / 2) for chem products (other poisons: their value), capped at 100 |
 
 **After the sale (personal-use buyers only, not tourists; `SoldItem.HandleSoldItem`).** Each unit rolls
 8 % × feedback level. For a narcotic the level is mostly its euphoria (2 / 3 / 4 → 2 / 4 / 6, so 16 / 32 /
@@ -450,7 +500,8 @@ dream dust on the counters** (surplus included) and judges the count and the **m
 
 So rep peaks at **exactly req + 10** (week 1: 50 % gives +10; 51 % gives +2). Pay every week, met or not:
 150 cash (+4 × cartel rep with Increased Stipend) and 3 dream caps + 1 common chemical; a `chem_module`
-too when count and purity both pass. Rep moves through `ModCartelReputation` (difficulty multipliers,
+too when the count is met **and** the mean purity is above req − 5 (`BuildNextWeekChain`, reward ≥ 2). Between
+req − 5 and req the rep change is negative but the module still comes. Rep moves through `ModCartelReputation` (difficulty multipliers,
 `PERKS.md`). Cartel perks (`PERKS.md` §3): 25 Increased Stipend, 50 Reliable Chemist, 100 Authorized Exit,
 −100 Forced Retirement (game over). At ≤ −20, nightly vandalism at |rep|/5 %.
 
@@ -474,7 +525,8 @@ returns; the dealer, shady farmer and retired chemist keep coming. ("Cartel 100 
 Players only. Narcotics (and nomore) are usable only with the `narcotic_addiction` perk
 (`HealthData.CanUseNarcotic`); consuming product never creates an addiction. A dose covers days by its
 narcotic value (dust 1, Phanta 3, pink injector 1) plus a purity bonus (< 45 % −2, < 60 −1, < 80 0, < 90 +1,
-< 99 +2, ≥ 99 +3); nomore covers on a separate relief clock. Withdrawal (≥ 3 days since either) adds 8 % to the
+< 99 +2, ≥ 99 +3); below 30 % a dose does nothing. Nomore covers on a separate relief clock with the same
+purity bonus (`HealthData.ConsumeNarcotic`, `ConsumeNarcoticRelief`). Withdrawal (≥ 3 days since either) adds 8 % to the
 addiction trade penalty. The 20-clean-day cure counts only days since a *dose* (relief does not stop it);
 Synaprest removes one random addiction. Customers have no addiction state, except Officer Lun's counter
 (+1 per narcotic sold at his first visit, +2 at the second, −10 per Synaprest) — above 0 it unlocks his
@@ -494,12 +546,20 @@ surplus visit (+9) and the Lun inspection (+13).
   (`WINDOW.md`).
 - Work in progress is legal: a container of extract, the precursor bottles and every machine are clean;
   only caps, restricted packs and the finished units are contraband. Press units only when a buyer is
-  coming, and keep finished units in the smuggler's bay (CthuLuck also stores them in the finisher's output
-  grid; the code gives that grid no special status — inferred safe only if inspections do not search inside
-  machines, see `INSPECT.md`).
+  coming, and keep finished units in the smuggler's bay.
+- **The finisher's output grid is not a hiding place.** A Security inspection walks every item in the shop
+  inventory, front counter, back room and showcase, and recurses into each item's children, machine windows
+  included (`ContrabandHelper.StartInspection`, `RecursiveInspect`; `GameItem.SetContentWindow` makes the
+  window a child). Only smuggler's bays (all three) and items flagged hidden, locked or behind a lock stop the
+  descent (`IsBlockSearchContainer`, `InspectItem`); the trash can is searched unless the inspector is lazy;
+  the hidden area only when the poster is pulled. So dust in the finisher grid, a chemist storage bay or any
+  other machine is found and seized like dust on a shelf (CthuLuck's habit works only until an inspection).
+  A dissolved product is just liquid in a container and carries no contraband tag.
 - The Lun inspection (storyline +13, if his addiction counter > 0 and he was not arrested) destroys every
-  NARCOTIC item in the top level of the shop (counters, showcase); items inside containers survive
-  (inferred).
+  NARCOTIC-tagged item (dream dust, Phanta, the `pink_injector`; not nightmare dust or nomore) lying **directly**
+  in the shop inventory, front counter, back room or showcase. It does not recurse: anything inside a machine,
+  bay, box or other container survives, and the trash and hidden area are not checked
+  (`StoreClientUniqueList`, Lun's end action).
 - Events: `sec_raid_black_market` NARCOTIC +50 % for 2 days; MEDICAL events also move dust and Phanta
   (`medicalSuppliesShortage` +50, `oxymoreWave` +25 and desperate addicts, `bm_gang_war` +50,
   `ul_medical_aid` −25, Rev raid +40, `raid_security` +75); additive with the contraband markup
@@ -511,10 +571,12 @@ surplus visit (+9) and the Lun inspection (+13).
 |---|---|---|---|
 | Common chemical supplies | 50, legal | unpacks to 2 mini alcohol (175 ml alcohol + 75 ml water, clean), lipobond 150 ml, acid 250 ml, base 250 ml (each 2–8 % impurity: chemical, physical, microbe, heavy metal) | retired chemist (weekly), cartel (weekly), Rev raids |
 | Restricted chemical supplies | 100, contraband 2 | 2 precursor bottles (methylol + stabiliser, ≈ 120 ml each after impurity) + reducing agent ≈ 235 ml | retired chemist 50 %, Rev raids |
-| Dream cap | 23, contraband 2 | 22 ml mush, 4 water, 2 protein, 2 microbe, 2 physical, 0.5 mineral; smalls (17) | cartel weekly (3), shady farmer (days ≡ 3, 6), own hydroponic bay (seed 24: 8 caps / 4 nights, `PRODUCTION.md` §1) |
+| Dream cap | 23, contraband 2 | 22 ml mush, 4 water, 2 protein, 2 microbe, 2 physical, 0.5 mineral (factory genetics); small (17) and large (31) caps are built from a 20.5 / 75 g base instead of 32.5 g | cartel weekly (3), shady farmer (days ≡ 3, 6), own hydroponic bay (seed 24: 8 caps / 4 nights, `PRODUCTION.md` §1) |
 | Coffee bean | 28, legal | 44.8 ml mush, 8 caffeine, 8 fat, 8 protein, 8 physical, 3.2 water; also a seed (8 beans / 3 nights) | shady farmer 75 %, start kit |
+| Bred produce | — | DNA traits change the active liquids of harvested caps and beans: a *Production* trait adds its liquid per rank (dream mush, coffee mush, caffeine; dream mush turns into nightmare mush with the nightmare module, and its produce becomes contraband), *Potent* scales every active liquid +25 % per rank, *Weak* down. Scan bred produce rather than trust the table | DNA manipulator (`PlantTraitList.Production`, `Infuse`, `ScaleActives`) |
+| Nudka | 85, legal | poured onto a container with ≥ 750 ml free: 337.5 ml alcohol + 412.5 ml base-grade water (with base water's contaminants, `WATER.md`); the bottle is used up. ≈ 2.9× the water of a mini bottle per ml of alcohol | `WaterHelper.PourNudka` |
 | Nightmare cap | 26, contraband 3 | 15 ml mush, 8 water, 5 microbe, 2 protein, 2 physical | shady farmer 75 % |
-| Chem module | 250 | the only chem upgrade; 4 per machine | retired chemist (1 + 50/50/25 %), cartel reward |
+| Chem module | 250 | the only chem upgrade; 4 per machine | the retired chemist (one, then 50/50/25 % more, last on his list: his four machines and the rest come first and can fill his counter, `StoreClientListSpec.CreateRetiredChemist`); Dr. Jackson with the Retired Chemist (50 % and 25 % a visit, +50 % with each of his Jackson I/II upgrades; his visit and his after-hours shop, `StoreClientList.PlaceInventorInventory`), +50 % on hard; the cartel's weekly reward when count and purity pass |
 | Solvent-recovery module | 275 | evaporator keeps alcohol (§3) | retired chemist 75 % |
 | Kotton fabric | 65 | filter size 150, durability 1000 (2 per ml removed) | retired chemist, shady farmer; kotton plants |
 | Water filter | 25 | size 22, durability 400 | retired chemist |
@@ -525,7 +587,11 @@ surplus visit (+9) and the Lun inspection (+13).
 
 - Code: `ChemicalHelper`, `ChemicalProductHelper`, `ChemicalFeedbackHelper`, `ChemicalCompositionHelper`,
   `ChemFinisherRecipe`, `PreBuildChemHelper`, `Liquid`, `MachineBlender`, `MachineHeatingPlate`,
-  `MachineEvaporator`, `MachineChemFinisher`, `MedsItemDirectory`, `MaterialDirectory`, `WaterHelper`.
+  `MachineEvaporator`, `MachineChemFinisher`, `ChemFinisherUIManager`, `MedsItemDirectory`,
+  `ChemScannerUIManager`, `WaterScannerUIManager`, `AmenitiesItemDirectory` (AquaScan, strip),
+  `MachineFridge`, `MachinePurifier`, `MaterialDirectory`, `WaterHelper`, `WineHelper`, `LabelerHelper`,
+  `ItemConditionList`, `ExchangeList`, `ContrabandHelper`, `StoreClientListCartel`,
+  `StoreClientListTierSubstance`, `StoreClientUniqueList` (Lun), `ShipSystemDirectory`, `HealthData`.
 - The in-game Chemistry 101 manual (`var/knowledge/manuals/chemistry_guide.md`, local): grades, the
   dream-dust and caffeine recipes, the Phanta hints. Where it differs from the code: its 40–60 °C
   extraction window is really 40–49 °C (mush rots from 50, extract dies from 60); its "80 °C minimum" for

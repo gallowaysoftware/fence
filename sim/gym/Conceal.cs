@@ -51,6 +51,7 @@ namespace Fence.Gym
 
         static bool Flaggable(GameItem i)
         {
+            if (Lab.Shelf(i)) return false;
             int level = ContrabandHelper.GetContrabandLevelInInt(i);
             if (level > 0) return level >= (Plan.Value<int?>("min_level") ?? 1);
             return StolenHelper.IsStolenItem(i) && PlayerRole.Heat(i) > (Plan.Value<int?>("max_exposed_heat") ?? 0);
@@ -73,7 +74,7 @@ namespace Fence.Gym
             foreach (var i in (Stash?.childItems ?? new List<GameItem>()).Where(x => x != null && !Flaggable(x) && (ContrabandHelper.GetContrabandLevelInInt(x) == 0 || sellContraband)).ToList())
                 if (Chore.Accept(stock, i, -1) == 0) Released++;
             // Cooled goods out first (they make room), then the hottest in.
-            foreach (var i in Owned().Where(InBay).Where(i => !StolenHelper.IsStolenItem(i) && (ContrabandHelper.GetContrabandLevelInInt(i) == 0 || sellContraband)).ToList())
+            foreach (var i in Owned().Where(InBay).Where(i => !StolenHelper.IsStolenItem(i) && (ContrabandHelper.GetContrabandLevelInInt(i) == 0 || sellContraband || Lab.Shelf(i))).ToList())
                 if (Chore.Accept(stock, i, -1) == 0)
                 {
                     Released++;

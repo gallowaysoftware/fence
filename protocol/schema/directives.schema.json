@@ -199,7 +199,10 @@
     },
     "mortgage_window": {
       "type": "array",
-      "items": {"type": "integer", "minimum": 0},
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
       "minItems": 2,
       "maxItems": 2,
       "description": "gym executor: the game days [from, to] on which auto or take may sign"
@@ -223,7 +226,14 @@
     },
     "buyout_save": {
       "type": "array",
-      "items": {"enum": ["insurance", "upgrades", "inputs", "vending"]},
+      "items": {
+        "enum": [
+          "insurance",
+          "upgrades",
+          "inputs",
+          "vending"
+        ]
+      },
       "description": "gym executor: spending cut while saving for the cash buyout, from buyout_save_from"
     },
     "buyout_save_from": {
@@ -232,19 +242,32 @@
       "description": "gym executor: the day buyout_save starts"
     },
     "fountain": {
-      "enum": ["buy", "landlord"],
+      "enum": [
+        "buy",
+        "landlord"
+      ],
       "description": "gym executor: buy Wild's water fountain, or take the landlord's (+150 weekly rent)"
     },
     "bargain_buy": {
-      "enum": ["never", "ev_positive", "discount", "aggressive"],
+      "enum": [
+        "never",
+        "ev_positive",
+        "discount",
+        "aggressive"
+      ],
       "description": "gym executor: haggling with sellers (bargain is with buyers)"
     },
     "speculate": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "types": {"$ref": "#/$defs/ids"},
-        "max_days": {"type": "integer", "minimum": 1}
+        "types": {
+          "$ref": "#/$defs/ids"
+        },
+        "max_days": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
       "description": "gym executor: hold goods of these types from ordinary buyers until a market event or an Upper Levels buyer with tips, or max_days"
     },
@@ -252,10 +275,107 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "types": {"$ref": "#/$defs/ids"},
-        "lot_share": {"type": "number", "minimum": 0, "maximum": 1}
+        "types": {
+          "$ref": "#/$defs/ids"
+        },
+        "lot_share": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
       },
       "description": "gym executor: buy only goods of these types (a lot when they are lot_share of its estimate)"
+    },
+    "lab": {
+      "description": "gym executor: the chemistry lab (docs/research/CHEMISTRY-ENGINE.md), off when absent. \"caffeine\" is the older form of {products: [\"caffeine_pill\"]}",
+      "oneOf": [
+        {
+          "enum": [
+            "caffeine"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "products": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "caffeine_pill",
+                  "dream_dust",
+                  "fanta_pill"
+                ]
+              },
+              "description": "what to make, in priority order"
+            },
+            "modules": {
+              "enum": [
+                "auto",
+                "none",
+                "max"
+              ],
+              "description": "chem modules (Dr. Jackson's): when the gain pays back within payback_weeks, never, or up to four in the finisher and four in the blender"
+            },
+            "payback_weeks": {
+              "type": "number",
+              "minimum": 0
+            },
+            "jackson_need": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "nights between trips to Dr. Jackson while a module is wanted; 0 never"
+            },
+            "inputs": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "beans or caps a batch at most"
+            },
+            "reserve": {
+              "$ref": "#/$defs/credits",
+              "description": "cash kept over rent and floor when buying the Retired Chemist"
+            },
+            "after_permit": {
+              "type": "boolean"
+            },
+            "ratio": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5,
+              "description": "alcohol : dream mush"
+            },
+            "wait_filter_days": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "phanta_target": {
+              "type": "number",
+              "minimum": 0.6,
+              "maximum": 0.74
+            },
+            "sell": {
+              "type": "boolean",
+              "description": "stage our own dust and Phanta for buyers"
+            },
+            "on_shelf": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "thermo_s": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_extra": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "quota_margin": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
     }
   }
 }

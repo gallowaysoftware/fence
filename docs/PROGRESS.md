@@ -3,6 +3,21 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Chemistry engine — 2026-11-12: the best grade the kit allows; the route still waits on supply
+
+**Result.** `lab: {products: [...]}` (`sim/gym/Lab.cs`, shared with the mod, off by default and byte-identical when
+off) makes caffeine pills, dream dust and Phanta pills through the Retired Chemist's machines at the highest grade
+the kit allows: doses from the composition spectrometer, kotton then the water filter, lipobond cold, dream
+extraction held at 44 °C (or by a thermostat at the plate's readout), caffeine dried on a modded plate, Phanta cut
+below 75 %, chem modules from Dr. Jackson and the retired chemist by payback. `-start chemist` plays the Chemist start
+and meets the cartel's weekly count. 91–97 % of the units pressed came out at the kit's best grade (pharma after the
+first finisher module, bought in nearly every run). On hard, 60 paired seeds: caffeine with the Board 60/60, median
+win day 125 against the `sprinter`'s 97 (+56.6 ± 14.2), a legal variety route `caffeine_lab` (a candidate, ROUTES.md); Board-free 0/60 (−31.7 ±
+8.8 days); with coffee crop bays worse (bays dry, alcohol caps the lab); dream dust 2/30 (security and arrests); the
+Cook 0/60, median last day 35 (the evaporator runs out of power by week 3–4). The walls are beans, alcohol, power and
+capital around the lab, sized in docs/research/CHEMISTRY-ENGINE.md, "The closed loop". docs/re/CHEMISTRY.md was
+filled from the game source.
+
 ## Hidden systems audit — 2026-11-12: what the executor leaves on the table, ranked
 
 **Result.** Every system outside the quality and livestock agents' (appraisal, barter, clients, inspection, heat and

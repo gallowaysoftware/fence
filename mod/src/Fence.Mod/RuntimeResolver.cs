@@ -147,6 +147,10 @@ namespace Fence.Mod
                 case "MachineRAS": found = MachineRASMembers(member); break;
                 case "GridPixelElement": found = GridPixelElementMembers(member); break;
                 case "MachineChemFinisher": found = MachineChemFinisherMembers(member); break;
+                case "MachineBlender": found = MachineBlenderMembers(member); break;
+                case "ChemicalProductHelper": found = ChemicalProductHelperMembers(member); break;
+                case "Liquid": found = LiquidMembers(member); break;
+                case "NewGameData": found = NewGameDataMembers(member); break;
                 case "MachineFeedDispenser": found = MachineFeedDispenserMembers(member); break;
                 case "GeneticHelper": found = GeneticHelperMembers(member); break;
                 case "HusbandryHelper": found = HusbandryHelperMembers(member); break;
@@ -176,6 +180,10 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineRASMembers(string m) => typeof(MachineRAS).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GridPixelElementMembers(string m) => typeof(GridPixelElement).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineChemFinisherMembers(string m) => typeof(MachineChemFinisher).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineBlenderMembers(string m) => typeof(MachineBlender).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ChemicalProductHelperMembers(string m) => typeof(ChemicalProductHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] LiquidMembers(string m) => typeof(Liquid).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] NewGameDataMembers(string m) => typeof(NewGameData).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineFeedDispenserMembers(string m) => typeof(MachineFeedDispenser).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GeneticHelperMembers(string m) => typeof(GeneticHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HusbandryHelperMembers(string m) => typeof(HusbandryHelper).GetMember(m, All);
