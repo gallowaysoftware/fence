@@ -7,6 +7,8 @@ export GAME_DIR
 -include local.mk
 DRIFT_URL ?= http://localhost:9002/v1
 DRIFT_MODEL ?= qwen38-27b-mlx
+# The narrator's own model beside it (docs/STREAM-OPS.md, "The narrator's model"), at the same URL.
+DRIFT_NARRATOR_MODEL ?= mlx-community/Qwen3.5-9B-MLX-4bit
 DRIFT_FLAGS = -policy llm -base-url $(DRIFT_URL) -model $(DRIFT_MODEL) -no-schema -thinking off -temperature 0.2
 
 .PHONY: show-demo knowledge knowledge-status data-status data-export service-install service-status service-logs service-uninstall bridge-drift-act test test-go test-mod mod mod-install compat compat-proposed bridge bridge-drift fakemod eval eval-drift backup-saves
@@ -176,7 +178,7 @@ league-gym: league-bin
 # The show layer (docs/SHOW.md): replay a finished league game through the panel and the
 # narrator into var/show/demo. The narrator calls drift lightly; SHOW_LLM_URL= for captions.
 SHOW_LLM_URL ?= $(DRIFT_URL)
-SHOW_LLM_MODEL ?= $(DRIFT_MODEL)
+SHOW_LLM_MODEL ?= $(DRIFT_NARRATOR_MODEL)
 show-demo:
 	FENCE_SHOW_LLM_URL=$(SHOW_LLM_URL) FENCE_SHOW_LLM_MODEL=$(SHOW_LLM_MODEL) scripts/show-demo.sh $(ARGS)
 

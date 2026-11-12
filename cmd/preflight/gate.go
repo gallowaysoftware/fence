@@ -33,9 +33,9 @@ func probeGates(ctx context.Context, hc *http.Client, c config) gates {
 // neither loads next to the strategist nor yields to the game.
 func (g gates) narrRemote() bool { return g.narr != nil && !g.narr.UpstreamLocal }
 
-// checkGate reports the gate when either role goes through one, and warns when both roles call
-// the same model at the same URL without one: drift answers the second caller 503. ok is false
-// when neither applies, so a rig without a gate keeps its table.
+// checkGate reports the gate when either role goes through one, warns when both roles call
+// the same model at the same URL without one, or when a narrator with a model of its own queues
+// behind the plans in it. ok is false when neither applies, so a rig without a gate keeps its table.
 func checkGate(c config, g gates) (r Result, ok bool) {
 	r = Result{Name: "drift gate"}
 	st := g.strat
@@ -44,7 +44,7 @@ func checkGate(c config, g gates) (r Result, ok bool) {
 	}
 	switch {
 	case st == nil && c.stratProvider == "openai" && c.stratURL != "" && c.stratURL == c.narrURL && c.stratModel == c.narrModel:
-		r.Status, r.Detail = Warn, "strategist and narrator call the same model without fencegate: the second caller gets HTTP 503 and the narrator speaks captions (make gate)"
+		r.Status, r.Detail = Warn, "strategist and narrator call the same model without fencegate: the second caller waits behind the first or gets HTTP 503, and the narrator speaks captions (make gate)"
 		return r, true
 	case st == nil:
 		return r, false
@@ -61,8 +61,15 @@ func checkGate(c config, g gates) (r Result, ok bool) {
 	}
 	r.Status = Go
 	r.Detail = fmt.Sprintf("%s through the gate to the remote endpoint", join(who))
-	if g.strat == nil && c.stratProvider == "openai" {
+	ownModel := c.stratProvider == "openai" && c.narrURL != "" && c.narrModel != "" && c.narrModel != c.stratModel
+	switch {
+	case g.strat == nil && c.stratProvider == "openai":
 		r.Status, r.Detail = Warn, "only the narrator goes through the gate: point the bridge at its /plan/v1 too, or the strategist meets 503s"
+	case g.narr != nil && ownModel:
+		// The gate sends one request at a time, so a model of the narrator's own would still wait behind plans.
+		r.Status, r.Detail = Warn, "the narrator has its own model ("+c.narrModel+") but goes through the gate, so its lines wait behind plans: point it at drift directly"
+	case g.narr == nil && ownModel:
+		r.Detail += "; the narrator on its own model, beside the gate"
 	}
 	if p := st.Roles["plan"]; p.Served > 0 {
 		r.Detail += fmt.Sprintf("; plans p50 %d ms", p.UpstreamMS.P50)

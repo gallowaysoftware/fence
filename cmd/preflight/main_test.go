@@ -234,8 +234,15 @@ func TestGateRow(t *testing.T) {
 		{"same model without the gate", func(_ *testing.T, c *config) { c.narrURL, c.narrModel = c.stratURL, c.stratModel }, Warn, "make gate"},
 		{"both through a remote gate", func(t *testing.T, c *config) {
 			g := newGate(t, c.stratURL)
-			c.stratURL, c.narrURL = g+"/plan/v1", g+"/narrate/v1"
+			c.stratURL, c.narrURL, c.narrModel = g+"/plan/v1", g+"/narrate/v1", c.stratModel
 		}, Go, "strategist and narrator"},
+		{"the narrator's own model through the gate", func(t *testing.T, c *config) {
+			g := newGate(t, c.stratURL)
+			c.stratURL, c.narrURL = g+"/plan/v1", g+"/narrate/v1"
+		}, Warn, "point it at drift directly"},
+		{"the narrator's own model beside the gate", func(t *testing.T, c *config) {
+			c.stratURL = newGate(t, c.stratURL) + "/plan/v1"
+		}, Go, "own model, beside the gate"},
 		{"only the narrator", func(t *testing.T, c *config) { c.narrURL = newGate(t, c.narrURL) + "/narrate/v1" }, Warn, "point the bridge"},
 	}
 	for _, tc := range cases {

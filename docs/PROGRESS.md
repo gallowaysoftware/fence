@@ -91,6 +91,28 @@ pharma; 3/3 wins, two by a signed mortgage (+98, +70 days), one 28 days early. A
 and rancher, both offers declined citing the lab's cost, both won on day 90 (−14 days each against the script); day-0 7.6 s,
 a fork 3.5 s, a plan 23 s median.
 
+## Drift narrator — 2026-11-11: a 9B of its own beside the 27B; plans keep their pace, the voice is the 27B's loss
+
+**Result.** drift now serves a second model for the narrator: Qwen3.5-9B MLX 4-bit (Apache-2.0, 5.6 GB
+resident) on `mlx_lm.server`, launchd agent `local.narrator`, a cell-local vibe `cloud_peer` behind
+drift's llama-swap; fenceshow calls it directly (`DRIFT_NARRATOR_MODEL`), around the gate, which keeps
+the strategist alone. Chosen over Ministral-3-8B (swears, trails off, a bad tokenizer regex) and
+Qwen3.5-4B (flat). On the dress rehearsal's days 30–41 at the recorded pace with the live-like
+strategist load, drift otherwise idle: 1.44 lines a minute, 82 % in character, a line in 1.1 s (p95
+2.3 s), no gate drops or timeouts; its six captions are lines that failed the fact check twice (27 of
+33 passed). A clean re-run of the 27B shared through the gate gave 1.34 and 81 % (25 of 26 passed the
+check): the earlier 61 % came from another agent's calls to the same 27B, which MTPLX queues
+silently behind the gate's (170, 106 and 141 requests served where the gate sent 45, 28 and 55). That
+outside load also explains the ">15 s stalls": every slow narrator call began behind an outside
+call; MTPLX logged no memory-guard trims or prefill sheds on the 27B, and abandoned calls never
+held it (21 of 23 were dropped unstarted). Plans p50 / p95 20.3 / 25.7 s with the narrator model
+against 18.5 / 23.5 alone and 22.5 / 25.4 shared; the 27B decodes at about half speed while a
+narrator line generates (42 → ~21 tok/s back to back), nothing when it is idle. The 9B's lines are
+clearly worse than the 27B's: wordier, mixed metaphors, and a few the fact check cannot catch ("175
+credits down the drain" for a sale). The pre-flight warns when a narrator with its own model goes
+through the gate. Setup, removal, tables and lines side by side: docs/STREAM-OPS.md, "The narrator's
+model".
+
 ## Twitch — 2026-11-11: predictions on the bets, chat votes for the plan; dry run only, never connected
 
 **Result.** `cmd/fencetwitch` (`internal/twitch`) follows fenceshow's feed and runs Twitch's one prediction slot

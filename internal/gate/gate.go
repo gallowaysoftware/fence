@@ -1,7 +1,7 @@
 // Package gate serialises calls to a model server that serves one request at a time (drift's
-// MLX slot answers a second caller with HTTP 503), so the strategist and the narrator can share
-// it. Callers pick their priority by path: /plan/v1/…, /narrate/v1/…, /filler/v1/…; the rest of
-// the path goes to the upstream base URL. One request reaches the upstream at a time, the
+// MTPLX queues a second caller behind the first, or answers it 503), so the strategist and the
+// narrator can share it. Callers pick their priority by path: /plan/v1/…, /narrate/v1/…,
+// /filler/v1/…; the rest of the path goes to the upstream base URL. One request reaches the upstream at a time, the
 // highest role first; a queued request that waits longer than its role's limit is answered 503
 // so the caller takes its own fallback (the narrator speaks the caption).
 package gate
