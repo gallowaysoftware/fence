@@ -59,6 +59,8 @@ namespace Fence.Autopilot
         // M3: the gun on an aug verdict (raise it, or hand over / serve as the setting says), the shot.
         AugCheck,
         Fire,
+        // A gun-order client's order filled from stock and accepted, or the client sent away (Arms.Prepare).
+        GunOrder,
     }
 
     public sealed class Step
@@ -172,6 +174,8 @@ namespace Fence.Autopilot
         public bool GunRaised;
         public bool Fired;
         public int? CashBeforeShot;
+        // This customer's gun order was filled or refused: never planned again.
+        public bool GunOrderDone;
         // The last customer left and their leftovers are not yet planned back to stock.
         public bool UnstagePending;
 
@@ -203,7 +207,7 @@ namespace Fence.Autopilot
         {
             ClientKey = null;
             StagedBuyer = StagedSeller = Dismissed = ExposableChecked = DonationStaged = false;
-            GunDecided = GunRaised = Fired = false;
+            GunDecided = GunRaised = Fired = GunOrderDone = false;
             CashBeforeShot = null;
             CounterMoves = BribeTries = 0;
             Estimate = null;
@@ -343,6 +347,12 @@ namespace Fence.Autopilot
                 if (v.ChoicesShown) return Step.Of(StepKind.Choose);
                 if (v.WaitingForAdvance) return Step.Of(StepKind.Advance);
                 return Step.Of(StepKind.Wait, "dialogue");
+            }
+            // A gun order once its greeting is over; a service order waits for the client's gun to reach the counter.
+            if (v.GunOrder && v.ArmsOrders && !m.GunOrderDone)
+            {
+                if (!v.ServiceGunPlaced && quietMs < UncoveredQuietMs) return Step.Of(StepKind.Wait, "the order client's gun");
+                return Step.Of(StepKind.GunOrder);
             }
             if (v.AppraisalClient)
             {

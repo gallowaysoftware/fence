@@ -226,4 +226,5 @@ branch with the defaults (`quality.bays` and `bottles` on, `reeds` 0). Hard, rou
    - `IngotPurityHelper` in `RuntimeResolver`.
 
    Not tried in the live game: the faucet fill of a vessel inside a reed's slot (a player drags it out to the sink),
-   and the pitcher fill at the faucet.
+   and the pitcher fill at the faucet. The owner's test is docs/STREAM-OPS.md section 12.4. Live, the fills target
+   the shop's own faucet (`Chore.Faucet`); a made faucet would be a stray item in the scene.

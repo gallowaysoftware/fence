@@ -11236,6 +11236,233 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machines.window_child",
+      "type": "PixelWindow",
+      "member": "childElement",
+      "kind": "property",
+      "returns": "PixelElement",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.row_panels",
+      "type": "MachineryPanelRow",
+      "member": "Panels",
+      "kind": "property",
+      "returns": "System.Collections.Generic.IReadOnlyList<MachineryPanel>",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.panel_content",
+      "type": "MachineryPanel",
+      "member": "content",
+      "kind": "property",
+      "returns": "PixelElement",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.intake_content",
+      "type": "MachineryIntake",
+      "member": "content",
+      "kind": "property",
+      "returns": "PixelElement",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.stack_elements",
+      "type": "MachineryStack",
+      "member": "elements",
+      "kind": "property",
+      "returns": "System.Collections.Generic.IReadOnlyList<PixelElement>",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.button_text",
+      "type": "MachineryButton",
+      "member": "text",
+      "kind": "property",
+      "returns": "System.String",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.button_hidden",
+      "type": "SelectableElement",
+      "member": "isHidden",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.button_disabled",
+      "type": "SelectableElement",
+      "member": "isDisabled",
+      "kind": "property",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "Machine windows' buttons the shared engines press live (LiveMachines, LiveHands): the window's public widget tree, the button's own Select."
+    },
+    {
+      "id": "autopilot.machines.button_select",
+      "type": "SelectableElement",
+      "member": "Select",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "A click on a machine button: OnSelect runs the callback, then deselects."
+    },
+    {
+      "id": "autopilot.machines.ras_blend",
+      "type": "MachineFeedDispenser",
+      "member": "Blend",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameGridInventory"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.machines"
+      ],
+      "required": false,
+      "why": "The RAS blend button's callback (MachineRAS): the slotted dispenser blended."
+    },
+    {
+      "id": "autopilot.gun_orders.accept",
+      "type": "NegociationUIManager",
+      "member": "OnOfferAcceptClick",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "Gun orders live (AutopilotDriver.Engines, LiveHands.AcceptGunOrder): the order tablet's Accept behind its own gates."
+    },
+    {
+      "id": "autopilot.gun_orders.trade_locked",
+      "type": "NegociationUIManager",
+      "member": "IsTradeLocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "The Accept button's lock."
+    },
+    {
+      "id": "autopilot.gun_orders.tutorial",
+      "type": "TutorialUIManager",
+      "member": "Instance",
+      "kind": "property",
+      "returns": "TutorialUIManager",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "OnOfferAcceptClick calls TutorialUIManager.Instance.BuyDealed without a null check (docs/COMPAT.md #25)."
+    },
+    {
+      "id": "autopilot.gun_orders.resolve_gun",
+      "type": "GunOrderData",
+      "member": "ResolveOrderGun",
+      "kind": "method",
+      "params": [],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "The gun Accept would take: the service gun, the negotiated gun, or the last gun on the back counter."
+    },
+    {
+      "id": "autopilot.gun_orders.is_accepted",
+      "type": "GunOrderData",
+      "member": "IsAccepted",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "The Accept button's gate: every mandatory row met."
+    },
+    {
+      "id": "autopilot.gun_orders.service_gun",
+      "type": "GunOrderData",
+      "member": "GetPlacedServiceGun",
+      "kind": "method",
+      "params": [],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.gun_orders"
+      ],
+      "required": false,
+      "why": "A service order waits for the client's gun on the counter."
+    },
+    {
+      "id": "autopilot.emporiumentry.faucet",
+      "type": "EmporiumEntry",
+      "member": "faucet",
+      "kind": "property",
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "Chore.Faucet: live the shop's own faucet is the target of a tap fill, never a made one."
+    },
+    {
+      "id": "autopilot.hands.item_destroyed",
+      "type": "GameItemElement",
+      "member": "IsDestroyed",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "LiveHands.Accept places an item a machine or a blade has just made (no inventory yet), never a destroyed one."
     }
   ]
 }

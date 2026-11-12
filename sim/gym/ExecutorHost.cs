@@ -58,6 +58,10 @@ namespace Fence.Gym
             act();
             return true;
         });
+
+        // The faucet a container is held to: live the shop's own (a made one would be a stray item in the scene);
+        // headless a made one, as before (the container's handler reads only the target's identifier).
+        public static GameItem Faucet() => Hands != null && EmporiumEntry.Instance?.faucet != null ? EmporiumEntry.Instance.faucet : DirectoryMaster.Item("faucet");
     }
 }
 

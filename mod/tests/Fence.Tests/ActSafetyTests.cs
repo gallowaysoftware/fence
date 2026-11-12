@@ -113,6 +113,10 @@ namespace Fence.Tests
             // M3: the gun, on the executor's verdict from the visible tells.
             ("Shotgun", "OnClick"),
             ("StoreUIManager", "Shoot"),
+            // The ported engines: machine windows' buttons, the RAS blend, the gun order's Accept.
+            ("SelectableElement", "Select"),
+            ("MachineFeedDispenser", "Blend"),
+            ("NegociationUIManager", "OnOfferAcceptClick"),
         };
 
         static readonly (string type, string member)[] ActOnly =
@@ -267,6 +271,26 @@ namespace Fence.Tests
             var hits = Refs(ModDll(), new[] { ("GraphUtils", "TryAcceptAll") }, t => t.FullName == Hands || t.FullName == "Fence.Gym.Chore");
             Assert.True(hits.Count == 0, "raw item moves outside Chore and the hands:\n" + string.Join("\n", hits));
         }
+
+        // The engines the driver steps itself (the lab's thermostat, the gun order's plan) run only from the driver, and
+        // the live host's machine buttons are the driver's gated presses, never a game call of its own.
+        [Fact]
+        public void PortedEnginesRunOnlyFromTheDriver()
+        {
+            var m = ModDll();
+            var entries = new[] { ("Lab", "Second"), ("Lab", "EndMorning"), ("Arms", "Prepare") };
+            var calls = Instructions(m)
+                .Where(x => Outermost(x.type).Namespace != Shared && x.ins.Operand is MethodReference r && r.DeclaringType.Namespace == Shared
+                            && entries.Any(e => e.Item1 == r.DeclaringType.Name && e.Item2 == r.Name))
+                .ToList();
+            Assert.Equal(entries.Length, calls.Select(x => ((MethodReference)x.ins.Operand).DeclaringType.Name + "." + ((MethodReference)x.ins.Operand).Name).Distinct().Count());
+            Assert.All(calls, x => Assert.Equal(Driver, Outermost(x.type).FullName));
+
+            var button = m.GetType("Fence.Mod.LiveHost").Methods.Single(x => x.Name == "MachineButton");
+            Assert.DoesNotContain(button.Body.Instructions, i => i.Operand is MemberReference r && r.DeclaringType != null && IsGame(r.DeclaringType));
+        }
+
+        static bool IsGame(TypeReference t) => t.Scope != null && t.Scope.Name.StartsWith("Assembly-CSharp");
 
         [Fact]
         public void ActOnlyNamesAppearOnlyAsPatchTargets()

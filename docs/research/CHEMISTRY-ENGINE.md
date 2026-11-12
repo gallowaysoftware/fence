@@ -196,19 +196,21 @@ HQ) water a night per coffee bay, delivered by the bay chore.
 
 ## Live
 
-The engine is in the shared executor (`SharedExecutor.props` compiles `Lab.cs` into `Fence.Mod`), and its moves and
-pours go through `Chore` like every engine. It cannot run live yet, and it does nothing there: `LiveHost.MachineButton`
-returns null (machine windows' buttons are not pressed live), and the lab checks the blender's start button before
-any batch step (`no_buttons` stall; it still stows its kit and fits loose modules, plain moves). Porting needs:
+Built, not yet run in the game (the owner's test: docs/STREAM-OPS.md section 12.3). The engine's moves and pours go
+through `Chore` like every engine. Its window buttons are the live host's (`LiveHost.MachineButton` → the driver's
+gated press; `mod/src/Fence.Mod/LiveMachines.cs`):
 
-- `LiveHands` presses for the blender's start, the finisher's configure (the recipe pick in `ChemFinisherUIManager`)
-  and output, and the plate's off/low/high radio and ± buttons, each re-read like the other machine actions;
-- the morning thermostat: a per-tick call of `Lab.Second()` from the driver for ~150 s and `Lab.EndMorning()` after
-  (or require two plate modules live, which hold a window without it);
-- the cartel: `Lab.StageQuota()` moves dust onto the back counter while the handler's line is on screen (a move
-  during a dialogue, class d in docs/STREAM.md);
-- hooks: every game member the engine touches is in `compat/hooks.json` under `autopilot.executor`, and
-  `RuntimeResolver` knows the new types (`make test-mod` passes).
+- The blender's start and the finisher's output are found by their label in the window's public widget tree and
+  pressed as a click selects them (`SelectableElement.Select`, never hidden or disabled), so the `no_buttons` stall
+  is gone.
+- The finisher's configure (`ChemFinisherUIManager.OnChemRecipeSelected`) and the plate's radio and ± buttons are
+  the callbacks' own bodies (a tag set that the window re-reads every second). The engine already runs them through
+  `Chore.Act`.
+- The thermostat: the driver calls `Lab.Second()` once a second of wall time while it runs, and `Lab.EndMorning()`
+  with the evening chores. `Lab.Thermostat` is on live, as in the gym.
+- The cartel's `Lab.StageQuota()` moves dust while the handler's line is on screen (class d) and is untested.
+- Hooks: `autopilot.machines` in `compat/hooks.json`. A missing member turns the presses off, and the lab stalls as
+  before.
 
 ## Reproducing
 

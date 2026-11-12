@@ -52,7 +52,7 @@ namespace Fence.Gym
                 c = empty;
             }
             if (WaterHelper.GetCurrentCapacityML(c) >= 600) return true;
-            faucet ??= DirectoryMaster.Item("faucet");
+            faucet ??= Chore.Faucet();
             int before = WaterHelper.GetCurrentCapacityML(c);
             Chore.Act("tap", c, () => c.onThisTargetItemFunc?.Invoke(c, faucet));
             TapMl += WaterHelper.GetCurrentCapacityML(c) - before;

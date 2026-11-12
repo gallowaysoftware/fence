@@ -171,6 +171,9 @@ lab line, won on day 90 both (−14 and −14 against the script); day-0 7.6 s, 
   executor's rules (section 5, "M2 as built"), logs every action with its reason, and stops and
   shouts on anything else (section 10). M3 adds the gun on a visible-tell verdict (section 5, "M3 as
   built"); the gym's executor uses the same detector by default.
+- **Engine port (built, not yet run in the game; the owner's test is docs/STREAM-OPS.md section 12)**:
+  gun orders, the RAS blend and the fish chores, the chemistry lab's machine buttons and thermostat,
+  and the faucet fills run live (`AutopilotDriver.Engines.cs`, `LiveMachines.cs`).
 
 ## 3. Feasibility: every executor action in the live game
 
@@ -744,13 +747,16 @@ The autopilot stops with a red banner (a handover: play it by hand, then Resume)
   engine chose (the big order needs 350 / 400 spent, as in the gym).
 - **Appraisal**: an item the magnifier cannot open, the inspection view closing before the
   estimate is in.
+- **Gun orders** (`arms`, docs/STREAM-OPS.md section 12.1): another gun on the back counter is the one
+  the order would take, the tablet does not accept the staged gun, or Accept paid nothing (the gun goes
+  back to stock first); a refused order client that cannot be dismissed.
 - **Faults** (red banner, not a handover): any exception from a game call or a chore, a move or
-  press that did not take, 60 s without progress, 8 counter moves for one customer, services the
-  cash cannot pay.
+  press that did not take (a machine button that is hidden or disabled when pressed included), 60 s
+  without progress, 8 counter moves for one customer, services the cash cannot pay.
 
 Not handled live, and off or absent in the appraisal policy: the poster stash (off), the
-labeler (off), the water engine's strip, relabel and bottle printer (gym shortcuts; `engine:
-water` is not live-safe), the machine-module levers (`sim/gym/Modules.cs`: module fits are moves as in row 32,
+labeler (off), the water engine's strip and relabel (gym shortcuts; `engine: water` is not
+live-safe; its bottle printer is pressed live since the engine port), the machine-module levers (`sim/gym/Modules.cs`: module fits are moves as in row 32,
 the transmitter's faction a `Chore.Act`; never run live), `inspect: injectors`, storage bays, the strategist's `plan_wait_s` wait.
 The live ledger starts from the game's run stats: net worth by day is the calendar's, but the sales
 behind the forward rent floor are only the days the autopilot played (fewer days: a slightly

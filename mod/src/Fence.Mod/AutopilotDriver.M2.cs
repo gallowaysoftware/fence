@@ -71,7 +71,8 @@ namespace Fence.Mod
                 int left = d.hands.Accept(gate, item, to, amount);
                 if (left < 0) throw new InvalidOperationException("the move of " + LiveGame.Name(item) + " was refused (paused)");
                 if (left == 0 && !LiveGame.Under(item, to)) throw new InvalidOperationException("the move of " + LiveGame.Name(item) + " did not take");
-                if (left == 0) d.Record("chore_move", d.Planned(item), "into " + Where(to), "chore", null);
+                if (left == 0 && d.choreQuiet) d.quietChores++;
+                else if (left == 0) d.Record("chore_move", d.Planned(item), "into " + Where(to), "chore", null);
                 return left;
             }
 
@@ -79,7 +80,8 @@ namespace Fence.Mod
             {
                 var gate = d.actGate ?? throw new InvalidOperationException("an engine acted outside an autopilot action");
                 if (!d.hands.Chore(gate, act, out T result)) throw new InvalidOperationException(what + " was refused (paused)");
-                d.Record("chore", target == null ? null : d.Planned(target), what, "chore", null);
+                if (d.choreQuiet) d.quietChores++;
+                else d.Record("chore", target == null ? null : d.Planned(target), what, "chore", null);
                 return result;
             }
 
@@ -101,6 +103,7 @@ namespace Fence.Mod
                     memory.EveningDone = true;
                     RunChore("vending", () => Vending.Evening(host));
                     RunChore("fountain", () => Fountain.Evening(host));
+                    RunChore("lab", Lab.EndMorning);
                     return;
                 case StepKind.OpenPhone:
                     hands.OpenPhone(gate);

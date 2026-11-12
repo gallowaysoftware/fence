@@ -99,7 +99,7 @@ namespace Fence.Mod
         public int Accept(ActGate gate, GameItem item, GraphNodeStorage to, int amount)
         {
             if (gate == null || item == null || to == null || !gate.StillOpen) return -1;
-            if (!MayRemove(item)) return Math.Max(1, amount);
+            if (!Fresh(item) && !MayRemove(item)) return Math.Max(1, amount);
             return AcceptAll(to, item, amount);
         }
 
@@ -241,6 +241,32 @@ namespace Fence.Mod
             return true;
         }
 
+        // ---- the engines' machine buttons and the arms trade ----
+
+        // A machine window's button as a click selects it (SelectableElement.Select runs its callback, then
+        // deselects); never one that is hidden or disabled.
+        public bool PressMachineButton(ActGate gate, MachineryButton button)
+        {
+            if (gate == null || button == null || !gate.StillOpen) return false;
+            return Press(button);
+        }
+
+        // The RAS's blend button sits in a grid whose children are private: the hands make its callback's own call,
+        // the slotted dispenser blended (MachineRAS: MachineFeedDispenser.Blend on its storage grid).
+        public bool BlendTank(ActGate gate, GameItem ras)
+        {
+            if (gate == null || ras == null || !gate.StillOpen) return false;
+            return Blend(ras);
+        }
+
+        // The order tablet's Accept (OnOfferAcceptClick, the GUNSMITH branch) behind the button's own gates (the order
+        // met, not trade-locked), and only when the gun the game will take (GunOrderData.ResolveOrderGun) is the plan's.
+        public bool AcceptGunOrder(ActGate gate, GameItem gun)
+        {
+            if (gate == null || gun == null || !gate.StillOpen) return false;
+            return OfferAccept(gun);
+        }
+
         // ---- M3 ----
 
         // The shotgun's click (Shotgun.OnClick raises the gun; the hands only press it while Shotgun.CanPickup and
@@ -278,7 +304,41 @@ namespace Fence.Mod
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool Press(MachineryButton button)
+        {
+            if (button.isHidden || button.isDisabled) return false;
+            return button.Select();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool Blend(GameItem ras)
+        {
+            var disp = MachineRAS.GetDispenserSlot(ras)?.childItem;
+            if (disp == null || !disp.IsTag("FEED_DISPENSER_TAG")) return false;
+            MachineFeedDispenser.Blend(disp, MachineFeedDispenser.GetStorageGrid(disp));
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool OfferAccept(GameItem gun)
+        {
+            var c = PlayerStore.Instance.currentClientInstance?.GetClientBlueprint();
+            var o = c?.gunOrderData;
+            if (o == null || c.clientIntent != StoreClient.ClientIntent.GUNSMITH || c.isBusinessComplete) return false;
+            // OnOfferAcceptClick calls TutorialUIManager.Instance without a null check (docs/COMPAT.md #25).
+            if (NegociationUIManager.Instance == null || TutorialUIManager.Instance == null || NegociationUIManager.IsTradeLocked()) return false;
+            if (!o.IsAccepted() || !ReferenceEquals(GunOrderData.ResolveOrderGun(), gun)) return false;
+            NegociationUIManager.Instance.OnOfferAcceptClick();
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
         static bool MayRemove(GameItem item) => item.MayRemove();
+
+        // MayRemove refuses an item with no inventory to leave, which is what a machine or a blade has just made (a
+        // fillet, a jar of roe): it may be placed. A destroyed one may not.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static bool Fresh(GameItem item) => item.parentInventory == null && !(item is GameItemElement e && e.IsDestroyed());
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static int AcceptAll(GraphNodeStorage to, GameItem item, int amount) => GraphUtils.TryAcceptAll(to, item, amount);

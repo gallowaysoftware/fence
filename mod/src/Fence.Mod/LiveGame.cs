@@ -108,7 +108,7 @@ namespace Fence.Mod
             if (v.InspectionOpen) v.EstimateField = ins.currentInspectingItem.GetTagReadonly("APPRAISAL_DEFAULT_VALUE").GetInt();
         }
 
-        // The counter's M2 cases: an appraisal client, the permit official's donation.
+        // The counter's M2 cases: an appraisal client, the permit official's donation; and a gun order.
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void Counter(LiveView v)
         {
@@ -117,7 +117,15 @@ namespace Fence.Mod
             v.AppraisalClient = c.clientIntent == StoreClient.ClientIntent.APPRAISAL_SERVICE;
             if (v.AppraisalClient && !v.InspectionOpen) v.AppraisalItemReady = NextEstimate() != null;
             v.BribeDue = PlayerCounter.BribeDue(c, PlayerStore.Instance.playerCash);
+            v.GunOrder = c.clientIntent == StoreClient.ClientIntent.GUNSMITH && c.gunOrderData != null && !c.isBusinessComplete;
+            if (!v.GunOrder) return;
+            v.ArmsOrders = Directives.Current != null && Arms.On;
+            v.ServiceGunPlaced = !c.gunOrderData.isServiceOrder || c.gunOrderData.GetPlacedServiceGun() != null;
         }
+
+        // The gun the order tablet would hand over on Accept.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static GameItem OrderGun() => GunOrderData.ResolveOrderGun();
 
         // The appraisal client's next item to estimate (shared: Appraisal.Next), or null.
         [MethodImpl(MethodImplOptions.NoInlining)]

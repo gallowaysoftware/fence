@@ -207,7 +207,7 @@ namespace Fence.Gym
             reedClean.Remove(c.uniqueId);
             reedTap.Remove(c.uniqueId);
             mineralBp.Remove(c.uniqueId);
-            faucet ??= DirectoryMaster.Item("faucet");
+            faucet ??= Chore.Faucet();
             reedHq.Remove(c.uniqueId);
             var pitcher = Pitcher();
             if (TapOn && pitcher != null && FreshFilter(pitcher))

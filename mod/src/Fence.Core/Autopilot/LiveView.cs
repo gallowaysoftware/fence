@@ -92,6 +92,12 @@ namespace Fence.Autopilot
         // and the gun can be raised: the tells, in words. Null otherwise.
         public string AugTells;
 
+        // A gun-order client with the order still open (GUNSMITH, not yet served or sent away); whether the executor
+        // fills orders (`arms`); false only while a service order's gun has not reached the counter.
+        public bool GunOrder;
+        public bool ArmsOrders;
+        public bool ServiceGunPlaced = true;
+
         // What progress looks like: any change here resets the watchdog.
         public string Signature()
         {
@@ -105,6 +111,7 @@ namespace Fence.Autopilot
                 PhoneOpen ? "P" : "-", PhoneDialogue ? "D" : "-", PhoneChoicesShown ? "H" : "-", PhoneWaitingForAdvance ? "V" : "-",
                 WildOpen ? "W" : "-", InspectionOpen ? "I" : "-", EstimateField.ToString(),
                 ShootingMode ? "S" : "-", GunReady ? "F" : "-", Shootout ? "O" : "-", AugTells != null ? "A" : "-",
+                GunOrder ? "N" : "-", ServiceGunPlaced ? "g" : "-",
             });
         }
     }

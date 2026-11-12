@@ -83,7 +83,8 @@ namespace Fence.Mod
             this.paceSetting = paceSetting;
             this.holdSetting = holdSetting;
             this.directivesSetting = directivesSetting;
-            host = new LiveHost(game, emit, why => Stop(AutopilotState.Faulted, why), call => memory.Calls.Enqueue(call));
+            host = new LiveHost(game, emit, why => Stop(AutopilotState.Faulted, why), call => memory.Calls.Enqueue(call), MachineButton);
+            Lab.Thermostat = true;
             defaults.Log = (key, detail) => lastDefault = key;
             role = new PlayerRole(defaults, new Knobs(""));
             Chore.Hands = new ChoreHands(this);
@@ -224,9 +225,12 @@ namespace Fence.Mod
             pace.HoldMs = Pace.Parse(Safe(holdSetting), Pace.DefaultHoldMs);
 
             var (view, snap) = LiveGame.Read(game, memory.ClientSeq, recorder != null && recorder.Filter.Loading);
+            if (!GunOrdersUsable) view.ArmsOrders = false;
             last = view;
             if (!(memory.GunDecided && ReferenceEquals(memory.ClientKey, view.ClientKey))) ReadAugVerdict(view, snap);
             CheckShot(view);
+            if (!sw.Running) return;
+            TickThermostat(view, now);
             if (!sw.Running) return;
             long quiet = watchdog.Quiet(view.Signature(), now);
             if (expecting != null)
@@ -585,19 +589,25 @@ namespace Fence.Mod
                     x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client) || x.DialogueActive || !x.CounterReady || x.CounterSignature != before);
         }
 
+        // A gun-order client sent away may stay on as a melee buyer (StoreClientListGun.TryStayForMeleeWeapon): its
+        // order closes and the counter serves it like any buyer.
         void Dismiss(LiveView v, string why, string rule, long now)
         {
             var cmd = ActCommands.Parse(OptionIds.Dismiss);
             object client = v.ClientKey;
+            bool order = v.GunOrder;
             if (!advisor.ExecuteForAutopilot(cmd, () => Enabled && sw.Running))
             {
                 Stop(AutopilotState.Faulted, "the dismiss was refused");
                 return;
             }
-            memory.Dismissed = true;
+            if (order) memory.GunOrderDone = true;
+            else memory.Dismissed = true;
             host.Human(OptionIds.Dismiss, advisor.InForce(), null, null, rule);
             Record("dismiss", null, why, rule, null, v);
-            expecting = Expectation.Within("the customer leaves", now, LeaveMs, x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client));
+            expecting = order
+                ? Expectation.Within("the order client leaves or stays to buy", now, LeaveMs, x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client) || !x.GunOrder)
+                : Expectation.Within("the customer leaves", now, LeaveMs, x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client));
         }
 
         // ---- the night ----

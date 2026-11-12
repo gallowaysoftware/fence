@@ -398,6 +398,11 @@ The Armourer is a stream route, not a speed route: it wins every seed a week beh
 screen (the tablet's rows, the mods going on, the cash) and the permit climb. `armourer_sprint` (Permit I only) is
 the cheapest way to show orders; the printer arm shows printed guns at two weeks' cost.
 
+**Live** (built, not yet run in the game; the owner's test is docs/STREAM-OPS.md section 12.1). The autopilot's
+`GunOrder` step runs the same `Arms.Prepare`. It stages the gun and presses the tablet's Accept only when the game
+would take that gun. Without that, it hands the order over with the gun back in stock. A refused order is dismissed,
+and a client the game keeps on as a melee buyer is served by the counter.
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
@@ -524,6 +529,12 @@ would have bought the shop with, so cash buyouts fall from 18–22 to 0–4. Boa
 below the hard rent. The rancher with a fillerweed bay (through the wine engine) is worse than without: 51/60 against
 58/60. A native Aquafarmer route that beats `aqua_none` on wins exists (`aqua_fish_weed`, 60/60, median day 195); one
 that beats it on speed does not.
+
+**Live** (built, not yet run in the game; docs/STREAM-OPS.md section 12.2). The engine's chores already went through
+the gated hands. The port adds two things:
+
+- the RAS blend button (its callback's own call);
+- placing the fillets and roe jars a blade makes, which the live hands would have refused.
 
 ## The wound rest on weaker routes
 

@@ -277,7 +277,7 @@ namespace Fence.Gym
                 treatedOn.Remove(c.uniqueId);
                 purifiedOn.Remove(c.uniqueId);
             }
-            faucet ??= DirectoryMaster.Item("faucet");
+            faucet ??= Chore.Faucet();
             if (TapForReedsOnly) return;
             if (WaterSellOn) PortablePurify(ep);
             if (WaterSellOn) TendPurifiers(ep);

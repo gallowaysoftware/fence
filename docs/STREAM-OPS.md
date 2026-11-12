@@ -933,3 +933,245 @@ format run that will not end tonight (the verdict would hold Twitch's one predic
 then be refunded); `-lock-after 2m` suits a live day of 3–6 minutes. Stopping fencetwitch (Ctrl-C) cancels
 an open prediction with refunds and sends an open vote. A restarted fencetwitch cancels any prediction it
 finds still open on the channel (`Active`), since the bet's history went with the old process.
+
+## 12. Live test checklist: the ported engines (built 2026-11-12, not yet run in the game)
+
+Four engines that ran only in the gym now have their live side (`mod/src/Fence.Mod/AutopilotDriver.Engines.cs`,
+`LiveMachines.cs`, `LiveHands.cs`). None has run in the game. Run each test on its own save, after
+`docs/STREAM.md` sections 8 and 9 have passed (the day and the night must already work). Each test takes an
+in-game day or two.
+
+**Same safety as STREAM.md sections 8 and 9.** Never use a save you cannot lose. `make backup-saves`, `make test`,
+`make mod-install` first. Abort with **Pause autopilot** or **F10**. `make bridge ARGS="-mode observe"` runs beside
+the game.
+
+**Directives.** Paste a route file as one line into Mods → fence → gear → `autopilot_directives`:
+`jq -c 'del(._route)' sim/lab/scripts/directives/<file>`. The `_route` block names the start and perks the save
+needs.
+
+**Compat.** At load, `Player.log` must have no `[fence]` warning naming `autopilot.machines` or
+`autopilot.gun_orders`. Each of those features turns off on its own when a member is missing: the engines then see
+no buttons (as before this port), and order clients are sent away. `make compat` must report every hook resolved.
+
+The common log query, run on the newest `var/log/*.jsonl`:
+
+```sh
+L=$(ls -t var/log/*.jsonl | head -1)
+# the engine's lines: action, target, reason
+jq -r 'select(.event.kind=="autopilot") | .event.data | "\(.day) \(.action) \(.target.name // "") — \(.why)"' "$L"
+# stops, each with its reason
+jq -c 'select(.event.kind=="autopilot_fault") | .event.data | {day, state, why}' "$L"
+```
+
+### 12.1 Gun orders (the Armourer)
+
+**What runs live.** The planner sees a gun-order client (GUNSMITH, order open) once its greeting is over. It runs
+`Arms.Prepare`: it tries loose mods on each legal gun and keeps those that pay, and it may use a gun part for a
+repair. The chosen gun goes to the back counter. The tablet's Accept is pressed (`OnOfferAcceptClick`), but only
+if three gates hold: the order is met, the counter is not trade-locked, and the gun the game would take is the
+staged one. A refused order is dismissed. A client the game keeps on as a melee buyer is then served by the counter
+like any buyer. Before this port, a dismissed order client would have faulted the autopilot: it waited for the
+client to leave.
+
+**Set up.**
+
+- A hard game, Gunsmith start, perks vending + short sleeper.
+- A save at a morning with Weapon Permit I in the display case and at least one legal gun in stock (the start has
+  four).
+- Directives: `arms/armourer_sprint.json`. Any morning brings an order client about 60 % of the time.
+
+**Watch.**
+
+1. An order client walks in, and its lines advance.
+2. Mods appear on a gun. Open the gun's window afterwards: the mods should be in its slots.
+3. The gun goes to the back counter, and the tablet's Accept takes it.
+4. Cash rises by the reward.
+5. The client either says its follow-up (ammo, a melee weapon) and is served as a buyer, or leaves.
+
+**Expected lines.**
+
+- `gun_order <gun> — <gun> delivered for <paid> (given <value> at estimates); <n> fits tried` (and `; <k> gun
+  parts spent on repairs` when a repair was tried), rule
+  `player:gun_order`, detail `tier 1` (with `, service` or `, best` when it is one).
+- For a refusal: `gun_order_refused — no legal gun clears the order at a profit`, followed by
+  `dismiss — the order: …`.
+- The human-action record:
+  `jq -c 'select(.event.kind=="human_action" and .event.data.action=="accept_offer") | .event.data | {actor, kind, paid, reward, given}' "$L"`.
+  Expect `actor: autopilot` and `kind: gun_order`.
+
+**Also run.** A service order: the client's gun lands on the counter after the greeting. The planner waits for it,
+up to 3 s of stillness, then plans. On delivery, the line reads "their gun serviced".
+
+**Fail-safe paths.** Each of these hands over with the order left to you, and moves the gun back to stock first:
+
+- "another gun on the back counter is the one the order would take"
+- "the order tablet does not accept …"
+- "the order's Accept paid nothing"
+
+**Pass.** No fault through a day with an order client. Cash rose by the line's `paid`. The gun and its mods are gone
+from stock. A refused client left, or was served as a buyer.
+
+**Untested before the live run.**
+
+- Attaching mods while their windows are closed.
+- A repair with a gun part (`onThisTargetItemFunc`; it may fail by chance and still spend the part).
+- The follow-up buyer.
+
+### 12.2 Fish (the Aquafarmer)
+
+**What runs live.**
+
+- The RAS tank's blend button. Its callback is replicated (`MachineFeedDispenser.Blend` on the slotted dispenser),
+  because the button sits in a grid whose children are private.
+- The chores already sent through the gated hands. Each is the game handler's own call:
+  - `pour`: water into the tank's container.
+  - `fillet`: `OnFishDead`, `CreateFilletPieces`, `Destroy`, which is the body of `AquacultureHelper.OnFillet`.
+  - `ras_upgrade`: the scrap, ingot or electronics target handler's call.
+  - `own`, `discard`, `strip_eggs`.
+- A fix: the fillet pieces and roe jars a blade makes have no inventory yet. The live hands would have refused to
+  place them (`MayRemove`), which would have left them orphaned. They now go to stock, or to the back counter when stock is full.
+
+**Set up.**
+
+- A hard game, Aquafarmer start, with the tank, water, a cell and the start's fish.
+- Directives: `fish/aqua_fish.json` with `"fish_harvest_meat": 100` added, so a fillet comes within a few days and
+  not a week.
+- A dispenser in stock or slotted, and industrial feed.
+- For `ras_upgrade`: a scrap, an ingot or common electronics in stock.
+
+**Watch.** The morning chores. Then open the RAS window:
+
+- The tank's water has risen.
+- The battery has a charged cell.
+- The dispenser's stored kcal has risen after a blend line.
+
+After a `fillet` line, the fillets are in stock, the fish is gone from the tank, and the fish scrap is in the
+dispenser when one is slotted.
+
+**Expected lines.**
+
+- `chore <tank> — pressed <the blend button's label>`
+- `chore <fish> — fillet`
+- `chore_move <fillet> — into <stock or dispenser>`
+- `chore <tank> — ras_upgrade`
+- `chore <jug> — pour`
+- The production record:
+  `jq -c 'select(.event.kind=="human_action" and .event.data.action=="production") | .event.data' "$L"`. Expect
+  `action: fillet`, `pieces: n`.
+
+**Pass.**
+
+- No fault.
+- No stray item anywhere: every fillet is in stock or on the back counter.
+- The dispenser's kcal matches the feed.
+- The fish are alive the next morning (no unpowered or dry night).
+
+**Untested.** A fillet when stock and the back counter are both full: the piece is then left unplaced, as in the
+gym.
+
+### 12.3 Chemistry lab
+
+**What runs live.**
+
+- The machine windows' buttons, found by their label in the window's public widget tree and pressed as a click
+  selects them (`SelectableElement.Select`, never a hidden or disabled one):
+  - the blender's start;
+  - the chem finisher's output;
+  - (outside the lab) the feed dispenser's start (rats) and the bottle printer's three sizes (water).
+- The finisher's configure and the heating plate's off/low/high radio and ± buttons. These are the game callbacks'
+  own bodies (a tag set; the plate's window re-reads it every second), run through the gated hands.
+- The thermostat: `Lab.Second` once a second of wall time while the autopilot runs, and `Lab.EndMorning` with the
+  evening chores. Before this port the lab did nothing live (`no_buttons`).
+
+**Set up.**
+
+- A hard game, apprentice start.
+- A save with the Retired Chemist owned and its machines in stock: blender, heating plate, evaporator, chem
+  finisher.
+- Coffee beans, alcohol, acid and lipobond in stock.
+- Directives: `lab/caffeine_lab.json`.
+
+**Watch, day 1 (blend).**
+
+1. The blender takes the beans and a vessel.
+2. "pressed Start" appears.
+3. The vessel holds coffee mush, then the doses (pours from the cylinders).
+4. The plate comes on.
+
+Open each machine to check what the feed says went in.
+
+**Watch, the following mornings.** Heat, filter, and dry in the evaporator. On the finishing day, "configure", then
+one "pressed Output" per unit. The pills are owned and in stock.
+
+**Expected lines.**
+
+- `chore <blender> — pressed <Start>`
+- `chore <vessel> — pour`
+- `chore <plate> — plate_on`, `plate_plus`, `plate_off`
+- `chore <finisher> — configure`
+- `chore <finisher> — pressed <Output>` (many)
+- The production record has `action: lab_finish` with the units made.
+
+**The thermostat** (optional). Only dream dust and Phanta on a plate with fewer than two modules use it: test it with
+`lab: {"products": ["dream_dust"]}` and dream caps in stock (the Drug Dealer start for the cartel's quota). Expect at most one `thermostat` line every 30 s, "the heating
+plate switched n times …", for about 150 s after the batch starts. The plate is then off.
+
+**If you pause.** The thermostat stops with the autopilot, and the plate stays as it was. Switch it off by hand if
+you will be away more than a minute: dream extract dies above 60 °C. Nothing else depends on it.
+
+**Pass.**
+
+- A batch from beans to pills with no fault.
+- The pills are graded and in stock.
+- No `chore` line names a machine whose window does not show the change.
+
+**Untested.**
+
+- The cartel's quota staged during the handler's line (a move during a dialogue).
+- The evaporator and the plate's tag changes as the window shows them while open.
+
+### 12.4 Water and quality (the reed tank, the pitcher)
+
+**What runs live.**
+
+- Filling a vessel at the faucet. This is the vessel's own target handler on the faucet, as a drag onto the sink
+  does: the reed tank's jug while it sits in the bay's slot, and the filter pitcher.
+- A fix: the shared engines (`Chore.Faucet`, used by Water, Hydro and Crops) target the shop's own faucet live. They
+  used to make a new faucet item, which in the live game is a stray sprite with its own event handlers. Headless,
+  nothing changes.
+
+**Set up.**
+
+- A wine route (`routes/rancher.json`, or the default directives) with `"quality": {"reeds": 1}` added.
+- A save with the Winemaker and the Retired Farmer owned, Wild's WATER_TRADER and a tap (GUTTERFLOW_TAP or
+  RUSTWATER_TAP) owned, the business permit held, and a hydroponic bay planted with hydroreed.
+- A filter pitcher with a fresh filter, for the filtered fill.
+
+**Watch.** The morning chores. Then open the reed bay:
+
+- Its jug is full.
+- The pitcher is empty again after the filtered fill.
+- No item has appeared at the screen's corner or under the counter (the old stray faucet).
+
+**Expected lines.**
+
+- `chore <pitcher> — empty`
+- `chore <pitcher> — tap`
+- `chore <jug> — pour`, repeated until the jug is full.
+- Without a pitcher: `chore <jug> — tap`.
+
+**Pass.**
+
+- No fault.
+- The jug is full in its slot.
+- The tap's purity is on the label: hover the jug, and the label matches the tap's grade.
+
+**Untested.** Whether the game accepts a fill of a vessel that sits in a slot. A player would drag it out to the
+sink first. If the jug stays empty, that is the finding: report it, and the engine will move the jug out to stock,
+fill it, and put it back.
+
+### After the tests
+
+- Write the results under "Engine port live results" in `docs/PROGRESS.md`.
+- Run `make compat` once on the merged tree. The committed snapshot (`compat/versions/26525552.json`) predates
+  several branches' hooks.

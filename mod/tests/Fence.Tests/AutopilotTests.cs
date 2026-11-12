@@ -297,6 +297,46 @@ namespace Fence.Tests
             Assert.Equal(StepKind.Choose, Next(Official(), m));
         }
 
+        // A gun order once the greeting is over: filled or refused once, then the client is served as whatever it
+        // stays as (a melee buyer after a refusal or a delivery's follow-up) or sent away as before.
+        [Fact]
+        public void AGunOrderIsFilledOnceAfterTheGreeting()
+        {
+            LiveView Order(Action<LiveView> with = null) => Customer(v =>
+            {
+                v.Intent = ClientIntent.Other;
+                v.CoverageGap = "intent GUNSMITH";
+                v.CounterReady = false;
+                v.ClientKind = "gunsmith";
+                v.GunOrder = v.ArmsOrders = true;
+                with?.Invoke(v);
+            });
+            var m = new AutopilotMemory { Day = 12 };
+            Assert.Equal(StepKind.Advance, Next(Order(v => { v.DialogueActive = true; v.WaitingForAdvance = true; }), m));
+            Assert.Equal(StepKind.GunOrder, Next(Order(), m));
+            m.GunOrderDone = true;
+            // Refused and dismissed, or delivered: never a second order step for this customer.
+            Assert.Equal(StepKind.Wait, Next(Order(), m, Planner.UncoveredQuietMs - 1));
+            Assert.Equal(StepKind.Dismiss, Next(Order(), m));
+            // The client stays on as a melee buyer: the counter serves it.
+            Assert.Equal(StepKind.PlanStageBuyer, Next(Customer(), m));
+
+            // Orders off (no `arms`, or its members missing): the client is sent away as before.
+            Assert.Equal(StepKind.Dismiss, Next(Order(v => v.ArmsOrders = false), new AutopilotMemory { Day = 12 }));
+            // A service order waits for the client's gun, then plans anyway (the plan refuses without it).
+            var s = new AutopilotMemory { Day = 12 };
+            Assert.Equal(StepKind.Wait, Next(Order(v => v.ServiceGunPlaced = false), s, Planner.UncoveredQuietMs - 1));
+            Assert.Equal(StepKind.GunOrder, Next(Order(v => v.ServiceGunPlaced = false), s));
+            // The next customer gets their own order.
+            var other = new object();
+            Assert.Equal(StepKind.GunOrder, Next(Order(v => v.ClientKey = other), m));
+            Assert.False(m.GunOrderDone);
+        }
+
+        [Fact]
+        public void AnAugVerdictComesBeforeTheOrder() =>
+            Assert.Equal(StepKind.AugCheck, Next(Customer(v => { v.GunOrder = v.ArmsOrders = true; v.CoverageGap = "intent GUNSMITH"; v.AugTells = "perfectly still"; })));
+
         [Fact]
         public void ACounterLoopIsAFault()
         {
@@ -408,6 +448,68 @@ namespace Fence.Tests
     }
 
     // The autopilot's events are the fixtures' shapes (protocol/fixtures/event.autopilot*.json).
+    public class AutopilotMachineTests
+    {
+        sealed class Node
+        {
+            public string Label;
+            public bool Hidden;
+            public readonly List<object> Kids = new List<object>();
+
+            public Node(string label = null, params object[] kids)
+            {
+                Label = label;
+                Kids.AddRange(kids);
+            }
+        }
+
+        static Node Button(Node root, string label) =>
+            UiTree.Find(root, o => ((Node)o).Kids, o => o is Node n && n.Label == label && !n.Hidden ? n : null);
+
+        [Fact]
+        public void TheButtonIsFoundByItsLabelAnywhereInTheWindow()
+        {
+            var start = new Node("Start");
+            var output = new Node("Output");
+            var window = new Node(null, new Node(null, new Node("Modules"), new Node(null, start)), new Node(null, new Node(null, new Node("Configure"), output)));
+            Assert.Same(start, Button(window, "Start"));
+            Assert.Same(output, Button(window, "Output"));
+            Assert.Null(Button(window, "Blend"));
+            output.Hidden = true;
+            Assert.Null(Button(window, "Output"));
+        }
+
+        [Fact]
+        public void ACycleOrADeepTreeEndsTheSearch()
+        {
+            var a = new Node();
+            var b = new Node(null, a);
+            a.Kids.Add(b);
+            Assert.Null(Button(a, "Start"));
+            var deep = new Node("Start");
+            for (int k = 0; k <= UiTree.MaxDepth; k++) deep = new Node(null, deep);
+            Assert.Null(Button(deep, "Start"));
+            Assert.NotNull(Button((Node)deep.Kids[0], "Start"));
+        }
+
+        [Fact]
+        public void TheThermostatTicksOnceASecondAndReportsInBatches()
+        {
+            var t = new Thermostat();
+            Assert.True(t.Due(0));
+            Assert.False(t.Due(250));
+            Assert.False(t.Due(999));
+            Assert.True(t.Due(1000));
+            Assert.Equal(0, t.Switched(0, 1000));
+            // The first switch is reported at once, the next ones summed until a report is due.
+            Assert.Equal(1, t.Switched(1, 2000));
+            Assert.Equal(0, t.Switched(1, 3000));
+            Assert.Equal(0, t.Switched(1, 2000 + Thermostat.ReportMs - 1));
+            Assert.Equal(3, t.Switched(1, 2000 + Thermostat.ReportMs));
+            Assert.Equal(0, t.Switched(0, 2000 + 3 * Thermostat.ReportMs));
+        }
+    }
+
     public class AutopilotEventTests
     {
         static JObject FixtureData(string name) => (JObject)JObject.Parse(File.ReadAllText(Path.Combine(Paths.Fixtures, name)))["data"];

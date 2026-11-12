@@ -113,6 +113,9 @@ namespace Fence.Mod
                     expecting = Expectation.Within("the shot lands", now, ShotLandsMs, x => x.Shootout || !x.ShootingMode);
                     return true;
                 }
+                case StepKind.GunOrder:
+                    GunOrder(gate, v, now);
+                    return true;
                 default:
                     return false;
             }

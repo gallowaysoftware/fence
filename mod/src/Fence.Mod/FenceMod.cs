@@ -288,6 +288,8 @@ namespace Fence.Mod
         // advise.aug: without the tells the autopilot could not see an aug and would serve every one.
         static readonly string[] AutopilotFeatures = { "autopilot.hands", "autopilot.executor", "act.barter", "advise.barter", "advise.aug" };
         const string GunFeature = "autopilot.gun";
+        const string MachinesFeature = "autopilot.machines";
+        const string GunOrdersFeature = "autopilot.gun_orders";
 
         void StartAutopilot(HashSet<string> disabled)
         {
@@ -295,6 +297,10 @@ namespace Fence.Mod
             autopilot.GunSetting = () => autopilotGun();
             autopilot.GunUsable = !disabled.Contains(GunFeature);
             if (!autopilot.GunUsable) log.Warn("autopilot: the gun's members are missing; on an aug it hands over (see compat warnings)");
+            autopilot.MachinesUsable = !disabled.Contains(MachinesFeature);
+            if (!autopilot.MachinesUsable) log.Warn("autopilot: the machine buttons' members are missing; the lab, the RAS blend and the bottle printer do nothing live (see compat warnings)");
+            autopilot.GunOrdersUsable = !disabled.Contains(GunOrdersFeature);
+            if (!autopilot.GunOrdersUsable) log.Warn("autopilot: the gun order's members are missing; order clients are sent away (see compat warnings)");
             var missing = AutopilotFeatures.Where(disabled.Contains).ToList();
             if (missing.Count > 0)
             {

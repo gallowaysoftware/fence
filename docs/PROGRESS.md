@@ -55,6 +55,55 @@ persona entered only when the narrator spoke the route choice and Rook answered.
 theses (in each new persona file): "Tanks paid for, so we bleed tilapia at dawn." (Fishmonger); "Today we choose the
 clean lab, not the alley trade." (Pharmacist); "The purifier is a blunt instrument; I chose the reeds." (Botanist).
 
+## Engine port — 2026-11-12: gun orders, fish, the chemistry lab and the faucet fills get their live side
+
+**Built, not run in the game.** The owner's checklist is docs/STREAM-OPS.md section 12. Four engines ran only in
+the gym; each now has its live half in the mod (`AutopilotDriver.Engines.cs`, `LiveMachines.cs`, `LiveHands.cs`):
+
+- **Gun orders.** A planner step, `GunOrder`. It runs `Arms.Prepare` (its trial fits counted, not logged one by
+  one), stages the gun, and presses the tablet's Accept. Accept is pressed only behind the button's gates, and only
+  when `GunOrderData.ResolveOrderGun` is the staged gun. Otherwise it hands over with the gun back in stock. A
+  refused order is dismissed.
+- **Machine buttons.** `IExecutorHost.MachineButton` returned null live. It now finds a whitelisted button by its
+  label in the window's public widget tree and presses it as a click selects it: the blender's start, the
+  finisher's output, the feed dispenser's start, the bottle printer. The RAS blend's callback is replicated.
+- **The lab's thermostat.** `Lab.Second` runs once a second of wall time while the autopilot runs, and
+  `Lab.EndMorning` with the evening chores.
+- **The faucet.** `Chore.Faucet` targets the shop's own faucet live.
+
+**Found, from the source** (each would have shown on the first live run):
+
+- A gun-order client that is sent away stays as a melee buyer (`TryStayForMeleeWeapon`). The old dismiss waited for
+  it to leave and faulted.
+- `GameItem.MayRemove` is false for an item with no inventory. The live hands would have refused every fillet and
+  roe jar a blade makes, and the gym's raw move does not check it. Fixed in `LiveHands.Accept`, for fresh items
+  only.
+- The engines made a new faucet item for each tap fill (`DirectoryMaster.Item("faucet")`). Live, that is a stray
+  sprite with event handlers in the scene. Headless it changes nothing; the gym keeps the made one.
+- The heating plate's radio and ± buttons and the finisher's recipe pick are tag sets that the window re-reads every
+  second. The engine's `Chore.Act` calls already are those presses, so they needed no hands of their own.
+
+**Fail-safe.** Two new compat features, `autopilot.machines` and `autopilot.gun_orders`, with 18 hooks and
+`RuntimeResolver` cases. If a member is missing, that feature turns off on its own: no buttons (the old behaviour),
+and order clients are sent away. Any refused press throws inside the engine's chore, which stops the autopilot.
+
+**Shared executor edits** (minimal):
+
+- `sim/gym/ExecutorHost.cs`: `Chore.Faucet()`.
+- `sim/gym/Water.cs`, `Hydro.cs`, `Crops.cs`: one line each, `faucet ??= Chore.Faucet()`.
+
+Gym behaviour is unchanged (the gym sets no `Chore.Hands`).
+
+**Tests.**
+
+- Planner: the gun order once, after the greeting; the melee buyer that stays; a service order waiting for its gun.
+- The widget-tree search, including cycles and depth.
+- The thermostat clock.
+- ActSafety: the new presses only through the hands; `Lab.Second`, `Lab.EndMorning` and `Arms.Prepare` only from
+  the driver; `LiveHost.MachineButton` makes no game call.
+- `make test-mod` (499) and the gym tests (24) pass, as do `make test-go` and `Fence.Compat --check-only` (834/834 hooks resolve).
+  The committed compat snapshot predates several branches' hooks: run `make compat` on the merged tree.
+
 ## The arms trade — 2026-11-12: permits, gun orders and mods for the Armourer; a stream route, not a faster one
 
 **Result.** The Gunsmith start's arms trade, from the decompiled source (docs/re/ARMS.md), checked in the lab
