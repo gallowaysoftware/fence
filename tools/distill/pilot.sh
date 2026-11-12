@@ -17,9 +17,9 @@ swap=${SWAP:-http://127.0.0.1:9000}
 data=$(cd "$repo" && realpath "${DATA:-var/distill}")
 
 busy=()
-pgrep -f 'Probably Stolen' >/dev/null && busy+=("Probably Stolen is running")
+pgrep -x 'Probably Stolen' >/dev/null && busy+=("Probably Stolen is running")
 # ALLOW_LEAGUE=1: a league is running on other endpoints only (e.g. heavy), never localmodel.
-[[ ${ALLOW_LEAGUE:-} == 1 ]] || { pgrep -f 'fenceleague run' >/dev/null && busy+=("a league is running (fenceleague)"); }
+[[ ${ALLOW_LEAGUE:-} == 1 ]] || { pgrep -x fenceleague >/dev/null && busy+=("a league is running (fenceleague)"); }
 running=$(curl -s -m 5 "$swap/running" || true)
 [[ $running == *'"model"'* ]] && busy+=("llama-swap has a model loaded: $running")
 used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | head -1)

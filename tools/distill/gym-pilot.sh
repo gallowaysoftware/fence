@@ -27,7 +27,7 @@ mkdir -p "$out"
 (cd "$repo" && go build -o "$out/fencedistill" ./cmd/fencedistill)
 
 if [[ -z ${ENDPOINT:-} ]]; then
-	if pgrep -f 'Probably Stolen' >/dev/null; then
+	if pgrep -x 'Probably Stolen' >/dev/null; then
 		echo "Probably Stolen is running: not using the GPU" >&2
 		exit 1
 	fi
