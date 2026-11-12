@@ -5,12 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
 )
+
+// ChoiceFile is the name a choice is recorded under, one directory per run.
+const ChoiceFile = "choice.json"
 
 // DefaultRoute is what a run plays when the model's choice is unusable: the incumbent.
 const DefaultRoute = "appraiser"
@@ -39,6 +44,8 @@ type Choice struct {
 	Menu       []string `json:"menu"`
 	FixedStart string   `json:"fixed_start,omitempty"`
 	Recent     []string `json:"recent,omitempty"`
+	// Excluded is the route taken off the menu as the one played last ("" when none was).
+	Excluded string `json:"excluded,omitempty"`
 	// Format is the run's stream format, whose deadline odds the menu showed.
 	Format string `json:"format,omitempty"`
 	// Fallback says why the model's answer was not played ("" when it was).
@@ -63,6 +70,11 @@ type Ask struct {
 	FixedStart string
 	// Recent are the routes the stream's previous runs played, which the model is asked to vary from.
 	Recent []string
+	// Exclude is the route the stream played last: off the menu, so neither picked nor a
+	// composition's base or name, unless it is the only route the menu has. A composition played
+	// last is no menu route and excludes nothing. A composition whose levers rebuild the excluded
+	// route is not caught: that takes deliberate work and still airs as a new route.
+	Exclude string
 	// Lean cuts the menu to one short line a route (its levers over the appraiser's and its wins)
 	// and the levers to their names, for a small model on a tight context (drift).
 	Lean bool
@@ -78,6 +90,9 @@ func ChoosePrompt(m *Menu, a Ask) string {
 	b.WriteString(shopRules + "\n\n")
 	if len(a.Recent) > 0 {
 		fmt.Fprintf(&b, "The stream's previous runs played, oldest first: %s. The audience has seen those; playing one again needs a reason of its own.\n\n", strings.Join(a.Recent, ", "))
+	}
+	if x := m.Excluded(); x != "" {
+		fmt.Fprintf(&b, "The last run played %s, so it is off tonight's menu: you cannot pick it or compose from it.\n\n", x)
 	}
 	if a.FixedStart != "" {
 		fmt.Fprintf(&b, "This match fixes your start: %s. Only routes that play it are on your menu.\n\n", a.FixedStart)
@@ -124,6 +139,10 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, a Ask) (ch Choice) {
 	if a.Format != nil {
 		ch.Format = a.Format.Name
 		m = m.WithDeadline(*a.Format)
+	}
+	if a.Exclude != "" {
+		m = m.Without(a.Exclude)
+		ch.Excluded = m.Excluded()
 	}
 	for _, e := range m.Entries {
 		ch.Menu = append(ch.Menu, e.Name)
@@ -173,6 +192,38 @@ func Choose(ctx context.Context, c llm.Client, menu *Menu, a Ask) (ch Choice) {
 	e, _ := m.Get(name)
 	ch.Route, ch.Start, ch.Perks, ch.Persona = e.Name, e.Start, e.Perks, e.Persona
 	return ch
+}
+
+// Recent are the routes chosen in dir's subdirectories (<dir>/*/choice.json), oldest first by
+// the file's time, leaving out the one in except: the previous runs the next choice varies from.
+func Recent(dir, except string) []string {
+	paths, _ := filepath.Glob(filepath.Join(dir, "*", ChoiceFile))
+	type c struct {
+		at    time.Time
+		route string
+	}
+	var cs []c
+	for _, p := range paths {
+		if except != "" && filepath.Clean(filepath.Dir(p)) == filepath.Clean(except) {
+			continue
+		}
+		fi, err := os.Stat(p)
+		if err != nil {
+			continue
+		}
+		b, err := os.ReadFile(p)
+		var ch Choice
+		if err != nil || json.Unmarshal(b, &ch) != nil || ch.Route == "" {
+			continue
+		}
+		cs = append(cs, c{fi.ModTime(), ch.Route})
+	}
+	slices.SortStableFunc(cs, func(a, b c) int { return a.at.Compare(b.at) })
+	out := make([]string, 0, len(cs))
+	for _, x := range cs {
+		out = append(out, x.route)
+	}
+	return out
 }
 
 func slicesClip(m []llm.Message) []llm.Message { return m[:len(m):len(m)] }

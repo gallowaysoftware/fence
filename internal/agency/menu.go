@@ -69,6 +69,10 @@ type Menu struct {
 	// Deadline is the run's deadline day, 0 for none; Seeds the lab seeds of the entries' Odds.
 	Deadline int
 	Seeds    string
+	// excluded is the route Without dropped; ref the appraiser, kept for the lean diffs
+	// should it be the one dropped.
+	excluded string
+	ref      *Entry
 }
 
 // LoadMenu reads the routes in dir (route.DefaultDir when empty; its challenge/ subdirectory
@@ -120,10 +124,11 @@ func (m *Menu) WithDeadline(f format.Format) *Menu {
 	if f.DeadlineDay == 0 {
 		return m
 	}
-	out := &Menu{Entries: slices.Clone(m.Entries), Deadline: f.DeadlineDay}
+	out := *m
+	out.Entries, out.Deadline, out.Seeds = slices.Clone(m.Entries), f.DeadlineDay, ""
 	fo, ok := DeadlineOdds(f.Name)
 	if !ok || fo.DeadlineDay != f.DeadlineDay {
-		return out
+		return &out
 	}
 	out.Seeds = fo.Seeds
 	for i, e := range out.Entries {
@@ -131,7 +136,7 @@ func (m *Menu) WithDeadline(f format.Format) *Menu {
 			out.Entries[i].Odds = &o
 		}
 	}
-	return out
+	return &out
 }
 
 // For is the menu a run may pick from: every route, or only those that play start when the
@@ -140,13 +145,41 @@ func (m *Menu) For(start string) *Menu {
 	if start == "" {
 		return m
 	}
-	out := &Menu{Deadline: m.Deadline, Seeds: m.Seeds}
+	out := *m
+	out.Entries = nil
 	for _, e := range m.Entries {
 		if e.Start == start {
 			out.Entries = append(out.Entries, e)
 		}
 	}
-	return out
+	return &out
+}
+
+// Without is the menu without the route named name, m itself when it is not on the menu or is
+// the only route left.
+func (m *Menu) Without(name string) *Menu {
+	i := slices.IndexFunc(m.Entries, func(e Entry) bool { return e.Name == name })
+	if i < 0 || len(m.Entries) == 1 {
+		return m
+	}
+	out := *m
+	out.Entries = slices.Delete(slices.Clone(m.Entries), i, i+1)
+	out.excluded = name
+	if ref, ok := m.reference(); ok {
+		out.ref = &ref
+	}
+	return &out
+}
+
+// Excluded is the route Without dropped, "" for none.
+func (m *Menu) Excluded() string { return m.excluded }
+
+// reference is the appraiser, the route the lean menu describes the others against.
+func (m *Menu) reference() (Entry, bool) {
+	if m.ref != nil {
+		return *m.ref, true
+	}
+	return m.Get(DefaultRoute)
 }
 
 // Starts and PerkSets are what the menu's routes play: a composed route stays within them.
@@ -216,7 +249,7 @@ func oddsKey(e Entry) float64 {
 // LeanText is the menu in one short line a route: what it changes over the appraiser and its record;
 // with a deadline, best odds of beating it first.
 func (m *Menu) LeanText() string {
-	ref, _ := m.Get(DefaultRoute)
+	ref, _ := m.reference()
 	es := m.Entries
 	if m.Deadline > 0 {
 		es = m.byOdds()

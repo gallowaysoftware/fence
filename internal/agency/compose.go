@@ -209,6 +209,8 @@ func (c *Composition) Validate(m *Menu) []string {
 		bad("name %q: want lowercase letters, digits and _ (up to 32)", c.Name)
 	} else if _, clash := m.Get(c.Name); clash {
 		bad("name %q is already a menu route; pick the route instead or name yours differently", c.Name)
+	} else if c.Name == m.excluded {
+		bad("name %q is the route off tonight's menu; name yours differently", c.Name)
 	}
 	base, ok := m.Get(c.Base)
 	if !ok {

@@ -373,7 +373,24 @@ day (`docs/STREAM.md` estimates 3–4, its M2 test 30–45 minutes a week at pac
 spans several streams. The game saves every
 night and the autopilot resumes from a save.
 
-For each run:
+For each run, first the day-0 choice (docs/STREAM.md, "Model agency"), before the mod, the bridge and
+fenceshow start: the strategist picks or composes the run's route, with the stream's previous choices in
+the prompt and the last one off the menu.
+
+```sh
+# drift's 27B through the gate (start the gate first), lean prompt; add -format F for a format run,
+# -start S to fix the start, -dry-run to see a pick without recording it
+make choose ARGS="-format sprint_91"
+```
+
+It prints the route and the save to start (difficulty, start, perks), the thesis, the mod's
+`autopilot_directives` line (a format's handicaps applied), and the flags for the bridge (`-choice … -route …
+-persona …`, plus `-format`) and fenceshow (the same without `-choice`): use them in place of the route and
+persona in the commands below. A composed route is a file in the choice's directory, which `-route` takes as
+it does a name. The choice is recorded in `var/stream/choices/<UTC stamp>/` (never committed); the newest
+directory there is the route the next choice excludes, so **delete the directory of a choice that was not
+played** (a rehearsal, a restart before day 1). A fallback (the model's answer was unusable twice) says so on
+a `FALLBACK` line; delete it and ask again, or play it. No answer at all is an error and records nothing.
 
 ```sh
 # the bridge: the run's strategist, route and persona (the route's directives are the base policy,
@@ -392,7 +409,8 @@ go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
   pieces the same format:
 
   ```sh
-  # the mod: Options → Mods → autopilot_directives, the format's directives in one line (handicaps locked)
+  # the mod: Options → Mods → autopilot_directives, the format's directives in one line (handicaps locked);
+  # `make choose ARGS="-format sprint_91"` prints this line for the route it chose
   go run ./cmd/fenceformat directives sprint_91            # add -route NAME for a format that names none
   # the bridge: the plans are told the format, and a change to a locked key is overruled
   make bridge ARGS="-mode observe -planner llm -directives delta -format sprint_91 -route sprinter -persona shark \

@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gallowaysoftware/fence/internal/format"
 	"github.com/gallowaysoftware/fence/internal/llm"
@@ -208,5 +210,109 @@ func TestDeadlinePrompt(t *testing.T) {
 	}
 	if m.WithDeadline(format.Format{}) != m {
 		t.Error("no deadline, same menu")
+	}
+}
+
+func TestChooseExclude(t *testing.T) {
+	m := testMenu(t)
+	pick := func(r string) string {
+		b, _ := json.Marshal(map[string]any{"route": r, "thesis": thesis})
+		return string(b)
+	}
+	compose := func(name, base string) string {
+		b, _ := json.Marshal(map[string]any{"compose": map[string]any{"name": name, "base": base, "levers": map[string]any{"bays": 3}}, "thesis": thesis})
+		return string(b)
+	}
+	for _, tc := range []struct {
+		name     string
+		ask      Ask
+		answers  []string
+		route    string
+		excluded string
+		errs     string // in the repaired errors; "" for an answer played first time
+	}{
+		{"picks another", Ask{Exclude: "rancher_sprinter"}, []string{pick("smelter")}, "smelter", "rancher_sprinter", ""},
+		{"names the excluded, repaired", Ask{Exclude: "rancher_sprinter"}, []string{pick("rancher_sprinter"), pick("smelter")}, "smelter", "rancher_sprinter", ""},
+		{"names it twice, falls back", Ask{Exclude: "rancher_sprinter"}, []string{pick("rancher_sprinter"), pick("rancher_sprinter")}, DefaultRoute, "rancher_sprinter", `"rancher_sprinter" is not on the menu`},
+		{"composes from it", Ask{Exclude: "smelter"}, []string{compose("big_smelter", "smelter"), compose("big_smelter", "smelter")}, DefaultRoute, "smelter", `base "smelter" is not on the menu`},
+		{"composes under its name", Ask{Exclude: "smelter"}, []string{compose("smelter", "appraiser"), compose("smelter", "appraiser")}, DefaultRoute, "smelter", "off tonight's menu"},
+		{"composes from another", Ask{Exclude: "smelter"}, []string{compose("big_vintner", "vintner")}, "big_vintner", "smelter", ""},
+		{"default excluded, falls back elsewhere", Ask{Exclude: DefaultRoute, Lean: true}, []string{"{}", "{}"}, m.Entries[0].Name, DefaultRoute, `no "route" and no "compose"`},
+		{"only route of the start stays", Ask{Exclude: "farmer", FixedStart: "farmer"}, []string{pick("farmer")}, "farmer", "", ""},
+		{"not a route", Ask{Exclude: "nonesuch"}, []string{pick("smelter")}, "smelter", "", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ch := Choose(context.Background(), &fakeLLM{answers: tc.answers}, m, tc.ask)
+			errs := strings.Join(ch.Errors, "; ")
+			if ch.Route != tc.route || ch.Excluded != tc.excluded || (tc.errs == "") != (ch.Fallback == "") || !strings.Contains(errs, tc.errs) {
+				t.Errorf("route %q excluded %q fallback %q errors %q", ch.Route, ch.Excluded, ch.Fallback, errs)
+			}
+			if tc.excluded != "" && slices.Contains(ch.Menu, tc.excluded) {
+				t.Errorf("menu still offers %s", tc.excluded)
+			}
+		})
+	}
+}
+
+func TestExcludePrompt(t *testing.T) {
+	m := testMenu(t)
+	f, err := format.Load(filepath.Join("..", "..", format.DefaultDir), "sprint_91")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := Ask{Lean: true, Format: &f, Recent: []string{"smelter", "rancher_sprinter"}, Exclude: "rancher_sprinter"}
+	dm := m.WithDeadline(f)
+	p := ChoosePrompt(dm.Without(a.Exclude), a)
+	if !strings.Contains(p, "The last run played rancher_sprinter, so it is off tonight's menu") || strings.Contains(p, "- rancher_sprinter (") {
+		t.Errorf("prompt:\n%s", p)
+	}
+	if strings.Contains(ChoosePrompt(dm, a), "off tonight's menu") {
+		t.Error("a menu nothing was dropped from says something was")
+	}
+	// The lean lines stay diffs over the appraiser when it is the one dropped.
+	line := func(text, name string) string {
+		i := strings.Index(text, "- "+name+" (")
+		return text[i : i+strings.IndexByte(text[i:], '\n')]
+	}
+	if got, want := line(m.Without(DefaultRoute).LeanText(), "smelter"), line(m.LeanText(), "smelter"); got != want {
+		t.Errorf("without the appraiser %q, want %q", got, want)
+	}
+}
+
+func TestRecent(t *testing.T) {
+	dir := t.TempDir()
+	at := time.Date(2026, 11, 12, 20, 0, 0, 0, time.UTC)
+	for i, r := range []struct{ dir, body string }{
+		{"c", `{"route":"smelter"}`},
+		{"a", `{"route":"rancher_sprinter"}`},
+		{"b", `not json`},
+		{"d", `{"route":""}`},
+		{"e", `{"route":"vintner"}`},
+	} {
+		p := filepath.Join(dir, r.dir, ChoiceFile)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(r.body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Chtimes(p, at, at.Add(time.Duration(i)*time.Minute)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tc := range []struct {
+		except string
+		want   []string
+	}{
+		{"", []string{"smelter", "rancher_sprinter", "vintner"}},
+		{filepath.Join(dir, "e"), []string{"smelter", "rancher_sprinter"}},
+		{filepath.Join(dir, "x"), []string{"smelter", "rancher_sprinter", "vintner"}},
+	} {
+		if got := Recent(dir, tc.except); !slices.Equal(got, tc.want) {
+			t.Errorf("except %q: %v, want %v", tc.except, got, tc.want)
+		}
+	}
+	if got := Recent(filepath.Join(dir, "none"), ""); len(got) != 0 {
+		t.Errorf("missing dir: %v", got)
 	}
 }

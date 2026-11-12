@@ -32,6 +32,17 @@ the bridge shows it at hello, before its run's `run_start`, which used to wipe i
 or a hybrid slate's long option labels are cut to one line. The ticker's minimum is three lines; on the
 fullest days the plan shows two.
 
+## Last route off the menu — 2026-11-12: the stream's day-0 choice varies, and the stream can make it
+
+**Result.** The owner's call after the deadline-odds check: the route the stream played last is off the day-0
+menu, every run (`agency.Ask.Exclude`; the prompt says why, `choice.json` records `excluded`). The league
+excludes the last of its previous choices; the stream gets `cmd/fencechoose` (`make choose`), which asks drift
+through the gate before day 1, records the choice in `var/stream/choices/` and prints the save to start, the
+thesis, the mod's directives line and the bridge's and fenceshow's flags. On drift (2 calls, `sprint_91`, lean,
+8.3 and 7.1 s): `rancher_sprinter` with no history, then `smelter_sprinter` (73 %) with it off the menu, its thesis
+weighing its median win day against `ore_monopolist`'s. docs/STREAM.md, "Model agency"; docs/STREAM-OPS.md,
+"Starting a run".
+
 ## Deadline odds — 2026-11-12: the day-0 menu tells the model which routes beat day 91
 
 **Result.** Every hard route's odds of a buyout by day 91, executor alone, on seeds 8100001–060: as it is

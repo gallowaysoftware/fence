@@ -19,6 +19,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gallowaysoftware/fence/internal/agency"
 	"github.com/gallowaysoftware/fence/internal/format"
 )
 
@@ -395,7 +396,7 @@ func (l *League) runMatch(ctx context.Context, m Match) (err error) {
 		addr := "127.0.0.1:" + strconv.Itoa(port)
 		meta.BridgeArgs = l.bridgeArgs(pm, ep, model, addr, dir)
 		if pm.Player.ChooseRoute != "" {
-			meta.BridgeArgs = append(meta.BridgeArgs, "-choice", filepath.Join(dir, choiceFile))
+			meta.BridgeArgs = append(meta.BridgeArgs, "-choice", filepath.Join(dir, agency.ChoiceFile))
 		}
 		stop, err := l.startBridge(ctx, l.bridgeBin(m.Player), meta.BridgeArgs, dir)
 		if err != nil {

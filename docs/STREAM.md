@@ -52,7 +52,15 @@ the executor keeps the routine.
   without water, the Board switched off) are refused; one repair round, then the menu's default. When the match fixes
   the start, only routes that play it are offered. The model writes a one-paragraph thesis: it goes to the feed as a
   `plan` event (level 2) and into every later plan and fork prompt. The stream's previous runs are named in the prompt
-  so the choice rotates. League: `"choose_route": "any" | "start"` on a plan player (`cmd/fenceleague/agency.go`; the
+  so the choice rotates, and **the last-played route is off the menu** (owner, 2026-11-12; every run, not only
+  deadline formats): the prompt says it was played last, the menu leaves it out, so it can be neither picked nor a
+  composition's base nor a composition's name, unless it is the only route a fixed start allows; `choice.json`
+  records `excluded`. A composition played last is no menu route and excludes nothing, and a composition whose
+  levers happen to rebuild the excluded route is not caught: it takes deliberate work and still airs as a new route.
+  `agency.Recent` reads the previous choices (`<dir>/*/choice.json`, oldest first by file time) for both the league
+  and the stream. Stream: `make choose ARGS="-format sprint_91"` (`cmd/fencechoose`, docs/STREAM-OPS.md,
+  "Starting a run") asks drift through the gate before day 1 and records the choice in `var/stream/choices/`.
+  League: `"choose_route": "any" | "start"` on a plan player (`cmd/fenceleague/agency.go`; the
   match keeps its scheduled route slot as its id, `match.json` records `chosen_route`, the answer is `choice.json`, a
   composition `route.json`); bridge: `-choice FILE`.
 - **Forks** (`-forks`, `internal/strategy/forks.go`): when the morning shows one arising, the model is asked before the
@@ -95,7 +103,12 @@ the executor keeps the routine.
   repeat; on `purist_sprint` after one `rancher_sprinter` run, `rancher_sprinter` (68 %) again. So it picks for the
   format, but where one route leads by ~15 points the odds outweigh the "vary from previous runs" nudge: four
   calls, one route. Before the mortgage line was added, the first thesis planned to sign the mortgage for a day-91
-  deadline.
+  deadline. On deadline formats the exclusion is what forces the variety the nudge did not.
+
+  **Re-checked with the exclusion** (2026-11-12, drift, `cmd/fencechoose -lean -format sprint_91`, 2 calls, 8.3 and
+  7.1 s, no repair round): no history, `rancher_sprinter` (90 %) as before; with it played last and off the menu,
+  `smelter_sprinter` (73 %), the thesis naming its median win day 83 against the deadline and passing over
+  `ore_monopolist` for its median day 90 ("zero margin").
 - **Inventor** (`cmd/fenceinvent`, offline): the model proposes routes the menu lacks (compositions plus a thesis and
   a novelty claim); the gym screens each on 30 hard seeds against the `appraiser`, and only a 57/60 confirmation on 60
   fresh seeds puts one on the menu (ROUTES.md, "Invented routes").

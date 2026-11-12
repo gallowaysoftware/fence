@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
-	"time"
 
 	"github.com/gallowaysoftware/fence/internal/agency"
 	"github.com/gallowaysoftware/fence/internal/format"
@@ -19,10 +17,7 @@ const (
 	ChooseStart = "start" // only routes that play the match's start
 )
 
-const (
-	choiceFile   = "choice.json"
-	composedFile = "route.json"
-)
+const composedFile = "route.json"
 
 // chooseRoute asks the player's model for the match's route and returns the match as it is
 // played: start, perks, persona and directives of the route chosen. m keeps the route slot it
@@ -37,7 +32,11 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 		return m, agency.Choice{}, err
 	}
 	client := &llm.OpenAI{BaseURL: l.proxy.BaseURL(m.ID()), Model: model, OpenAIOptions: opts}
-	ask := agency.Ask{Recent: l.recentChoices(dir), Lean: m.Player.AgencyLean}
+	recent := agency.Recent(l.Dir, dir)
+	ask := agency.Ask{Recent: recent, Lean: m.Player.AgencyLean}
+	if len(recent) > 0 {
+		ask.Exclude = recent[len(recent)-1]
+	}
 	if m.Player.ChooseRoute == ChooseStart {
 		ask.FixedStart = m.Start
 	}
@@ -52,7 +51,7 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 	if ctx.Err() != nil {
 		return m, ch, ctx.Err()
 	}
-	if err := writeJSON(filepath.Join(dir, choiceFile), ch); err != nil {
+	if err := writeJSON(filepath.Join(dir, agency.ChoiceFile), ch); err != nil {
 		return m, ch, err
 	}
 	l.Log.Info("day-0 choice", "match", m.ID(), "route", ch.Route, "composed", ch.Composed, "fallback", ch.Fallback, "thesis", ch.Thesis)
@@ -81,32 +80,4 @@ func (l *League) chooseRoute(ctx context.Context, m Match, ep *Endpoint, model, 
 		played.RoutePath = mustAbs(path)
 	}
 	return played, ch, nil
-}
-
-// recentChoices are the routes the league's other matches chose, oldest first: the stream's
-// previous runs, which the model is asked to vary from.
-func (l *League) recentChoices(own string) []string {
-	paths, _ := filepath.Glob(filepath.Join(l.Dir, "*", choiceFile))
-	type c struct {
-		at    time.Time
-		route string
-	}
-	var cs []c
-	for _, p := range paths {
-		if filepath.Dir(p) == own {
-			continue
-		}
-		var ch agency.Choice
-		fi, err := os.Stat(p)
-		if err != nil || readJSON(p, &ch) != nil || ch.Route == "" {
-			continue
-		}
-		cs = append(cs, c{fi.ModTime(), ch.Route})
-	}
-	slices.SortFunc(cs, func(a, b c) int { return a.at.Compare(b.at) })
-	var out []string
-	for _, x := range cs {
-		out = append(out, x.route)
-	}
-	return out
 }
