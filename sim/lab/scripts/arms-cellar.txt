@@ -1,0 +1,29 @@
+# The staged clean-water build (docs/research/QUALITY.md, "The staged clean-water build"): each route as on main and with
+# `clean_water`, with and without the Board (`_nb`). Base arms run on a main build, the rest on this branch's:
+# Measured 2026-11-12 on 60 seeds (vintner, the main arms with the Board), 30 (fountain) and 16 (the rest; every _nb cell):
+# FENCE_GYM_DLL=<main> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cellar.txt -only <..._main> -dir var/sim/exp/cellar -seeds 60 -days 200 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 9800000
+# python3 sim/lab/scripts/quality.py var/sim/exp/cellar -ref vintner_main vintner_main vintner_cw
+vintner_main | -human player -start apprentice -directives sim/lab/scripts/directives/cellar/vintner.json
+vintner_cw | -human player -start apprentice -directives sim/lab/scripts/directives/cellar/vintner_cw.json
+vintner_nb_main | -human player -start apprentice -directives sim/lab/scripts/directives/cellar/vintner_nb.json
+vintner_nb_cw | -human player -start apprentice -directives sim/lab/scripts/directives/cellar/vintner_nb_cw.json
+farmer_main | -human player -start farmer -directives sim/lab/scripts/directives/cellar/farmer.json
+farmer_cw | -human player -start farmer -directives sim/lab/scripts/directives/cellar/farmer_cw.json
+farmer_nb_main | -human player -start farmer -directives sim/lab/scripts/directives/cellar/farmer_nb.json
+farmer_nb_cw | -human player -start farmer -directives sim/lab/scripts/directives/cellar/farmer_nb_cw.json
+water_baron_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_baron.json
+water_baron_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_baron_cw.json
+water_baron_nb_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_baron_nb.json
+water_baron_nb_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_baron_nb_cw.json
+fountain_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain.json
+fountain_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain_cw.json
+fountain_fix | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain.json
+fountain_nb_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain_nb.json
+fountain_nb_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain_nb_cw.json
+fountain_nb_fix | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/fountain_nb.json
+water_night_shift_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift.json
+water_night_shift_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift_cw.json
+water_night_shift_fix | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift.json
+water_night_shift_nb_main | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift_nb.json
+water_night_shift_nb_cw | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift_nb_cw.json
+water_night_shift_nb_fix | -human player -start water_merchant -directives sim/lab/scripts/directives/cellar/water_night_shift_nb.json

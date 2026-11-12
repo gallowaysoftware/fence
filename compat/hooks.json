@@ -7657,6 +7657,19 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
+      "id": "autopilot.networkupgrade.ispowerhijackunlocked",
+      "type": "NetworkUpgrade",
+      "member": "IsPowerHijackUnlocked",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
       "id": "autopilot.playerstore.isvendingmachineunlocked",
       "type": "PlayerStore",
       "member": "isVendingMachineUnlocked",
@@ -8175,9 +8188,70 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
+      "id": "autopilot.watertankhelper.getcapacityml",
+      "type": "WaterTankHelper",
+      "member": "GetCapacityMl",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.watertankhelper.canupgrade",
+      "type": "WaterTankHelper",
+      "member": "CanUpgrade",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.watertankhelper.upgrade",
+      "type": "WaterTankHelper",
+      "member": "Upgrade",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
       "id": "autopilot.waterhelper.emptycontainer",
       "type": "WaterHelper",
       "member": "EmptyContainer",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.onuvused",
+      "type": "WaterHelper",
+      "member": "OnUVUsed",
       "kind": "method",
       "params": [
         "GameItem"

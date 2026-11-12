@@ -13,6 +13,8 @@ DIR is an `arms.py run` directory (one subdirectory per arm, same seeds). Per ar
     bottle   bottles started by true water grade
     ingots   ingots by purity VL/L/F/H/VH/P
     water    litres sold by the grade it was priced at, and by true grade
+    cellar   per run: bottles in, sold and their mean price; bay-nights dry / unpowered, empty-bottle and idle-berry
+             days; reed cures, cured litres and the first cure day (median)
 """
 import json
 import math
@@ -128,6 +130,18 @@ def arm_line(name, runs, ref):
                    f" tiers sold U/B/H/P/R/M {share(tiers)} %")
     if sum(bay):
         out.append(f"  bay-nights by health a point 0/<1/<2/<4/4+ % {share(bay)} % (mean {sum(cost) / max(1, len(cost)):.2f} %), minerals low/in/high {share(mins)} %; bottle water {share(bottle)} %")
+    cel = [(q(runs[s]).get("quality") or {}).get("cellar") for s in seeds]
+    if any(cel):
+        n = len(seeds)
+        tot = {k: sum((c or {}).get(k, 0) for c in cel) / n for k in ("bottles_in", "bay_dry_nights", "bay_unpowered_nights", "empty_bottle_days", "berry_days")}
+        eng = [((q(runs[s]).get("quality") or {}).get("engine") or {}) for s in seeds]
+        firsts = sorted(e.get("reed_first_day", 0) for e in eng if e.get("reed_first_day"))
+        sold = [q(runs[s]).get("wine_sold") or {} for s in seeds]
+        nb = sum(x.get("bottles", 0) for x in sold)
+        out.append(f"  cellar/run: bottles in {tot['bottles_in']:.0f}, sold {nb / n:.0f} at {sum(x.get('value', 0) for x in sold) / max(1, nb):.0f};"
+                   f" bay-nights dry {tot['bay_dry_nights']:.0f}, unpowered {tot['bay_unpowered_nights']:.0f}; empty-bottle days {tot['empty_bottle_days']:.0f},"
+                   f" berry days {tot['berry_days']:.0f}; reed cures {sum(e.get('reed_cured', 0) for e in eng) / n:.1f}"
+                   f" ({sum(e.get('reed_cured_ml', 0) for e in eng) / 1000 / n:.0f} L), first cure day {firsts[len(firsts) // 2] if firsts else '-'} ({len(firsts)}/{n} runs)")
     if sum(ingots):
         out.append(f"  ingots {sum(ingots) / len(seeds):.0f}/run VL/L/F/H/VH/P {share(ingots)} %")
     if sum(wl):

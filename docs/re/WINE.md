@@ -170,8 +170,11 @@ three reasons, all measured on 16 hard seeds (1800001–016, appraisal policy, d
    liquidation floor (`sell.liquidate_min_pct`). Even with aging the average bottle sold for less (116 against 125).
 
 Fixed here: held wine now stays out of the display case, and `wine_hold_cash` holds only while cash covers rent,
-floor and a margin. Aging still does not pay in the gym (§7): racks lift the bottle to ~142 but fewer bottles are
-sold.
+floor and a margin. The held arms in §7 still lost, but for the hold, not the aging: the bottle gains +3 × its
+grade a night wherever it sits, and the loss came from refusing buyers while bottles aged (`PlayerRole.KeepWhy`
+"wine_aging"; docs/research/PRODUCTION-VERDICTS.md §4). The executor sells at any age (`wine_min_age` unset):
+bottles sell at 0.2–0.4 nights of age on average (docs/research/QUALITY.md §8), so aging adds little either way
+while bottles are the cellar's binding input (~1.2 offered a day).
 
 ## 7. What the gym does, and what the levers did
 

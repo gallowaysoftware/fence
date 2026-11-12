@@ -19,32 +19,6 @@ namespace Fence.Gym
         static JObject QualityPlan => Directives.Current.Raw["quality"] as JObject;
         static bool QualityBays => QualityPlan?.Value<bool?>("bays") ?? true;
         static bool QualityBottles => QualityPlan?.Value<bool?>("bottles") ?? true;
-        // `reeds: N` (default 0): N more bays grow hydroreed, whose purifying IV strips 28 % of every contaminant but
-        // minerals from its water each night (docs/re/PLANTS.md §4). Each holds a jug filled raw at the faucet (Wild's
-        // WATER_TRADER and GUTTERFLOW_TAP are bought for it) until every contaminant is under 10 bp; the jug comes out
-        // plant-safe with the tap's own minerals, which sit in a bloomberry's or coffee plant's band, and the bays
-        // drink it before anything else.
-        static int Reeds => WineOn ? Math.Max(0, QualityPlan?.Value<int?>("reeds") ?? 0) : 0;
-        static bool ReedOn => Reeds > 0;
-
-        // Only once the cellar's own upgrades are in and its bloomberries planted: the tap is for the reed.
-        public static IEnumerable<string> ReedUpgrades()
-        {
-            if (!ReedNeedsTap()) yield break;
-            yield return "WATER_TRADER";
-            yield return "GUTTERFLOW_TAP";
-        }
-
-        public static bool WantsReedUpgrade(string id) => ReedNeedsTap() && (id == "WATER_TRADER" || id == "GUTTERFLOW_TAP");
-
-        static bool TapForReedsOnly => ReedOn && !WaterSellOn && !(Directives.Current.Raw.Value<bool?>("tap") ?? false);
-
-        // After the business permit when the plan buys one: a tap before it piles OPERATING_WITHOUT_LICENSE up to an
-        // arrest (docs/research/PRODUCTION-VERDICTS.md §8).
-        static bool ReedNeedsTap() => ReedOn && NetworkUpgrade.IsWinemakerUnlocked() && NetworkUpgrade.IsRetiredFarmerUnlocked()
-            && (PlayerStore.Instance.hasBusinessPermit || Directives.Current.Raw.Value<string>("permit") != "buy")
-            && Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == "bloomberry_seed") >= Math.Min(2, BloomTarget);
-
         public static int StripsSpent, BayTablets, BaySwaps;
 
         // The label's purity in basis points (0 when empty).
@@ -60,6 +34,7 @@ namespace Fence.Gym
         static readonly HashSet<int> vouched = new HashSet<int>();
 
         public static void Vouch(GameItem c) => vouched.Add(c.uniqueId);
+        public static bool Vouched(GameItem c) => vouched.Contains(c.uniqueId);
         public static void Unvouch(GameItem c) => vouched.Remove(c.uniqueId);
 
         static bool Scanner() => Owned().Any(i => i.identifier == "aquascan");
@@ -110,7 +85,8 @@ namespace Fence.Gym
             bayReserve.Clear();
             if (!QualityBays) return;
             int need = Bays().Sum(b => MachineHydroponic.GetInputSlot(b).childItem is GameItem sd ? HydroponicHelper.GetWaterUsePerCycle(sd) * 5 : 0);
-            foreach (var c in owned.Where(i => KnownClean(i, 3)).OrderBy(LabelGrade).ThenByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId))
+            // Cured stores are the bays' anyway (they draw on them first) and hold far more than five nights: the bottles share them.
+            foreach (var c in owned.Where(i => KnownClean(i, 3) && !cleanStore.Contains(i.uniqueId)).OrderBy(LabelGrade).ThenByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId))
             {
                 if (need <= 0) break;
                 bayReserve.Add(c.uniqueId);
@@ -122,159 +98,6 @@ namespace Fence.Gym
 
         // Reed-cleaned water ranks above every label (its label is stale, its contaminants are gone).
         static int BayGrade(GameItem c) => PlantSafe(c) ? -1 : LabelGrade(c);
-
-        // ---- the hydroreed bay -------------------------------------------------------------------------------
-
-        const string ReedSeedId = "hydroreed_seed";
-        static readonly Dictionary<int, int> reedNights = new Dictionary<int, int>();
-        static readonly HashSet<int> reedClean = new HashSet<int>();
-        public static int ReedCured;
-
-        static bool IsReed(GameItem seed) => seed != null && seed.identifier == ReedSeedId;
-
-        static int BloomTarget => (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays();
-
-        // An empty bay is a reed's once the bloomberries have their bays and fewer than `reeds` reeds grow.
-        static bool ReedBayDue()
-        {
-            if (!ReedOn) return false;
-            var bays = Bays();
-            if (bays.Count(b => IsReed(MachineHydroponic.GetInputSlot(b).childItem)) >= Reeds) return false;
-            return bays.Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == "bloomberry_seed") >= BloomTarget;
-        }
-
-        static GameItem ReedSeed() => Owned().Where(i => i.identifier == ReedSeedId && Parent(i) == null).OrderBy(i => i.uniqueId).FirstOrDefault();
-
-        // The purity the container went into the reed at (its label then was the truth: a faucet fill or a tested one).
-        static readonly Dictionary<int, int> reedFrom = new Dictionary<int, int>();
-
-        // Nights until the worst contaminant is under 10 bp of water at 28 % a night. Tap and premade water carry at
-        // most ~35 % of their impurity as chemical, the slowest to go (WATER.md §1.4): Gutterflow at 85 % ~13 nights,
-        // Rustwater ~11, Basewater ~6.
-        static int ReedNightsFor(int purityBp)
-        {
-            double chem = 0.35 * (10000 - purityBp) * 10000.0 / Math.Max(1, purityBp);
-            return chem <= 10 ? 1 : (int)Math.Ceiling(Math.Log(10 / chem) / Math.Log(0.72)) + 1;
-        }
-
-        // The tap's minerals (15 % of its impurity, WATER.md §1.4) survive the reed: the bays' ledger starts from them.
-        static int TapMineralBp(int purityBp) => (int)(0.15 * (10000 - purityBp) * 10000.0 / Math.Max(1, purityBp));
-
-        static bool PlantSafe(GameItem c) => reedClean.Contains(c.uniqueId);
-
-        // The reed's vessel is a tank: filled raw at the faucet, cured in place, then drawn on by the bays until it runs
-        // low, when it is drained and refilled. Without the tap it takes the cleanest water owned instead.
-        static void TendReedWater(IExecutorHost ep, GameItem bay, GameGridInventory stock)
-        {
-            var ws = MachineHydroponic.GetWaterSlot(bay);
-            var c = ws.childItem;
-            if (c == null || WaterHelper.IsEmpty(c))
-            {
-                // The biggest empty vessel owned: a reed cures any volume in the same nights.
-                var empty = Owned().Where(i => ReedVessel(i) && WaterHelper.IsEmpty(i) && !treatedOn.ContainsKey(i.uniqueId) && i != c)
-                    .OrderByDescending(Capacity).ThenBy(i => i.uniqueId).FirstOrDefault();
-                if (empty != null && (c == null || Capacity(empty) > Capacity(c)) && (c == null || Chore.Accept(EmporiumEntry.Instance.invElement, c, -1) == 0))
-                {
-                    if (c != null) reedClean.Remove(c.uniqueId);
-                    if (Chore.Accept(ws, empty, -1) == 0) c = empty;
-                    else c = ws.childItem;
-                }
-                if (c == null) return;
-            }
-            if (!WaterHelper.IsEmpty(c) && !PlantSafe(c))
-            {
-                int n = (reedNights.TryGetValue(c.uniqueId, out int k) ? k : 0) + 1;
-                int from = reedFrom.TryGetValue(c.uniqueId, out int f) ? f : Label(c);
-                bool done = Scanner()
-                    ? new[] { "heavy_metal", "chemical_contaminant", "microbe", "organic_waste" }.All(id => WaterHelper.GetContaminantPercentage(c, id) <= 10)
-                    : n > ReedNightsFor(from);
-                reedNights[c.uniqueId] = n;
-                TestReedTank(c, n);
-                if (done)
-                {
-                    reedClean.Add(c.uniqueId);
-                    if (reedTap.Contains(c.uniqueId)) mineralBp[c.uniqueId] = TapMineralBp(from);
-                    ReedCured++;
-                    if (ReedFirstDay == 0) ReedFirstDay = ep.Day;
-                    ReedCuredMl += WaterHelper.GetCurrentCapacityML(c);
-                    ep.Human("production", null, ep.Uid(bay), new JObject { ["action"] = "reed_cured", ["ml"] = WaterHelper.GetCurrentCapacityML(c), ["nights"] = n }, "player:bay");
-                }
-            }
-            if (Environment.GetEnvironmentVariable("FENCE_BAY_DEBUG") != null)
-                Console.Error.WriteLine($"reed d{ep.Day} {bay.uniqueId} {c.identifier}#{c.uniqueId} ml={WaterHelper.GetCurrentCapacityML(c)} n={(reedNights.TryGetValue(c.uniqueId, out int nn) ? nn : -1)} safe={PlantSafe(c)} tap={TapOn}");
-            if (!WaterHelper.IsEmpty(c) && (!(PlantSafe(c) || reedHq.Contains(c.uniqueId)) || WaterHelper.GetCurrentCapacityML(c) >= 200)) return;
-            if (!WaterHelper.IsEmpty(c)) Chore.Act("empty", c, () => WaterHelper.EmptyContainer(c));
-            reedClean.Remove(c.uniqueId);
-            reedTap.Remove(c.uniqueId);
-            mineralBp.Remove(c.uniqueId);
-            faucet ??= Chore.Faucet();
-            reedHq.Remove(c.uniqueId);
-            var pitcher = Pitcher();
-            if (TapOn && pitcher != null && FreshFilter(pitcher))
-            {
-                // Filtered at the faucet (the pitcher filters what runs into it): minerals, organics and particles out,
-                // so the reed has only chemical and heavy metal to take, and the water reaches HQ in ~4 nights.
-                if (!WaterHelper.IsEmpty(pitcher)) Chore.Act("empty", pitcher, () => WaterHelper.EmptyContainer(pitcher));
-                int guard = 0;
-                while (!WaterHelper.IsFull(c) && FilterLeft(pitcher) > 0 && guard++ < 20)
-                {
-                    Chore.Act("tap", pitcher, () => pitcher.onThisTargetItemFunc?.Invoke(pitcher, faucet));
-                    if (WaterHelper.IsEmpty(pitcher)) break;
-                    Chore.Act("pour", c, () => WaterHelper.TransferLiquid(pitcher, c));
-                }
-                if (!WaterHelper.IsEmpty(pitcher)) Chore.Act("empty", pitcher, () => WaterHelper.EmptyContainer(pitcher));
-                if (!WaterHelper.IsEmpty(c)) reedFiltered.Add(c.uniqueId);
-            }
-            else if (TapOn)
-            {
-                Chore.Act("tap", c, () => c.onThisTargetItemFunc?.Invoke(c, faucet));
-                if (!WaterHelper.IsEmpty(c)) reedTap.Add(c.uniqueId);
-            }
-            else
-                foreach (var src in Owned().Where(i => KnownClean(i, 3) && !PlantSafe(i) && !ForBays(i)).OrderBy(LabelGrade).ThenByDescending(WaterHelper.GetCurrentCapacityML).ToList())
-                {
-                    if (WaterHelper.IsFull(c)) break;
-                    Chore.Act("pour", c, () => WaterHelper.TransferLiquid(src, c));
-                }
-            if (WaterHelper.IsEmpty(c)) return;
-            // The worst contaminant goes slowest: a mix is as slow as its label (the receiver's) or worse; a fresh fill's
-            // label is the truth.
-            reedNights[c.uniqueId] = 0;
-            reedFrom[c.uniqueId] = TapOn ? Label(c) : Math.Min(Label(c), 9600);
-        }
-
-        // Filtered tank water tested HQ or better: the bottles' and bays' water (lab verdict.hydroreed: 20 L of filtered
-        // rust water 96.95 % -> 99.08 % in four nights).
-        static readonly HashSet<int> reedFiltered = new HashSet<int>(), reedHq = new HashSet<int>();
-
-        static void TestReedTank(GameItem c, int nights)
-        {
-            if (!reedFiltered.Contains(c.uniqueId) || reedHq.Contains(c.uniqueId) || nights < 4 || WaterHelper.IsEmpty(c)) return;
-            if (TestWater(c) && LabelGrade(c) <= 1) reedHq.Add(c.uniqueId);
-        }
-
-        // Reed tanks tested HQ, wherever they sit.
-        static List<GameItem> HqTanks(GameItem except) => Owned().Where(i => reedHq.Contains(i.uniqueId) && i != except && !WaterHelper.IsEmpty(i) && LabelGrade(i) <= 1)
-            .OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).ToList();
-
-        static int Capacity(GameItem i) => i.GetTagReadonly("LIQUID_CONTAINER_CAPACITY").GetInt();
-
-        static bool ReedVessel(GameItem i) => (WaterVessel(i) || i.identifier == "water_tank") && Parent(i) == null && !Lab.Holds(i);
-
-        // Cured water the bays draw on: reed tanks and loose cured containers, fullest first.
-        static List<GameItem> Tanks(GameItem except) => Owned().Where(i => PlantSafe(i) && i != except && !WaterHelper.IsEmpty(i)
-                && (Parent(i) == null || IsReed(MachineHydroponic.GetInputSlot(Parent(i))?.childItem)))
-            .OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).ToList();
-
-        public static int ReedCuredMl, ReedFirstDay;
-
-        static readonly HashSet<int> reedTap = new HashSet<int>();
-
-        // Plant-safe water for any engine's bays (docs/research/QUALITY.md, "Clean water supply"): loose owned
-        // containers a reed has cured, largest first. Its label is stale (the reed never relabels); its minerals are
-        // the tap's.
-        public static List<GameItem> PlantSafeWater() => Owned().Where(i => PlantSafe(i) && Parent(i) == null && !WaterHelper.IsEmpty(i))
-            .OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).ToList();
 
         // Estimated mineral content of each bay's water, in bp of the water (HydroponicHelper.HandleNutriment's unit).
         static readonly Dictionary<int, int> mineralBp = new Dictionary<int, int>();
@@ -443,16 +266,10 @@ namespace Fence.Gym
             mineralBp.Clear();
             bayReserve.Clear();
             bottleGrade.Clear();
-            reedNights.Clear();
-            reedClean.Clear();
-            reedFrom.Clear();
-            reedTap.Clear();
-            reedFiltered.Clear();
-            reedHq.Clear();
-            ReedCured = ReedCuredMl = ReedFirstDay = 0;
+            ResetCellar();
             StripsSpent = BayTablets = BaySwaps = 0;
         }
 
-        static JObject QualityStatus() => new JObject { ["strips_spent"] = StripsSpent, ["bay_tablets"] = BayTablets, ["bay_swaps"] = BaySwaps, ["reed_cured"] = ReedCured, ["reed_cured_ml"] = ReedCuredMl, ["reed_first_day"] = ReedFirstDay, ["untested_waits"] = UntestedWaits };
+        static JObject QualityStatus() => new JObject { ["strips_spent"] = StripsSpent, ["bay_tablets"] = BayTablets, ["bay_swaps"] = BaySwaps, ["reed_cured"] = ReedCured, ["reed_cured_ml"] = ReedCuredMl, ["reed_first_day"] = ReedFirstDay, ["reed_fills"] = ReedFills, ["reed_filtered_fills"] = ReedFiltered, ["tank_growths"] = TankGrowths, ["pure_batches"] = PureBatches, ["untested_waits"] = UntestedWaits };
     }
 }

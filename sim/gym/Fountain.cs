@@ -81,11 +81,30 @@ namespace Fence.Gym
             Chore.Accept(slot, cell, -1);
         }
 
+        // `fountain_commons: true`: commons still to go into the fountain (17 take it from 15 to 100 attractiveness,
+        // VendingMachineHelper.UpgradeAttractiveness) are held from sale and from the vending machine while the fountain
+        // is owned or still to come (Wild's, or the landlord's last offer on day 85). Off by default: on `fountain` it
+        // cost the vending machine 1 809 by day 90 for 897 more at the fountain (docs/research/QUALITY.md).
+        static int CommonsWanted()
+        {
+            if (!On || EmporiumEntry.Instance == null || !(Directives.Current.Raw.Value<bool?>("fountain_commons") ?? false)) return 0;
+            var m = Machine();
+            if (m != null) return VendingMachineHelper.CanUpgradedAttractiveness(m) ? Math.Max(0, (100 - Attract(m) + 4) / 5) : 0;
+            return (TakesLandlords && (PlayerDay.Current?.Day ?? 0) <= 85) || Buys ? 17 : 0;
+        }
+
+        public static bool Holds(GameItem i)
+        {
+            if (i.identifier != "common_electronic" || Parent(i) != null) return false;
+            int n = CommonsWanted();
+            return n > 0 && Owned().Where(x => x.identifier == "common_electronic" && Parent(x) == null).OrderBy(x => x.uniqueId).Take(n).Any(x => x == i);
+        }
+
         static void Upgrade(GameItem m)
         {
             var core = Core(m);
             if (core == null) return;
-            foreach (var e in Owned().Where(i => i.identifier == "common_electronic" && Parent(i) == null && !Production.Reserved(i) && !PlayerRole.Keep(i, null)).OrderBy(i => i.uniqueId).ToList())
+            foreach (var e in Owned().Where(i => i.identifier == "common_electronic" && Parent(i) == null && (Holds(i) || !Production.Reserved(i) && !PlayerRole.Keep(i, null))).OrderBy(i => i.uniqueId).ToList())
             {
                 if (!VendingMachineHelper.CanUpgradedAttractiveness(m)) break;
                 Chore.Act("vending_upgrade", core, () => VendingMachineHelper.UpgradeAttractiveness(core, e));
@@ -112,20 +131,37 @@ namespace Fence.Gym
             var slot = MachineHelper.GetBatterySlot(m);
             if (slot?.childItem == null || !PowerHelper.CanDrawPowerSource(slot.childItem, MachineryHelper.GetMachinePowerUsage(m))) return;
             int att = Attract(m);
+            // A bought container's label is the seller's word and treated water's is stale: each candidate is tested before
+            // it may fill a slot (a strip, or the AquaScan), so the slot gets the grade the water really is.
+            if (Enumerable.Range(0, 3).Any(g => Wanted(m, g)))
+                foreach (var c in Owned().Where(i => Pourable(i) && !Production.Vouched(i) && Purity(i) >= 9600).OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).Take(4).ToList())
+                    if (!Production.TestWater(c)) break;
+            if (Environment.GetEnvironmentVariable("FENCE_FOUNTAIN_DEBUG") != null)
+                Console.Error.WriteLine($"fountain d{PlayerDay.Current?.Day} att={att} slots={string.Join(",", Enumerable.Range(0, 3).Select(g => Slot(m, g)?.childItem == null ? "-" : WaterHelper.GetCurrentCapacityML(Slot(m, g).childItem).ToString()))} cands={string.Join(" ", Owned().Where(Pourable).Select(i => $"{i.identifier}:{WaterHelper.GetCurrentCapacityML(i)}@{Purity(i)}{(Production.Vouched(i) ? "v" : "")}"))}");
             for (int g = 2; g >= 0; g--)
             {
                 if (g == 2 && att < 20) continue;
                 var s = Slot(m, g);
-                if (s == null || s.childItem != null) continue;
-                var pick = Owned().Where(i => Pourable(i) && Purity(i) >= Floor[g] && (g == 2 || Purity(i) < Floor[g + 1] || !Wanted(m, g + 1)))
+                if (s == null || !Wanted(m, g)) continue;
+                var pick = Owned().Where(i => Pourable(i) && Production.Vouched(i) && Purity(i) >= Floor[g] && (g == 2 || Purity(i) < Floor[g + 1] || !Wanted(m, g + 1)))
                     .OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).FirstOrDefault();
                 if (pick == null) continue;
+                // The morning's spent vessel stays when the stock grid had no room for it: refilled in place (into an
+                // empty vessel a pour copies the source's label).
+                var spent = s.childItem;
+                if (spent != null && WaterHelper.IsEmpty(spent))
+                {
+                    Chore.Act("pour", spent, () => WaterHelper.TransferLiquid(pick, spent));
+                    if (!WaterHelper.IsEmpty(spent)) { Production.Vouch(spent); Filled++; }
+                    continue;
+                }
+                if (spent != null) continue;
                 if (Chore.Accept(s, pick, -1) == 0 && Parent(pick) == m) Filled++;
             }
         }
 
         // A better slot still empty tonight takes the better water first.
-        static bool Wanted(GameItem m, int g) => (g < 2 || Attract(m) >= 20) && Slot(m, g)?.childItem == null;
+        static bool Wanted(GameItem m, int g) => (g < 2 || Attract(m) >= 20) && (Slot(m, g)?.childItem is not GameItem c || WaterHelper.IsEmpty(c));
 
         public static JObject Status()
         {

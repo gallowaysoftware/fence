@@ -429,6 +429,27 @@ namespace Fence.Gym.Tests
             Assert.Contains("\"player:furnace\"", traj);
         }
 
+        // `clean_water` on the Water Merchant start (docs/research/QUALITY.md, "The staged clean-water build"): after
+        // Georgio's loan the shop buys the Retired Farmer, a bay and a hydroreed seed, fills the reed's vessel at the
+        // tap through the pitcher's filter, and the cured batch tests High Quality and goes to the fountain and the counter.
+        [Fact]
+        public void CleanWaterReedCuresTapWater()
+        {
+            string d = Dir("clean_water");
+            var route = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(Boot.Repo, "sim", "lab", "scripts", "directives", "routes", "fountain.json")));
+            route["clean_water"] = new Newtonsoft.Json.Linq.JObject();
+            File.WriteAllText(Path.Combine(d, "cw.json"), route.ToString());
+            var r = Play(9400001, 80, null, x =>
+            {
+                x["human"] = "player"; x["difficulty"] = "hard"; x["start"] = "water_merchant"; x["perks"] = "vending+short_sleeper"; x["directives"] = Path.Combine(d, "cw.json");
+            });
+            var e = r["player"]["production"]["quality"]["engine"];
+            Assert.True((int)e["reed_filtered_fills"] >= 1, "no filtered fill: " + e);
+            Assert.True((int)e["reed_cured"] >= 1 && (int)e["reed_first_day"] >= 44, "no cure after the build day: " + e);
+            Assert.True((long)r["player"]["fountain"]["income_total"] > 0, "fountain sold nothing: " + r["player"]["fountain"]);
+            Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
+        }
+
         // Dr. Jackson is the counter's client at his shop (DrJacksonLocation.Arrive), so what the player buys there
         // is paid for, at the difficulty's inventor markup (normal: +15 %).
         [Fact]

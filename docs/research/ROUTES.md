@@ -341,6 +341,22 @@ Every run buys the fountain (median day 36) and ends at attractiveness 75 (media
 +2 300 a run, and the win day is unchanged. With the landlord's fountain instead (+150 weekly rent) it wins 60/60 on
 5200001–060 at median 112 with 7 mortgages (+9.9 ± 9.2 days).
 
+### The staged clean-water build (2026-11-12): not on the menu
+
+`clean_water` (docs/research/QUALITY.md §8) on `vintner`, `farmer`, `water_baron`, `fountain` and
+`water_night_shift`, with and without the Board (`sim/lab/scripts/arms-cellar.txt`): no arm beat its route, so
+no native route was added. Paired win days against the route on main (fresh seeds 9800001–; 60 seeds for
+`vintner`, 30 for `fountain`, 16 for the rest): `vintner` +14.2 ± 4.2 (56/60), `farmer` +24.5 ± 25.8 (10/16),
+`water_baron` +12.1 ± 10.2 (15/16), `fountain` +4.2 ± 10.4 (26/30; fountain sales +2 456 a run),
+`water_night_shift` −11.7 ± 58.8 (10/16 against 11/16). Without the Board `vintner` and `fountain` stay 0/16 and
+end sooner. The walls are the bottle supply (~1.2 wine bottles offered a day), Georgio's day-43 loan (a credit spent
+before it costs three) and the counter's stock money, not water.
+
+The fountain route on main loses its slots: a spent vessel the full stock grid refuses stays in the slot and the
+slot sells nothing again (fountain 4 330 a run). This branch refills it in place: fountain +1 547 a run, counter
+water −1 507, win day +2.4 ± 6.2 (30 seeds): at low attractiveness the fountain's litre pays no more than the
+counter's.
+
 ## The Armourer (2026-11-12)
 
 `armourer` is the Gunsmith start played as the arms trade (docs/re/ARMS.md; the engine is `arms` in

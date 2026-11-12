@@ -3,6 +3,29 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Clean water at scale — 2026-11-12: the staged build cures water, the buyout does not move; bottles are the wall
+
+**Result.** The staged clean-water build of PRODUCTION-VERDICTS.md as `clean_water` (sim/gym/Cellar.cs, off by
+default; docs/research/QUALITY.md §8): taps after Georgio's loan, a hydroreed bay on a 20 L tank filled through
+the pitcher's filter, cured by rule and tested, decanted for the bays, bottles, counter and fountain. It works
+(first cure ~day 60 instead of ~81) and loses days on the Board routes (`water_night_shift` −11.7 ± 58.8 on 16 seeds is noise): `vintner` +14.2 ± 4.2 (56/60, 60 fresh
+seeds), `fountain` +4.2 ± 10.4 (fountain +2 456 a run), 0/16 Board-free. The audit's −17 / −12 days are not
+reached.
+
+**Found.**
+
+- Bottles cap the cellar: sellers offer ~1.27 wine bottles a day (the probe gave 3 free).
+- Georgio lends at day 43 for four times back: capital spent before it costs three (a day-20 build: +23 days).
+- Faucet water is slower in the reed than premade water: filtered rust HQ by night 6, plant-safe by 10
+  (`fence-lab verdict.reedcure`); QUALITY's reeds were planted around day 62, filled raw, and their pitchers were
+  sold off the back counter.
+- Watered bays draw power that dry ones did not: power binds next (89 unpowered bay-nights a run).
+- The fountain on main jams: a spent vessel the full stock grid refuses never leaves its slot. Fixed; the water
+  it then pours comes off the counter at the same price at low attractiveness.
+- POWER_HIJACK did not switch the power service off; the hijack now does.
+
+**Also.** Pure for the fountain (two filter passes, the reed's floors, UV; FORMULA-EXPLOITS §7) built, not yet
+reached in a run; two water tablets a jug (§14); WINE.md §6's "aging does not pay" corrected.
 ## The stolen-goods trade — 2026-11-12: the Fence start's native path; three times the trade, the same win day
 
 **Result.** The Fence start's stolen-goods trade from the decompiled source (docs/re/STOLEN.md), checked in the lab
@@ -35,6 +58,7 @@ buy-or-report is unmeasured. The executor leaves goods on the back counter when 
 the next buyer (~2–3 a run). The mod needs the `stolen` engine's reads (the discount feature on the counter, the
 trafficking total) checked live; `threaten-trade-shoot` on augs and Lower Levels under-labelling (the sweep's other
 two items for this branch) belong to the aug and label code and were not folded in.
+
 
 ## The day-0 thesis in persona — 2026-11-12
 

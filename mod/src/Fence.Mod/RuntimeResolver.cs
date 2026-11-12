@@ -125,6 +125,7 @@ namespace Fence.Mod
                 case "VendingMachineHelper": found = VendingMachineHelperMembers(member); break;
                 case "WaterFeatureHelper": found = WaterFeatureHelperMembers(member); break;
                 case "WaterHelper": found = WaterHelperMembers(member); break;
+                case "WaterTankHelper": found = WaterTankHelperMembers(member); break;
                 case "UseCountHelper": found = UseCountHelperMembers(member); break;
                 case "WineHelper": found = WineHelperMembers(member); break;
                 case "InsInjectorHelper": found = InsInjectorHelperMembers(member); break;
@@ -316,6 +317,7 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] VendingMachineHelperMembers(string m) => typeof(VendingMachineHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WaterFeatureHelperMembers(string m) => typeof(WaterFeatureHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WaterHelperMembers(string m) => typeof(WaterHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WaterTankHelperMembers(string m) => typeof(WaterTankHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] UseCountHelperMembers(string m) => typeof(UseCountHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] WineHelperMembers(string m) => typeof(WineHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InsInjectorHelperMembers(string m) => typeof(InsInjectorHelper).GetMember(m, All);

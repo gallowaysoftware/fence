@@ -23,6 +23,9 @@ PLANTS.md, MODULES.md; docs/sim/VERIFIED.md). Code: `sim/gym/Hydro.cs` (the `qua
   - litres priced as Rustwater against true Rustwater: 24 % → 12 %, against 11 % → 10 % true.
   - On `fountain` the counter gains +1 853 ± 621, but the fountain loses 1 260 ± 507. It now fills its slots by the
     label, not by the hidden truth. Net +65 ± 374.
+- **The staged clean-water build (§8, 2026-11-12)** does not reach the targets either: `vintner` +14.2 ± 4.2 days
+  (60 seeds), `fountain` +4.2 ± 10.4 (fountain sales +2 456 a run), 0/16 without the Board. Bottles (~1.2 offered
+  a day), Georgio's day-43 loan and the counter's cash are the walls, not water.
 - **Measured against the verdict audit's targets:**
   - cellar −17.0 ± 2.2 days;
   - fountain −12.4 ± 1.6 days.
@@ -117,7 +120,7 @@ The gaps, in order of size:
 |---|---|---|
 | `quality.bays` | true | The bay takes the best label grade owned (ghost only when nothing better), never tops a better grade up with a worse one, and keeps five nights of the bays' drinking back from the bottles. Nutrient tablets bring the water to the plant's level (never past the band's top when one fewer stays in it), from a ledger: the tablets dosed, the water poured and the plant's use rate × bay speed a night; with an AquaScan its reading. Every tablet offered is bought while short of six a bay. |
 | `quality.bottles` | true | A bottle is filled from tested HQ or Pure water before rations (+1); the wine score is planned with the poured water's known grade. |
-| `quality.reeds: N` | 0 | N more bays grow hydroreed; each holds a vessel filled raw at the faucet (Wild's `WATER_TRADER` and `GUTTERFLOW_TAP` are bought once the cellar is planted) until the rule says every contaminant is under 10 bp (28 % a night; ~13 nights from gutter), then the bays drain their water and drink the cured water first. `reed_tank: true` buys Jackson's 20 L tank for it. `Production.PlantSafeWater()` lists the cured vessels for any engine. |
+| `quality.reeds` | — | Superseded by `clean_water` (§8, `sim/gym/Cellar.cs`). `Production.PlantSafeWater()` still lists the cured vessels for any engine. |
 | (always) | — | Treated or purified water waits up to a week, unsold, for its strip (more strips are bought while tests wait); the purifier's done-check is its tooltip; every water choice reads the label or a test. |
 
 Not built: the purifier's quality upgrade to Pure (four fineness from Jackson's random stock arrive too late to
@@ -157,8 +160,8 @@ bays drink 100 ml a night; kotton 265):
 The cheapest path to enough clean water for N bays is the tap plus ⌈N / 4⌉ hydroreed bays with jugs (or one with
 a 20 L tank): cured gutter water also carries minerals inside the bloomberry and coffee bands, so the bays need no
 tablets. It is the only path a hard run can reach early, and it is open to the chemistry engine's coffee bays
-through `Production.PlantSafeWater()` (the cured vessels, largest first; their labels are stale, their minerals
-are the tap's) with `quality.reeds` set.
+through `Production.PlantSafeWater()` (the cured vessels, largest first; tested when cured, so the label is the
+truth; raw tap water keeps the tap's minerals, filtered water needs tablets) with `clean_water` set (§8).
 
 **What the gym measured for the reeds** (hard, paired against the route as shipped, 30 seeds 9400001–030 and
 9600001–030; `quality.reeds`):
@@ -228,3 +231,159 @@ branch with the defaults (`quality.bays` and `bottles` on, `reeds` 0). Hard, rou
    Not tried in the live game: the faucet fill of a vessel inside a reed's slot (a player drags it out to the sink),
    and the pitcher fill at the faucet. The owner's test is docs/STREAM-OPS.md section 12.4. Live, the fills target
    the shop's own faucet (`Chore.Faucet`); a made faucet would be a stray item in the scene.
+
+## 8. The staged clean-water build (2026-11-12)
+
+The build of §7 item 1, as `clean_water` (`sim/gym/Cellar.cs`, off by default; it replaces `quality.reeds`).
+Board routes: it raises the cellar's grades and does not shorten the buyout; the targets (cellar −17.0 ± 2.2
+days, fountain −12.4 ± 1.6) are not reached, and the reasons are below.
+
+### What the build does
+
+| Step | When | What a player does |
+|---|---|---|
+| Taps | from day 44, with `reserve` (1 000) over the rent, and the 2 000 permit fee kept until it is bought | WATER_TRADER, GUTTERFLOW_TAP (and RUSTWATER_TAP with `tap: "rust"`) |
+| Reed bay | the next bay once the taps are on and `reed_after` (1) bloomberry bay grows | plants a hydroreed seed (the Retired Farmer sells two every visit) and keeps that bay a reed for good: the reed is harvested for its seeds every few nights and replanted, its vessel stays |
+| Vessel | at once | the biggest empty jug or tank (a 20 L tank from the Retired Water Merchant, who comes every week with WATER_TRADER; an empty bought bottle until then) |
+| Fill | when the vessel is under 200 ml | at the faucet through the pitcher's filter (new filters as one runs out), never topped up raw; raw only without a filter |
+| Cure | the rule's nights, counted only on nights the bay had power | worst contaminant = 30 % of the tap's impurity, −29 % a night (lab `verdict.reedcure`): filtered or raw rust 10 nights, gutter 12; then a strip puts the true grade on the label |
+| Decant | once cured | into loose jugs and tanks (`store_l`, 24 L); a water route pours into the bottles and jugs it sells (`cure: "hq"`: at the strip that reads High Quality, ~night 7) |
+| Use | every morning | the bays drink the stores first (tablets make up the minerals the filter took), the bottles take tested HQ, the fountain takes tested containers |
+
+Also: the kit (jugs, tanks, pitcher, filters, strips, reed seeds) is bought only from the engine's own suppliers
+(Retired Farmer, Water Merchant, Winemaker, Chemist, the water seller, Dr. Jackson): a general seller's lot that
+holds a wanted input is bought for the inputs alone (`PlayerRole.StageFromSeller`), which cost the counter its
+stock. The kit is stowed off the back counter (left there it goes with the next buyer's sale; that is how the
+pitchers kept disappearing). `tap: "none"` buys no tap and cures bought water for the bays alone. `power: true`
+buys a recharger at Dr. Jackson's and POWER_HIJACK and rotates the cells (the power service now goes off under
+the hijack; with a recharger it used to stay on, ~40 a night). A water route shows tested HQ water worth ≥ 350 in
+the case for the stockpiler (`showcase`).
+
+### Why QUALITY's reeds cured only around day 81, and what changed
+
+- The taps waited for the cellar's own bays to be planted and the reed bay for **all** the bloomberry bays: the
+  reed was planted around day 62. Now the reed bay is the next bay after the taps.
+- The reed's vessel was filled raw (no pitcher yet: the pitcher was bought, sat on the back counter and went with
+  the next sale), so the batch needed 13–14 nights. Now filtered, 10 nights; HQ by night 6–7.
+- A vessel the bays had drained to a few ml stayed in the slot uncured for a week (the refill waited for it to be
+  empty); a vessel the build did not put there (the bay's old water) was never replaced; when the reed was
+  harvested, its bay went back to bloomberries and the next reed started elsewhere with nothing.
+- A faucet fill is 10 L: the 20 L tank was half full.
+- The audit's "20 L of filtered tap water → HQ in 4 nights" was measured on premade Rustwater. Faucet water carries
+  more chemical (the slowest contaminant to go): `verdict.reedcure` on the faucet's own mix (purity / worst
+  contaminant / minerals, bp):
+
+| 20 L | Night 0 | 4 | 6 | 10 | 14 | HQ | Plant-safe | Filter durability |
+|---|---|---|---|---|---|---|---|---|
+| raw gutter 85 % | 8500 / 529 / 264 | 9438 / 126 | 9602 / 63 | 9711 / 23 | 9759 / 5 / 229 | never (minerals) | night 12 | 0 |
+| filtered gutter | 8950 / 529 / 79 | 9670 / 129 | 9796 / 65 | 9880 / 24 | 9914 / 5 / 70 | night 11 | night 12 | 923 |
+| raw rust 90.75 % | 9075 / 305 / 152 | 9653 / 76 | 9754 / 38 | 9831 / 10 | 9847 / 5 / 139 | never (minerals) | night 10 | 0 |
+| filtered rust | 9434 / 305 / 23 | 9834 / 77 | 9904 / 39 | 9956 / 10 | 9967 / 5 / 20 | **night 6** | **night 10** | 707 |
+
+  A 20 L filtered batch takes ~1.8 filters (rust) or ~2.3 (gutter). Raw tap water keeps its minerals inside the
+  bloomberry's band but never reaches HQ (minerals count against purity), so it serves the bays, not the bottles.
+  Pure (99.90 %) is not reached in 14 nights: the reed's floors stop it at ~99.67 %. The evaporator's distillate is
+  Pure at any quality > 0 (`MachineEvaporator`: each evaporated liquid lands in the distillate × quality %, water
+  without contaminants; the label is not updated), but 69–204 ml a night with 1–4 fineness for the Retired
+  Chemist's 1 500 on hard, and the chemistry engine wants the same machine with the solvent-recovery module for
+  alcohol: ~0.2 L of Pure against the reed's 2–3 L of HQ a day, and the reed costs a bay.
+
+### Measured: screens (hard, 16 seeds 9400001–016, paired against the route on main)
+
+| Arm | Wins | Median win day | Δ win day | What changed in the cellar |
+|---|---|---|---|---|
+| `vintner` (main) | 16/16 | 90 | — | bottles in 62, sold 50 at 127; bay-nights dry 137; 0 % of bay-nights at zero contaminant cost |
+| + `clean_water` from day 20 (first build) | 12/12 | 111 | +23.3 ± 8.5 | Georgio's day-43 loan fell from 1 655 to 913: every credit spent before day 43 costs three |
+| + `clean_water` (rust, day 44) | 15/16 | 104 | +12.1 ± 10.5 | 30 % of bay-nights at zero cost, best berries 21 → 24 %, bottles 54 → 66, Master 27 → 32 % of sales; first cure day 59 |
+| + `clean_water` gutter | 16/16 | 104 | +11.4 ± 10.0 | first cure day 61 |
+| + `clean_water` + power kit | 13/16 | 104 | +9.7 ± 12.7 | unpowered bay-nights 87 → 102: 4 cells in a recharger make 12 a night against five bays' 40 |
+| + `clean_water` tapless | 16/16 | 104 | +12.7 ± 8.9 | bought water bought in lots that held other goods |
+| + `wine_score: 6` alone | 16/16 | 104 | +7.4 ± 8.8 | bottles wait for berries (as QUALITY §6 found) |
+| `appraiser` + `clean_water` | 16/16 | 111 | +12.2 ± 9.7 | Master 40 % of sales, bottles 74 |
+| `appraiser` + tapless | 15/16 | 104 | +6.1 ± 6.0 | |
+| `farmer` + `clean_water` | 14/16 | 104 | +15.5 ± 10.5 | Master 45 % of sales; two runs not bought out by day 200 |
+| `farmer` + tapless | 15/16 | 104 | +15.4 ± 9.0 | |
+| `water_baron` + `clean_water` | 15/16 | 111 | −1.9 ± 10.8 | production +132 ± 868 a run |
+| `fountain` (main) | 14/16 | 111 | — | fountain 4 208 a run: a spent vessel the full stock grid refuses stays in its slot and the slot sells nothing again (fixed below) |
+| `fountain`, the spent-vessel fix and commons held for it | 14/16 | 118 | +5.2 ± 23.3 | fountain +897 by day 90, vending −1 809, counter water −2 486 |
+| `fountain` + `clean_water` | 15/16 | 118 | +12.4 ± 25.8 | |
+
+Where the days go, `vintner` against `vintner` + `clean_water` (paired cash flows, days 44–80): the taps and kit
++759, inputs +485, the counter's purchases −1 450 and sales −1 696 (less cash to buy with), wine sales −34. The
+cured water arrives from day ~59; by day 80 it has not yet turned into wine income.
+
+**The fridge does not reach the water engine's goods.** `MachineFridge` chills (+20 % value) only `BREVAGE`,
+`WATER_RATION` and `bottled_water_premium`, and refuses wine bottles. A container the water engine fills turns
+`WATER` (`WaterHelper.UpdateContainerGoodType`), and the rations go into the wine, so only bought premium bottles
+could be chilled for resale: not measured.
+
+### Measured: the routes, fresh seeds 9800001–, paired against main
+
+`sim/lab/scripts/arms-cellar.txt`; base arms on a main build (e07d205), the rest on this branch. The box was shared
+by seven agents and then capped at two or three gym processes, so the planned 60 seeds a cell ran where it could:
+60 for `vintner` and the main arms with the Board, 30 for the fountain arms, 16 for the rest and for every
+Board-free cell (hard, 200 days, `quality.py`: Wilson 95 %, McNemar exact, Δ = paired mean over seeds both won,
+± 1.96 SE). `vintner` and `farmer` run `clean_water: {"tap": "gutter"}`, the water routes `clean_water: {}`.
+
+| Route | Board | Seeds | Main: wins, median day | `clean_water`: wins, median day | Δ win day | McNemar | Production Δ a run |
+|---|---|---|---|---|---|---|---|
+| `vintner` | yes | 60 | 60/60 (94–100 %), 97 | 56/60 (84–97 %), 111 | +14.2 ± 4.2 | p = 0.12 | −942 ± 502 (inputs +1 426) |
+| `farmer` | yes | 16 | 60/60, 90 | 10/16 (39–82 %), 118 | +24.5 ± 25.8 (n = 10) | p = 0.03 | −1 939 ± 1 844 |
+| `water_baron` | yes | 16 | 60/60, 104 | 15/16 (72–99 %), 118 | +12.1 ± 10.2 | p = 1 | −1 467 ± 1 275 |
+| `fountain`, fixes only | yes | 30 | 58/60 (89–99 %), 111 | 27/30 (74–97 %), 111 | +2.4 ± 6.2 | p = 0.62 | −592 ± 485 (fountain +1 547, counter water −1 507) |
+| `fountain` | yes | 30 | 58/60, 111 | 26/30 (70–95 %), 111 | +4.2 ± 10.4 | p = 0.38 | +560 ± 998 (fountain +2 456 ± 667) |
+| `water_night_shift` | yes | 16 | 11/16 (44–86 %), 111 | 10/16 (39–82 %), 104 | −11.7 ± 58.8 (n = 6) | p = 1 | −636 ± 1 341 (fountain +3 155) |
+| `vintner` | no | 16 | 0/16 (0–19 %); 5 alive, 6 rent, 5 repo | 0/16; 16 rent | last day −24 ± 15 | — | NW d200 −1 559 ± 1 213 |
+| `fountain` | no | 16 | 0/16; 13 rent, 3 arrests | 0/16; 6 rent, 10 arrests | last day −20 ± 15 | — | fountain 2 471 against 2 936 |
+
+On `vintner` (60 seeds) the cellar's grades did not improve either: bad berries 41 → 53 %, best 27 → 20 %, Master
+33 → 31 % of sales, bottles 57 → 56 a run. A watered bay draws 8 power a night, and the cells ran out (89 unpowered
+bay-nights a run against 14). The reeds cured 2.3 batches a run, the first on day 63. No arm beats its route, so
+no native route was added and `clean_water` stays off.
+
+The Pure path (`pure`) never ran in the 30 fountain seeds: it waits for the UV filter, which only Dr. Jackson
+stocks (one visit in five once WATER_TRADER is unlocked, `StoreClientList.PlaceInventorInventory`), and the
+measured build asked for it only from sellers at the counter. His shop now buys it too (`Wine.cs`
+`JacksonWineWants`); not re-measured. The fountain's extra takings with `clean_water` are HQ and Base water from
+the reeds.
+
+Board-free, the build makes things worse: the fountain shop is arrested in 10 of 16 runs against 3 (9 of them for
+operating without a licence: the build's spending leaves less cash when the permit official calls; not traced run
+by run), and the cellar falls to the rent three weeks sooner.
+
+### Paper target against the gym, and why
+
+| | Paper (PRODUCTION-VERDICTS) | Gym, this build |
+|---|---|---|
+| Cellar | −17.0 ± 2.2 days (3 Master bottles a day, 4 000 kit paid when affordable) | +14.2 ± 4.2 days (`vintner`) |
+| Fountain | −12.4 ± 1.6 days (431 a night at attractiveness 100, 4 750 kit) | +4.2 ± 10.4 days; +2 456 fountain sales a run |
+| Board-free | 7/16 (cellar), 8/16 (landlord's fountain) | 0/16 both |
+
+1. **Bottles, not water, cap the cellar.** Sellers offer ~1.27 wine bottles a day (demand trace, 6 `vintner` runs:
+   106–133 offered in 77–105 days, about half bought; the Retired Winemaker's four a week are most of them). The
+   probe gave 3 a day free. At ~1.2 a day the most the cellar can gain is ~+45 a bottle (Master against the mix
+   it sells) ≈ 55 a day, about what the kit costs over the ~40 days before the buyout.
+2. **Georgio's day-43 loan.** He borrows half the cash and repays four times it, so any credit spent before day 43
+   costs three. The build started on day 20 lost 23.3 ± 8.5 days; from day 44 the cured water arrives around day
+   60, a month before the buyout.
+3. **The counter's cash.** The shop is cash-bound until the buyout; the taps and kit (~2 500) leave the counter
+   ~1 450 short of stock to buy over days 44–80 and it sells ~1 700 less.
+4. **Power.** Dry bays draw no power; watered ones do, and cells come at ~0.45 a day. The recharger and hijack
+   (+1 000) charge 3 a cell a night: four cells make 12 against five bays' 40.
+5. **The fountain at low attractiveness pays less than the counter for the same water**: filling its slots took
+   1 507 of counter water sales for 1 547 more at the fountain. 17 commons for attractiveness 100 compete with the
+   vending machine (`fountain_commons`, off: holding them for the fountain cost vending 1 809 by day 90 for 897).
+6. **Faucet water is slower than premade water in the reed** (chemical 30 % of its impurity): HQ by night 6, not 4.
+
+### What is left
+
+- The cellar's ceiling is the bottle supply: a measured route would buy every bottle offered and put three good
+  berries in each without waiting (`wine_berries: 3`, on with `clean_water`); not measured on its own.
+- Power before water: the bays' cells bind as soon as they drink.
+- The fountain: fill it only from attractiveness ~60, where its litre beats the counter's; measure `pure` now that
+  Dr. Jackson's shop buys the UV filter.
+- FORMULA-EXPLOITS.md items not built: the portable purifier on 2 L / 6 L vessels then decanted, the purifier on
+  ≤ 1.7 L of raw rust (HQ in a night), wine bottles in the purifier's slot, 400 ml Pure + 349 ml Base as HQ wine
+  water. Built: two tablets a jug (Water.cs), the Pure path (above).
+- Live-only chores the mod has not tried: the faucet fill of a vessel sitting in a reed's slot (a player drags it
+  to the sink and back), the two-pass pitcher fill, the UV filter used on a tank, scrap metal used on a tank.

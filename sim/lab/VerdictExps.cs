@@ -104,6 +104,63 @@ namespace Fence.Lab
             }
         }
 
+        // The staged cellar's reed (docs/research/QUALITY.md, "The staged clean-water build"): gutter and rust tap water,
+        // raw or through the pitcher's filter, 20 L in a hydroreed bay. Per night: purity, worst non-mineral contaminant
+        // and minerals in bp of the water; and the filter durability the fill took.
+        public static void Reedcure(int seed)
+        {
+            W.New(seed);
+            string[] dirt = { "heavy_metal", "chemical_contaminant", "microbe", "organic_waste", "physical_contaminant" };
+            // The faucet's own fill (WaterHelper's tap branch): grade 1's mix at the day's purity, gutter 80-90 %, rust 90-91.5 %.
+            foreach (var (label, bp, filtered) in new[] { ("raw gutter 85 %", 8500, false), ("filtered gutter 85 %", 8500, true), ("raw rust 90.75 %", 9075, false), ("filtered rust 90.75 %", 9075, true) })
+            {
+                var tank = Owned("water_tank");
+                WaterHelper.AddWater(tank, 1, 20000000, useRange: true, bp, bp);
+                int used = 0;
+                if (filtered)
+                {
+                    var dst = Owned("water_tank");
+                    var pitcher = W.Own("water_pitcher");
+                    var filter = Owned("water_filter");
+                    Put(pitcher, filter);
+                    int d0 = DurabilityHelper.GetRealDurability(filter);
+                    for (int pass = 0; pass < 40 && WaterHelper.GetTotalVolume(tank) > 0; pass++)
+                    {
+                        if (DurabilityHelper.GetRealDurability(WaterHelper.GetFilterItem(pitcher)) <= 0)
+                        {
+                            used += d0;
+                            var spent = WaterHelper.GetFilterItem(pitcher);
+                            spent.parentInventory?.Expel(spent);
+                            Put(pitcher, Owned("water_filter"));
+                        }
+                        WaterHelper.TransferLiquid(tank, pitcher);
+                        WaterHelper.TransferLiquid(pitcher, dst);
+                    }
+                    used += d0 - DurabilityHelper.GetRealDurability(WaterHelper.GetFilterItem(pitcher));
+                    tank = dst;
+                }
+                var bay = W.Own("hydroponic");
+                Put(MachineHelper.GetBatterySlot(bay), Battery());
+                Put(MachineHydroponic.GetWaterSlot(bay), tank);
+                Put(MachineHydroponic.GetInputSlot(bay), Owned("hydroreed_seed"));
+                var trace = new List<string>();
+                int hq = -1, safe = -1;
+                for (int n = 0; n <= 14; n++)
+                {
+                    if (n > 0) W.QuietDay();
+                    int p = WaterHelper.GetWaterPurity(tank), worst = dirt.Max(id => WaterHelper.GetContaminantPercentage(tank, id));
+                    trace.Add($"{p}/{worst}/{WaterHelper.GetContaminantPercentage(tank, "mineral")}");
+                    if (hq < 0 && p >= 9900) hq = n;
+                    if (safe < 0 && worst <= 10) safe = n;
+                    var input = MachineHydroponic.GetInputSlot(bay);
+                    if (input.childItem == null) Put(input, Owned("hydroreed_seed"));
+                    foreach (var x in MachineHydroponic.GetOutputSlot(bay).childItems.Where(x => x != null).ToList()) MachineHydroponic.GetOutputSlot(bay).Expel(x);
+                }
+                R.Info($"reed cure, {label} 20 L: purity/worst contaminant/mineral bp by night 0..14", string.Join(" ", trace), 14,
+                    $"HQ night {hq}, plant-safe night {safe}, filter durability {used}, ml {WaterHelper.GetTotalVolume(tank) / 1000}");
+            }
+        }
+
         // The fountain's nightly takings by attractiveness, with every slot holding 20 L of its own grade
         // (VendingFountainHelper.HandleNight called directly, as the machine's late night callback does).
         public static void Fountain(int seed)

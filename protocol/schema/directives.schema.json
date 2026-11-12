@@ -276,11 +276,31 @@
       "additionalProperties": false,
       "properties": {
         "bays": {"type": "boolean", "description": "best-graded water in the bays, never a worse grade on a better one, nutrient tablets to the plant's mineral band (default true)"},
-        "bottles": {"type": "boolean", "description": "tested High Quality or Pure water in the wine bottles before rations (default true)"},
-        "reeds": {"type": "integer", "minimum": 0, "description": "hydroreed bays curing raw tap water into plant-safe water for the other bays (default 0)"},
-        "reed_tank": {"type": "boolean", "description": "with reeds, buy Dr. Jackson's 20 L water tank for each reed (default true)"}
+        "bottles": {"type": "boolean", "description": "tested High Quality or Pure water in the wine bottles before rations (default true)"}
       },
       "description": "gym executor: the best grade the equipment allows (docs/research/QUALITY.md)"
+    },
+    "clean_water": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reeds": {"type": "integer", "minimum": 0, "description": "hydroreed bays curing water for the bays, bottles and the water trade (default 1)"},
+        "reeds_max": {"type": "integer", "minimum": 0, "description": "more reed bays once grow_cash is in hand"},
+        "grow_cash": {"type": "integer", "minimum": 0, "description": "cash that adds the reeds_max bays (default 2500)"},
+        "tap": {"enum": ["rust", "gutter", "none"], "description": "rust: both taps (filtered rust is HQ by night 6); gutter: the gutter tap only; none: the reed cures bought water (default rust)"},
+        "from_day": {"type": "integer", "minimum": 1, "description": "first day the taps and power kit may be bought (default 44, after Georgio's loan)"},
+        "reserve": {"type": "integer", "minimum": 0, "description": "cash kept over the rent when a tap or power upgrade is bought (default 1000)"},
+        "reed_after": {"type": "integer", "minimum": 0, "description": "bloomberry bays planted before a cellar's bay becomes a reed (default 1)"},
+        "cure": {"enum": ["safe", "hq"], "description": "decant once plant-safe (a cellar's default) or once a strip reads High Quality (a water route's)"},
+        "store_l": {"type": "integer", "minimum": 0, "description": "litres of jugs and tanks kept to decant into (24 for a cellar, 0 for a water route)"},
+        "tank_l": {"type": "integer", "minimum": 20, "maximum": 50, "description": "scrap metal grows the reed's tank to this many litres (default 20)"},
+        "bottles": {"type": "integer", "minimum": 0, "description": "empty wine bottles kept while the cured water covers them (default 8)"},
+        "treat": {"type": "boolean", "description": "the filter and tablet pipeline makes Basewater beside the reeds (default true)"},
+        "power": {"type": "boolean", "description": "a recharger and POWER_HIJACK for the bays' cells (default false)"},
+        "commercial_power": {"type": "boolean", "description": "with power, COMMERCIAL_POWER once four bays stand (default false)"},
+        "showcase": {"type": "boolean", "description": "a water route shows tested HQ water worth 350 for the water stockpiler (default true)"}
+      },
+      "description": "gym executor: the staged clean-water build, taps then hydroreed bays (docs/research/QUALITY.md)"
     },
     "specialty": {
       "type": "object",

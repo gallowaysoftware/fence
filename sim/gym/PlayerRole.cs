@@ -256,8 +256,8 @@ namespace Fence.Gym
                 picked.Insert(0, cert);
                 if (picked.Count > capacityHint) picked.RemoveAt(picked.Count - 1);
             }
-            // A weapon permit on display is what brings its tier's gun-order client (Arms.cs).
-            foreach (var permit in Arms.WindowFirst(owned))
+            // A weapon permit on display is what brings its tier's gun-order client (Arms.cs); HQ water, the stockpiler (Cellar.cs).
+            foreach (var permit in Arms.WindowFirst(owned).Concat(Production.WindowFirst(owned)))
             {
                 picked.Remove(permit);
                 picked.Insert(0, permit);
@@ -531,7 +531,8 @@ namespace Fence.Gym
                 else on.Remove(id);
             }
             var power = v.Services.FirstOrDefault(y => y.Id == "POWER_SERVICE" && y.Unlocked && !y.Mandatory);
-            if (power != null && !DrawsStorePower()) on.Remove(power.Id);
+            // POWER_HIJACK keeps the store powered with no fee (PlayerStore.UpdatePowerState).
+            if (power != null && (!DrawsStorePower() || NetworkUpgrade.IsPowerHijackUnlocked())) on.Remove(power.Id);
             defaults.Take("player:services", string.Join(",", on));
             return on;
         }

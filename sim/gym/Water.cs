@@ -217,21 +217,32 @@ namespace Fence.Gym
             return have < (i.identifier == "water_jug" ? 3 : 6);
         }
 
+        // The reeds' fills: the pitcher, three spare filters (a filtered 20 L batch of rust water takes ~700 of a filter's
+        // 400 durability) and strips for the cure tests.
+        static int ReedWaterWants(string id)
+        {
+            if (!AtKitSeller()) return 0;
+            var owned = Owned();
+            switch (id)
+            {
+                case "water_pitcher": return Pitcher() == null ? 1 : 0;
+                case "water_filter": return Math.Max(0, 3 - owned.Count(i => i.identifier == "water_filter" && Parent(i) == null && DurabilityHelper.GetRealDurability(i) > 0));
+                case "water_test_container":
+                case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") || Strips().Count() >= 6 ? 0 : 1;
+            }
+            return 0;
+        }
+
         public static int WaterWants(string id)
         {
             if (!TapOn) return 0;
+            if (ReedOn) return Math.Max(ReedWaterWants(id), TapForReedsOnly ? 0 : WaterWantsTreat(id));
+            return WaterWantsTreat(id);
+        }
+
+        static int WaterWantsTreat(string id)
+        {
             var owned = Owned().ToList();
-            // A tap bought for the reeds alone fills their vessels raw: no filter, tablets or strips.
-            if (TapForReedsOnly)
-                switch (id)
-                {
-                    case "water_jug": return Math.Max(0, Reeds - owned.Count(i => i.identifier == "water_jug" || i.identifier == "water_tank"));
-                    case "water_pitcher": return Pitcher() == null ? 1 : 0;
-                    case "water_filter": return Math.Max(0, 2 - owned.Count(i => i.identifier == "water_filter" && Parent(i) == null));
-                    case "water_test_container":
-                    case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") || Strips().Count() >= 6 ? 0 : 1;
-                    default: return 0;
-                }
             switch (id)
             {
                 case "water_pitcher": return Pitcher() == null ? 1 : 0;
@@ -284,6 +295,8 @@ namespace Fence.Gym
             if (WaterSellOn && (Directives.Current.Raw.Value<bool?>("auto_print") ?? false)) AutoPrint(ep);
             var pitcher = Pitcher();
             if (pitcher == null) { KeepForWine(); return; }
+            // The reeds' next fill comes first: treating only with two spare filters in hand.
+            if (ReedOn && !WaterSellOn && Owned().Count(i => i.identifier == "water_filter" && Parent(i) == null && DurabilityHelper.GetRealDurability(i) > 0) < 2) { KeepForWine(); return; }
             if (!FreshFilter(pitcher)) return;
             // Keep about two bottles' worth of clean water ahead of the empty bottles and the bays.
             var owned = Owned().ToList();
@@ -291,7 +304,7 @@ namespace Fence.Gym
             int wantMl = (WineOn ? owned.Count(EmptyBottle) * 750 + Bays().Count * 1500 + 1500 - owned.Where(WineHelper.IsWaterRation).Sum(r => r.identifier == "water_ration" ? 750 : 375) : 0)
                 + (WaterSellOn ? 12000 : 0);
             if (WaterSellOn) haveMl = 0;
-            var empties = owned.Where(i => WaterVessel(i) && WaterHelper.IsEmpty(i)).OrderByDescending(i => i.identifier == "water_jug").ThenBy(i => i.uniqueId).ToList();
+            var empties = owned.Where(i => WaterVessel(i) && WaterHelper.IsEmpty(i) && !(ReedOn && !SellsCured && i.identifier == "water_jug")).OrderByDescending(i => i.identifier == "water_jug").ThenBy(i => i.uniqueId).ToList();
             if (WaterHelper.GetCurrentCapacityML(pitcher) > 0) Chore.Act("empty", pitcher, () => WaterHelper.EmptyContainer(pitcher));
             while (haveMl < wantMl && empties.Count >= 2 && FilterLeft(pitcher) > 0 && (Tablets().Any() || (WaterSellOn && Purifiers().Any())))
             {
@@ -312,7 +325,9 @@ namespace Fence.Gym
                 if (WaterHelper.GetCurrentCapacityML(pitcher) > 0) Chore.Act("empty", pitcher, () => WaterHelper.EmptyContainer(pitcher));
                 int ml = WaterHelper.GetCurrentCapacityML(clean);
                 // Tablets always: filtered tap water sits near 95 % and the purifier only takes >= 96 %.
-                foreach (var tab in Tablets().Take(Math.Max(1, (ml + 999) / 1000)).ToList())
+                // Chlorine spends at most 15 ml a tick and the rest decays: two tablets reach the chemical floor in a 6 L
+                // jug as six do (docs/research/FORMULA-EXPLOITS.md §14).
+                foreach (var tab in Tablets().Take(Math.Max(2, (ml + 2999) / 3000)).ToList())
                     Chore.Act("dissolve", clean, () => ChemicalHelper.DissolveInto(tab, clean));
                 treatedOn[clean.uniqueId] = day;
                 WaterTreatedMl += ml;
@@ -338,6 +353,7 @@ namespace Fence.Gym
                 if (DurabilityHelper.GetRealDurability(unit) < (cap + 99) / 100) break;
                 Chore.Act("tap", c, () => c.onThisTargetItemFunc?.Invoke(c, faucet));
                 Chore.Act("purify", c, () => unit.onThisTargetItemFunc?.Invoke(unit, c));
+                Vouch(c);
                 WaterTreatedMl += WaterHelper.GetCurrentCapacityML(c);
                 ep.Human("production", null, ep.Uid(c), new JObject { ["action"] = "purify_water", ["ml"] = WaterHelper.GetCurrentCapacityML(c), ["purity"] = Label(c) }, "player:water");
             }

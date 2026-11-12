@@ -13,6 +13,10 @@ namespace Fence.Gym
         static readonly int[] waterSoldLabel = new int[6], waterSoldTrue = new int[6], waterCreditsLabel = new int[6];
         static int mineralLow, mineralIn, mineralHigh;
         static long bayCost;
+        // The cellar's binding inputs, morning by morning: bloomberry bays that will not grow tonight (dry or unpowered),
+        // wine bottles that came in, empty bottles idle and usable berries waiting.
+        static int bayDry, bayUnpowered, bottlesIn, emptyBottleDays, berryDays;
+        static readonly System.Collections.Generic.HashSet<int> bottlesSeen = new System.Collections.Generic.HashSet<int>();
 
         public static void Reset()
         {
@@ -24,6 +28,8 @@ namespace Fence.Gym
             Array.Clear(waterCreditsLabel, 0, 6);
             mineralLow = mineralIn = mineralHigh = 0;
             bayCost = 0;
+            bayDry = bayUnpowered = bottlesIn = emptyBottleDays = berryDays = 0;
+            bottlesSeen.Clear();
         }
 
         public static int Grade(GameItem c) => WaterHelper.IsEmpty(c) ? 5 : WaterFeatureHelper.GetPurityArrayIndex(WaterHelper.GetWaterPurity(c));
@@ -35,7 +41,11 @@ namespace Fence.Gym
         {
             var seed = MachineHydroponic.GetInputSlot(bay).childItem;
             var w = MachineHydroponic.GetWaterSlotItem(bay);
-            if (seed == null || seed.identifier != "bloomberry_seed" || w == null || WaterHelper.IsEmpty(w)) return;
+            if (seed == null || seed.identifier != "bloomberry_seed") return;
+            if (w == null || WaterHelper.GetCurrentCapacityML(w) < HydroponicHelper.GetWaterUsePerCycle(seed)) bayDry++;
+            var cell = MachineHelper.GetBatterySlot(bay)?.childItem;
+            if (cell == null || PowerHelper.GetAvailableEnergyFromItem(cell, false) < MachineryHelper.GetMachinePowerUsage(bay)) bayUnpowered++;
+            if (w == null || WaterHelper.IsEmpty(w)) return;
             double eff = HydroponicHelper.GetContaminantEffect(seed), sens = HydroponicHelper.GetContaminantSensitivity(seed);
             int cost = 0;
             foreach (var id in new[] { "heavy_metal", "chemical_contaminant", "microbe", "organic_waste", "acid", "base" })
@@ -53,6 +63,17 @@ namespace Fence.Gym
         }
 
         public static void Bottle(GameItem bottle) => bottleWater[Grade(bottle)]++;
+
+        public static void Cellar(System.Collections.Generic.IEnumerable<GameItem> owned)
+        {
+            foreach (var i in owned)
+                if (i.identifier == "wine_bottle")
+                {
+                    if (bottlesSeen.Add(i.uniqueId)) bottlesIn++;
+                    if (i.GetTagReadonly("WINE_CONTAINER_STATE").GetInt() == 0) emptyBottleDays++;
+                }
+                else if (i.identifier == "wine_berry" && i.GetTagReadonly("BERRY_CONDITION_INT").GetInt() >= -1) berryDays++;
+        }
 
         static readonly string[] Purities = { "INGOT_PURITY_VERY_LOW", "INGOT_PURITY_LOW", "INGOT_PURITY_FAIR", "INGOT_PURITY_HIGH", "INGOT_PURITY_VERY_HIGH", "INGOT_PURITY_PERFECT" };
 
@@ -82,6 +103,7 @@ namespace Fence.Gym
             ["bay_cost_per_point"] = bayNights.Take(5).Sum() == 0 ? 0 : Math.Round(bayCost / 100.0 / bayNights.Take(5).Sum(), 2),
             ["bay_minerals_low_in_high"] = new JArray(mineralLow, mineralIn, mineralHigh),
             ["bottle_water_by_grade"] = new JArray(bottleWater),
+            ["cellar"] = new JObject { ["bay_dry_nights"] = bayDry, ["bay_unpowered_nights"] = bayUnpowered, ["bottles_in"] = bottlesIn, ["empty_bottle_days"] = emptyBottleDays, ["berry_days"] = berryDays },
             ["ingots_by_purity"] = new JArray(ingots),
             ["water_sold_ml_by_label"] = new JArray(waterSoldLabel),
             ["water_sold_ml_by_true"] = new JArray(waterSoldTrue),
