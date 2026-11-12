@@ -1,35 +1,9 @@
 // The Twitch audience in the column (docs/SHOW.md, "Twitch"): the channel-points prediction and the
 // chat vote, each with its question, split and result written out, so a VOD with no chat beside it
-// still reads. panel.js calls renderAudience with an `audience` event's payload.
+// still reads. panel.js calls renderAudience with an `audience` event's payload. Styles are in
+// panel.css; while the fork box shows a fork's vote, this box keeps the prediction only.
 (() => {
   "use strict";
-  const style = document.createElement("style");
-  style.textContent = `
-#audience { border-color: rgba(145, 70, 255, .45); padding: 9px 14px; flex: 0 0 auto; }
-body:has(#audience:not(.hidden)) #ticker { min-height: 0; }
-body:has(#audience:not(.hidden)) #board { display: none; }
-body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2; }
-#lower:has(#audience:not(.hidden)) #moments { display: none; }
-#lower #audience { align-self: stretch; overflow: hidden; background: var(--box); }
-#audience .ab + .ab { margin-top: 7px; padding-top: 6px; border-top: 1px solid var(--line); }
-#audience .ah { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-#audience .ak { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #b48cff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#audience .as { font-size: 13px; color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
-#audience .aq { font-size: 17px; font-weight: 620; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#audience .split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,.07); margin-top: 5px; }
-#audience .split > div { height: 100%; transition: width .6s; }
-#audience .split .y { background: #9147ff; }
-#audience .split .n { background: #5b6170; }
-#audience .split .won { background: var(--good); }
-#audience .sl { display: flex; justify-content: space-between; font-size: 14px; color: var(--dim); margin-top: 2px; font-variant-numeric: tabular-nums; }
-#audience .sl .won { color: var(--good); }
-#audience .opts { display: flex; gap: 6px; margin-top: 4px; }
-#audience .opt { flex: 1 1 0; min-width: 0; font-size: 14px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
-#audience .opt.top { border-color: #9147ff; color: var(--text); }
-#audience .ar { font-size: 14px; margin-top: 3px; color: var(--dim); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
-#audience .ar.good { color: var(--good); }
-#audience .ar.ans { color: var(--accent); }`;
-  document.head.appendChild(style);
 
   let current = null;
   const fmt = (n) => Math.round(n || 0).toLocaleString("en-US");
@@ -55,7 +29,7 @@ body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2
   }
 
   function prediction(p) {
-    const box = el("div", "ab");
+    const box = el("div", "ab pred");
     const st = { active: p.locks_at ? "open · locks in " + left(p.locks_at) : "open", locked: "locked", resolved: "resolved", canceled: "refunded", failed: "not opened" }[p.status] || p.status;
     box.appendChild(head(p.about === "verdict" ? "Twitch prediction · the format" : "Twitch prediction · the bet", st));
     box.appendChild(el("div", "aq", p.title));
@@ -74,16 +48,16 @@ body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2
     }
     if (p.result) box.appendChild(el("div", "ar good", "Result: " + p.result + (users ? " · " + fmt(users) + " predicted" : "")));
     else if (p.status === "canceled" || p.status === "failed") box.appendChild(el("div", "ar", p.note || ""));
-    else if (p.claim && p.claim.replace(/[.?!]+$/, "") !== p.title.replace(/[.?!]+$/, "")) box.appendChild(el("div", "ar", "“" + p.claim + "”" + (p.by ? " · due day " + p.by : "")));
-    if (p.skipped) box.appendChild(el("div", "ar", "Also staked, no prediction (" + p.skipped.why + "): “" + p.skipped.claim + "”"));
+    else if (p.claim && p.claim.replace(/[.?!]+$/, "") !== p.title.replace(/[.?!]+$/, "")) box.appendChild(el("div", "ar claim", "“" + p.claim + "”" + (p.by ? " · due day " + p.by : "")));
+    if (p.skipped) box.appendChild(el("div", "ar skip", "Also staked, no prediction (" + p.skipped.why + "): “" + p.skipped.claim + "”"));
     return box;
   }
 
   function poll(q) {
-    const box = el("div", "ab");
+    const box = el("div", "ab poll");
     box.appendChild(head("Chat vote · " + q.for, fmt(q.total) + " votes" + (q.status === "open" && q.closes_at ? " · " + left(q.closes_at) : " · closed")));
     box.appendChild(el("div", "aq", q.question));
-    const opts = el("div", "opts");
+    const opts = el("div", (q.options || []).length > 3 ? "opts many" : "opts");
     const top = Math.max(0, ...(q.options || []).map((o) => o.votes));
     for (const o of q.options || []) {
       const share = pct(o.votes, q.total);
@@ -102,16 +76,23 @@ body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2
   // The vote before, in one line under the open one: what the strategist made of it.
   function lastLine(q) {
     const said = (q.fact || q.note || "").replace(/^Twitch chat /, "chat ").replace(/ \(.*\)\.$/, "");
-    return el("div", q.answer ? "ar ans" : "ar", "Last vote (" + q.for + "): " + (q.answer ? "strategist: “" + q.answer + "”" : said));
+    return el("div", q.answer ? "ar ans last" : "ar last", "Last vote (" + q.for + "): " + (q.answer ? "strategist: “" + q.answer + "”" : said));
   }
+
+  // forkPoll is the open vote over a fork's options, which the column's fork box draws.
+  const forkPoll = (a) => (a && a.poll && /^the fork/.test(a.poll.for) ? a.poll : null);
+  const inColumn = (box) => !!box.closest("#column");
 
   function draw() {
     const box = document.getElementById("audience");
     if (!box) return;
     const a = current;
     box.innerHTML = "";
-    const show = a && (a.prediction || a.poll || a.last_poll);
+    const forkVote = inColumn(box) && !!forkPoll(a) && !document.getElementById("candidates").classList.contains("hidden");
+    box.classList.toggle("fork-vote", forkVote);
+    const show = a && (a.prediction || (!forkVote && (a.poll || a.last_poll)));
     box.classList.toggle("hidden", !show);
+    if (window.panelFit) window.panelFit();
     if (!show) return;
     if (a.prediction) box.appendChild(prediction(a.prediction));
     const q = a.poll || a.last_poll;
@@ -120,6 +101,7 @@ body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2
       if (a.poll && a.last_poll && a.poll.status === "open") b.appendChild(lastLine(a.last_poll));
       box.appendChild(b);
     }
+    if (window.panelFit) window.panelFit();
   }
 
   // In the full and lower-third layouts the box takes the moments' place beside the caption; the
@@ -131,8 +113,11 @@ body.layout-column:has(#audience:not(.hidden)) #plan-why { -webkit-line-clamp: 2
     if (lower && box) lower.insertBefore(box, document.getElementById("moments"));
   });
 
-  window.renderAudience = (a) => { current = a || null; draw(); };
+  window.renderAudience = (a) => { current = a || null; draw(); if (window.onAudience) window.onAudience(); };
+  window.audienceForkPoll = () => forkPoll(current);
+  window.audienceCurrent = () => current;
+  window.audienceLeft = left;
   setInterval(() => {
-    if (current && ((current.prediction && current.prediction.status === "active") || (current.poll && current.poll.status === "open"))) draw();
+    if (current && ((current.prediction && current.prediction.status === "active") || (current.poll && current.poll.status === "open"))) { draw(); if (window.onAudience) window.onAudience(); }
   }, 1000);
 })();

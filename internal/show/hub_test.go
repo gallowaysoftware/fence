@@ -41,6 +41,32 @@ func TestHubStateAndBoard(t *testing.T) {
 	}
 }
 
+// The route choice comes at hello, before its run's run_start: the panel keeps the thesis for the
+// run, and not into the next one.
+func TestHubKeepsTheChoiceAndTheBet(t *testing.T) {
+	h := NewHub(nil, "")
+	choice := Event{Kind: KindPlan, Beat: BeatRouteChoice, Level: LevelMoment, Text: "Day 0: the strategist picks the smelter route. Ingots.", Plan: &Plan{}}
+	h.Publish(choice)
+	h.Publish(Event{Kind: KindRunStart, Run: "p:r1", Day: 1, Text: "New run.", Player: &Player{ID: "p"}})
+	h.Publish(Event{Kind: KindBet, Day: 3, Level: LevelMoment, Text: "Bet staked.", Bet: &BetState{Claim: "Cash past 2,500 by day 21", Kind: "cash", Target: 2500, By: 21, Staked: 3, Outcome: "staked"}})
+	s := h.State()
+	if s.Choice == nil || s.Choice.Text != choice.Text {
+		t.Fatalf("choice lost at run_start: %+v", s.Choice)
+	}
+	if s.Bet == nil || s.Bet.Bet.Target != 2500 {
+		t.Fatalf("bet = %+v", s.Bet)
+	}
+	h.Publish(Event{Kind: KindBet, Day: 19, Level: LevelMoment, Text: "Bet won.", Bet: &BetState{Claim: "Cash past 2,500 by day 21", Outcome: "won"}})
+	if s := h.State(); s.Bet.Bet.Outcome != "won" {
+		t.Fatalf("settled bet = %+v", s.Bet)
+	}
+	h.Publish(Event{Kind: KindDay, Day: 19, Text: "day", Clock: &Clock{}})
+	h.Publish(Event{Kind: KindRunStart, Run: "p:r2", Day: 1, Text: "New run.", Player: &Player{ID: "p"}})
+	if s := h.State(); s.Choice != nil || s.Bet != nil {
+		t.Fatalf("the last run's choice or bet carried into the next: %+v %+v", s.Choice, s.Bet)
+	}
+}
+
 func TestServeSSEAndIngest(t *testing.T) {
 	h := NewHub(nil, "")
 	h.Publish(Event{Kind: KindRunStart, Run: "r", Day: 1, Text: "New run.", Player: &Player{ID: "p"}})

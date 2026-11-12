@@ -14,9 +14,9 @@
     <section id="card" class="box">
       <div class="eyebrow"><span id="live-dot"></span><span id="run-label">waiting for a run</span></div>
       <h1 id="model">—</h1>
-      <div id="persona">no persona</div>
-      <div id="persona-tag" class="sub"></div>
+      <div class="who"><span id="persona">no persona</span><span id="persona-tag"></span></div>
       <div id="chips" class="chips"></div>
+      <div id="thesis" class="hidden"></div>
       <div id="format" class="hidden"></div>
     </section>
 
@@ -37,12 +37,10 @@
         <svg id="spark" viewBox="0 0 500 44" preserveAspectRatio="none"><polygon id="spark-band" points=""/><polyline id="spark-median" points=""/><polyline id="spark-prev" points=""/><polyline id="spark-line" points=""/></svg>
         <div id="book-text" class="sub hidden"></div>
       </div>
-    </section>
-
-    <section id="heat" class="box">
-      <div class="row between"><span class="label">Heat</span><span id="heat-level" class="num">—</span></div>
-      <div class="bar heat"><div id="heat-fill"></div></div>
-      <div id="heat-text" class="sub">no security record yet</div>
+      <div id="heat">
+        <div class="row"><span class="label">Heat</span><div class="bar heat"><div id="heat-fill"></div></div><span id="heat-level" class="num">—</span></div>
+        <div id="heat-text" class="sub">no security record yet</div>
+      </div>
     </section>
 
     <section id="plan" class="box">
@@ -52,9 +50,18 @@
       <div id="plan-why" class="sub dim"></div>
     </section>
 
+    <section id="bet" class="box hidden">
+      <div class="row between"><span id="bet-label" class="label">Bet</span><span id="bet-due" class="num"></span></div>
+      <div id="bet-claim"></div>
+      <div id="bet-track"><div class="bar"><div id="bet-fill"></div></div><div class="row between sub"><span id="bet-now"></span><span id="bet-pct" class="num"></span></div></div>
+      <div id="bet-fact" class="sub"></div>
+    </section>
+
     <section id="candidates" class="box hidden">
-      <div class="row between"><span class="label">Alternatives considered</span><span id="cand-metric" class="badge"></span></div>
+      <div class="row between"><span id="cand-title" class="label">Alternatives considered</span><span id="cand-metric" class="badge"></span></div>
+      <div id="cand-question"></div>
       <table id="cand-table"></table>
+      <div id="cand-why" class="sub"></div>
     </section>
 
     <section id="audience" class="box hidden"></section>
@@ -98,6 +105,7 @@
 <audio id="voice" preload="auto"></audio>
 <script src="format.js"></script>
 <script src="audience.js"></script>
+<script src="bet.js"></script>
 <script src="panel.js"></script>
 </body>
 </html>

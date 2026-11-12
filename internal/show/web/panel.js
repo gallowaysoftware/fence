@@ -13,6 +13,8 @@
   else if (params.get("moments") !== "1") document.getElementById("moments").classList.add("hidden");
   if (params.get("snap") === "1") document.body.classList.add("snap");
   if (params.get("demo") === "1") document.body.classList.add("demo");
+  // With two browser sources (/column beside /lower) the lower third carries the Twitch box.
+  if (params.get("twitch") === "0") document.body.classList.add("no-twitch");
 
   const $ = (id) => document.getElementById(id);
   const TICKER = 7, MOMENTS = 3;
@@ -22,6 +24,8 @@
   let book = null, ghost = null, prevRun = null;
   let playing = false, waiting = null, idleTimer = null;
   let player = null, hiddenUsed = 0, setup = [];
+  // cand is the latest fork or hybrid slate; it shows while its day lasts or chat still votes on it.
+  let cand = null, candShown = false;
   // The "about this AI" card takes the ticker's place for ABOUT_SHOW ms at a run's start and every
   // ?about= seconds (default 480; 0: never). The /about layout shows it alone, always.
   const aboutEvery = params.has("about") ? Number(params.get("about")) * 1000 : 480000, ABOUT_SHOW = 22000;
@@ -63,8 +67,9 @@
     renderAbout();
     $("about").classList.remove("hidden");
     $("ticker").classList.add("hidden");
+    fit();
     clearTimeout(aboutTimer);
-    aboutTimer = setTimeout(() => { $("about").classList.add("hidden"); $("ticker").classList.remove("hidden"); }, ms);
+    aboutTimer = setTimeout(() => { $("about").classList.add("hidden"); $("ticker").classList.remove("hidden"); fit(); }, ms);
   }
   if (layout === "about") $("about").classList.remove("hidden");
   else if (aboutEvery > 0 && params.get("snap") !== "1") setInterval(() => showAbout(ABOUT_SHOW), aboutEvery);
@@ -89,11 +94,30 @@
     $("live-dot").classList.add("on");
   }
 
+  // The strategist's day-0 route choice: its thesis stays on the name card for the run.
+  function renderChoice(ev) {
+    const box = $("thesis");
+    const p = ev && ev.plan;
+    const sec = p && (p.sections || []).find((x) => /thesis/i.test(x.title));
+    const thesis = sec ? sec.lines.join(" ") : ev ? ev.text.replace(/^Day 0: [^.]*\.\s*/, "") : "";
+    box.classList.toggle("hidden", !thesis);
+    box.innerHTML = "";
+    if (!thesis) return;
+    const b = document.createElement("b");
+    b.textContent = "Thesis";
+    box.appendChild(b);
+    box.appendChild(document.createTextNode(thesis));
+  }
+
   function renderClock(c) {
     if (!c) return;
     clock = c;
     tween($("cash"), c.cash);
     text($("day"), String(day || "—") + (c.weekday ? " " + WEEKDAYS[c.weekday] : ""));
+    if (window.formatDay) window.formatDay(day);
+    if (window.betClock) window.betClock(c, day);
+    const owed = (c.mortgage_weekly || c.rent_due || 0) + (c.arrears || 0);
+    const short = !c.owned && owed > 0 && c.cash < owed;
     const rent = $("rent");
     if (c.owned) {
       text($("rent-text"), "the shop is yours");
@@ -101,11 +125,11 @@
     } else if (c.rent_due || c.mortgage_weekly) {
       // While the mortgage runs, its weekly payment falls on the rent day instead of the rent.
       const what = c.mortgage_weekly ? "payment " + fmt(c.mortgage_weekly) : "rent " + fmt(c.rent_due);
-      text($("rent-text"), what + (c.arrears ? " + " + fmt(c.arrears) + " owed" : ""));
+      // "short" in words as well as red, for viewers who cannot tell the colours apart.
+      text($("rent-text"), what + (c.arrears ? " + " + fmt(c.arrears) + " owed" : "") + (short ? " · short" : ""));
       text($("rent-days"), c.rent_days === 0 ? "due today" : "in " + c.rent_days + (c.rent_days === 1 ? " day" : " days"));
     }
-    const owed = (c.mortgage_weekly || c.rent_due || 0) + (c.arrears || 0);
-    rent.classList.toggle("short", !c.owned && owed > 0 && c.cash < owed);
+    rent.classList.toggle("short", short);
     const pips = $("pips");
     if (pips.children.length !== 7) { pips.innerHTML = ""; for (let i = 0; i < 7; i++) { const d = document.createElement("div"); d.className = "pip"; pips.appendChild(d); } }
     for (let i = 0; i < 7; i++) pips.children[i].classList.toggle("on", !c.owned && i < Math.min(7, c.rent_days));
@@ -181,7 +205,7 @@
     const el = $("pace");
     if (!ghost || !book) { el.classList.add("hidden"); $("book-text").classList.toggle("hidden", !book); if (book) renderBook(); return; }
     el.className = "pace " + ghost.status.replace(" ", "-");
-    text(el, ghost.status);
+    text(el, ({ ahead: "▲ ", behind: "▼ " }[ghost.status] || "● ") + ghost.status);
     if (flash) { void el.offsetWidth; el.classList.add("flash"); }
     renderBook();
   }
@@ -189,6 +213,7 @@
   function renderHeat(h) {
     if (!h) return;
     const lvl = $("heat-level");
+    $("heat").classList.toggle("quiet", !h.visible);
     if (!h.visible) {
       text(lvl, h.hot_items ? h.hot_items + " hot" : "clean");
       $("heat-fill").style.width = "0%";
@@ -221,27 +246,87 @@
     const all = p.why || [];
     const reason = all.find((w) => !w.startsWith("overruled: "));
     const over = all.find((w) => w.startsWith("overruled: "));
-    text($("plan-why"), [reason ? "why: " + reason : "", over ? over.replace(/^overruled: /, "bridge overruled: ") : ""].filter(Boolean).join(" · "));
+    const thesis = ev.beat === "route_choice" && (p.sections || []).find((x) => /thesis/i.test(x.title));
+    text($("plan-why"), [thesis ? "thesis: " + thesis.lines.join(" ") : reason ? "why: " + reason : "", over ? over.replace(/^overruled: /, "bridge overruled: ") : ""].filter(Boolean).join(" · "));
     if (flash) { const el = $("plan"); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
   }
 
   function renderCandidates(ev) {
+    cand = ev && ev.candidates && ev.candidates.options && ev.candidates.options.length ? ev : null;
+    drawCandidates();
+  }
+
+  // A fork the model decided has no score, only the choice; chat's vote on it is drawn beside each
+  // option. A hybrid slate shows each candidate's simulated score.
+  function drawCandidates() {
     const box = $("candidates");
-    if (!ev || !ev.candidates || !ev.candidates.options || !ev.candidates.options.length) { box.classList.add("hidden"); return; }
-    box.classList.remove("hidden");
-    text($("cand-metric"), ev.candidates.metric || "score");
+    const c = cand && cand.candidates;
+    const poll = c && window.audienceForkPoll ? window.audienceForkPoll() : null;
+    const vote = poll && poll.options && poll.options.length === Math.min(c.options.length, 5) && poll.options.every((o, i) => o.label === c.options[i].label) ? poll : null;
+    const shown = !!c && (Math.max(c.day || 0, cand.day || 0) >= day || (!!vote && vote.status === "open"));
+    box.classList.toggle("hidden", !shown);
+    if (shown !== candShown) {
+      candShown = shown;
+      // The audience box gives the fork's vote to this box, or takes it back.
+      if (window.renderAudience && window.audienceForkPoll && window.audienceForkPoll()) window.renderAudience(window.audienceCurrent());
+    }
+    if (!shown) { fit(); return; }
+    const fork = c.metric === "choice";
+    box.classList.toggle("fork", fork);
+    text($("cand-title"), fork ? "Fork · day " + (c.day || cand.day) : "Alternatives considered");
+    text($("cand-metric"), fork ? (vote ? "chat " + fmt(vote.total) + " votes" + (vote.status === "open" && vote.closes_at && window.audienceLeft ? " · " + window.audienceLeft(vote.closes_at) : " · closed") : "the model's call") : c.metric || "score");
+    const q = fork ? (cand.text.match(/^Day \d+, (.+?): the strategist chooses/) || [])[1] || "" : "";
+    text($("cand-question"), q ? q.charAt(0).toUpperCase() + q.slice(1) : "");
     const t = $("cand-table");
     t.innerHTML = "";
-    for (const o of ev.candidates.options.slice(0, 5)) {
+    const top = vote ? Math.max(0, ...vote.options.map((o) => o.votes)) : 0;
+    c.options.slice(0, 5).forEach((o, i) => {
       const tr = t.insertRow();
       if (o.chosen) tr.className = "chosen";
-      tr.insertCell().textContent = (o.chosen ? "▸ " : "") + o.label;
-      const s = tr.insertCell(); s.className = "n";
-      // A fork the model decided has no score, only the choice.
-      s.textContent = ev.candidates.metric === "choice" ? "" : (Math.round(o.score * 10) / 10) + (o.stderr ? " ±" + Math.round(o.stderr * 10) / 10 : "");
-      const r = tr.insertCell(); r.className = "n"; r.textContent = o.rollouts ? o.rollouts + "×" : "";
-    }
+      const name = tr.insertCell();
+      if (fork) { name.dataset.n = String(i + 1); name.textContent = o.label; }
+      else name.textContent = (o.chosen ? "▸ " : "") + o.label;
+      if (fork) {
+        if (!vote) return;
+        const v = tr.insertCell(), opt = vote.options[i], share = vote.total ? Math.round((100 * opt.votes) / vote.total) : 0;
+        v.className = "n v" + (vote.total && opt.votes === top ? " top" : "");
+        v.textContent = "!vote " + opt.word + " " + share + "%";
+        return;
+      }
+      const sc = tr.insertCell(); sc.className = "n";
+      sc.textContent = Math.round(o.score * 10) / 10 + (o.stderr ? " ±" + Math.round(o.stderr * 10) / 10 : "");
+      const r = tr.insertCell(); r.className = "n r"; r.textContent = o.rollouts ? o.rollouts + "×" : "";
+    });
+    const chosen = c.options.find((o) => o.chosen);
+    text($("cand-why"), fork && chosen && chosen.why ? "why: " + chosen.why : "");
+    fit();
   }
+
+  // Squeeze the column one level at a time (panel.css, s1…s10) until the ticker keeps three lines and
+  // nothing runs off the bottom; the lower third's audience box likewise within its height.
+  const TICKER_MIN = 124, COLUMN_LEVELS = 10, LOWER_LEVELS = 4;
+  function squeeze(el, levels, fits) {
+    for (let i = 1; i <= levels; i++) el.classList.remove("s" + i);
+    for (let i = 1; i <= levels && !fits(); i++) el.classList.add("s" + i);
+  }
+  function fit() {
+    const col = $("column");
+    if (layout !== "lower" && layout !== "about") {
+      const rest = $("ticker").classList.contains("hidden") ? $("about") : $("ticker");
+      squeeze(col, COLUMN_LEVELS, () => col.scrollHeight <= col.clientHeight + 1 && rest.getBoundingClientRect().height >= TICKER_MIN);
+      trimTicker();
+    }
+    const box = $("audience");
+    if (layout !== "column" && $("lower").contains(box) && !box.classList.contains("hidden"))
+      squeeze($("lower"), LOWER_LEVELS, () => box.scrollHeight <= box.clientHeight + 1);
+  }
+  // The ticker grows from the bottom: hide a line its top would cut in half.
+  function trimTicker() {
+    const ol = $("ticker-list"), top = ol.getBoundingClientRect().top;
+    for (const li of ol.children) li.classList.toggle("cut", li.getBoundingClientRect().top < top - 1);
+  }
+  window.panelFit = fit;
+  window.onAudience = drawCandidates;
 
   function li(ev, cls) {
     const el = document.createElement("li");
@@ -261,6 +346,7 @@
     const ol = $("ticker-list");
     ol.appendChild(li(ev));
     while (ol.children.length > TICKER) ol.removeChild(ol.firstChild);
+    trimTicker();
   }
 
   function pushMoment(ev, redraw) {
@@ -335,7 +421,7 @@
   $("unmute").addEventListener("click", () => { $("unmute").classList.add("hidden"); voice.play().catch(() => {}); });
 
   function refreshBoard() {
-    fetch("/state").then((r) => r.json()).then((s) => { renderBoard(s.board); renderSpark(s.net_worth); }).catch(() => {});
+    fetch("/state").then((r) => r.json()).then((s) => { renderBoard(s.board); renderSpark(s.net_worth); renderChoice(s.choice); fit(); }).catch(() => {});
   }
 
   function applyState(s) {
@@ -352,16 +438,19 @@
     renderGhost(s.ghost && s.ghost.ghost, false);
     renderSpark(s.net_worth);
     renderBoard(s.board);
+    renderChoice(s.choice);
+    if (window.renderBet) window.renderBet(s.bet);
     if (window.renderAudience) window.renderAudience(s.audience && s.audience.audience);
     ticker = []; moments = [];
     $("ticker-list").innerHTML = ""; $("moment-list").innerHTML = "";
     for (const e of s.ticker || []) pushTicker(e);
     for (const e of s.moments || []) pushMoment(e);
     if (s.say && s.say.say) { showCaption(s.say.say.line); idleLater(3000); }
+    fit();
   }
 
   function apply(ev) {
-    if (ev.day > day) day = ev.day;
+    if (ev.day > day) { day = ev.day; drawCandidates(); }
     if (ev.hidden_used && ev.hidden_used.length) { hiddenUsed++; renderAbout(); }
     if (ev.clock) renderClock(ev.clock);
     switch (ev.kind) {
@@ -371,7 +460,10 @@
         pushMoment(ev);
         showAbout(ABOUT_SHOW + 8000);
         return;
-      case "plan": renderPlan(ev, ev.level >= 1); return;
+      case "plan":
+        if (ev.beat === "route_choice") renderChoice(ev);
+        renderPlan(ev, ev.level >= 1); fit(); return;
+      case "bet": if (window.renderBet) window.renderBet(ev); pushMoment(ev); return;
       case "candidates": renderCandidates(ev); pushMoment(ev); return;
       case "heat": renderHeat(ev.heat); if (ev.level >= 1) pushMoment(ev); return;
       case "ghost": renderGhost(ev.ghost, ev.level >= 2); if (ev.level >= 2) pushMoment(ev); return;

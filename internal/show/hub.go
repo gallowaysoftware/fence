@@ -31,6 +31,11 @@ type State struct {
 	Moments    []Event    `json:"moments"`
 	NetWorth   [][2]int64 `json:"net_worth"`
 	Board      []BoardRow `json:"board"`
+
+	// Bet is the run's latest bet event, staked or settled; Choice the strategist's day-0 route and
+	// thesis (a plan event, beat route_choice), kept through the run_start that follows it.
+	Bet    *Event `json:"bet,omitempty"`
+	Choice *Event `json:"choice,omitempty"`
 	// HiddenUsed counts this run's entries where the hands read a hidden value (the ◆ marks),
 	// for the "about this AI" card.
 	HiddenUsed int `json:"hidden_used"`
@@ -55,6 +60,8 @@ type Hub struct {
 	board  string
 	now    func() time.Time
 	closed bool
+	// choiceNext: the route choice came before its run's run_start (the bridge shows it at hello).
+	choiceNext bool
 }
 
 // NewHub records the feed to rec (nil: none) and keeps the scoreboard in boardPath ("":
@@ -157,7 +164,12 @@ func (h *Hub) apply(ev Event) {
 	}
 	switch ev.Kind {
 	case KindRunStart:
-		*s = State{Board: s.Board, Setup: s.Setup, Player: ev.Player, Run: ev.Run, Day: ev.Day}
+		var choice *Event
+		if h.choiceNext {
+			choice = s.Choice
+		}
+		h.choiceNext = false
+		*s = State{Board: s.Board, Setup: s.Setup, Player: ev.Player, Run: ev.Run, Day: ev.Day, Choice: choice}
 		if p := ev.Player; p != nil {
 			if i := h.boardIndex(ev.Run); i >= 0 {
 				s.Board = append(s.Board[:i], s.Board[i+1:]...)
@@ -167,6 +179,13 @@ func (h *Hub) apply(ev Event) {
 	case KindPlan:
 		e := ev
 		s.Plan = &e
+		if ev.Beat == BeatRouteChoice {
+			s.Choice = &e
+			h.choiceNext = true
+		}
+	case KindBet:
+		e := ev
+		s.Bet = &e
 	case KindCandidates:
 		e := ev
 		s.Candidates = &e
@@ -176,6 +195,7 @@ func (h *Hub) apply(ev Event) {
 		e := ev
 		s.Ghost = &e
 	case KindDay:
+		h.choiceNext = false
 		e := ev
 		s.Summary = &e
 		if ev.Clock != nil {

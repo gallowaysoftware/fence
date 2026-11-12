@@ -118,7 +118,9 @@ check knows its numbers; it also faults a line that says a won bet was lost or t
 cue asks for a callback to the claim: crowing on a win, rueful or gallows humour on a loss, wry
 on a dropped bet. While a bet is open, the morning plan, the night and the day summary are given
 it as background ("mention it only if this moment moves you toward or away from it") with its
-numbers added to the facts, so lines can build toward the deadline.
+numbers added to the facts, so lines can build toward the deadline. On the panel the open bet has
+its own box under the plan (claim, days left, progress toward a cash or net-worth target, then the
+outcome for a minute; "The panel"); the hub keeps the run's latest `bet` event in `/state`.
 
 **The ledger** (`internal/show/ledger.go`). The narrator keeps the run's named characters, up to
 12, each with up to 3 lines of history in words and no numbers: "sold us Furnace", "walked out on
@@ -167,7 +169,7 @@ play of the same route did in the lab by that morning, like a split time against
   keeps a run sitting on a quartile from flipping daily. Separately the **zone**: above the 90th, below the
   10th, or inside the band.
 - **On screen.** A `ghost` event each morning (the hub keeps the latest; it is not a ticker line). The
-  net-worth row gets a pill, green **ahead**, gold **on pace**, red **behind**; the sparkline becomes the race:
+  net-worth row gets a pill, green **▲ ahead**, gold **● on pace**, red **▼ behind**; the sparkline becomes the race:
   the band (10–90 %) shaded, the median dashed, the run's mornings as the line, over the last 60 days and
   three weeks ahead; under it the morning's book ("sprinter book · median 3,339 · 2,820–3,826 · last run
   2,886" on day 22 of the rehearsal). The pill is the morning's standing; the number beside it follows the
@@ -293,8 +295,9 @@ summaries are identical to main's gym on the same seeds). `standard`, `clean_sho
 the same directives; the three deadline formats are `fenceformat tally` cuts of `standard`, `purist` and
 `challenge`.
 
-**On screen.** The name card grows a format block: the title and the lab's win share, the card line,
-a chip per handicap (and the deadline), a bar of the odds, the lab's record in words ("the lab wins it
+**On screen.** The name card grows a format block: the title with a bar of the odds and the lab's win
+share, the card line, a chip per handicap and the deadline counted down in game days ("36 days to day
+91"), the lab's record in words ("the lab wins it
 31 times in 60 (about 5 in 10), median win day 84") and the attempts so far ("On stream: 1 win in 3
 attempts (last: rent, day 141)"). The run's start caption ends with the format and the lab's numbers
 ("Format: Deadline sprint, the shop bought by day 91; the lab wins it 31 times in 60 (about 5 in 10),
@@ -381,8 +384,8 @@ winning it under 80 %) opens "Will the Shark own the shop by day 91?" ("Bought b
 too long; "Will the Magnate buy the shop?" without a deadline). It locks after `-lock-after`; it resolves
 Yes when the shop is owned by the deadline, No on the first day past it or on any other ending. It is
 not opened for a run joined within a week of its deadline. **It holds Twitch's one slot until it
-resolves**, so a bet staked meanwhile gets no prediction; the panel lists it under the verdict ("Also
-staked, no prediction"). A run spans several streams and Twitch refunds after 24 hours, so a verdict
+resolves**, so a bet staked meanwhile gets no prediction; the lower third lists it under the verdict
+("Also staked, no prediction"), and the column's bet box shows it like any bet. A run spans several streams and Twitch refunds after 24 hours, so a verdict
 opened at a run's start is refunded at the end of that stream unless the run ends in it: on a format run
 that will not finish tonight, start fencetwitch with `-verdict=false` and let the bets have the slot.
 
@@ -419,7 +422,8 @@ chosen, so the tally reaches the next plan with its own choice beside it ("…; 
 
 **On screen.** The `audience` box (`web/audience.js`): on `/` and `/lower` it takes the moments' place in
 the lower third, beside the caption, while it has something to show; on `/column` it sits under the plan,
-and the runs board and the plan's reasons give it room. It shows the prediction, with its question, a
+the bet and a fork, and the layout's squeeze levels make room for it ("The panel"). A vote on a fork is
+drawn in the fork box, each share beside its option. It shows the prediction, with its question, a
 Yes/No split by viewers and the points on each, a countdown to the lock, and then "Result: Yes: cash 3216
 on day 32 · 29 predicted" or why it was refunded; the vote, with its question, each `!vote WORD` and its
 share, the count and a countdown, then the line sent to the strategist or, once the next plan is written,
@@ -548,28 +552,100 @@ early repay" at 25.2 ± 0.9 % against 22.0 ± 0.6 for the plan in force and 23.5
 four futures each. Drop `FENCE_SHOW_LLM_URL=` to have the narrator speak them in persona. The
 caption names the plans weighed and the chosen reason only while it fits 200 characters (the
 narrator's cut; otherwise "considered 5 plans", no reason); the plan box
-shows it whole (up to four lines), and proposers are asked for at most 20 words.
+shows up to three lines of it, and proposers are asked for at most 20 words.
 
 ## The panel
 
-`fenceshow` serves one page in three layouts, sized for a 1920×1080 canvas with the game
+`fenceshow` serves one page in four layouts, sized for a 1920×1080 canvas with the game
 captured at 1360×765 in the top-left corner:
 
 | URL | Size | Shows |
 |---|---|---|
-| `/` (or `/full`) | 1920×1080 | the column and the lower third around a transparent hole for the game |
-| `/column` | 560×1080 | name card, day + cash + rent pips + net worth/buyout bar + sparkline, heat, today's plan, alternatives (when posted), thinking ticker, runs board (moments only with `?moments=1`: they live in the lower third) |
-| `/lower` | 1360×315 | the narrator caption and the last three moments |
+| `/` (or `/full`) | 1920×1080 | the column and the lower third around a transparent hole for the game; the Twitch box sits in the lower third |
+| `/column` | 560×1080 | the column below, the Twitch box included (`?twitch=0` leaves it to `/lower`); moments only with `?moments=1` (they live in the lower third) |
+| `/lower` | 1360×315 | the narrator caption, and beside it the Twitch box while it has something to show, else the last three moments |
 | `/about` | 560×1080 | the "about this AI" card alone: who plays, the fairness rule (player-visible information only; the ◆ count this run), how the plan, the hands and the narrator split the work, and the rig (`-setup "line;line"`) |
+
+### Layout: what is always there, what comes and goes
+
+The column is a stack of fixed regions, top to bottom. Each element either is always there or appears
+only while it is live; nothing flows: every text has a line limit (an ellipsis or a line clamp), and the
+ticker at the bottom takes whatever height is left.
+
+| Region | Element | Changes | On screen |
+|---|---|---|---|
+| Name card | model; persona, route and the persona's line; the setup chips (difficulty, start, perks, planner) | once a run | always |
+| | the route's thesis, from the strategist's day-0 choice (`route_choice`) | once a run | while the run has one: 2 lines, kept through the run (the hub's `choice`) |
+| | the format: title, odds bar and lab share; the card line; a chip per handicap and the deadline countdown ("36 days to day 91", "deadline today", "past the deadline"); the lab's record; attempts on stream | once a run; the countdown each day | while the run has a format |
+| Money clock | day and weekday, cash | every money event, a few a minute | always |
+| | rent (or the mortgage's weekly payment) with a pip a day to it, "short" in words when the cash does not cover it; the mortgage line | each snapshot | always |
+| | net worth, the pace pill (▲ ahead, ● on pace, ▼ behind), the buyout bar, the ghost band chart and the book's line | the clock; the band each morning | always |
+| | heat: level, bar and the case in words | each snapshot | always |
+| Plan | today's plan: up to 5 lines (headline, then the standing goals), what changed, why or the overruling | each morning (weekly with `-plan-every 7`) | always |
+| Bet | the claim, the day it was staked, the days left ("due day 58 · 3 days left", gold from 1 day left), progress toward a cash or net-worth target ("cash 5,833 of 7,000 · 83 %"); then "Bet won ✓", "Bet lost ✗", "Bet dropped" with the settling fact | staked in a morning plan, settled within days | while a bet is open, and for 60 s after it settles (the hub keeps the run's latest `bet`) |
+| Fork | the question, each option numbered with the model's choice marked ▸, the model's reason; beside each option, chat's share while Twitch votes on the fork ("!vote all 33%") and the votes and time left in its badge. A hybrid slate shows its scores instead | a few times a run | during the fork's game day, and while chat still votes on it |
+| Twitch | the prediction (the format's verdict or a bet) with its split and status; the chat vote with each `!vote WORD` and its share; the line sent to the strategist or its answer | while open: each second | while either has something to show; a fork's vote is drawn in the fork box instead |
+| Ticker | the hands' reasons and the customers | several a minute | always, at least three lines; the about card takes its place 22 s every 8 minutes and at each run start |
+| Runs board | the last six runs | at a run's end | only when everything else leaves room |
+
+The lower third holds the narrator's line (34 px, up to five lines; between lines it echoes the latest
+moment, dimmed) and to its right either the Twitch box or the last three moments (two lines each).
+
+**Squeezing, not overflowing.** After every redraw `panel.js` (`fit`) checks the column: if the ticker
+would get less than three lines or anything would run off the bottom, it adds one squeeze class at a
+time (`s1` … `s10` on `#column`, cumulative, in `panel.css`) until it fits, and starts from none at the
+next redraw. Lowest priority first:
+
+| Level | Gives way |
+|---|---|
+| s1 | the runs board, the setup chips, the format's lab sentence |
+| s2 | the heat's words, the book's line, the line on the previous vote; the plan's reason to 2 lines |
+| s3 | the plan's 5th line, the prediction's bar (the split stays in words); changes, the fork's reason and the Twitch notes to 1 line |
+| s4 | the mortgage line; the plan's reason, the bet's claim and the thesis to 1 line |
+| s5 | the plan's 4th line and the format's card line; the band chart to 44 px |
+| s6 | the plan's 3rd line, its changes and reasons, the thesis, the attempts line |
+| s7 | the heat row while there is no security record, the fork's reason, the prediction's header (its question then reads "Prediction · …"); the band chart to 30 px |
+| s8 | the buyout line, the bet's progress numbers, the fork's question |
+| s9 | the heat row |
+| s10 | the Twitch box's notes (the line sent to the strategist, its answer), a hybrid slate's rows past the third but the chosen |
+
+What survives every level: the name and persona, the format's title, odds and deadline, the day, cash and
+rent, net worth with its pace and band, two lines of the plan, the bet's claim and deadline, a live fork's
+options, the prediction's question and split, the vote's options, three ticker lines. The lower third
+does the same for its Twitch box (`s1` … `s4` on `#lower`: the previous vote, the claim and "also
+staked" notes, notes to one line, the split).
+
+**Legibility.** At 1:1 on a 1080p stream: labels, badges and tags (the setup chips, the handicaps) are
+14 px, every other fact 16 px or more (the plan, the bet's claim and the fork's question 18 px, day and
+cash 40 px, the caption 34 px). Nothing relies on colour alone: the pace pill
+carries ▲/●/▼ and its word, a short rent says "short", a bet's outcome is written (✓ won, ✗ lost),
+the model's fork choice has ▸, Twitch's sides are labelled Yes/No with their shares, and the band's
+lines differ by dash (the run solid, the median dashed, the earlier run dotted). Everything is written
+out, so a VOD without chat reads the same.
+
+**Measured (2026-11-11).** Before this layout, `/column` on day 54 of the rehearsal with the format and
+its prediction (no bet, no fork yet) showed no ticker at all and cut the prediction off at the bottom. Now,
+`scripts/panel-demo.sh` (below, "Running it") replays days 54–59 of the dress rehearsal (seed 2950001)
+with `sprint_91`, the `sprinter` book and an earlier run, fencetwitch's dry run (the format's verdict
+prediction, 7 chat votes) and made-up agency and bet events: a route choice with a 435-character thesis,
+two bets with 88- and 102-character claims (won on day 57, lost on day 59) and the 4-option sprint fork on day
+55, whose vote Twitch opened. 21 snapshots, 12 s apart (`var/panel/demo/shots/`, not committed: they
+show item names): the prediction alone needs s1–s2, a bet with the prediction and a vote s5–s6, the
+fork day (bet, fork with its live vote, prediction) s7; every one kept the ticker's three lines. A
+hand-made `/state` with the longest content we expect (five plan lines of 87–112 characters, four
+changes, a reason and an overruling, a security case, a 130-character claim, the fork and its vote, an
+open prediction, six board rows) needs s8; a five-candidate hybrid slate with a prediction and a
+closed vote s10, the last level.
 
 Query flags: `?audio=0|1` (default on for `/` and `/column`, off for `/lower`, so only one
 source plays the voice), `?about=SECONDS` (the about card takes the ticker's place for 22 s every
-480 s by default and at each run start; 0 turns it off), `?demo=1` paints the game hole, `?snap=1` draws once from `/state`
-without holding a stream open (headless screenshots). The page is hand-written JS and CSS
-embedded in the binary: no CDN, no fonts fetched, works offline. Animations are a fade-in for
-new lines, a number tween for cash, a soft pulse when the plan changes and a breathing live
-dot. State is server-side, so an OBS reload or a late browser source draws the current run at
-once.
+480 s by default and at each run start; 0 turns it off), `?twitch=0` hides the Twitch box,
+`?demo=1` paints the game hole, `?snap=1` draws once from `/state` without holding a stream open
+(headless screenshots). The page is hand-written JS and CSS embedded in the binary (`panel.js` with
+`format.js`, `audience.js` and `bet.js`; every style in `panel.css`): no CDN, no fonts fetched, works
+offline. Animations are a fade-in for new lines, a number tween for cash, a soft pulse when the plan
+changes and a breathing live dot. State is server-side, so an OBS reload or a late browser source
+draws the current run at once.
 
 ### OBS setup
 
@@ -579,11 +655,14 @@ once.
 3. Add a **Browser** source: URL `http://127.0.0.1:7350/`, width 1920, height 1080, put it
    above the game capture. Tick **Control audio via OBS** (the narrator's audio then appears
    as this source in the mixer); untick "Shutdown source when not visible".
-   Alternatively use two browser sources, `/column` (560×1080 at 1360,0) and `/lower`
-   (1360×315 at 0,765), and enable audio on one only.
-4. Optional: Advanced Audio Properties → add a little delay to the game audio if the voice
+   Alternatively use two browser sources, `/column?twitch=0` (560×1080 at 1360,0) and `/lower`
+   (1360×315 at 0,765), and enable audio on one only (`/column`'s is on by default). Without
+   `?twitch=0` both would show the Twitch box.
+4. Keep each browser source at exactly its page size, with no scale transform and page zoom at 100 %:
+   the layout fits itself to the page's height in CSS pixels, and its type sizes assume 1:1 pixels.
+5. Optional: Advanced Audio Properties → add a little delay to the game audio if the voice
    should not talk over it, or a compressor on the browser source.
-5. Refresh the browser source (or not: the page reconnects by itself) when fenceshow restarts.
+6. Refresh the browser source (or not: the page reconnects by itself) when fenceshow restarts.
 
 ## The narrator
 
@@ -830,6 +909,7 @@ voices (already on this machine with the image; the demo downloaded nothing).
 ```sh
 make show-demo                                    # replay days 38–46 of a finished hard game into var/show/demo
 make show-demo ARGS="var/league/<l>/<match> 40-44 1"
+scripts/panel-demo.sh var/rehearsal/run1              # every panel element at once, screenshots in var/panel/demo/shots
 go run ./cmd/fenceshow -replay var/league/<l>/<match> -days 40-60 -speed 1.5
 go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded live feed
 go run ./cmd/fenceshow -replay var/rehearsal/run1 -route sprinter -prev-run var/sim/prev.summary.json  # a rehearsal against its book and an earlier run

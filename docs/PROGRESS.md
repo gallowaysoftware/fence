@@ -3,6 +3,35 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Panel layout — 2026-11-11: one column that fits, whatever is live
+
+**Result.** The format card, the ghost band, Twitch's prediction and vote and the model's forks each added to
+`/column` on their own, the route thesis and the open bet had no place at all, and with a format and a
+prediction live the plan pushed the thinking ticker off the 1080-pixel column. The column is now fixed regions in a priority order: name card
+(with the format's deadline counted down in game days and the route's thesis), money clock (heat folded in),
+plan, a new **bet** box (claim, days left, progress toward a cash or net-worth target, the outcome for a
+minute after it settles), a **fork** box (the options with the model's choice and, while chat votes on it,
+each option's share), the Twitch box, then the ticker with at least three lines. Every text has a line
+limit; when the column is full, `fit()` in `panel.js` adds squeeze levels (`s1` … `s10` in `panel.css`)
+one at a time, dropping the least important lines first, so nothing is pushed off. Type floor 14 px for
+labels and tags, 16 px for every other fact; nothing is told by colour alone (▲/●/▼ on the pace pill,
+"short" on the rent, ✓/✗ on a bet, ▸ on the fork's choice). `/column?twitch=0` for the two-source OBS
+setup, so the Twitch box is not shown twice. docs/SHOW.md, "The panel".
+
+**Measured** with the new `scripts/panel-demo.sh`: days 54–59 of the dress rehearsal with `sprint_91`, the
+ghost band, fencetwitch's dry run and made-up bets, a route choice and a 4-option fork, 21 snapshots: the
+fork day needs level s7 of 10 and keeps the ticker; a hand-made worst case (five long plan lines, a
+security case, a 130-character claim, the fork with its vote and an open prediction) s8; a five-candidate
+hybrid slate with a prediction and a vote s10.
+
+**Data contract.** The feed and `/events` are unchanged. `/state` gains two fields so a reloaded browser
+source draws them: `bet` (the run's latest `bet` event) and `choice` (the day-0 `route_choice` plan event;
+the bridge shows it at hello, before its run's `run_start`, which used to wipe it from the panel's state).
+
+**Not done.** The open bet is in the column only (`/lower` keeps the caption and the Twitch box). A fork's
+or a hybrid slate's long option labels are cut to one line. The ticker's minimum is three lines; on the
+fullest days the plan shows two.
+
 ## Bets and callbacks — 2026-11-11: the narration sets things up and pays them off
 
 **Result.** With the bridge's `-bets`, a delta plan may stake one checkable bet a day ("Net worth reaches 5000 by
