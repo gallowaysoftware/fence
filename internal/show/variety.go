@@ -314,4 +314,19 @@ var imageBanks = map[string]map[string][]string{
 		"down": {"dry well|a dry well", "leak|a leak in the pipes", "pressure|pressure dropping in the main"},
 		"even": {"thirst|a thirsty station", "pipes|water through the right pipes", "meter|a meter quietly ticking", "spring|a steady spring"},
 	},
+	"fishmonger": {
+		"up":   {"catch of the day|the catch of the day on ice", "caviar|caviar on a silver spoon", "full net|a full net hauled in"},
+		"down": {"belly up|fish floating belly up", "dark tank|a dark tank and a silent pump", "low tide|low tide and empty nets"},
+		"even": {"fillet knife|a fillet knife at dawn", "gills|a fish judged by its gills", "crushed ice|fresh fish on crushed ice", "market bell|the market bell at opening"},
+	},
+	"pharmacist": {
+		"up":   {"lab pure|a lab-pure batch", "to the milligram|a prescription filled to the milligram", "white coat|a spotless white coat"},
+		"down": {"recalled|a batch recalled", "side effect|an unwanted side effect", "contaminated|a contaminated flask"},
+		"even": {"dosage|the right dosage", "pestle|mortar and pestle", "measure twice|measure twice, press once", "true label|a label that tells the truth"},
+	},
+	"botanist": {
+		"up":   {"full bloom|a bay in full bloom", "took root|cuttings that took root", "canopy|a green canopy overhead"},
+		"down": {"wilt|a wilting leaf", "blight|blight in the bays", "root rot|root rot under the surface"},
+		"even": {"reeds|reeds doing their quiet work", "seedling|a seedling's patience", "photosynth|light turned into sugar", "clean roots|clean water, clean roots"},
+	},
 }

@@ -46,7 +46,10 @@
   "armourer",
   "rancher",
   "shark",
-  "magnate"
+  "magnate",
+  "fishmonger",
+  "pharmacist",
+  "botanist"
  ],
  "perks": [
   {

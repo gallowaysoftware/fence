@@ -25,6 +25,7 @@ func TestLoadPersona(t *testing.T) {
 	path := writePersona(t, dir, "miser", "# The Miser\nHoard cash; zz_style_miser.\n")
 	writePersona(t, dir, "huge", strings.Repeat("x", MaxPersonaBytes+1))
 	writePersona(t, dir, "blank", "#\n  \n")
+	writePersona(t, dir, "noted", "# The Miser\nHoard cash.\n\n## Notes (not in any prompt)\n"+strings.Repeat("zz_notes ", MaxPersonaBytes))
 	tests := []struct {
 		name, dir, ref, want, wantErr string
 	}{
@@ -33,6 +34,7 @@ func TestLoadPersona(t *testing.T) {
 		{"missing", dir, "nobody", "", "no such file"},
 		{"too big", dir, "huge", "", "the limit is 800"},
 		{"empty", dir, "blank", "", "is empty"},
+		{"notes are not the prompt", dir, "noted", "The Miser\nHoard cash.", ""},
 		{"not an id", dir, "The Miser", "", "not an id"},
 	}
 	for _, tt := range tests {

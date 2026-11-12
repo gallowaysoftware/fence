@@ -684,8 +684,9 @@ in the player's persona and voice, and publishes a `say` event with the WAV the 
   `-persona`, or `-default-persona` (magnate). The name card shows its name and its path in
   a few words ("as Shark · Nothing but nerve"). The narrator speaks as it: a fixed Kokoro
   voice and a speaking style per persona (`internal/show/persona.go`: shark am_fenrir, a
-  cocky street hustler; magnate bm_george, an unflappable old-money operator; …), with the
-  persona file as background for motive. `-voice` overrides the voice. A run on a route
+  cocky street hustler; magnate bm_george, an unflappable old-money operator; …; the thirteen in
+  docs/CAMPAIGN.md, "The archetypes"), with the persona file as background for motive (up to its
+  `## Notes`, which no prompt carries). `-voice` overrides the voice. A run on a route
   (`docs/research/ROUTES.md`, the match's `-route` or fenceshow's `-route`) also puts the route
   on the name card ("smelter route · Trash into metal") and gives the narrator the route's
   brief, so the same persona sounds different on a metal shop and a wine cellar.
@@ -923,6 +924,10 @@ player's decisions, and now and then the narrator answers back: a short exchange
   passes the same `CheckLine` and its own phrasebook's repeat check (the narrator's answer uses the
   narrator's); a line failing twice is not spoken at all: no caption stands in for a jab. It invents
   attitude, never numbers.
+- **Its angle.** Each persona carries the line Rook takes on it (`personaVoice.needle`, `internal/show/persona.go`;
+  for the fishmonger, a pawnbroker running a fish stall one dark night from empty tanks; for the pharmacist, a lab
+  pressing coffee pills while the cooks make real money), added to its system prompt as "Your angle on this player". No needle carries a number,
+  so none can trip the fact check.
 - **Its voice.** A Kokoro voice unlike the narrator's, the other sex and the other accent
   (`CohostVoice`: `bf_alice` beside the male personas, `bm_daniel` beside the female ones;
   `-cohost-voice` overrides).

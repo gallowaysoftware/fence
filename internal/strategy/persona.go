@@ -8,10 +8,13 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/gallowaysoftware/fence/internal/show"
 )
 
 const (
-	// MaxPersonaBytes bounds a persona: it rides in every morning prompt.
+	// MaxPersonaBytes bounds a persona without its notes (show.PersonaNotes): it rides in every
+	// morning prompt.
 	MaxPersonaBytes = 800
 	// DefaultPersonaDir is where persona ids resolve, relative to the bridge's working
 	// directory (the repository root).
@@ -28,7 +31,7 @@ func isPersonaPath(ref string) bool {
 }
 
 // LoadPersona reads a persona: ref is an id resolved as dir/<id>.md, or a path to a file.
-// The text is the file with its markdown title marks removed.
+// The text is the file up to its notes, with its markdown title marks removed.
 func LoadPersona(dir, ref string) (string, error) {
 	path := ref
 	if !isPersonaPath(ref) {
@@ -44,10 +47,11 @@ func LoadPersona(dir, ref string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("persona %q: %w", ref, err)
 	}
-	if len(raw) > MaxPersonaBytes {
-		return "", fmt.Errorf("persona %q: %d bytes, the limit is %d", ref, len(raw), MaxPersonaBytes)
+	prompt := show.PersonaPrompt(string(raw))
+	if len(prompt) > MaxPersonaBytes {
+		return "", fmt.Errorf("persona %q: %d bytes before its notes, the limit is %d", ref, len(prompt), MaxPersonaBytes)
 	}
-	text := personaText(string(raw))
+	text := personaText(prompt)
 	if text == "" {
 		return "", fmt.Errorf("persona %q is empty", ref)
 	}

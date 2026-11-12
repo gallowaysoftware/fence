@@ -3,6 +3,40 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Personas — 2026-11-12: the Fishmonger, the Pharmacist and the Botanist; ten checked against the code
+
+**Result.** Thirteen personas (docs/personas), every playable start and Season 2 card with an archetype
+(docs/CAMPAIGN.md, "The archetypes"). The three new ones are built on the decompiled rules, each with its sources,
+voice and Rook's angle in a `## Notes` section that no prompt carries:
+
+- **Fishmonger** (Aquafarmer, "Water to Fish"): tilapia bred and filleted at 400 meat, eels on fillets, a sturgeon for
+  caviar; never a third dark night, pellets past a quarter, a hatch with no room. Kokoro `bm_fable`.
+- **Pharmacist** (Apprentice → Retired Chemist, "Legal Highs"): the caffeine chain, the finisher's first module before
+  anything, alcohol as the wall, nothing contraband. `bf_isabella`.
+- **Botanist** (Hydroponic Farmer, "Green Water"): hydroreed-cured tap water (minerals kept, no tablets) for the
+  berries and coffee, never a bought filter, purifier or tablet. `af_heart`. Open ruling for the card: does a filter
+  the reeds grew count as a filter?
+
+**Corrected** (voices kept): the Cook (plate at 44 °C, not 45; dust dries in the evaporator; Retired Chemist 1 500 on
+hard; evaporator cells first; machines are searched); the Rancher (cut at 401 g or the best by age 10; cage rows from
+ingots first; bought food over a feed farm; no power for rats; "never cut a breeder"); the Vintner (berries add without
+limit: three good + yeast on HQ water is Master; Pure or reed-cured bay water; age a buffer, never refuse a buyer);
+the Water Baron (HQ jug for the stockpiler, the purifier caps at HQ, fish need volume not grade, taps without the
+permit's money, LL 60 foretells any event); the Smelter (the Junker start is not playable: Apprentice); the Fence
+(heat falls anywhere; the bay hides it; crime is price × heat). The Armourer, Honest Broker, Magnate and Shark had
+nothing stale.
+
+**Code.** `show.PersonaPrompt` cuts a file at `## Notes`; the strategist's 800-byte limit and the narrator's background
+apply to the part before it. Each persona's `personaVoice` gains a `needle`, Rook's angle, sent as "Your angle on this
+player" (no numbers, so it cannot fail the fact check); image banks for the new three; a test that every persona file
+has a voice of its own (never Rook's), a style, an angle and a bank. Route personas: `farmer` → vintner (was rancher),
+`caffeine_lab` → pharmacist (was cook), `aquafarmer_sprinter` → fishmonger (named a persona that did not exist).
+
+**Found.** The day-0 thesis is written persona-blind (`fencechoose` has no persona): the persona enters when the
+narrator speaks the route choice and Rook answers. Samples, drift's 27B through the narrator's day-0 prompt with test
+theses (in each new persona file): "Tanks paid for, so we bleed tilapia at dawn." (Fishmonger); "Today we choose the
+clean lab, not the alley trade." (Pharmacist); "The purifier is a blunt instrument; I chose the reeds." (Botanist).
+
 ## The arms trade — 2026-11-12: permits, gun orders and mods for the Armourer; a stream route, not a faster one
 
 **Result.** The Gunsmith start's arms trade, from the decompiled source (docs/re/ARMS.md), checked in the lab

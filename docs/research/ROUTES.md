@@ -408,7 +408,7 @@ by its own buy list: on a route the route's base policy does the buying.
 |---|---|---|---|
 | `appraiser` | magnate | honest-broker | the generalist: the Board, a cellar, a furnace and vending all at once |
 | `watchman` | armourer | honest-broker | Security first and by the book; the alarm and the VIP race are the cautious play |
-| `farmer` | rancher | vintner, magnate | the only start with growing things in the back room (no route uses livestock) |
+| `farmer` | vintner | botanist, magnate | the Hydroponic Farmer start, its bays making wine (was rancher, from before the rats had a route) |
 | `vintner` | vintner | magnate | wine and nothing else |
 | `labeler` | fence | shark | reads every fake and quietly passes a few as genuine |
 | `no_vending` | shark | | scavenges hardest and wears the wounds |
@@ -436,6 +436,8 @@ by its own buy list: on a route the route's base policy does the buying.
 | `luxury_sprinter` | magnate | shark | luxuries and art, in a hurry |
 
 The cook has no route: the drug-dealer start ends on day 8 (`cartel_retired`).
+Off the menu, two candidates name their personas: `lab/caffeine_lab` the pharmacist (a legal lab) and
+`fish/aquafarmer_sprinter` the fishmonger (docs/CAMPAIGN.md, "The archetypes").
 
 **One run spec.** A league plays "model × persona × route" with `routes` in place of `starts`, `perks`,
 `personas` and `executor.directives`:

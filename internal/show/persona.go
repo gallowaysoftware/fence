@@ -19,23 +19,31 @@ type Persona struct {
 	Tagline string
 	Voice   string
 	Style   string
-	// Text is the persona file, for the narrator's sense of what the player is after.
+	// Needle is the co-host's angle on this player.
+	Needle string
+	// Text is the persona file up to its notes, for the narrator's sense of what the player is after.
 	Text string
 }
 
-type personaVoice struct{ voice, style string }
+// personaVoice is how a persona sounds on stream; needle is how the co-host (cohost.go) goes
+// after it, cast as its opposite (docs/CAMPAIGN.md, "The archetype is the voice"). Needles carry
+// no numbers: the co-host's line is held to the moment's facts.
+type personaVoice struct{ voice, style, needle string }
 
 var personaVoices = map[string]personaVoice{
-	"shark":         {"am_fenrir", "a cocky street hustler: short, punchy, predatory; every customer is an angle to work"},
-	"magnate":       {"bm_george", "an unflappable old-money operator: measured and dryly amused; the shop is a portfolio and every setback a line item"},
-	"honest-broker": {"af_bella", "a warm, exacting dealer proud of a clean name: a jeweller's patience, quietly disapproving of shortcuts"},
-	"fence":         {"am_michael", "a low, conspiratorial black-market insider who winks at the audience and never calls anything stolen"},
-	"vintner":       {"bf_emma", "a romantic about the craft, impatient with everything else: wine, water and time are all that matter"},
-	"cook":          {"af_nicole", "a tense, clinical chemist under a cartel's thumb, counting purity and days"},
-	"smelter":       {"am_puck", "a gruff scrapyard philosopher: everything is ore waiting to happen"},
-	"rancher":       {"am_adam", "a folksy, unbothered farmer among rats and fish, with gallows humour about the butchering"},
-	"armourer":      {"bm_lewis", "a clipped, by-the-book arms dealer who respects Security and the paperwork"},
-	"water-baron":   {"af_sarah", "a smug utility monopolist: water is power and the whole station is thirsty"},
+	"shark":         {"am_fenrir", "a cocky street hustler: short, punchy, predatory; every customer is an angle to work", "a hustler with no engine, one bad week from the street; call the luck luck"},
+	"magnate":       {"bm_george", "an unflappable old-money operator: measured and dryly amused; the shop is a portfolio and every setback a line item", "four engines half fed and none of them great; all spread and no depth"},
+	"honest-broker": {"af_bella", "a warm, exacting dealer proud of a clean name: a jeweller's patience, quietly disapproving of shortcuts", "honesty that leaves money on the counter; ask what a clean name paid this week"},
+	"fence":         {"am_michael", "a low, conspiratorial black-market insider who winks at the audience and never calls anything stolen", "one inspection from a cell; every no-questions-asked is a question Security will ask"},
+	"vintner":       {"bf_emma", "a romantic about the craft, impatient with everything else: wine, water and time are all that matter", "wine that ages while the rent does not; ask what the romance pays this week"},
+	"cook":          {"af_nicole", "a tense, clinical chemist under a cartel's thumb, counting purity and days", "as a law-abiding pharmacist would: the cartel owns the lab, the count grows every week, and the way out keeps receding"},
+	"smelter":       {"am_puck", "a gruff scrapyard philosopher: everything is ore waiting to happen", "a scrapyard calling itself a foundry; the furnace is only as good as the ore that has not come"},
+	"rancher":       {"am_adam", "a folksy, unbothered farmer among rats and fish, with gallows humour about the butchering", "a pawn shop that smells like a barn; ask who on the station buys that much meat"},
+	"armourer":      {"bm_lewis", "a clipped, by-the-book arms dealer who respects Security and the paperwork", "a gun shop waiting on a permit and a phone call; by the book is the slow book"},
+	"water-baron":   {"af_sarah", "a smug utility monopolist: water is power and the whole station is thirsty", "tap water at a markup; one mislabelled jug and the utility is a fraud case"},
+	"fishmonger":    {"bm_fable", "a loud, salt-of-the-earth fishmonger with a barker's patter: weighs the day by the fillet, soft on the breeders, brisk with the knife, never sentimental about a fish on the board", "a pawnbroker running a fish stall: the smell, the power bill, and one dark night that empties the tanks; call the caviar a dream"},
+	"pharmacist":    {"bf_isabella", "a prim, exacting pharmacist who speaks in purity and procedure: proud that every pill is legal and labelled true, appalled by anything sold by the gram in an alley", "a lab pressing coffee pills while the cooks make real money; call purity a hobby and ask who pays extra for the last percent"},
+	"botanist":      {"af_heart", "a serene, faintly superior botanist who trusts plants over machines: talks of reeds, roots and patience, takes a filter as an insult and a healthy leaf as proof", "two weeks for water a machine cleans overnight; the reeds are a hobby; ask when the plants start paying the rent"},
 }
 
 // PersonaVoice is the Kokoro voice for a persona id, so each persona sounds like itself
@@ -47,10 +55,26 @@ func PersonaVoice(id string) string {
 	return personaVoices[DefaultPersona].voice
 }
 
+// PersonaNotes starts a persona file's notes: its sources, its voice and the co-host's angle in
+// prose, sample lines. Everything from it on is for people; no prompt carries it.
+const PersonaNotes = "## Notes"
+
+// PersonaPrompt is a persona file without its notes.
+func PersonaPrompt(file string) string {
+	lines := strings.SplitAfter(file, "\n")
+	for i, l := range lines {
+		if strings.HasPrefix(strings.TrimSpace(l), PersonaNotes) {
+			return strings.Join(lines[:i], "")
+		}
+	}
+	return file
+}
+
 // LoadPersona reads a persona; an unreadable file still has its id as a name and, for a
 // known id, its voice and style.
 func LoadPersona(dir, id string) Persona {
-	p := Persona{ID: id, Name: id, Voice: PersonaVoice(id), Style: personaVoices[id].style}
+	v := personaVoices[id]
+	p := Persona{ID: id, Name: id, Voice: PersonaVoice(id), Style: v.style, Needle: v.needle}
 	if p.Style == "" {
 		p.Style = "dry, quick and a little rueful: a pawnbroker who has seen everything walk through the door"
 	}
@@ -58,8 +82,8 @@ func LoadPersona(dir, id string) Persona {
 	if err != nil {
 		return p
 	}
-	p.Text = text
-	for _, l := range strings.Split(text, "\n") {
+	p.Text = PersonaPrompt(text)
+	for _, l := range strings.Split(p.Text, "\n") {
 		l = strings.TrimSpace(l)
 		if t, ok := strings.CutPrefix(l, "# "); ok {
 			p.Name = strings.TrimSpace(t)

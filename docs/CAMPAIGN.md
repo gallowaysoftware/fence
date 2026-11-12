@@ -29,14 +29,14 @@ ascending difficulty, the cartel last.
 | # | Start | Archetype | Route menu today | Lab on hard | Blocker |
 |---|---|---|---|---|---|
 | 1 | Apprentice | Honest Broker | 20+ routes | 60/60 | — |
-| 2 | Hydroponic Farmer | Vintner | `farmer` | 60/60 | — |
+| 2 | Hydroponic Farmer | Vintner (Botanist for Green Water) | `farmer` | 60/60 | — |
 | 3 | Gunsmith | Armourer | `gunsmith`, `gunsmith_farm` | 60/60 | — |
 | 4 | Water Merchant | Water Baron | `water_baron`, `fountain`, `water_night_shift`, `fountain_pharma` | 60/60 | — |
 | 5 | Rancher (Rat Wrangler) | Rancher | `rancher`, `rancher_sprinter` | 60/60 | — |
 | 6 | Fence | Fence | `outlaw`, `fence_fortress` | 60/60 | Security −30 on hard |
 | 7 | Rock Bottom | Shark | `rock_bottom` | 57/60 | the underdog |
-| 8 | Aquafarmer | new: Fishmonger | none | not measured | gym support; confirm it is selectable (built with the "pending" constructor but not flagged coming-soon or hidden) |
-| 9 | Chemist | Cook | none | not measured | gym support; the cartel's weekly quota, stipend and protection (docs/personas/cook.md); the chemistry engine |
+| 8 | Aquafarmer | Fishmonger | none on the menu; candidates `aquafarmer_sprinter` (`engine: fish`), `aqua_fish_weed` | 53/60; 60/60 with fillerweed bays (mostly at the mortgage's end) | ghost band and deadline odds; selectable (docs/re/AQUACULTURE.md §4) |
+| 9 | Chemist | Cook | none | 0/60 (the cartel ends 46 runs, median last day 35) | the evaporator's power and the cartel's growing count (docs/research/CHEMISTRY-ENGINE.md, "The Cook, why it fails") |
 | — | Junker, Organ Trader, Street Food Vendor, Moonshiner, Pharmacist | — | — | — | coming soon in this build: not playable |
 
 **The lab column overstates readiness.** Those wins are mostly the Appraisal Board winning from any start, not
@@ -54,10 +54,10 @@ the best grade their equipment allows (docs/research/QUALITY.md, CHEMISTRY-ENGIN
 
 | Card | Start | Archetype | Rule | Why it plays well |
 |---|---|---|---|---|
-| Legal Highs | Apprentice → Retired Chemist | Pharmacist (new) | chemistry, caffeine only; no contraband in stock or sales | a clean lab racing a rent clock; purity is the score |
+| Legal Highs | Apprentice → Retired Chemist | Pharmacist | chemistry, caffeine only; no contraband in stock or sales | a clean lab racing a rent clock; purity is the score |
 | The Cook | Chemist | Cook | lab-pure dream dust under the cartel's quota | heat, inspections, liquid luck as insurance; the darkest run |
 | Water to Fish | Aquafarmer or Water Merchant | Fishmonger | income from water and fish only; no Board | a closed loop from tap to tilapia |
-| Green Water | Hydroponic Farmer | Botanist (new) | water purified by plants only (hydroreed's `purifying` trait, ~28 % of the contaminants a night); no purifier, filters or tablets | the slowest, strangest water chain in the game |
+| Green Water | Hydroponic Farmer | Botanist | water purified by plants only (hydroreed's `purifying` trait, ~28 % of the contaminants a night); no purifier, filters or tablets | the slowest, strangest water chain in the game |
 | Sommelier | Hydroponic Farmer | Vintner | wine only; sell only the top tier, aged on the rack | patience against the rent; a cellar worth watching grow |
 | Foundry | Apprentice | Smelter | ingots only; held for material rises | the blast furnace and the market's swings |
 | Closed Loop | any | Magnate | no bought inputs: everything grown, filtered, bred | the whole hidden economy in one run |
@@ -71,10 +71,37 @@ off the day-0 menu, so a card replayed is a different run.
 
 ## The archetype is the voice
 
-The archetype's persona file sets what the player cares about and how it talks: what it brags about, what it
-despises, how it takes a loss. The strategist writes its thesis and plans in that voice, the narrator speaks it, and
-the co-host is cast as its opposite (the Honest Broker's co-host is a shark; the Cook's is a pharmacist). New personas
-needed: Fishmonger, Pharmacist, Botanist.
+The archetype's persona file sets what the player cares about and how it plays: what it brags about, what it
+despises, how it takes a loss. The strategist's plans follow it (the style section of the plan prompt), the narrator
+speaks in it (a fixed Kokoro voice and a speaking style, `internal/show/persona.go`), and the co-host Rook is cast as
+its opposite: each persona carries the angle Rook takes on it (the Honest Broker's is a shark's, the Cook's a
+pharmacist's). The day-0 thesis itself is written persona-blind (`fencechoose` has no persona); the persona comes in
+when the narrator speaks it and Rook answers. A persona file's `## Notes` (its sources, voice, Rook's angle and sample
+lines) are for people: no prompt carries them, and the part before them stays under 800 bytes.
+
+## The archetypes
+
+Every persona, its native start and route, its cards and how it sounds. A route's persona is the route file's
+`_route.persona`, used when a run names none.
+
+| Persona | Native start | Native route | Cards | Voice | Rook's angle |
+|---|---|---|---|---|---|
+| Honest Broker | Apprentice | `lean`, `fair_dealer`, `pharma` | Season 1 #1, Clean Hands | `af_bella` | honesty that leaves money on the counter |
+| Vintner | Hydroponic Farmer | `farmer`, `vintner` | Season 1 #2, Sommelier | `bf_emma` | wine that ages while the rent does not |
+| Botanist | Hydroponic Farmer | none yet (`quality.reeds` is built, the staged build is not) | Green Water | `af_heart` | two weeks for water a machine cleans overnight |
+| Armourer | Gunsmith | `armourer`, `gunsmith` | Season 1 #3 | `bm_lewis` | a gun shop waiting on a permit |
+| Water Baron | Water Merchant | `water_baron`, `fountain`, `water_night_shift` | Season 1 #4 | `af_sarah` | tap water at a markup, one jug from a fraud case |
+| Fishmonger | Aquafarmer (or Water Merchant) | `aquafarmer_sprinter` (candidate) | Season 1 #8, Water to Fish | `bm_fable` | a fish stall in a pawn shop, one dark night from empty tanks |
+| Rancher | Rancher | `rancher`, `rancher_sprinter` | Season 1 #5 | `am_adam` | a pawn shop that smells like a barn |
+| Fence | Fence | `outlaw`, `fence_fortress` | Season 1 #6, Bounty Hunter | `am_michael` | one inspection from a cell |
+| Shark | Rock Bottom | `rock_bottom`, `sprinter` | Season 1 #7, Colorful Character | `am_fenrir` | a hustler with no engine |
+| Cook | Chemist | none (0/60) | Season 1 #9, The Cook | `af_nicole` | the cartel owns the lab, the way out keeps receding |
+| Pharmacist | Apprentice → Retired Chemist | `caffeine_lab` (candidate: 60/60 with the Board, 0/60 without) | Legal Highs | `bf_isabella` | coffee pills while the cooks make the money |
+| Smelter | Apprentice (the Junker start is not playable) | `smelter`, `smelter_sprinter`, `ore_monopolist` | Foundry | `am_puck` | a scrapyard calling itself a foundry |
+| Magnate | any | `appraiser` (the default persona) | Closed Loop | `bm_george` | four engines half fed |
+
+Rook speaks in `bf_alice` beside a male narrator and `bm_daniel` beside a female one (`CohostVoice`), so no persona
+uses either.
 
 ## Readiness gates, per card
 

@@ -216,6 +216,9 @@ func (n *Narrator) cohostLine(ctx context.Context, ev Event, f Facts, told strin
 	var sys strings.Builder
 	fmt.Fprintf(&sys, "You are %s, the co-host in the booth of a live stream where an AI pawnbroker, the %s, plays the game Probably Stolen and narrates its own play. The player's voice: %s.\n", c.Name, p.Name, p.Style)
 	fmt.Fprintf(&sys, "Your voice: %s. You are not the player: you react to the player's decisions, speaking to them as you, or aside to the viewers.\n", cohostStyle)
+	if p.Needle != "" {
+		fmt.Fprintf(&sys, "Your angle on this player: %s.\n", p.Needle)
+	}
 	sys.WriteString("Speak ONE short sentence, two at most, at most 22 words. It is read aloud by text-to-speech: plain words only, no emojis, no stage directions, no quotation marks, no names of real people. " +
 		"Invent attitude freely, but the numbers are sacred: use at most one number, only one from the facts you are given, written in digits, and never claim anything about money, rent or trades that the facts do not say. " +
 		"Never name a weekday. Money is credits. Do not repeat your previous lines or their images.")
