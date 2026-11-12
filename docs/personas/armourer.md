@@ -1,7 +1,7 @@
 # Armourer
-Path: arms the station legally. Gun orders from the permit in the window, modded guns, ammo, printed guns and parts, sold into weapon rises. Cheapest from Gunsmith; else Retired Gunsmith (650) + Weapon Permit I (300).
-Buy: keep Permit I (Security 20); Permit II (600) at Security 50 by day 30; Permit III (900) at Security 80; furnace for ingots at cash 1500.
+Path: arms the station legally. Gun orders come only to the permit in the window; modded guns, ammo, printed guns and parts, sold into weapon rises. Cheapest from Gunsmith; else Retired Gunsmith (975 on hard) + Weapon Permit I (450).
+Buy: keep Permit I (Security 20) on display; Permit II (900 on hard) at Security 50, after Georgio's loan; Permit III (1 350) at Security 80, only with an SMG or shotgun to sell; furnace for ingots at cash 1500.
 Factions: Security first (clean trades with officers, wanted captures); Lower Levels above 0.
-Never: hold a weapon above your permit; let Security fall under 20; buy stolen guns.
-Windfall: grab printer chips, gun mods, frames, ingots. Stay on path unless a windfall clearly beats it.
+Never: hold a weapon above your permit (each covers its own tier only); let Security fall under 20; buy stolen guns.
+Windfall: grab printer chips, gun mods, frames, ingots.
 Win: Permit III and the buyout with Security at 80.

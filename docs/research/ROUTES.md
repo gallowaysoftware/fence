@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Thirty-four hard-difficulty policies that win (twelve of them invented by the model: below, "Invented routes"), each with a different start, perk set, engine or trading style, so a stream
+Thirty-five hard-difficulty policies that win (twelve of them invented by the model: below, "Invented routes"), each with a different start, perk set, engine or trading style, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -54,6 +54,7 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `rancher_sprinter` | rancher / vending + short sleeper | `sprinter` + `engine: "rats"`, lots to 85 %, sales to 50 %, `buyout_by_day: 90` | 60/60 (94–100 %) on 8710001–060 | **76** | — | — | Invented by Qwen: rats and nothing else in the back room. The fastest median on the menu; paired win day −3.0 ± 10.8 against `appraiser`. |
 | `smelter_sprinter` | apprentice / vending + short sleeper | `sprinter` + one eco furnace on phoned ore, lots to 85 %, sales to 50 %, `buyout_by_day: 92` | 60/60 (94–100 %) on 8710001–060 | **83** | — | — | Invented by Qwen: a one-furnace smelter racing for cash. +12.1 ± 12.6 days. |
 | `pharma_vintner` | apprentice / vending + short sleeper | `vintner` + `pharma: "phone"`, sales to 55 %, `buyout_by_day: 95` | 60/60 (94–100 %) on 8710001–060 | **97** | — | — | Invented by Qwen: a wine cellar with Dale's injectors; 22 of 60 by the mortgage, +33.6 ± 14.1 days. |
+| `armourer` | gunsmith / vending + short sleeper | `gunsmith` + `arms: {"permit_from": 60}` | 60/60 (94–100 %) | **98** | — | — | The arms trade: the weapon permit stays in the window, gun-order clients are served from the counter's guns (modded to clear the order's rows), Weapon Permit II once Security reaches 50 after Georgio's loan. A week slower than `gunsmith` (below, "The Armourer"). |
 | `gunsmith_farm` | gunsmith / vending + short sleeper | `farmer`'s policy on the Gunsmith start, 3 bays, wine only, `pharma: "phone"` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: guns, wine and medicine on one counter; 34 of 60 by the mortgage. |
 | `fountain_pharma` | water merchant / vending + short sleeper | `fountain` + `pharma: "phone"`, sales to 50 %, `buyout_by_day: 105` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: water at night, injectors in the back; 34 of 60 by the mortgage. |
 | `household_sprinter` | apprentice / vending + short sleeper | `sprinter` + `specialty` household (lot share 0.3), lots to 85 %, sales to 52 %, `buyout_by_day: 94` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: a discount store; 37 of 60 by the mortgage. |
@@ -339,6 +340,64 @@ Every run buys the fountain (median day 36) and ends at attractiveness 75 (media
 +2 300 a run, and the win day is unchanged. With the landlord's fountain instead (+150 weekly rent) it wins 60/60 on
 5200001–060 at median 112 with 7 mortgages (+9.9 ± 9.2 days).
 
+## The Armourer (2026-11-12)
+
+`armourer` is the Gunsmith start played as the arms trade (docs/re/ARMS.md; the engine is `arms` in
+docs/PROTOCOL.md, sim/gym/Arms.cs). The gym's old window took the start's Weapon Permit I out of the display case on
+day 1, and only a permit on display brings gun-order clients, so `gunsmith` never saw one. With `arms` the permit
+stays in the window while a legal gun is in stock, each order client is filled from stock (loose mods attached to
+clear the rows, a gun part to cross a last threshold) when the reward beats the gun and its mods at their estimates,
+and Permit II is bought from Wild after Georgio's loan once Security nears 50.
+
+Hard, seeds 2910001–060, 1000-day horizon (build `arms-trade`, `sim/lab/scripts/arms-armourer.txt`; the permit screens `arms-permits.txt`,
+`armsreport.py`). Δ is the paired win day against `gunsmith` (mean ± 1.96 SE, seeds both won); McNemar is on the
+paired wins (no discordant pair anywhere: every arm wins 60/60).
+
+| Arm | Wins (95 %) | Median win day | Δ win day | Gun orders a run (income, value given) | Permit at the end | Security at the end |
+|---|---|---|---|---|---|---|
+| `appraiser` (reference) | 60/60 (94–100 %) | 98 | +0.7 ± 4.3 | — | — | — |
+| `gunsmith` | 60/60 (94–100 %) | 91 | — | 0 | I | 65 |
+| **`armourer`** | 60/60 (94–100 %) | 98 | +11.6 ± 9.3 (4 mortgage wins) | 4.4 (852, 492) | II in 60/60, median day 62 | 66 |
+| `armourer` + printer (`arms/armourer_printer.json`: the pistol chips, none bought) | 60/60 (94–100 %) | 105 | +16.3 ± 8.5 | 27.3 (3 453, 1 807) | II in 57 | 67 |
+| `armourer_sprint` (`arms/armourer_sprint.json`: Permit I only) | 60/60 (94–100 %) | 98 | +4.2 ± 7.2 | 4.3 (813, 471) | I | 66 |
+
+Income split (Board / counter / production / Georgio): `armourer` 62/28/0/10 %, `gunsmith` 59/30/0/11 %; arms
+counter sales ~1 000 a run on top of the orders.
+
+**Without the Board** (`appraisal: off`), 0/60 for all three (Wilson 0–6 %): `gunsmith` lasts to day 168 (median),
+`armourer` −4.8 ± 8.1 days on it, the printer arm −12.1 ± 8.5 (and 3 arrests for the business permit). The arms
+trade does not make the Board-free format winnable.
+
+**Why the arms trade does not pay on hard.**
+
+- **An order client takes a customer's slot.** The three order clients are rolled from the display case's
+  predictions and share the day's normal-customer count, so each one replaces an ordinary customer. Showing the
+  permit and sending every order away cost `gunsmith` ~7 days on 16 seeds (`arms1`).
+- **A Basic order pays about what that customer would.** Base 63–110 plus bonuses, ~115 a delivered order on
+  average, for a gun worth ~50 that goes with it: ~65 net, an ordinary customer's margin.
+- **Mid and High orders need what the shop cannot get.** Mid rows (FP > 25, REL > 32, ACC > 33, STY > 25) need
+  magazines, springs and sights on a printed or handmade pistol, or a 10 mm gun under Permit II; the retired gunsmith
+  stocks them on 18–50 % rolls at +30 % on hard and nothing else supplies them. With the printer, Permit II (900)
+  brought 11 Mid offers a run and filled 0.1. High orders want an SMG or shotgun (level 3): Permit III (1 350) is left off by default
+  (`permit_max: 2`); with the alarm and a Security transmitter 13 of 16 runs reach it (day ~68, Security ~106) and
+  fill none, +29 ± 24 days (16 seeds).
+- **The printer loses time.** Printed pistols are legal at birth and feed six times the orders, but the stock and
+  inputs it ties up before Georgio's day-43 loan and the counter customers it displaces cost more: +16 days.
+- **Few guns, few orders.** Without the printer the shop holds a legal gun on few days, and the permits come off
+  display without one (`window_when_stocked`): 6 Basic offers a run, 4.4 filled.
+- **The display case does not help.** Letting the held guns and mods fill the window (`arms.show_weapons`, for the
+  WEAPON case worth 350 that brings the 500–700 contractor) is neutral on 30 seeds (Δ −0.2 ± 12.0 days against
+  `armourer`): the shop rarely holds 350 of weapons.
+- **Buying Permit II early hurts.** At Security 45 (~day 41, before Georgio's loan) it cost +8.3 ± 10.0 days on 16
+  seeds (not significant); the route waits for day 60 (`permit_from`).
+
+On the ghost-band seeds 8100001–060 `armourer` wins 60/60, median day 105; its deadline odds ("Deadline odds"
+below) are 17/60 (19–41 %) for `sprint_91` and 10/60 (9–28 %) for `purist_sprint`.
+
+The Armourer is a stream route, not a speed route: it wins every seed a week behind `gunsmith`, with gun orders on
+screen (the tablet's rows, the mods going on, the cash) and the permit climb. `armourer_sprint` (Permit I only) is
+the cheapest way to show orders; the printer arm shows printed guns at two weeks' cost.
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
@@ -369,6 +428,7 @@ by its own buy list: on a route the route's base policy does the buying.
 | `rancher_sprinter` | rancher | | rats only |
 | `smelter_sprinter` | smelter | | one furnace and a race |
 | `pharma_vintner` | vintner | honest-broker | wine and medicine |
+| `armourer` | armourer | | its native start played as the arms trade: permits, gun orders, mods |
 | `gunsmith_farm` | armourer | | guns, wine and medicine |
 | `fountain_pharma` | water-baron | | water by night, injectors in the back |
 | `household_sprinter` | magnate | | a discount store |

@@ -70,6 +70,9 @@ type Narrator struct {
 
 	// pace is the run's latest standing against its book (ghost.go), "" without one.
 	pace string
+
+	// Cohost, when set, is the second voice that answers some of the narrator's lines (cohost.go).
+	Cohost *Cohost
 }
 
 func (n *Narrator) defaults() {
@@ -162,7 +165,13 @@ func (n *Narrator) Run(ctx context.Context, events <-chan Event) {
 			n.setBusy(false, 0)
 			continue
 		}
-		spoken := n.speak(ctx, *ev)
+		spoken, said := n.speak(ctx, *ev)
+		if c := n.Cohost; c != nil && said != nil {
+			c.noteLine()
+			if said.Source == "llm" && c.due(*ev) && (n.LLMOff == nil || !n.LLMOff()) {
+				spoken = n.exchange(ctx, *ev, *said, spoken)
+			}
+		}
 		n.setBusy(false, spoken)
 		next = n.now().Add(spoken + n.MinGap)
 	}
@@ -281,13 +290,14 @@ func (n *Narrator) take() *Event {
 	return ev
 }
 
-// speak makes and publishes one line, returning how long its audio plays.
-func (n *Narrator) speak(ctx context.Context, ev Event) time.Duration {
+// speak makes and publishes one line, returning how long its audio plays and the line, nil when
+// none was published.
+func (n *Narrator) speak(ctx context.Context, ev Event) (time.Duration, *Say) {
 	start := n.now()
 	sp := n.line(ctx, ev)
 	line := sp.line
 	if line == "" {
-		return 0
+		return 0, nil
 	}
 	say := &Say{Line: line, For: ev.Seq, Source: sp.source, Check: sp.check, Faults: sp.faults, MS: sp.ms, Mood: n.mood(ev).Name, Callback: sp.callback}
 	var dur time.Duration
@@ -308,7 +318,7 @@ func (n *Narrator) speak(ctx context.Context, ev Event) time.Duration {
 	}
 	if lag := n.now().Sub(time.UnixMilli(ev.At)); ev.At > 0 && lag > n.slack(ev, n.MaxLag) {
 		n.Log.Info("narrator: line too late; dropped", "kind", ev.Kind, "lag", lag.Round(time.Second), "took", n.now().Sub(start).Round(time.Millisecond))
-		return 0
+		return 0, nil
 	}
 	if sp.source == "llm" {
 		n.book().add(line)
@@ -319,7 +329,7 @@ func (n *Narrator) speak(ctx context.Context, ev Event) time.Duration {
 	}
 	n.Publish(Event{Kind: KindSay, Day: ev.Day, Run: ev.Run, Level: LevelNotable, Text: line, Say: say})
 	n.Log.Info("narrator: said", "kind", ev.Kind, "source", sp.source, "check", sp.check, "llm_ms", sp.ms, "audio", say.Audio != "", "took", n.now().Sub(start).Round(time.Millisecond), "line", line)
-	return dur
+	return dur, say
 }
 
 // Recall reads a recorded feed (-record) so a restarted narrator remembers what the last
@@ -328,7 +338,7 @@ func (n *Narrator) Recall(r io.Reader) {
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 64<<10), 8<<20)
 	var run, persona string
-	var lines []string
+	var lines, cohost []string
 	for sc.Scan() {
 		var ev Event
 		if json.Unmarshal(sc.Bytes(), &ev) != nil {
@@ -336,10 +346,12 @@ func (n *Narrator) Recall(r io.Reader) {
 		}
 		switch {
 		case ev.Kind == KindRunStart && ev.Run != run:
-			run, lines, persona = ev.Run, nil, n.Persona
+			run, lines, cohost, persona = ev.Run, nil, nil, n.Persona
 			if ev.Player != nil && ev.Player.Persona != "" {
 				persona = ev.Player.Persona
 			}
+		case ev.Kind == KindSay && ev.Say != nil && ev.Say.Source == "llm" && ev.Run == run && ev.Say.Speaker == SpeakerCohost:
+			cohost = append(cohost, ev.Say.Line)
 		case ev.Kind == KindSay && ev.Say != nil && ev.Say.Source == "llm" && ev.Run == run:
 			lines = append(lines, ev.Say.Line)
 		}
@@ -350,6 +362,12 @@ func (n *Narrator) Recall(r io.Reader) {
 	pb := newPhrasebook(persona)
 	for _, l := range lines {
 		pb.add(l)
+	}
+	if c := n.Cohost; c != nil {
+		c.book = newPhrasebook(SpeakerCohost)
+		for _, l := range cohost {
+			c.book.add(l)
+		}
 	}
 	n.mu.Lock()
 	defer n.mu.Unlock()

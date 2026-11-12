@@ -59,7 +59,7 @@ func (p *pacer) wait(ctx context.Context, when time.Time) error {
 }
 
 func (p Pace) hold(ev Event) time.Duration {
-	if p.Recorded {
+	if p.Recorded || ev.Kind == KindSay {
 		return 0
 	}
 	d := p.Ticker
@@ -183,14 +183,27 @@ func show(ctx context.Context, ev Event, pace *pacer, when time.Time, gate Gate,
 	return ctx.Err()
 }
 
-// PlayFeed replays a recorded show feed (JSON lines, as the hub records) at the given pace.
+// PlayFeed replays a recorded show feed (JSON lines, as the hub records) at the given pace. Its
+// narrator lines are left out: the narrator speaks the moments afresh.
 func PlayFeed(ctx context.Context, r io.Reader, w Window, pace Pace, gate Gate, publish func(Event) Event) error {
+	return playFeed(ctx, r, w, pace, gate, publish, false)
+}
+
+// PlayFeedLines replays a recorded feed with the lines it recorded, the narrator's and the
+// co-host's, each with its audio path and where it fell between the moments, so a show replays as
+// it went out. A line's for and reply_to follow the moments' new numbers.
+func PlayFeedLines(ctx context.Context, r io.Reader, w Window, pace Pace, publish func(Event) Event) error {
+	return playFeed(ctx, r, w, pace, nil, publish, true)
+}
+
+func playFeed(ctx context.Context, r io.Reader, w Window, pace Pace, gate Gate, publish func(Event) Event, lines bool) error {
 	sc := bufio.NewScanner(r)
 	sc.Buffer(make([]byte, 0, 64<<10), 8<<20)
 	p := &pacer{Pace: pace}
+	seqs := map[int64]int64{}
 	for sc.Scan() {
 		var ev Event
-		if json.Unmarshal(sc.Bytes(), &ev) != nil || ev.Kind == KindSay {
+		if json.Unmarshal(sc.Bytes(), &ev) != nil || (ev.Kind == KindSay && (!lines || ev.Say == nil)) {
 			continue
 		}
 		if w.after(ev.Day) {
@@ -203,9 +216,19 @@ func PlayFeed(ctx context.Context, r io.Reader, w Window, pace Pace, gate Gate, 
 		if ev.At > 0 {
 			when = time.UnixMilli(ev.At)
 		}
+		old := ev.Seq
+		if s := ev.Say; s != nil {
+			c := *s
+			c.For, c.ReplyTo = seqs[c.For], seqs[c.ReplyTo]
+			ev.Say = &c
+		}
 		ev.Seq, ev.At = 0, 0
-		if err := show(ctx, ev, p, when, gate, publish); err != nil {
+		var got Event
+		if err := show(ctx, ev, p, when, gate, func(e Event) Event { got = publish(e); return got }); err != nil {
 			return err
+		}
+		if old != 0 {
+			seqs[old] = got.Seq
 		}
 	}
 	return sc.Err()

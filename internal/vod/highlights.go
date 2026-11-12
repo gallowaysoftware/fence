@@ -19,10 +19,12 @@ type Clip struct {
 	Day     int    `json:"day"`
 	Caption string `json:"caption"`
 	// Line is the narrator's line the clip pays off on, "" when it has none.
-	Line  string `json:"line,omitempty"`
-	Kind  string `json:"kind"`
-	Beat  string `json:"beat,omitempty"`
-	Score int    `json:"score"`
+	Line string `json:"line,omitempty"`
+	// Exchange is the co-host's exchange over the moment, each line led by its speaker's name.
+	Exchange []string `json:"exchange,omitempty"`
+	Kind     string   `json:"kind"`
+	Beat     string   `json:"beat,omitempty"`
+	Score    int      `json:"score"`
 }
 
 const (
@@ -43,6 +45,10 @@ const (
 // a clip with a payoff beats a louder moment told in silence.
 const lineBonus = 15
 
+// exchangeBonus is what a co-host exchange over the moment adds: a second voice disagreeing is a
+// clip with a back-and-forth.
+const exchangeBonus = 10
+
 // crowding is what each clip already near a candidate costs it.
 const crowding = 10
 
@@ -53,6 +59,7 @@ func Highlights(p *Part, n int) []Clip {
 	type cand struct {
 		pt    Point
 		say   *Point
+		ex    []Point
 		score int
 	}
 	var cands []cand
@@ -72,6 +79,9 @@ func Highlights(p *Part, n int) []Clip {
 			if sp.Ev.Say.Source == "llm" {
 				c.score += lineBonus
 			}
+		}
+		if c.ex = exchangeFor(p, pt); len(c.ex) > 0 {
+			c.score += exchangeBonus
 		}
 		cands = append(cands, c)
 	}
@@ -107,7 +117,11 @@ func Highlights(p *Part, n int) []Clip {
 		}
 		c := cands[best]
 		cands = slices.Delete(cands, best, best+1)
-		start, end, ok := window(p, c.pt, c.say)
+		last := c.say
+		if len(c.ex) > 0 {
+			last = &c.ex[len(c.ex)-1]
+		}
+		start, end, ok := window(p, c.pt, last)
 		if !ok || overlaps(start, end) {
 			continue
 		}
@@ -116,6 +130,9 @@ func Highlights(p *Part, n int) []Clip {
 			Caption: clipCaption(c.pt.Ev, c.say)}
 		if c.say != nil {
 			cl.Line = c.say.Ev.Say.Line
+		}
+		for _, e := range c.ex {
+			cl.Exchange = append(cl.Exchange, e.Ev.Say.Name+": "+e.Ev.Say.Line)
 		}
 		out = append(out, cl)
 	}
@@ -148,6 +165,17 @@ func lineFor(p *Part, i int) *Point {
 		return &say
 	}
 	return nil
+}
+
+// exchangeFor is the co-host exchange over a moment: the lines whose own feed names it.
+func exchangeFor(p *Part, pt Point) []Point {
+	var out []Point
+	for _, e := range p.Exchanges {
+		if m := e.Told; m != nil && ((m.TS != "" && m.TS == pt.Ev.TS && m.Kind == pt.Ev.Kind) || (m.TS == "" && m.Seq == pt.Ev.Seq)) {
+			out = append(out, e)
+		}
+	}
+	return out
 }
 
 // window frames a clip: the setup before the moment, then the moment, then the line and a breath

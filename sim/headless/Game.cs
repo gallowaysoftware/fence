@@ -26,6 +26,10 @@ namespace Fence.Sim
                 try
                 {
                     var dir = RuntimeHelpers.GetUninitializedObject(t);
+                    // The constructor runs the instance field initializers (GunModDirectory's per-gun allow lists, read
+                    // whenever a mod goes into a gun's slot); MonoBehaviour's own constructor is inert headless.
+                    try { t.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, Type.EmptyTypes, null)?.Invoke(dir, null); }
+                    catch (TargetInvocationException) { }
                     var prop = t.GetProperty("factoryDictionary", BindingFlags.Public | BindingFlags.Instance);
                     var dictType = prop.PropertyType;
                     prop.SetValue(dir, Activator.CreateInstance(dictType));

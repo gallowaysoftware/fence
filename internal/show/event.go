@@ -295,6 +295,12 @@ type Say struct {
 	// Callback names the history the line was given to call back to: "bet" (the bet's claim)
 	// and/or "ledger" (a character's past dealings).
 	Callback []string `json:"callback,omitempty"`
+	// Speaker is "cohost" for the co-host's line (cohost.go), "" for the narrator's. Name is the
+	// speaker's on-air name, set in an exchange; ReplyTo is the seq of the co-host line a narrator
+	// line answers.
+	Speaker string `json:"speaker,omitempty"`
+	Name    string `json:"name,omitempty"`
+	ReplyTo int64  `json:"reply_to,omitempty"`
 }
 
 // BoardRow is one run on the scoreboard.

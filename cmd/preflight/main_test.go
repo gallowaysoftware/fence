@@ -236,13 +236,21 @@ func TestGateRow(t *testing.T) {
 			g := newGate(t, c.stratURL)
 			c.stratURL, c.narrURL, c.narrModel = g+"/plan/v1", g+"/narrate/v1", c.stratModel
 		}, Go, "strategist and narrator"},
-		{"the narrator's own model through the gate", func(t *testing.T, c *config) {
+		{"the narrator on the strategist's model around the gate", func(t *testing.T, c *config) {
+			c.narrModel = c.stratModel
+			c.stratURL = newGate(t, c.stratURL) + "/plan/v1"
+		}, Warn, "/narrate/v1"},
+		{"the fallback model through the gate", func(t *testing.T, c *config) {
 			g := newGate(t, c.stratURL)
 			c.stratURL, c.narrURL = g+"/plan/v1", g+"/narrate/v1"
-		}, Warn, "point it at drift directly"},
-		{"the narrator's own model beside the gate", func(t *testing.T, c *config) {
+		}, Warn, "call it at drift directly"},
+		{"the fallback model beside the gate", func(t *testing.T, c *config) {
 			c.stratURL = newGate(t, c.stratURL) + "/plan/v1"
-		}, Go, "own model, beside the gate"},
+		}, Go, "fallback model (narrator), beside the gate"},
+		{"captions only beside the gate", func(t *testing.T, c *config) {
+			c.narrURL, c.narrModel = "", ""
+			c.stratURL = newGate(t, c.stratURL) + "/plan/v1"
+		}, Go, "strategist through the gate"},
 		{"only the narrator", func(t *testing.T, c *config) { c.narrURL = newGate(t, c.narrURL) + "/narrate/v1" }, Warn, "point the bridge"},
 	}
 	for _, tc := range cases {

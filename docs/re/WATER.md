@@ -55,7 +55,7 @@ sources ──► container (36 liquid parts + temp + label)
 | Label (presumed purity) | `WaterFeatureHelper.GetWaterFeature(GameItem) : ItemFeature` → `customIntValue1`; `fakeCondition` (label grade), `realCondition` (true grade), `IsExposed()`, `IsFeatureMatch()` (true when both grades are the same band) | label grade VISIBLE in tooltip; true grade VISIBLE after a test ("Tested: …" line, `CreateWaterFeatureTooltip`) | `WaterFeatureHelper` |
 | Temperature | tag `CONTAINER_TEMP_TAG` (double, °C; new/empty = 24, ambient = 26) | VISIBLE only on the heating plate panel | `ChemicalHelper.InitContainerTemp`, `MachineHeatingPlate` |
 | Last scan | tag `LAST_SCAN_RESULT_TAG` (string "Last scan: 98.12 % Basewater") | VISIBLE in tooltip; cleared whenever the liquid changes | `WaterHelper.SetLastScanResult` / `ResetLastScanResult` |
-| Strip-tested flag | tag `STRIP_TESTED_TAG` | HIDDEN; looks transient (inferred: every container tick calls `OnLiquidChanged`, which clears it, because `HandleBoilingReaction` always reports a change) | `ChemicalHelper.HandleTemperatureReaction` |
+| Strip-tested flag | tag `STRIP_TESTED_TAG` | HIDDEN and transient: every one-second tick of a non-empty container runs the reaction pass, whose boiling step reports a change unconditionally, so `OnLiquidChanged` clears the flag within a second. It only carries over on a pour into an empty container. Nothing a player does depends on it | `ChemicalHelper.HandleTemperatureReaction`, `HandleBoilingReaction` |
 | Item type | `WATER` when non-empty, `HOUSEHOLD_GOOD` when empty (customers buy them as different goods) | VISIBLE | `WaterHelper.UpdateContainerGoodType` |
 | Colour | weighted mix of liquid colours (`Liquid.color` × `colorMultiplier`: organic ×7, chemical ×6, heavy metal ×4, microbe ×4, wine extract ×150) | VISIBLE sprite tint (a weak dirtiness cue) | `WaterHelper.GetLiquidContainerColor` |
 
@@ -74,8 +74,8 @@ remediation and plant purification), `basePurifierRemoveAmount`, `canBeRemovedBy
 | `physical_contaminant` | 100 | caught; keeps 0.16 %, 2 dur per 1.5 ml | 7 | no | |
 | `mineral` | 30 | caught; keeps 0.16 %, 1 dur per 2 ml | 7 | no | **plant food** (§2.3); counted as a contaminant for purity |
 | `microplastic` | 25 | caught; keeps 0.2 %, 2 dur per 1.5 ml | 18 | no | not in any premade water |
-| `heavy_metal` | 12 | **not** caught (12 < 22) | 25 | no | removed last by the purifier |
-| `chemical_contaminant` | 2 | **not** caught | 16 | no | chlorine removes it down to 0.7 % of volume |
+| `heavy_metal` | 12 | **not** caught (12 < 22) | 25 | no | purifier's last group: after minerals, before chemical |
+| `chemical_contaminant` | 2 | **not** caught | 16 | no | chlorine removes it down to 0.7 % of volume; the **very last** thing the purifier removes |
 | `chlorine` | 5 | not caught | — | no | from purification tablets; consumed within one tick |
 | `acid`, `base` | 5 | not caught | — | no | neutralise each other; kill microbes; mineralise organic waste |
 | `alcohol` | 10 | not caught | — | 78.37 °C | wine pours 20 %, Nudka 45 % |
@@ -108,12 +108,29 @@ not (30 + 5) × 2 = 70; gutter 3 + 5 = 8, not 3.5) (measured, docs/sim/VERIFIED.
 | Faucet with `RUSTWATER_TAP` (network upgrade 350, needs `GUTTERFLOW_TAP`) | today's roll 90.00–91.50 % (Rustwater), fills the container to the brim, free | `waterContaminantDistribution` (organic 20, microbe 15, physical 10, chemical 30, mineral 15, heavy 10 %) | daily purity HIDDEN (`StoreStation.todayRustwaterPurity`), DERIVABLE by testing one fill | `WaterHelper.InitLiquidContainerItem` faucet branch; `StoreStation.StartDay` |
 | Faucet with `GUTTERFLOW_TAP` only (250, needs `WATER_TRADER`) | 80.00–89.99 % (Gutterflow) | same distribution | same | same |
 | Starting perk "working pipes" | unlocks both taps | | | `StartingPerkContent` |
-| Premade fills `WaterHelper.FillWith*` / `Add*` (`AddWater(GameItem, int grade, …)`) | grade 0 uniform 99.90–99.99; grades 1–3 **rolled near the lower edge** (exponential, mean ≈ 15 % of the band above the floor: base ≈ 98.15 %; measured, docs/sim/VERIFIED.md); grade 4 uniform 90.00–95.99; grade 5 uniform 35–89.99 % | grade 2 `baseWater…`, grade 4 `rustWater…`, grade 5 `gutterflow…`, else `waterContaminantDistribution` | | `AddWater`, `RollNearLowerEdge`, `WaterPremadeHelper` |
+| Premade fills `WaterHelper.FillWith*` / `Add*` (`AddWater(GameItem, int grade, …)`; contaminant mixes below) | grade 0 uniform 99.90–99.99; grades 1–3 **rolled near the lower edge** (exponential, mean ≈ 15 % of the band above the floor: base ≈ 98.15 %; measured, docs/sim/VERIFIED.md); grade 4 uniform 90.00–95.99; grade 5 uniform 35–89.99 % | grade 2 `baseWater…`, grade 4 `rustWater…`, grade 5 `gutterflow…`, else `waterContaminantDistribution` | | `AddWater`, `RollNearLowerEdge`, `WaterPremadeHelper` |
 | Water sellers (`StoreClientListWater.GetRandomWaterSupplier`: honest 20 %, company 12 %, dishonest scav 7 %, scav otherwise) | via `WaterPremadeHelper.GetRandomWater` odds 30/20/10/10/10 → accurate base, accurate ghost, accurate rust (low end), **ghost labelled base**, **base labelled HQ**; dishonest scav adds ghost-as-base (75 %, 50 %) and **ghost-as-pure** (25 %) | | label VISIBLE, truth HIDDEN | `StoreClientListWater` |
 | Moisture farm (night) | 850 ml × (1 + perf %) / (1 + 0.25 × (other running farms)); grade from `quality bonus + 50`: <0 gutter, <50 rust, <100 **ghost (default)**, <150 base, <200 HQ, else pure | grade's premade distribution | tooltip shows ml and grade VISIBLE | `MachineMoistureFarm.GetOutputVolume/GetOutputQuality/Fill` |
-| Evaporator (night) | removes up to 300 ml × (1 + perf %) of evaporative liquids (water, alcohol, lipobond) from the input; distillate gets `quality bonus %` (clamped 0–100) of it, so **distillate is 100 % water** (with the solvent-recovery module only alcohol is kept). At quality 0 the water is simply lost | | | `MachineEvaporator` |
+| Evaporator (night) | removes up to 300 ml × (1 + perf %) of evaporative liquids (water, alcohol, lipobond) from the input; distillate gets `quality bonus %` (clamped 0–100) of it, so **distillate is 100 % water at any quality above 0** — quality sets only the volume (with the solvent-recovery module only alcohol is kept). At quality 0 the water is simply lost. The distillate container keeps its old label (an empty one reads Gutterflow) until tested; the added amount is capped per liquid, not against the container's total, so a container already holding other liquid can be overfilled | | | `MachineEvaporator`, `WaterHelper.AddLiquid` |
 | Water rations (`water_ration` 750 ml / `_small` 375 ml) | poured only into a wine bottle: base grade (≈ 98.15 % on average, near the lower edge) | base distribution | | `WineHelper.PourRationIntoBottle` |
 | Water Merchant start | ghostwater 2 L, rust (low end) 6 L, strips, tablets, pitcher + filter, shabby portable purifier at 75 charge, shabby bottle printer | | | `NewGameData` (`StartType.WATER_MERCHANT`) |
+
+Contaminant mixes (share of the impurity; `WaterPremadeHelper`). Grades 0, 1 and 3 and both taps use
+the default mix; a separate ghostwater mix exists in code but no fill uses it. The moisture farm makes
+its grade's premade fill, so its mix follows the grade.
+
+| Mix | organic | microbe | physical | chemical | mineral | heavy metal |
+|---|---|---|---|---|---|---|
+| default (pure, HQ, ghost, both taps) | 20 % | 15 % | 10 % | 30 % | 15 % | 10 % |
+| base (grade 2, rations) | 20 % | 10 % | 10 % | 30 % | 15 % | 15 % |
+| rust (grade 4) | 22 % | 15 % | 10 % | 30 % | 15 % | 8 % |
+| gutter (grade 5) | 29.9 % | 15 % | 10 % | 30 % | 15 % | 0.1 % |
+
+A premade fill (`AddWater` with its feature init: faucet, bought bottles, moisture farm) re-labels the
+**whole** container to the true purity of the result, unexposed, even when it tops up a container that
+already held water. Exception: when the container carries a filter (the pitcher), the fill is filtered
+on the way in and the label is set to the purity the fill *would* have had unfiltered, i.e. under the
+truth. Rations poured into a wine bottle skip the feature entirely.
 
 Containers (`InitLiquidContainerItem(GameItem, capacityMl, basePrice, isFilterContainer, isGraduated, isDropper, isTransparent, sheet)`):
 `mini_bottle` 250 ml (3), `small_bottled_water` 450 (4), `bottled_water` 750 (5),
@@ -136,8 +153,8 @@ water.
 | UV filter used on a container | `WaterHelper.OnUVUsed(GameItem)` (item `uv_filter`, any non-empty container, no ownership check, no durability) | all microbes become water | stale |
 | Purification tablet | dissolves: `ChemicalHelper.DissolveInto(GameItem chem, GameItem container)` adds 15 ml chlorine (displacing liquid if full); next tick `HandleChlorine`: potency 5.1 × chlorine (≤ 15 ml per tick = 76.5 ml) first removes chemical contaminant **down to 0.7 % of total volume**, then microbes; chlorine is consumed (≥ 20 %/tick decay). Removed volume is **not** returned as water (the container shrinks) | stale |
 | Nutrient tablet | same dissolve path, 15 ml mineral | stale |
-| Portable purifier | `WaterHelper.PurifyToBaseWater(GameItem)` via the item's target action; refuses at ≥ 98 %; costs ⌈volume / 100 ml⌉ charges (300 max) | raises to exactly ≥ 98.00 % by shrinking everything except chemical and heavy metal first, then those; removed volume returned as water | **updated** (`SetPresumedPurity`) |
-| Water purifier machine (night) | `MachinePurifier.PurifyContainer(GameItem machine, GameItem container, System.Boolean ignoreBonus)` | budget µL = (min(volume, 10 L) × 0.003 + 25 ml) × (dirt bonus + perf %/100) × 1.25; dirt bonus by purity: 98 %→1, 94 %→2, 88.5 %→5, 80 %→10, 62.5 %→15, 37.5 %→20 (linear between). Removes largest particles first, minerals/heavy metal/chemical last; stops at the cap `10000 − round(99 × mult)` with mult 1.0 / 0.85 (q≥15) / 0.65 (25) / 0.35 (50) / 0.2 (75) / 0.1 (100) / 0 (200): **99.01 % (HQ) unupgraded, 99.90 % (Pure) needs quality ≥ 100**. Removed volume returned as water | stale |
+| Portable purifier | `WaterHelper.PurifyToBaseWater(GameItem)` via the item's target action (owned purifier, owned non-empty container); refuses at ≥ 98 % with a message, which is itself a free player-visible "this is already ≥ 98 %" test; costs ⌈volume / 100 ml⌉ charges (300 max) | raises to exactly ≥ 98.00 % by shrinking everything except chemical and heavy metal first (minerals included), then those; removed volume returned as water. Lands on the bottom edge of Basewater, so one more contaminant (a nutrient tablet) drops it to Ghost | **updated** (`SetPresumedPurity`) |
+| Water purifier machine (night) | `MachinePurifier.PurifyContainer(GameItem machine, GameItem container, System.Boolean ignoreBonus)` | budget µL = (min(volume, 10 L) × 0.003 + 25 ml) × (dirt bonus + perf %/100) × 1.25; dirt bonus by purity: 98 %→1, 94 %→2, 88.5 %→5, 80 %→10, 62.5 %→15, 37.5 %→20 (linear between). Order: every removable liquid except water, largest particle first (debris/mush 200, physical 100, microbe 50, organic 40, microplastic 25, then the small chemistry liquids), and last of all mineral → heavy metal → chemical (smallest particle last); within one particle size proportionally. Stops when the contaminants left equal `volume × (10000 − cap) / 10000`, cap = `10000 − round(99 × mult)` with mult 1.0 / 0.85 (q≥15) / 0.65 (25) / 0.35 (50) / 0.2 (75) / 0.1 (100) / 0 (200): **99.01 % (HQ) unupgraded, 99.90 % (Pure) needs quality ≥ 100** (raw quality: the purifier's quality ratio tag only changes its tooltip). Performance adds P/100 to the dirt bonus (fineness −8 each). Removed volume returned as water. **What is left matters for plants:** HQ made by the purifier is mostly chemical and heavy metal (base 98.15 % → 99.01 % leaves ≈ 55 bp chemical, 28 heavy metal, 16 mineral, and tablet-treated tap water keeps ≥ 70 bp chemical), worse for a bay than premade HQ; at the Pure cap only ≈ 10 bp of chemical remain, under every plant threshold | stale |
 | Heat | heating plate `MachineHeatingPlate.HandleHeating` (max 99 °C, 160 °C upgraded; speed ×4/×16 with 3/4 upgrades); cools toward 26 °C each second | ≥ 70 °C kills 20 % of microbes/s, ≥ 100 °C all; ≥ 80 °C organic waste −15 %/s (100 °C: all) with 33 % becoming physical contaminant; **> 100 °C boils off 2 % of the water per second, lowering purity** | stale |
 | Acid / base | `HandleAcidBaseNeutralization`, `HandleAcidBaseMicrobeKill` (1 acid/base kills 20× microbes), `HandleOrganicWasteMineralization` (1 acid/base turns 40× organic waste into 4× mineral) | | stale |
 | Alcohol | `HandleMicrobeAlcohol`: alcohol ≥ 40 % of volume kills microbes 1:1 | | stale |
@@ -145,7 +162,7 @@ water.
 | Plant trait `polluting` | `PlantWaterQuality.Pollute(GameItem, int)`: turns 0.1 % × r^0.75 of the water into organic 50 / microbe 35 / physical 15 % | stale |
 | Fish | `AquacultureHelper.TickTank` (§2.4): waste turns water into organic waste; gutter tilapia remediate heavy metal, chemical, physical | stale |
 | Spirits | `WaterHelper.PourSpirit(GameItem, int ml, int alcohol%)` (Nudka 750 ml at 45 %) | alcohol + base water | — |
-| Time | **no decay of its own** (inferred: no code ages water). Only temperature-driven reactions and chlorine run over time | | |
+| Time | **no decay of its own**: the only timed callback on a liquid container is the one-second reaction tick (and its 360 night repeats); with no chlorine, acid/base, alcohol ≥ 40 % or heat above 70 °C none of its reactions changes anything | | `ChemicalHelper.containerTempTick`, `RunNightlyChemicalSimulation` |
 | Legacy, uncalled | `WaterHelper.OnWaterPurificationTabletAdded(…)`/`…2`, `OnHydroponicNutrientTabletAdded`, `AddWaterOld`, `WaterFeatureHelper.HandleWaterCheckFlashlight` | — | — |
 
 ## 2. Consumers and the effect of each parameter
@@ -260,6 +277,15 @@ Rations give base (0). Anything else in the bottle (e.g. alcohol) lowers purity.
 HIDDEN (dev tooltip) but DERIVABLE: test the water (AquaScan works on an unfermented bottle; it
 is a liquid container) before starting.
 
+The term is read from the purity of everything liquid in the bottle at the moment of starting, so
+pours mix by volume. A ration rolls Basewater near its floor (≈ 98.15 % on average, often 98.0x), so
+half a small ration topped up with Pure water reaches HQ only about half the time; a full bottle of
+tested HQ or Pure water is the reliable +1. Two ways to get there without moving water: the water
+purifier takes an unfermented wine bottle in its container slot (it is a liquid container), and one
+night lifts a ration-filled bottle (750 ml, budget ≈ 34 ml bare, ≈ 23 ml with four fineness) to the cap,
+HQ bare or Pure with quality ≥ 100; the berries and yeast already in the grid are untouched. After
+fermentation starts the water is drained and the term is fixed.
+
 ### 2.6 Other users
 
 | Consumer | What it reads | Evidence |
@@ -300,9 +326,31 @@ evaporator, plants, fish, heat — recomputes the true grade but keeps the old l
 exposure. An emptied container's label is purity 0 = **Gutterflow**, so anything first filled by
 `AddLiquid` (evaporator distillate) or cleaned by the purifier sells at the old/low label until
 re-tested. Exceptions that relabel automatically: faucet/premade fills (`AddWater` → `InitWaterFeature`,
-label = truth), the portable purifier (`SetPresumedPurity`), a strip/AquaScan Match. Mixing
-into a non-empty container keeps the receiver's label (§1.5) — the easy way to commit fraud by
+label = truth, also on a top-up, see §1.4), the portable purifier (`SetPresumedPurity`), a strip/AquaScan
+Match. Mixing into a non-empty container keeps the receiver's label (§1.5) — the easy way to commit fraud by
 accident.
+
+**Match** is offered only on an owned, non-empty, unexposed container whose label *band* differs from the
+true band; a label of the right band keeps its old number and needs nothing. A Match exposes the feature
+and writes the true purity into the label, so the price follows the true grade; the next stale-label
+update (any treatment, a purifier night) drops the exposure and the price falls back to that written
+number until the container is tested again.
+
+**What a player can know without a test** (the boundary for an executor that plays fair):
+
+| Signal | Tells you | Source |
+|---|---|---|
+| Label grade and its band text | the presumed grade (true only after a fill, a Match or the portable purifier) | item tooltip |
+| Exact ml | graduated containers, wine bottles (an unfermented bottle always prints ml / 750), or the Experienced Chemist perk; otherwise a band | container tooltips |
+| "Last scan" line | the purity at the last AquaScan, until the liquid changes | tooltip |
+| Purifier tooltip | last night's removed ml (0 = nothing left to do at this cap) and the current max-purity cap | `MachinePurifier.CreateTooltip` |
+| Moisture farm tooltip | tonight's ml and grade | `MachineMoistureFarm.CreateTooltip` |
+| Portable purifier refusal | the container is already ≥ 98.00 % | `OnPortableWaterPurifierUsed` |
+| Colour tint | a weak dirtiness cue | sprite |
+| Rules | every formula in this file (fixed treatment results, the purifier's cap, distillate = 100 % water, faucet ranges 90.00–91.50 / 80.00–89.99) | — |
+
+Strip and AquaScan readings are exact; the composition (per-liquid ml, which plants care about) is
+visible only on the AquaScan.
 
 ## 5. Timing
 
@@ -433,7 +481,7 @@ exclude the water inside. Durability items price linearly toward their zero-dura
 | `water_filter_adv` | HOUSEHOLD_GOOD, FILTER, WPS, **LUXURY_ITEM**; 350 | same | durability 400, **+50/night** while owned | same; ≈ 50 ml waste or ~1.35 L rust water per night forever |
 | `hydroreed_filter` | HOUSEHOLD_GOOD, FILTER, WPS; 20 | same | durability 200 | same; grown from hydroreed with its module |
 | `kotton_fabric` | MATERIAL, FILTER; 65 | filter slot | durability 1000 | size 150: catches only 200-size particles (debris, mushes, plant matter) — useless on ordinary water |
-| `portable_water_purifier` | HOUSEHOLD_GOOD, WPS, **LUXURY_ITEM**; 325 → 25 | use on owned water < 98 % | 1 charge / 100 ml, 300 charges | to ≥ 98 % base, label updated; no recharge path found (inferred) |
+| `portable_water_purifier` | HOUSEHOLD_GOOD, WPS, **LUXURY_ITEM**; 325 → 25 | use on owned water < 98 % | 1 charge / 100 ml, 300 charges | to ≥ 98 % base, label updated; **no recharge**: the only code that changes its charge is the use itself |
 | `water_pitcher` | HOUSEHOLD_GOOD (empty) / WATER (filled); 25 | 3 L graduated filter container | no | applies its filter to every pour/fill into it |
 | `bottled_water`, `small_bottled_water`, `mini_bottle`, `large_bottled_water`, `water_jug` | HOUSEHOLD_GOOD empty / WATER filled; 5/4/3/9/15 | 750/450/250/2000/6000 ml | no | container value is added to the water value |
 | `water_tank` | HOUSEHOLD_GOOD; 350 (+ upgrade materials) | 20–50 L graduated | no | bulk storage; purifier budget caps at 10 L, so big tanks purify slowly |

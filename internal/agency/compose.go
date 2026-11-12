@@ -123,6 +123,7 @@ var contractLevers = map[string]lever{
 	"buy.prefer_types":      {"item types to favour when buying", typed},
 	"buy.avoid_types":       {"item types never bought", typed},
 	"sell.min_pct":          {"lowest % of the estimate an ordinary sale accepts (routes: 57)", intIn(30, 100)},
+	"arms":                  {`{} or {"keep_guns": N, "permits": false, ...}: the arms engine (Gunsmith start): permits on display bring gun-order clients, filled from stock with mods; Weapon Permits II and III bought near their Security gates`, nil},
 }
 
 // ItemTypes are the item categories speculate, specialty and the buy lists take.

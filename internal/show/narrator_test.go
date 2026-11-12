@@ -153,7 +153,7 @@ func TestNarratorSpeaksTheLoudestFreshMoment(t *testing.T) {
 	if ev == nil || ev.Seq != 3 {
 		t.Fatalf("pending = %+v", ev)
 	}
-	n.speak(context.Background(), *ev)
+	_, _ = n.speak(context.Background(), *ev)
 	if len(said) != 1 {
 		t.Fatalf("said %d lines: %+v", len(said), said)
 	}

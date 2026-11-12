@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -43,6 +44,8 @@ func TestParseFlagsSources(t *testing.T) {
 		{[]string{}, false},
 		{[]string{"-replay", "m", "-feed", "f"}, false},
 		{[]string{"-feed", "f", "-convert"}, false},
+		{[]string{"-feed", "f", "-recorded-lines"}, true},
+		{[]string{"-replay", "m", "-recorded-lines"}, false},
 	}
 	for _, c := range cases {
 		if _, err := parseFlags(c.args, env, io.Discard); (err == nil) != c.ok {
@@ -133,5 +136,28 @@ func TestBehindRemoteGate(t *testing.T) {
 func TestSplitSetup(t *testing.T) {
 	if got := splitSetup(" Strategist: qwen27 ;; Voice: Kokoro;"); len(got) != 2 || got[1] != "Voice: Kokoro" {
 		t.Errorf("splitSetup = %q", got)
+	}
+}
+
+// The co-host asks the narrator's model, at the gate's filler priority when the narrator goes
+// through the gate.
+func TestCohostURL(t *testing.T) {
+	cases := []struct{ llm, flag, want string }{
+		{"http://127.0.0.1:7380/narrate/v1", "", "http://127.0.0.1:7380/filler/v1"},
+		{"http://127.0.0.1:7380/narrate/v1/", "", "http://127.0.0.1:7380/filler/v1"},
+		{"http://drift.invalid:9002/v1", "", "http://drift.invalid:9002/v1"},
+		{"http://127.0.0.1:7380/narrate/v1", "http://127.0.0.1:7380/narrate/v1", "http://127.0.0.1:7380/narrate/v1"},
+	}
+	for _, tc := range cases {
+		if got := cohostURL(config{llmURL: tc.llm, cohostURL: tc.flag}); got != tc.want {
+			t.Errorf("cohostURL(%q, %q) = %q, want %q", tc.llm, tc.flag, got, tc.want)
+		}
+	}
+	c, err := parseFlags([]string{"-replay", "m", "-cohost", "-llm-provider", "none"}, func(string) string { return "" }, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := narrator(c, show.NewHub(nil, ""), slog.New(slog.DiscardHandler)); err == nil {
+		t.Error("a co-host without the narrator's LLM started")
 	}
 }

@@ -59,6 +59,11 @@ type config struct {
 	tts, ttsURL, piperBin, piperModel, voice, audioDir string
 	minGap, maxAge, maxLag, fillAfter, llmTimeout      time.Duration
 	yieldToGame                                        bool
+
+	cohost                             bool
+	cohostURL, cohostName, cohostVoice string
+	cohostEvery, cohostReplyEvery      int
+	recordedLines                      bool
 }
 
 func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (config, error) {
@@ -117,7 +122,14 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.DurationVar(&c.fillAfter, "fill-after", 60*time.Second, "after this much silence a notable event may be spoken too (0: moments only)")
 	fs.DurationVar(&c.maxAge, "max-age", 15*time.Second, "never narrate a moment older than this")
 	fs.DurationVar(&c.maxLag, "max-lag", 25*time.Second, "drop a line that is ready later than this after its moment")
-	fs.DurationVar(&c.llmTimeout, "llm-timeout", 8*time.Second, "live: give the narrator's model this long for a line (queue included) before the caption is spoken; a replay paced by the narration gives it 30 s")
+	fs.DurationVar(&c.llmTimeout, "llm-timeout", 8*time.Second, "live: give the narrator's model this long for a line (queue included) before the caption is spoken; 15s for drift's 27B through the gate's /narrate/v1 (the stream's narrator); a replay paced by the narration gives it 30 s")
+	fs.BoolVar(&c.cohost, "cohost", false, "a co-host's second voice needles the player's decisions now and then, and the narrator answers back (docs/SHOW.md, \"The co-host\"); it needs the narrator's LLM")
+	fs.StringVar(&c.cohostURL, "cohost-url", "", "the co-host's base URL; empty: the narrator's, on the gate's /filler/v1 when the narrator is on its /narrate/v1")
+	fs.StringVar(&c.cohostName, "cohost-name", show.DefaultCohostName, "the co-host's on-air name")
+	fs.StringVar(&c.cohostVoice, "cohost-voice", "", "the co-host's Kokoro voice; empty: one unlike the narrator's")
+	fs.IntVar(&c.cohostEvery, "cohost-every", 5, "narrator lines between two exchanges at least")
+	fs.IntVar(&c.cohostReplyEvery, "cohost-reply-every", 2, "the narrator answers every Nth exchange (1: each, 0: never)")
+	fs.BoolVar(&c.recordedLines, "recorded-lines", false, "with -feed: replay the recorded narrator and co-host lines with their audio (from -audio-dir) instead of narrating afresh")
 	fs.BoolVar(&c.yieldToGame, "yield-to-game", true, "no narrator LLM while Probably Stolen.exe runs (captions instead), when that LLM is served on this machine")
 	if err := fs.Parse(args); err != nil {
 		return c, err
@@ -134,6 +146,9 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	}
 	if c.convert && c.replay == "" {
 		return c, errors.New("-convert needs -replay")
+	}
+	if c.recordedLines && c.feed == "" {
+		return c, errors.New("-recorded-lines needs -feed")
 	}
 	return c, nil
 }
@@ -240,7 +255,9 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 
 	audioDir := ""
 	var gate show.Gate
-	if c.narrate {
+	if c.recordedLines {
+		audioDir = c.audioDir
+	} else if c.narrate {
 		audioDir = c.audioDir
 		if err := os.MkdirAll(audioDir, 0o755); err != nil {
 			return err
@@ -305,7 +322,11 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout,
 		if show.Sleep(ctx, 2*time.Second) != nil {
 			return nil
 		}
-		err = show.PlayFeed(ctx, f, win, pace, gate, publish)
+		if c.recordedLines {
+			err = show.PlayFeedLines(ctx, f, win, pace, publish)
+		} else {
+			err = show.PlayFeed(ctx, f, win, pace, gate, publish)
+		}
 	default:
 		l := &show.Live{Log: log, Bridge: c.bridge}
 		if match != nil {
@@ -362,6 +383,19 @@ func narrator(c config, hub *show.Hub, log *slog.Logger) (*show.Narrator, error)
 		return nil, err
 	}
 	n.LLM = client
+	if c.cohost {
+		if client == nil {
+			return nil, errors.New("-cohost needs the narrator's LLM")
+		}
+		cc := c
+		cc.llmURL = cohostURL(c)
+		cl, _, err := narratorLLM(cc)
+		if err != nil {
+			return nil, err
+		}
+		n.Cohost = &show.Cohost{LLM: cl, Name: c.cohostName, Voice: c.cohostVoice, Every: c.cohostEvery, ReplyEvery: c.cohostReplyEvery}
+		log.Info("cohost", "name", c.cohostName, "every", c.cohostEvery, "reply_every", c.cohostReplyEvery)
+	}
 	if c.yieldToGame && sharesGPU(c) {
 		var gaming atomic.Bool
 		poll := func() { gaming.Store(show.GameRunning() && !behindRemoteGate(c.llmURL)) }
@@ -463,6 +497,20 @@ func narratorLLM(c config) (llm.Client, string, error) {
 		return &llm.Anthropic{BaseURL: c.anthropicURL, Model: c.anthropicModel, APIKey: c.anthropicKey}, "anthropic " + c.anthropicModel, nil
 	}
 	return nil, "", fmt.Errorf("-llm-provider %q: want auto, openai, anthropic or none", c.llmProvider)
+}
+
+// cohostURL is where the co-host asks: -cohost-url, else the narrator's URL, moved from the drift
+// gate's /narrate/v1 to its /filler/v1 so a co-host line queues behind plans and narrator lines and
+// is dropped first.
+func cohostURL(c config) string {
+	if c.cohostURL != "" {
+		return c.cohostURL
+	}
+	u := strings.TrimRight(c.llmURL, "/")
+	if base, ok := strings.CutSuffix(u, "/narrate/v1"); ok {
+		return base + "/filler/v1"
+	}
+	return c.llmURL
 }
 
 func splitSetup(s string) []string {

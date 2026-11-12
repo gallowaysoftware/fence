@@ -35,11 +35,18 @@ type Run struct {
 	End      *show.End
 }
 
-// Timeline is a run's events in wall-clock order, with the narrator's lines kept apart.
+// Timeline is a run's events in wall-clock order, with the narrator's lines kept apart, and the
+// co-host's exchanges (its lines and the narrator's answers) apart from those.
 type Timeline struct {
-	Points []Point
-	Says   []Point
-	Runs   map[string]*Run
+	Points    []Point
+	Says      []Point
+	Exchanges []Point
+	Runs      map[string]*Run
+}
+
+// InExchange reports whether a line belongs to a co-host exchange rather than telling a moment.
+func InExchange(s *show.Say) bool {
+	return s != nil && (s.Speaker == show.SpeakerCohost || s.ReplyTo != 0)
 }
 
 // When is when an event was on screen: the hub's publish time for a recorded feed, else the
@@ -121,7 +128,11 @@ func Build(events []show.Event, lines []show.Event) *Timeline {
 				if m, ok := bySeq[ev.Say.For]; ok && ev.Say.For != 0 {
 					pt.Told = &m
 				}
-				t.Says = append(t.Says, pt)
+				if InExchange(ev.Say) {
+					t.Exchanges = append(t.Exchanges, pt)
+				} else {
+					t.Says = append(t.Says, pt)
+				}
 			}
 			return
 		}
@@ -152,6 +163,7 @@ func Build(events []show.Event, lines []show.Event) *Timeline {
 	byTime := func(a, b Point) int { return a.At.Compare(b.At) }
 	slices.SortStableFunc(t.Points, byTime)
 	slices.SortStableFunc(t.Says, byTime)
+	slices.SortStableFunc(t.Exchanges, byTime)
 	return t
 }
 

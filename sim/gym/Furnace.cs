@@ -198,7 +198,7 @@ namespace Fence.Gym
                 {
                     int v = PlayerRole.Est(it);
                     // A full output grid stops the furnace: with no room in stock the ingot goes on display.
-                    if (Chore.Accept(stock, it, -1) == 0 || Chore.Accept(EmporiumEntry.Instance.showcaseElement, it, -1) == 0) { made++; IngotsMade++; IngotValue += v; }
+                    if (Chore.Accept(stock, it, -1) == 0 || Chore.Accept(EmporiumEntry.Instance.showcaseElement, it, -1) == 0) { made++; IngotsMade++; IngotValue += v; Quality.Ingot(it); }
                 }
                 else if (it.identifier == Scrap)
                 {

@@ -10684,6 +10684,419 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machineryhelper.getcurrentqualitybonus",
+      "type": "MachineryHelper",
+      "member": "GetCurrentQualityBonus",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.waterhelper.getcontaminantpercentage",
+      "type": "WaterHelper",
+      "member": "GetContaminantPercentage",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.String"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getmineraluserate",
+      "type": "HydroponicHelper",
+      "member": "GetMineralUseRate",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getwaterusepercycle",
+      "type": "HydroponicHelper",
+      "member": "GetWaterUsePerCycle",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getnutrimentlevel",
+      "type": "HydroponicHelper",
+      "member": "GetNutrimentLevel",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getnutrimentrange",
+      "type": "HydroponicHelper",
+      "member": "GetNutrimentRange",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getcontaminanteffect",
+      "type": "HydroponicHelper",
+      "member": "GetContaminantEffect",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Double",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.hydroponichelper.getcontaminantsensitivity",
+      "type": "HydroponicHelper",
+      "member": "GetContaminantSensitivity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Double",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.ingotpurityhelper.getpurity",
+      "type": "IngotPurityHelper",
+      "member": "GetPurity",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermiti",
+      "type": "PermitHelper",
+      "member": "IsGunPermitI",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermitii",
+      "type": "PermitHelper",
+      "member": "IsGunPermitII",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermitiii",
+      "type": "PermitHelper",
+      "member": "IsGunPermitIII",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.permithelper.havepermit",
+      "type": "PermitHelper",
+      "member": "HavePermit",
+      "kind": "method",
+      "params": [
+        "System.String",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunhelper.isservicegun",
+      "type": "GunHelper",
+      "member": "IsServiceGun",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunhelper.canrepair",
+      "type": "GunHelper",
+      "member": "CanRepair",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunhelper.updatecurrentgunstats",
+      "type": "GunHelper",
+      "member": "UpdateCurrentGunStats",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storereputation.getsecreputation",
+      "type": "StoreReputation",
+      "member": "GetSecReputation",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.mandatoryrequirements",
+      "type": "GunOrderData",
+      "member": "mandatoryRequirements",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<GunOrderRequirement>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.bonusrequirements",
+      "type": "GunOrderData",
+      "member": "bonusRequirements",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<GunOrderRequirement>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.isserviceorder",
+      "type": "GunOrderData",
+      "member": "isServiceOrder",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.isbestorder",
+      "type": "GunOrderData",
+      "member": "isBestOrder",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.tier",
+      "type": "GunOrderData",
+      "member": "tier",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.gettotalreward",
+      "type": "GunOrderData",
+      "member": "GetTotalReward",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderdata.getplacedservicegun",
+      "type": "GunOrderData",
+      "member": "GetPlacedServiceGun",
+      "kind": "method",
+      "params": [],
+      "returns": "GameItem",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.id",
+      "type": "GunOrderRequirement",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.value",
+      "type": "GunOrderRequirement",
+      "member": "value",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.iscaliber",
+      "type": "GunOrderRequirement",
+      "member": "isCaliber",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.ismustbelargerthan",
+      "type": "GunOrderRequirement",
+      "member": "isMustBeLargerThan",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.ismet",
+      "type": "GunOrderRequirement",
+      "member": "IsMet",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gunorderrequirement.getreward",
+      "type": "GunOrderRequirement",
+      "member": "GetReward",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     }
   ]
 }

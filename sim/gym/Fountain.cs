@@ -10,7 +10,7 @@ namespace Fence.Gym
     // Pure slots and sells every one, no customer and no chance: at attractiveness 15 a 750 ml Base bottle and a
     // 450 ml HQ bottle; each +5 attractiveness (a common electronic) adds size or bottles, up to 4.75 L Base,
     // 2.75 L HQ and 2 L Pure a night at 100. A bottle is labelled as its slot's grade, so a slot only gets water
-    // whose true grade is at least the slot's (a better grade sells at the slot's price; a worse one is a crime).
+    // whose label (the water engine tests all it makes) is at least the slot's (a better grade sells at the slot's price; a worse one is a crime).
     internal static class Fountain
     {
         public static int AttractUpgrades, Filled;
@@ -95,7 +95,7 @@ namespace Fence.Gym
 
         static int Purity(GameItem i)
         {
-            try { return WaterHelper.IsEmpty(i) ? 0 : WaterHelper.GetWaterPurity(i); }
+            try { return Production.Label(i); }
             catch (Exception) { return 0; }
         }
 
@@ -103,7 +103,7 @@ namespace Fence.Gym
         static bool Pourable(GameItem i) => i.IsTag("LIQUID_CONTAINER_TAG") && i.IsGameItemType("WATER") && Parent(i) == null
             && i.identifier != "water_pitcher" && i.identifier != "wine_bottle" && !WaterHelper.IsEmpty(i) && !Production.HeldForWine(i);
 
-        // At bedtime, after the water engine's chores: each empty slot gets the fullest vessel whose true grade
+        // At bedtime, after the water engine's chores: each empty slot gets the fullest vessel whose label
         // reaches it, Pure first (it pays most), then HQ, then Base with what is left.
         public static void Evening(IExecutorHost ep)
         {

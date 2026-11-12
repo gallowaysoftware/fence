@@ -18,10 +18,11 @@ type Recording struct {
 
 // Part is the slice of a timeline one recording holds; offsets are from the recording's start.
 type Part struct {
-	N, Of  int
-	Rec    Recording
-	Points []Point
-	Says   []Point
+	N, Of     int
+	Rec       Recording
+	Points    []Point
+	Says      []Point
+	Exchanges []Point
 }
 
 // tail is how long a recording whose length is unknown is taken to run past its last event.
@@ -36,8 +37,10 @@ func Split(t *Timeline, recs []Recording) ([]Part, error) {
 	if n := len(t.Points); n > 0 {
 		last = t.Points[n-1].At
 	}
-	if n := len(t.Says); n > 0 && t.Says[n-1].At.After(last) {
-		last = t.Says[n-1].At
+	for _, ps := range [][]Point{t.Says, t.Exchanges} {
+		if n := len(ps); n > 0 && ps[n-1].At.After(last) {
+			last = ps[n-1].At
+		}
 	}
 	var parts []Part
 	for i, r := range recs {
@@ -66,6 +69,11 @@ func Split(t *Timeline, recs []Recording) ([]Part, error) {
 		for _, pt := range t.Says {
 			if in(pt) {
 				p.Says = append(p.Says, pt)
+			}
+		}
+		for _, pt := range t.Exchanges {
+			if in(pt) {
+				p.Exchanges = append(p.Exchanges, pt)
 			}
 		}
 		parts = append(parts, p)

@@ -18,12 +18,13 @@ Three places can run a model. None is named here by address; endpoints live in `
 | Node | Hardware | Serves | Notes |
 |---|---|---|---|
 | **The game box** | Linux, RTX 5090 (32 607 MiB), Proton | on stream: the game and OBS's encoder on the GPU; the mod, the bridge (`:7341`), fenceshow (`:7350`), the drift gate (`:7380`) and CPU Kokoro (`:8881`) | llama-swap on `:9000` serves the 27B the leagues use, **off stream only** |
-| **drift** | MacBook (M5 Max, 128 GB), two MLX servers behind its llama-swap | the strategist `$DRIFT_MODEL` (`DRIFT_MODEL` in `local.mk`; Qwen3.8-27B, `qwen38-27b-mlx`, on MTPLX, since 2026-11-11; Qwen3.8 Flash, `qwen38fn-mlx`, before) and the narrator `$DRIFT_NARRATOR_MODEL` (Qwen3.5-9B, `mlx-community/Qwen3.5-9B-MLX-4bit`, on mlx_lm.server, since 2026-11-11), both at `$DRIFT_URL` | the stream's player through the gate, and its narrator directly; may be offline. The 27B serves one request at a time and queues a second caller behind the first; the narrator's model is a separate process, so its lines never wait for a plan ("The narrator's model") |
+| **drift** | MacBook (M5 Max, 128 GB), two MLX servers behind its llama-swap | the strategist `$DRIFT_MODEL` (`DRIFT_MODEL` in `local.mk`; Qwen3.8-27B, `qwen38-27b-mlx`, on MTPLX, since 2026-11-11; Qwen3.8 Flash, `qwen38fn-mlx`, before) and the narrator's fallback `$DRIFT_NARRATOR_MODEL` (Qwen3.5-9B, `mlx-community/Qwen3.5-9B-MLX-4bit`, on mlx_lm.server, since 2026-11-11), both at `$DRIFT_URL` | the stream's player and its narrator, both on the 27B through the gate (owner, 2026-11-12); may be offline. The 27B serves one request at a time and queues a second caller behind the first, hence the gate; the 9B is a separate process the narrator falls back to directly ("The narrator's model") |
 | **The API** | Anthropic | optionally the narrator (`claude-haiku-5-5`) or the strategist | only when `ANTHROPIC_API_KEY` is set in the environment |
 
 **The rule on stream (owner, 2026-11-11).** The agent stands in for a human streamer: one persona
-that plays and narrates, so drift is both the *strategist* (the 27B, through the drift gate below) and
-the *narrator* (a small model of its own beside the 27B, "The narrator's model"). The 5090 runs only the game and OBS's encoder: no LLM on it during a stream.
+that plays and narrates, so drift is both the *strategist* and the *narrator*, the same 27B through
+the drift gate below (the narrator on the gate's `/narrate/v1` since 2026-11-12; "The narrator's
+model"). The 5090 runs only the game and OBS's encoder: no LLM on it during a stream.
 
 **Roles.** The *strategist* writes each morning's plan (the bridge, `-planner llm -directives
 delta`); the *hands* are the executor inside the mod (no model); the *narrator* is fenceshow's
@@ -47,12 +48,13 @@ stream, the leagues' 27B takes 29 427 of 32 607 MiB (measured 2026-11-10).
 The live narrator drops a line that is ready later than 25 s after its moment, so on the CPU under
 load it says a little less.
 
-**The narrator's LLM.** drift's narrator model (`$DRIFT_NARRATOR_MODEL`), called directly at
-`$DRIFT_URL`, not through the gate: it is its own process, so a line never waits for a plan and a plan
-never waits for a line. The fact check means it never says a wrong number; a line that fails twice,
-or a model that does not answer within `-llm-timeout` (8 s), speaks the caption. Fallbacks, in order:
-the 27B through the gate's `/narrate/v1` (`-llm-model $DRIFT_MODEL -llm-timeout 15s`, the setup before
-2026-11-11, which speaks captions while a plan holds the 27B); the API (Haiku), `-llm-provider
+**The narrator's LLM.** The strategist's own model, drift's 27B (`$DRIFT_MODEL`), through the gate's
+`/narrate/v1` with `-llm-timeout 15s` (owner, 2026-11-12): the player's voice is the player's model, and
+the gate keeps its lines behind the plans, so a plan never waits for more than a line in flight. The
+fact check means it never says a wrong number; a line that fails twice, one the gate drops while a
+plan holds drift, or a model that does not answer within `-llm-timeout`, speaks the caption.
+Fallbacks, in order: drift's 9B (`$DRIFT_NARRATOR_MODEL`) called directly at `$DRIFT_URL` with
+`-llm-timeout 8s`, around the gate, since it is its own process; the API (Haiku), `-llm-provider
 anthropic`, or `auto` with `ANTHROPIC_API_KEY` set. Never point the narrator at llama-swap on the
 5090. fenceshow's `-yield-to-game` applies only to a narrator served on this machine: a loopback
 URL that is not the gate, or the gate in front of a local model (fenceshow asks the gate's `/gate`
@@ -86,8 +88,8 @@ run the hybrid on another run.
 drift's 27B serves one request at a time, so whatever calls it goes through `cmd/fencegate`
 (`internal/gate`): a loopback, OpenAI-compatible proxy that sends one request at a time to drift, the
 strategist's first. The role is the path's first segment, so no client changes; only its base URL
-does. Since 2026-11-11 the narrator has a model of its own on drift and calls it directly, around the
-gate ("The narrator's model"); the gate's `/narrate/v1` stays for the fallback onto the 27B.
+does. The narrator speaks through `/narrate/v1` on the same 27B; its fallback, the 9B, is a process of
+its own and is called directly, around the gate ("The narrator's model").
 
 ```sh
 make gate                                           # fencegate on 127.0.0.1:7380, upstream $DRIFT_URL from local.mk
@@ -95,11 +97,14 @@ make bridge ARGS="-mode observe -planner llm -directives delta -route sprinter -
   -provider openai -base-url http://127.0.0.1:7380/plan/v1 -model $DRIFT_MODEL -no-schema -thinking off"
 go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player drift -model $DRIFT_MODEL \
   -persona shark -route sprinter -fill-after 40s -tts-url http://127.0.0.1:8881 \
-  -llm-provider openai -llm-url $DRIFT_URL -llm-model $DRIFT_NARRATOR_MODEL
-# fallback, the narrator on the 27B through the gate: -llm-url http://127.0.0.1:7380/narrate/v1 -llm-model $DRIFT_MODEL -llm-timeout 15s
+  -llm-provider openai -llm-url http://127.0.0.1:7380/narrate/v1 -llm-model $DRIFT_MODEL -llm-timeout 15s
+# fallback, the narrator on drift's 9B around the gate: -llm-url $DRIFT_URL -llm-model $DRIFT_NARRATOR_MODEL -llm-timeout 8s
+# optional: -cohost, a second voice on the gate's /filler/v1 (docs/SHOW.md, "The co-host")
 ```
 
-(or `FENCE_BASE_URL` / `FENCE_SHOW_LLM_URL` / `FENCE_SHOW_LLM_MODEL` in the environment or `bridge.env`.)
+(or `FENCE_BASE_URL` / `FENCE_SHOW_LLM_URL` / `FENCE_SHOW_LLM_MODEL` in the environment or `bridge.env`;
+`make show-live ARGS="-persona shark -route sprinter -fill-after 40s -tts-url http://127.0.0.1:8881"` runs
+the same fenceshow with the narrator from the Makefile's `NARRATOR_*`.)
 
 - **Order.** One request upstream at a time: `/plan/v1` (the strategist's plans, directives,
   windfall re-plans, lessons and any fork calls: everything the bridge asks) first, `/narrate/v1`
@@ -122,7 +127,7 @@ go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player d
 - **Listings** (`GET …/models`) pass straight through without queueing, so the pre-flight can read
   them while a plan is written; drift unreachable gives 502.
 - **The narrator's timeout.** fenceshow's `-llm-timeout` (default 8 s) covers the queue and the line.
-  On its own model the default is ample (a line in ~1 s); on the 27B through the gate use 15 s.
+  On the 27B through the gate use 15 s; on the 9B fallback the default is ample (a line in ~1 s).
 
 **Measured (2026-11-11, drift on Qwen3.8-27B, `qwen38-27b-mlx`).** The dress rehearsal's decision
 log (section 10: seed 2950001, the Shark on the sprinter route, a game day ≈ 2 minutes), days 30–41
@@ -187,22 +192,33 @@ Lines from the shared run (15 s), days 30–41 (`llm` in character; `caption` th
 
 Since 2026-11-11 drift runs a second, small model for the narrator beside the 27B:
 **Qwen3.5-9B, MLX 4-bit** (`mlx-community/Qwen3.5-9B-MLX-4bit`, Apache-2.0, 6.0 GB on disk, 5.6 GB
-resident), served by `mlx_lm.server`. fenceshow calls it directly at `$DRIFT_URL` with `-llm-model
-$DRIFT_NARRATOR_MODEL`; the gate is for the strategist alone.
+resident), served by `mlx_lm.server`. Since 2026-11-12 it is the narrator's **first fallback**, not its
+primary: fenceshow calls it directly at `$DRIFT_URL` with `-llm-model $DRIFT_NARRATOR_MODEL -llm-timeout
+8s` when the 27B's lines fail.
 
-**Why around the gate, not a second upstream in it.** The gate exists to put one model's single slot
+**Decision (owner, 2026-11-12): the narrator is the 27B through the gate.** The measurements below
+gave no reason to pay the 9B's voice for density: on a quiet drift the 27B shared through the gate is in
+character as often (81 % against the 9B's 82 %, 1.34 against 1.44 lines a minute), its voice is clearly
+better (terse and punchy where the 9B is wordy, mixes metaphors and now and then inverts the sense), and
+its lines hold the facts better (the fact check passed 25 of 26 against the 9B's 27 of 33, and the 9B
+slips lines past the check it cannot read). The cost is the morning: the gate drops the plan and pace
+beats while a plan holds drift, and the caption is spoken. The 9B stays loaded as the fallback.
+
+**Why the fallback goes around the gate, not a second upstream in it.** The gate exists to put one model's single slot
 in order. The narrator's model has its own process, so queueing its lines behind the plans would bring
 back the morning drops this model is there to remove, and a plan never needs to wait for a line. The
 gate's metrics lose the narrator, but fenceshow logs each line's `llm_ms` and `say.check`. The
-pre-flight's "drift gate" row says "the narrator on its own model, beside the gate", and warns if the
-narrator's own model is pointed at the gate's `/narrate/v1`.
+pre-flight's "drift gate" row is GO with the narrator through the gate on the strategist's model, says
+"the narrator on its fallback model, beside the gate" for the 9B called directly, warns if the 9B is
+pointed at the gate's `/narrate/v1`, and warns if the narrator calls the strategist's 27B around the
+gate, where its lines would race the plans for the one slot.
 
 **Why this model.** Three candidates within the 10 GB budget, each narrating days 30–41 of the dress
 rehearsal (narration-paced, no TTS) directly against drift, beside the 27B on the same prompts:
 
 | Model (MLX 4-bit) | Licence | Size | Line p50 / p95 | Fact check: first try / retry / caption | Verdict |
 |---|---|---|---|---|---|
-| **Qwen3.5-9B** | Apache-2.0 | 6.0 GB | 0.8 / 1.3 s | 11 / 5 / 2 | in the persona's voice, wordier than the 27B; chosen |
+| **Qwen3.5-9B** | Apache-2.0 | 6.0 GB | 0.8 / 1.3 s | 11 / 5 / 2 | in the persona's voice, wordier than the 27B; chosen as the small model |
 | Ministral-3-8B-Instruct-2512 | Apache-2.0 | 5.6 GB | 0.9 / 1.4 s | 14 / 2 / 2 | the most colourful, but swears on air, trails off mid-sentence, and mlx-lm loads its tokenizer with a known bad regex |
 | Qwen3.5-4B | Apache-2.0 | 3.1 GB | 0.5 / 1.1 s | 14 / 2 / 2 | flat, and some lines mean nothing ("The feed's already on the table") |
 | Qwen3.8-27B (the strategist's model, for reference) | – | – | 2.8 / 3.7 s | 12 / 4 / 1 | terse and punchy: the best voice |
@@ -237,9 +253,9 @@ rm ~/Library/LaunchAgents/local.narrator.plist ~/.config/vibe/backends/narrator-
 rm -rf ~/narrator-venv ~/narrator-logs ~/.cache/huggingface/hub/models--mlx-community--Qwen3.5-9B-MLX-4bit
 ```
 
-and point fenceshow back at the gate (the fallback in "The drift gate").
+The stream's narrator is unaffected (it is the 27B through the gate); the API is then its only fallback.
 
-**Measured (2026-11-11, night).** The same rehearsal window as "The drift gate" (days 30–41, seed
+**Measured (2026-11-11, night).** The numbers behind the decision. The same rehearsal window as "The drift gate" (days 30–41, seed
 2950001, recorded pace, `-fill-after 40s`, CPU Kokoro `am_fenrir`, the same strategist load through
 the gate), with drift otherwise idle: MTPLX served exactly the gate's calls in all three runs. The
 shared row is re-run here because the earlier one had another agent's load on the 27B.
@@ -247,8 +263,8 @@ shared row is re-run here because the earlier one had another agent's load on th
 | Run | Narrator | Lines/min | In character / caption | Caption why: gate drop / timeout / check | Line p50 / p95 | Plan call p50 / p95 | Morning p50 / p95 |
 |---|---|---|---|---|---|---|---|
 | Strategist alone | – | – | – | – | – | 18.5 / 23.5 s | 20.7 / 25.3 s |
-| 27B shared, through the gate (`-llm-timeout 15s`) | 27B | 1.34 | 25 / 6 (81 %) | 5 / 0 / 1 | 3.2 / 5.2 s | 22.5 / 25.4 s | 24.5 / 29.3 s |
-| **Own model, around the gate** (`-llm-timeout 8s`) | Qwen3.5-9B | **1.44** | **27 / 6 (82 %)** | 0 / 0 / 6 | **1.1 / 2.3 s** | 20.3 / 25.7 s | 22.0 / 30.6 s |
+| **27B shared, through the gate** (`-llm-timeout 15s`; the stream's narrator since 2026-11-12) | 27B | **1.34** | **25 / 6 (81 %)** | 5 / 0 / 1 | **3.2 / 5.2 s** | 22.5 / 25.4 s | 24.5 / 29.3 s |
+| Own model, around the gate (`-llm-timeout 8s`; the fallback) | Qwen3.5-9B | 1.44 | 27 / 6 (82 %) | 0 / 0 / 6 | 1.1 / 2.3 s | 20.3 / 25.7 s | 22.0 / 30.6 s |
 | (earlier, with outside load) 27B shared | 27B | 1.34 | 19 / 12 (61 %) | 8 / 5 / 0 | – | 31.8 / 52.6 s | 45.0 / 57.4 s |
 
 - **On a quiet drift the small model buys little density.** Clean, the 27B shared through the gate
@@ -297,8 +313,8 @@ make gate &        # the drift gate on :7380, in front of $DRIFT_URL
 make stream-preflight ARGS="-strategist-url http://127.0.0.1:7380/plan/v1 -strategist-model $DRIFT_MODEL -persona shark"
 ```
 
-with fenceshow's narrator on its own model on drift (`FENCE_SHOW_LLM_URL=$DRIFT_URL`,
-`FENCE_SHOW_LLM_MODEL=$DRIFT_NARRATOR_MODEL`); the pre-flight checks it with `-narrator-url` and
+with fenceshow's narrator on the 27B through the gate (`FENCE_SHOW_LLM_URL=http://127.0.0.1:7380/narrate/v1`,
+`FENCE_SHOW_LLM_MODEL=$DRIFT_MODEL`); the pre-flight checks it with `-narrator-url` and
 `-narrator-model` as well.
 
 Endpoints come from flags, the environment (`FENCE_BASE_URL`, `FENCE_MODEL`, `FENCE_SHOW_LLM_URL`,
@@ -315,7 +331,7 @@ address, so the table can be shown on stream.
 | bridge | `/v1/health` answers | start it (`systemctl --user start fence-bridge` or `make bridge ARGS=…`) |
 | strategist | the endpoint lists the model (never a completion: that could load a model) | section 7, "Model endpoint down" |
 | narrator LLM | one short test line within 8 s | WARN: captions only |
-| drift gate | shown when a role goes through fencegate: GO when both do and its upstream is another machine (with plan p50 and narrator drops so far); WARN when only the narrator does, when the gate fronts a model on this machine, or when both roles call one model URL without the gate | `make gate`; point the bridge at `/plan/v1` |
+| drift gate | shown when a role goes through fencegate: GO when both do on the one model and its upstream is another machine (with plan p50 and narrator drops so far), or when the strategist does and the narrator is on its 9B fallback directly; WARN when only the narrator does, when the narrator calls the strategist's model around the gate (racing the plans for its one slot), when the 9B goes through the gate, when the gate fronts a model on this machine, or when both roles call one model URL without the gate | `make gate`; point the bridge at `/plan/v1` and the narrator at `/narrate/v1` |
 | TTS test line | Kokoro speaks "Pre-flight check. The narrator is on the air." in the persona's voice, saved to `var/show/preflight.wav`; the persona's file exists | WARN when slower than 3 s a line (CPU) |
 | fenceshow panel | `/state`, `/`, `/column`, `/lower`, `/about` answer; WARN without `-setup` lines | start fenceshow (section 4) |
 | panel soundcheck | with `-soundcheck`: fenceshow's own narrator speaks a test moment with audio | SKIP by default: the moment shows on the panel, so only before going live |
@@ -510,10 +526,10 @@ If it patched anyway, the pre-flight's "game build" row is NO-GO:
 - *Strategist*: no new plan; the autopilot plays on the directives it has (the base policy and
   the last plan the bridge still serves). For a short outage, carry on. For a long one, restart the bridge on
   another strategist (section 4, "Swapping a model mid-run") at the next morning, and say so.
-- *Narrator LLM*: nothing to do; captions are spoken. drift's narrator model alone down: on drift,
-  `launchctl kickstart -k gui/$(id -u)/local.narrator` (the 27B is untouched); or restart fenceshow on
-  the 27B through the gate (section 1, "The drift gate", the fallback). Switch fenceshow to the API at
-  the next break if it lasts.
+- *Narrator LLM*: nothing to do; captions are spoken. If the 27B's lines keep failing while plans
+  still arrive, restart fenceshow on the 9B fallback (section 1, "The drift gate"); the 9B alone down:
+  on drift, `launchctl kickstart -k gui/$(id -u)/local.narrator` (the 27B is untouched). Switch
+  fenceshow to the API at the next break if it lasts.
 - *Kokoro*: `docker start fence-show-kokoro` (CPU) or `vibe start tts_kokoro` (GPU); piper speaks
   meanwhile if its voice is installed.
 - *drift's HTTP 503* ("background task bypassed while foreground generation…"): drift is busy with
@@ -664,7 +680,10 @@ read from the file, 12 clips of exactly the planned lengths.
 - A dress rehearsal (section 10): `scripts/rehearsal.sh` runs the bridge in its live configuration,
   fenceshow's live hook with the narrator and TTS, and one gym game slowed to a stream's pace by
   `cmd/pacer`, until the game ends.
-- A full replay at stream speed with narration (CPU Kokoro shown; stop it afterwards):
+- A full replay at stream speed with narration (CPU Kokoro shown; stop it afterwards). It narrates
+  on the 9B, like `make show-demo`: a replay needs no gate and so must not take the 27B from a
+  strategist that may be using it; for the stream's own voice, with nothing else on the 27B, set
+  `FENCE_SHOW_LLM_MODEL=$DRIFT_MODEL`:
 
   ```sh
   docker start fence-show-kokoro
@@ -835,14 +854,17 @@ or two moments, so most of the air is the game and the panel.
 
 **Recommended stream-night settings.**
 
-- Leagues stopped, and nothing else calling drift's 27B. That includes the fleet's agent pool, which
-  lists drift's 27B as a member: take drift out of the pool or stop its clients for the stream. Drift plays
-  through the gate (section 1, "The drift gate"). The narrator is the owner's pick, both measured on a
-  quiet drift: the 9B on its own model (the commands here; "The narrator's model"), never waiting on a
-  plan but splitting the GPU with the player while it speaks, or the 27B through the gate with
-  `-llm-timeout 15s`, in character as often (81 % against 82 %) in a clearly better voice, losing
-  lines only while a morning plan holds drift. The API (Haiku) is an optional upgrade over both.
-  Pre-flight GO on the narrator and drift gate rows (it now asks without thinking).
+- Leagues stopped, and nothing else calling drift's 27B but the gate. drift stays in the fleet's
+  agent pool (owner, 2026-11-12); instead the owner does not run omp, the pool's client, while
+  streaming, so nothing reaches drift's 27B around the gate. Drift plays and narrates through the
+  gate (section 1, "The drift gate"): the narrator is the 27B on `/narrate/v1` with `-llm-timeout 15s`
+  (the owner's pick, 2026-11-12: in character as often as the 9B, 81 % against 82 %, in a clearly better
+  voice, losing lines only while a morning plan holds drift; "The narrator's model"), the 9B directly
+  as its first fallback, the API (Haiku) after that. Pre-flight GO on the narrator and drift gate rows
+  (it now asks without thinking).
+- The co-host (docs/SHOW.md, "The co-host") is off unless the owner wants it: `-cohost` on the same
+  fenceshow adds Rook, a second voice that needles the player's decisions on the gate's `/filler/v1`;
+  measured on the rehearsal with the strategist load, plans and the narrator's density did not move.
 - CPU Kokoro by default (rehearsed: no backlog, a line in median 1.5 s, p90 10 s, max 15 s under
   load, nothing dropped for TTS); GPU Kokoro, 2–3 GB beside the game, is the owner's option (section 1).
 - fenceshow: `-route sprinter` (or `-base-directives` matching the bridge's) so the plan box has the

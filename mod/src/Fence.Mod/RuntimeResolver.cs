@@ -72,6 +72,9 @@ namespace Fence.Mod
                 case "GameInventory": found = GameInventoryMembers(member); break;
                 case "GameOverUIManager": found = GameOverUIManagerMembers(member); break;
                 case "GunOrderData": found = GunOrderDataMembers(member); break;
+                case "GunOrderRequirement": found = GunOrderRequirementMembers(member); break;
+                case "GunHelper": found = GunHelperMembers(member); break;
+                case "PermitHelper": found = PermitHelperMembers(member); break;
                 case "HealthData": found = HealthDataMembers(member); break;
                 case "InspectionUIManager": found = InspectionUIManagerMembers(member); break;
                 case "ItemFeatureUI": found = ItemFeatureUIMembers(member); break;
@@ -108,6 +111,7 @@ namespace Fence.Mod
                 case "GameSlotInventory": found = GameSlotInventoryMembers(member); break;
                 case "GraphUtils": found = GraphUtilsMembers(member); break;
                 case "HydroponicHelper": found = HydroponicHelperMembers(member); break;
+                case "IngotPurityHelper": found = IngotPurityHelperMembers(member); break;
                 case "Interactable": found = InteractableMembers(member); break;
                 case "MachineBottlePrinter": found = MachineBottlePrinterMembers(member); break;
                 case "MachineHelper": found = MachineHelperMembers(member); break;
@@ -241,6 +245,9 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameInventoryMembers(string m) => typeof(GameInventory).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameOverUIManagerMembers(string m) => typeof(GameOverUIManager).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GunOrderDataMembers(string m) => typeof(GunOrderData).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GunOrderRequirementMembers(string m) => typeof(GunOrderRequirement).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GunHelperMembers(string m) => typeof(GunHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] PermitHelperMembers(string m) => typeof(PermitHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HealthDataMembers(string m) => typeof(HealthData).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InspectionUIManagerMembers(string m) => typeof(InspectionUIManager).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] ItemFeatureUIMembers(string m) => typeof(ItemFeatureUI).GetMember(m, All);
@@ -279,6 +286,7 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GameSlotInventoryMembers(string m) => typeof(GameSlotInventory).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] GraphUtilsMembers(string m) => typeof(GraphUtils).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] HydroponicHelperMembers(string m) => typeof(HydroponicHelper).GetMember(m, All);
+        [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] IngotPurityHelperMembers(string m) => typeof(IngotPurityHelper).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] InteractableMembers(string m) => typeof(Interactable).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineBottlePrinterMembers(string m) => typeof(MachineBottlePrinter).GetMember(m, All);
         [MethodImpl(MethodImplOptions.NoInlining)] static MemberInfo[] MachineHelperMembers(string m) => typeof(MachineHelper).GetMember(m, All);

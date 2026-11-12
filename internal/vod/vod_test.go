@@ -321,6 +321,51 @@ func TestHighlights(t *testing.T) {
 	}
 }
 
+// A co-host exchange stays out of the narrator's lines (the moment keeps its own line as the
+// caption), lifts its moment's clip, and the clip runs until the answer is spoken.
+func TestHighlightsExchange(t *testing.T) {
+	events := synthetic()
+	for i := range events {
+		events[i].Seq = int64(i + 1)
+	}
+	var pivot show.Event
+	for _, e := range events {
+		if e.Day == 9 && e.Plan != nil && e.Plan.Change {
+			pivot = e
+		}
+	}
+	told := say(pivot, 5*time.Second, "Saving for the deed now.")
+	jab := say(pivot, 12*time.Second, "The deed? On that till?")
+	jab.Say.Speaker, jab.Say.Name = show.SpeakerCohost, "Rook"
+	jab.Seq = 9001
+	back := say(pivot, 18*time.Second, "Watch the till grow.")
+	back.Say.Name, back.Say.ReplyTo = "Tester", jab.Seq
+	feed := append(append([]show.Event{}, events...), told, jab, back)
+	p, tl := oneRecording(t, feed, nil, at(1, -time.Minute))
+	if len(tl.Says) != 1 || len(tl.Exchanges) != 2 || len(p.Exchanges) != 2 {
+		t.Fatalf("says %d, exchanges %d (part %d), want 1 and 2", len(tl.Says), len(tl.Exchanges), len(p.Exchanges))
+	}
+	var found bool
+	for _, c := range Highlights(p, 30) {
+		if c.Day != 9 || c.Kind != string(show.KindPlan) || !strings.Contains(c.Caption, "deed") {
+			if len(c.Exchange) > 0 {
+				t.Errorf("day %d %s got the exchange", c.Day, c.Kind)
+			}
+			continue
+		}
+		found = true
+		if c.Line != told.Say.Line || strings.Join(c.Exchange, " | ") != "Rook: The deed? On that till? | Tester: Watch the till grow." {
+			t.Errorf("clip line %q, exchange %q", c.Line, c.Exchange)
+		}
+		if c.End < p.Off(time.UnixMilli(back.At))+3*time.Second {
+			t.Errorf("the clip ends at %v, before the answer is spoken", c.End)
+		}
+	}
+	if !found {
+		t.Error("no clip for the change of course")
+	}
+}
+
 // A decision log's moments with a feed's lines: the line goes to the log moment with the source
 // time of the moment its own feed says it told, even after a restart renumbered that feed.
 func TestHighlightsLinesFromAnotherFeed(t *testing.T) {

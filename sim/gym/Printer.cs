@@ -11,7 +11,7 @@ namespace Fence.Gym
     // used up. Each morning, at the printer's window: the output goes to stock, a charged cell into the battery and,
     // when the printer is idle, the first chip in `printer_chips` that is owned, fits the printer's modules and whose
     // inputs are owned goes into the chip slot with those inputs. The default order is by computed margin per scrap.
-    // Printed pistols are contraband and are left out. Chips, plastic and a spare cell
+    // Printed pistols are left out unless the arms engine wants guns (below). Chips, plastic and a spare cell
     // are bought as engine inputs (chips from the retired gunsmith's stock); the output is ordinary stock.
     internal static class Printer
     {
@@ -26,7 +26,16 @@ namespace Fence.Gym
             "printer_chip_silencer", "printer_chip_box_cutter",
         };
 
-        static IList<string> Chips => (Directives.Current.Raw["printer_chips"] as JArray)?.Select(x => (string)x).ToList() ?? (IList<string>)DefaultChips;
+        // With `arms.print_guns` the pistol chips go first while the arms engine holds too few guns for its orders
+        // (a printed gun is legal at birth under Permit I: PermitHelper.OnNewItemCreated).
+        static IList<string> Chips
+        {
+            get
+            {
+                var l = (Directives.Current.Raw["printer_chips"] as JArray)?.Select(x => (string)x).ToList() ?? (IList<string>)DefaultChips;
+                return Arms.PrintGuns ? Arms.GunChips.Concat(l.Where(c => Array.IndexOf(Arms.GunChips, c) < 0)).ToList() : l;
+            }
+        }
         // Chips are bought until `printer_buy_chips` (default 2) of the order are owned, with 1 500 over the rent.
         static int BuyChips => Directives.Current.Raw.Value<int?>("printer_buy_chips") ?? 2;
 
@@ -79,7 +88,15 @@ namespace Fence.Gym
             return false;
         }
 
-        public static bool IsInput(string id) => On && id != null && (Chips.Contains(id) || id == Plastic || id == Scrap || id == Electronic || id == Cell || id == "printer_module_metal");
+        // An input is what an owned chip of the order uses: claiming every printer material would take common
+        // electronics (the vending machine's attractiveness) off the ordinary buy path.
+        public static bool IsInput(string id)
+        {
+            if (!On || id == null) return false;
+            if (Chips.Contains(id) || id == Cell || id == "printer_module_metal") return true;
+            var chips = Chips;
+            return Owned().Any(i => IsChip(i) && chips.Contains(i.identifier) && Needs(i).Any(n => n.id == id));
+        }
 
         public static int Wants(string id)
         {

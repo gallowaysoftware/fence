@@ -509,6 +509,8 @@ namespace Fence.Gym
                 foreach (var g in gifts.Where(Suppliers.IsGift)) Suppliers.Stowed(g);
                 left.AddRange(gifts);
             }
+            // A weapon permit is handed over on the front counter, which is wiped at night.
+            if (IsPlayer && Arms.On) left.AddRange(In(e.frontInvinvElement).Where(Arms.IsPermit));
             if (IsPlayer && (Appraisal.On || Labels.On)) StowKit(left);
             if (IsPlayer) Labels.AfterCustomer();
             if (left.Count == 0) return;
@@ -595,6 +597,7 @@ namespace Fence.Gym
                     continue;
                 }
 
+                if (PlayerGunOrder()) continue;
                 if (PlayerAppraise()) continue;
 
                 BarterSnapshot snap = null;

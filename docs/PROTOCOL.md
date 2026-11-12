@@ -297,7 +297,9 @@ except an engine that names only part of the base's (a restated `wine` would sto
 | `bargain_buy` | gym executor: haggling with sellers (`never`, `ev_positive`, `discount`, `aggressive`); `bargain` is with buyers |
 | `speculate` | gym executor: `{types, max_days}`, hold those goods from ordinary buyers until a market event or an Upper Levels buyer with tips, or `max_days` |
 | `specialty` | gym executor: `{types, lot_share}`, buy only those goods |
+| `arms` | gym executor: the arms engine (docs/re/ARMS.md), `{}` for every default: `window` (permits held go in the display case: each brings its gun-order client), `orders` (fill gun orders from legal stock, attaching loose mods and repairing with gun parts when the reward beats `min_pct` % of what is given away), `permits` (buy Weapon Permits II and III from `permit_from` once Security is within `permit_margin` of 50 / 80, keeping `permit_reserve`), `keep_guns` (legal guns held for orders, bought while fewer), `print_guns` (with `printer: run`, the pistol chips first while fewer are held), `repair_parts`, `show_weapons` (held guns and mods may fill the display case), `on` |
 | `lab` | gym executor: the chemistry lab (`docs/research/CHEMISTRY-ENGINE.md`), off when absent: `{products: ["caffeine_pill", "dream_dust", "fanta_pill"], modules: auto\|none\|max, payback_weeks, jackson_need, ratio, …}`; `"caffeine"` is the older form |
+| `quality` | gym executor: `{bays, bottles, reeds}`, the best grade the equipment allows (`docs/research/QUALITY.md`): the bays' water by grade and minerals in band, High Quality water in the bottles, and `reeds` hydroreed bays curing tap water into plant-safe water |
 
 The last five are route levers a strategist's fork may change mid-run (docs/STREAM.md, "Model agency"); the gym
 reads them from the morning's directives like any route file's.

@@ -33,7 +33,12 @@ answers one question: **what makes a bottle worth more, and who pays the most fo
 | Each berry: best (+2 grade) / normal (+1) / under- or over-ripe (−1) / moldy (−2) | 2 / 1 / 0 / −1 (a negative condition is raised by one) | `StartFermentation`: `if (c < 0) c++` |
 | Two or more berries | +1 | same |
 | Any yeast | +1 (only the last yeast's power sets the speed) | same |
-| Water in the bottle | Pure / HQ +1, Base 0, Ghost −1, Rust −2, Gutter −3 (true purity, not the label) | `GetWaterQualityScore` |
+| Water in the bottle | Pure / HQ +1, Base 0, Ghost −1, Rust −2, Gutter −3 (true purity of all the liquid in the bottle at the start, so mixed pours average by volume; the bottle's own water label is a fixed dummy and never read) | `GetWaterQualityScore` |
+
+A score already on the bottle before the start counts too (the start adds to the stored score; a fresh or
+emptied bottle holds 0). The finished grade is VISIBLE (the bottle's label art and its quality line) and,
+unlike water, is never mislabelled: its label and truth are set together, so it is priced right from the
+first morning. Only the score number itself is dev-only.
 
 Tiers (`GetWineQualityTier`, `ItemFeatureList.CreateWineQualityFeature`): ≥ 6 Master Vintage +75 %, 5 Reserve
 +50 % (also `LUXURY_ITEM`), 3–4 Production +25 %, 2 Homebrew 0, 1 Bucket Brew −15 %, ≤ 0 undrinkable. The bottle's
@@ -49,13 +54,15 @@ from 3 to 4 is wasted: sold as food it would bring 14.
 
 `RollBloomberryCondition(health)` at harvest: ≤ 25 → 45 % moldy / 55 % under-over; ≤ 55 → 25 / 45 / 30 % normal;
 ≤ 85 → 25 % under-over / 45 % normal / 30 % best; > 85 → 40 % normal / 60 % best. Health resets to 100 when each
-fruiting cycle starts (`StartNextFruitingCycle`) and loses, per growth point (12–13 per refruit at the
-perennial's speed):
+fruiting cycle starts (`StartNextFruitingCycle`) and loses, per point of the bay's nightly speed (so 24 points in
+the 3-night first cycle and 16 in each 2-night refruit at speed 8, although the work is 22 / 12):
 
 - **Contaminants** (`ApplyContaminantEffect`): each of heavy metal, chemical, microbe, organic waste, acid and
   base is read in basis points of the water, multiplied by the seed's `CONTAMINANT_SENSITIVITY` stat, and
   mapped to a stepped loss (0 % up to 10 bp, 0.15 % at 15, … 1.6 % at 100, 6.4 % over 200), times the plant's
-  `contaminantEffect` (bloomberry 1.25). Base water costs ~4 % a point, HQ ~0.9 %, Pure 0.
+  `contaminantEffect` (bloomberry 1.25). The loss depends on the individual contaminants, not the grade: bought
+  Basewater and tap water made "base" with a filter and tablets both cost ~4 % a point (the tablet leaves ≈ 70 bp of
+  chemical, the filter all the heavy metal), bought HQ ~0.9 %, purifier HQ ~2.75 %, Pure 0 (`PLANTS.md` §2).
 - **Minerals** (`HandleNutriment`): below 125 bp −1 %, above 275 bp −0.5 % a point; a nutrient tablet adds
   15 ml of mineral.
 
@@ -63,14 +70,14 @@ So berry quality is a water problem. The three player tools that attack it:
 
 | Tool | What it changes | Effect for bloomberries |
 |---|---|---|
-| Better water in the bay (HQ or Pure, plus tablets) | contaminant bp | HQ ≈ 85 health at a refruit (≈ 30–60 % best), Pure 100 (60 % best) |
+| Better water in the bay (HQ or Pure, plus tablets) | contaminant bp | bought HQ ≈ 70 health at a refruit (56–85 band: 30 % best), purifier HQ ≈ 56, Pure 100 (60 % best) |
 | Water purifier (`MachinePurifier`, 250; Dr. Jackson, Retired Water Merchant) | lifts one container a night to the 99.01 % cap (HQ) | HQ water for the bays, and +1 on every bottle filled from it |
-| DNA trait `hardy` (from fillerweed rank 3, nutrifruit or hydroreed rank 1) | `CONTAMINANT_SENSITIVITY` × (1 − 0.30 × rank^0.75) | Base water: ~4 % → ~2 % a point; HQ: 0.9 → ~0.5 % |
-| DNA trait `purifying` (hydroreed, rank 4) | removes 10 % × rank^0.75 of every non-mineral contaminant from the bay's water each growth night (`PlantWaterQuality.Purify`) | the bay's water drifts toward Pure between top-ups |
+| DNA trait `hardy` (from fillerweed rank 3, nutrifruit or hydroreed rank 1) | `CONTAMINANT_SENSITIVITY` × (1 − 0.30 × rank^0.75), applied to each contaminant's bp before the step table | tap-treated water: 4 % → 3 % a point at rank I (refruit 36 → 52, same 26–55 band), 1.75 % at II; purifier HQ: 2.75 → 1.37 % at I (refruit 78) |
+| DNA trait `purifying` (hydroreed, rank 4) | removes 10 % × rank^0.75 of every non-mineral contaminant from the bay's water each growth night, down to each liquid's floor ÷ rank (`PlantWaterQuality.Purify`) | rank I converges to chemical 16 / heavy metal 25 bp: 0.62 % a point, refruit ≈ 90 (> 85: 60 % best) on any water ≥ base, in about two weeks |
 
 `bountiful` (+20 % × rank^0.75 harvest) and `fast_grower` (+25 % speed) add berries, not points; in the gym
 berries are not the binding input (§5), and at speed 8 a `fast_grower` I bloomberry still needs two nights a
-refruit.
+refruit (work 10); at bay performance ≥ 50 (speed 10) it fruits every night, which bare needs performance 100.
 
 ## 3. The DNA manipulator and its modules
 
@@ -80,14 +87,19 @@ disks (140 each) and each module 25 % of visits (`StoreClientList.PlaceInventorI
 
 `MachineDnaManipulator`: 12 power, 10 progress a night. Each night it plans one operation (`PlanOperation`):
 
-- **Extract** (a seed in the target slot, a blank or matching disk in the output slot): picks a random
+- **Extract** (a seed in the target slot, a blank disk in the output slot): picks a random
   unlocked trait of the seed (`PlantGeneticsHelper.PickRandomTrait`) and writes it to the disk with as many uses
-  as the seed's innate rank of it (`ExtractionUses`: fillerweed `hardy` 3 uses). **The seed is destroyed**
-  unless the stabilizer module is fitted.
-- **Apply** (a written disk in the input slot): adds the disk's rank to the seed's trait rank, one use spent.
+  as the seed's current rank of it when the trait is innate to that species, else 1 (`ExtractionUses`: fillerweed
+  `hardy` 3 uses, hydroreed `purifying` 4). **The seed is destroyed**, even on a failed roll, unless the
+  stabilizer module is fitted.
+- **Refill** (a written disk in the output slot and a seed that has its trait): no random pick; the disk gains uses
+  by the same rule. So after the first disk of a trait, more uses cost one donor seed at 95 %.
+- **Apply** (a written disk in the input slot): adds the disk's rank (always 1 for extracted disks) to the seed's
+  trait rank, one use spent on success; a failed apply spends no use and leaves the seed plantable.
 - Every operation takes `20 + 4 × complexity` progress and succeeds with `95 − 5 × complexity + quality/2` %
-  (clamped 5–100), where complexity = the seed's trait ranks away from its innate ones × each trait's
-  complexity (`hardy` 3, `bountiful` 4, `purifying` 3, …) plus its **heat**, which grows by 2 + |trait complexity|
+  (clamped 5–100), where complexity = the seed's trait ranks added beyond its innate ones × each trait's
+  complexity (`hardy` 3, `bountiful` 4, `purifying` 3, …; negative traits subtract), |complexity| × innate ranks
+  removed, ± 4 a rank of simple / complex genome, plus its **heat**, which grows by 2 + |trait complexity|
   after every operation, success or not, and never cools on a perennial (`AddHeat`; only a child seed starts
   cold, `InheritTraits`, and bloomberries return no seeds). A fresh bloomberry takes `hardy` I at 95 %; the
   second operation on the same seed is at ~55 %, the third ~15 %.
@@ -98,20 +110,22 @@ Modules (`ModuleDirectory`, all `MODULE_TYPE_DNA_MANIPULATOR`):
 
 | Module | Value | Effect |
 |---|---|---|
-| Precision (`dna_manipulator_module_precision`) | 1 000 | Tuned by using it on a written disk (`SetupPrecisionModule`); then extraction takes only that trait (`GetExtractionFilter`), and is blocked when the seed lacks it. Performance −75 %, efficiency −75 % (an operation takes ~4× the nights and power) |
-| Stabilizer | — | The extracted seed survives, losing one rank of the trait (`RemoveTraitRank`) and gaining heat. Performance −50 % |
-| Positive / negative filter | — | Extraction picks only good (or only bad) traits; both together block extraction |
+| Precision (`dna_manipulator_module_precision`) | 1 000 | Tuned by using it on a written disk (`SetupPrecisionModule`); then extraction takes only that trait (`GetExtractionFilter`), and is blocked when the seed lacks it. Performance −75 %, efficiency −75 %: speed 10 → 6, power 12 → 21 a night (a 20-progress operation takes 4 nights instead of 2) |
+| Stabilizer | 500 | The extracted seed survives, losing one rank of the trait (`RemoveTraitRank`) and gaining heat. Performance −50 %, efficiency −25 %: speed 7, power 15 |
+| Positive / negative filter | 500 each | Extraction picks only good (or only bad) traits; both together block extraction. Efficiency −25 %: power 15 |
 
-So the precision module is what makes extraction deterministic: without it, a fillerweed seed (edible,
+So the precision module only matters for the first disk of a trait: without it, a fillerweed seed (edible,
 unappetizing, hardy, bountiful, fast grower, thirsty, nutrient-poor; simple genome is locked) gives `hardy` one
-time in seven, and each try destroys a seed. A gene scanner (`gene_scanner`, Jackson) shows a seed's traits,
+time in seven, a hydroreed (purifying, dense, hardy) one time in three, and each try destroys a seed and fills a
+140 blank disk with whatever it drew. After that, refills are deterministic. Full trait and donor tables:
+`PLANTS.md`. A gene scanner (`gene_scanner`, Jackson) shows a seed's traits,
 ranks, complexity and heat (`CreateSeedGeneticsTooltip`): the whole process is player-visible.
 
 ## 4. Aging and racks
 
 - Every finished bottle anywhere in the shop ages a step a night: `AGE_INT` +1, `unitValue` +3, so +3 × the
   grade multiplier in value (Production +3.75, Reserve +4.5, Master +5.25). No cap.
-- The AgeWell rack (`MachineWineRack.AgeWell`, 350; Dr. Jackson once WINEMAKER is unlocked) holds 6 × 4 bottles and,
+- The AgeWell rack (`MachineWineRack.AgeWell`, 350; Dr. Jackson once WINEMAKER is unlocked) has a 6 × 4 grid, which holds **6** bottles (a bottle is 1 × 4; docs/research/PRODUCTION-VERDICTS.md), and,
   with 24 power a night, ages each `1 + quality%/125` extra steps (`GetAgingDays`): two steps a night with its own
   tick (*measured*, `docs/sim/VERIFIED.md`). 24 power is ~24 credits of cells a night, so a rack pays from about
   five Production bottles (or four Masters) inside it.

@@ -12,7 +12,7 @@ namespace Fence.Gym
     // GUTTERFLOW_TAP (Gutterflow, < 90 %) or RUSTWATER_TAP (90–91.5 %, which ends at Basewater).
     internal static partial class Production
     {
-        public static int WaterTreatedMl, WaterRelabelled;
+        public static int WaterTreatedMl, WaterRelabelled, UntestedWaits;
         static readonly Dictionary<int, int> treatedOn = new Dictionary<int, int>();
         // Clean containers kept for the bottles and bays when water is also sold.
         static readonly HashSet<int> keepWater = new HashSet<int>();
@@ -36,6 +36,19 @@ namespace Fence.Gym
         {
             var f = pitcher == null ? null : WaterHelper.GetFilterItem(pitcher);
             return f == null ? 0 : DurabilityHelper.GetRealDurability(f);
+        }
+
+        // A spent filter out of the pitcher and the freshest owned one in; false when none is left.
+        static bool FreshFilter(GameItem pitcher)
+        {
+            if (WaterHelper.GetFilterItem(pitcher) != null && FilterLeft(pitcher) > 0) return true;
+            var spent = WaterHelper.GetFilterItem(pitcher);
+            if (spent != null) Chore.Accept(EmporiumEntry.Instance.invElement, spent, -1);
+            var fresh = Owned().Where(i => i.identifier == "water_filter" && Parent(i) == null && DurabilityHelper.GetRealDurability(i) > 0).OrderByDescending(DurabilityHelper.GetRealDurability).FirstOrDefault();
+            if (fresh == null) return false;
+            foreach (var inv in GraphUtils.FindChildrenType<GameInventory>(pitcher))
+                if (Chore.Accept(inv, fresh, -1) == 0 && Parent(fresh) == pitcher) break;
+            return FilterLeft(pitcher) > 0;
         }
 
         static IEnumerable<GameItem> Tablets() => Owned().Where(i => i.identifier == "water_tablet" && InBox(i));
@@ -63,6 +76,28 @@ namespace Fence.Gym
         }
 
         public static int PurifiedMl;
+        static readonly HashSet<int> purifiedOn = new HashSet<int>();
+
+        // MachinePurifier.GetMaxPurityCap: 10000 - round(99 x mult), mult 1 / 0.85 / 0.65 / 0.35 / 0.2 / 0.1 / 0 at quality
+        // 0 / 15 / 25 / 50 / 75 / 100 / 200 (the raw quality bonus, shown in its tooltip).
+        public static int PurifierCap(GameItem m)
+        {
+            int q = MachineryHelper.GetCurrentQualityBonus(m);
+            double mult = q >= 200 ? 0 : q >= 100 ? 0.1 : q >= 75 ? 0.2 : q >= 50 ? 0.35 : q >= 25 ? 0.65 : q >= 15 ? 0.85 : 1.0;
+            return 10000 - (int)Math.Round(99 * mult);
+        }
+
+        // Done when last night's removal (the tooltip's figure) fell short of the least the night's budget could be: the
+        // container reached the cap. The budget is (min(volume, 10 L) x 0.3 % + 25 ml) x (dirt bonus + P/100) x 1.25
+        // with a dirt bonus of at least 1, so a smaller removal can only mean the cap stopped it. The AquaScan reads it.
+        static bool PurifierDone(GameItem m, GameItem c)
+        {
+            if (Scanner()) return WaterHelper.GetWaterPurity(c) >= PurifierCap(m);
+            int removedUl = m.GetTagReadonly("TOTAL_CONTAMINANT_REMOVED_TAG").GetInt();
+            int ml = Math.Min(10000, WaterHelper.GetCurrentCapacityML(c));
+            double floorUl = (ml * 3 + 25000) * 1.25 * Math.Max(0, 1 + MachineryHelper.GetCurrentPerformanceBonus(m) / 100.0);
+            return removedUl > 0 && removedUl < floorUl;
+        }
         static bool PurifyRaw => Directives.Current.Raw.Value<bool?>("purify_raw") ?? false;
         // `purifiers: N` (default 2): water purifiers to own while selling water.
         static int PurifierTarget => Directives.Current.Raw.Value<int?>("purifiers") ?? 2;
@@ -84,20 +119,21 @@ namespace Fence.Gym
                 }
                 var c = PurifierSlotItem(m);
                 // Done when it reached the cap (HQ) or the machine stopped removing anything.
-                if (c != null && (WaterHelper.GetWaterPurity(c) >= 9900 || m.GetTagReadonly("TOTAL_CONTAMINANT_REMOVED_TAG").GetInt() == 0 && treatedOn.TryGetValue(c.uniqueId, out int put) && put < ep.Day - 1))
+                if (c != null && (PurifierDone(m, c) || m.GetTagReadonly("TOTAL_CONTAMINANT_REMOVED_TAG").GetInt() == 0 && treatedOn.TryGetValue(c.uniqueId, out int put) && put < ep.Day - 1))
                 {
                     Chore.Accept(stock, c, -1);
                     if (Parent(c) == null)
                     {
                         PurifiedMl += WaterHelper.GetCurrentCapacityML(c);
                         treatedOn[c.uniqueId] = ep.Day - 1; // relabel at the next pass
+                        purifiedOn.Add(c.uniqueId);
                     }
                     c = null;
                 }
                 if (c == null)
                 {
                     var next = Owned().Where(i => WaterVessel(i) && !WaterHelper.IsEmpty(i) && !treatedOn.ContainsKey(i.uniqueId) && !keepWater.Contains(i.uniqueId)
-                            && WaterHelper.GetWaterPurity(i) >= 9600 && WaterHelper.GetWaterPurity(i) < 9900)
+                            && Label(i) >= 9600 && Label(i) < PurifierCap(m))
                         .OrderByDescending(WaterHelper.GetCurrentCapacityML).FirstOrDefault();
                     // `purify_raw: true`: with nothing pre-treated waiting, the largest empty vessel filled at the tap goes
                     // straight in (Rustwater reaches HQ in about six nights: ~1 L a night a purifier, no filter or tablet).
@@ -185,6 +221,17 @@ namespace Fence.Gym
         {
             if (!TapOn) return 0;
             var owned = Owned().ToList();
+            // A tap bought for the reeds alone fills their vessels raw: no filter, tablets or strips.
+            if (TapForReedsOnly)
+                switch (id)
+                {
+                    case "water_jug": return Math.Max(0, Reeds - owned.Count(i => i.identifier == "water_jug" || i.identifier == "water_tank"));
+                    case "water_pitcher": return Pitcher() == null ? 1 : 0;
+                    case "water_filter": return Math.Max(0, 2 - owned.Count(i => i.identifier == "water_filter" && Parent(i) == null));
+                    case "water_test_container":
+                    case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") || Strips().Count() >= 6 ? 0 : 1;
+                    default: return 0;
+                }
             switch (id)
             {
                 case "water_pitcher": return Pitcher() == null ? 1 : 0;
@@ -193,7 +240,7 @@ namespace Fence.Gym
                 case "water_tablet_container":
                 case "water_tablet": return Tablets().Count() < (WaterSellOn ? 30 : 12) ? (WaterSellOn ? 2 : 1) : 0;
                 case "water_test_container":
-                case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") ? 0 : Strips().Count() < (WaterSellOn ? 12 : 4) ? (WaterSellOn ? 2 : 1) : 0;
+                case "water_test_strip": return owned.Any(i => i.identifier == "aquascan") ? 0 : Strips().Count() < (WaterSellOn ? 12 : 4) + treatedOn.Count ? (WaterSellOn ? 2 : 1) : 0;
                 case "water_jug": return Math.Max(0, (WaterSellOn ? 5 : 3) - owned.Count(i => i.identifier == "water_jug" && Parent(i) == null && WaterHelper.IsEmpty(i)));
                 case "aquascan": return WaterSellOn && !owned.Any(i => i.identifier == "aquascan") ? 1 : 0;
                 case "water_purifier": return (WaterSellOn && Purifiers().Count < PurifierTarget) || (WinePurifierOn && Purifiers().Count < 1) ? 1 : 0;
@@ -220,45 +267,24 @@ namespace Fence.Gym
         {
             if (!TapOn) return;
             int day = ep.Day;
-            // Yesterday's batches: test and match the label to the truth.
-            // Strips are scarce: the purest water (what sells for the most) is tested first; water the bottles and
-            // bays will use needs no label (they read the truth).
+            // Yesterday's batches: test and match the label to the truth (a stale label sells treated water at the raw
+            // water's grade). Purified water first (it gains the most); a batch waits for a strip up to a week, unsold.
             foreach (var c in Owned().Where(i => treatedOn.TryGetValue(i.uniqueId, out int d) && d < day && Parent(i) == null)
-                         .OrderByDescending(i => WaterHelper.IsEmpty(i) ? 0 : WaterHelper.GetWaterPurity(i)).ThenByDescending(WaterHelper.GetCurrentCapacityML).ToList())
+                         .OrderBy(i => purifiedOn.Contains(i.uniqueId) ? 0 : 1).ThenByDescending(WaterHelper.GetCurrentCapacityML).ToList())
             {
+                int since = treatedOn[c.uniqueId];
+                if (!WaterHelper.IsEmpty(c) && !TestWater(c) && day - since <= 7) { UntestedWaits++; continue; }
                 treatedOn.Remove(c.uniqueId);
-                if (!WaterSellOn) continue;
-                if (WaterHelper.IsEmpty(c)) continue;
-                // The AquaScan reads and Matches for free; otherwise a strip is spent.
-                bool scanner = Owned().Any(i => i.identifier == "aquascan");
-                var strip = scanner ? null : Strips().FirstOrDefault();
-                if (!scanner && strip == null) continue;
-                Chore.Act("test_strip", c, () => strip?.onItemTargetItemFunc?.Invoke(strip, c));
-                var f = WaterFeatureHelper.GetWaterFeature(c);
-                if (f != null && GeneralHelper.IsItemOwned(c) && !f.IsExposed() && !f.IsFeatureMatch())
-                {
-                    // WaterStripUIManager.OnMatch.
-                    Chore.Act("test_strip", c, () => f.ExposeFeature(lowkey: true));
-                    Chore.Act("relabel", c, () => WaterFeatureHelper.OnWaterLabelUpdated(c));
-                    WaterRelabelled++;
-                }
+                purifiedOn.Remove(c.uniqueId);
             }
             faucet ??= DirectoryMaster.Item("faucet");
+            if (TapForReedsOnly) return;
             if (WaterSellOn) PortablePurify(ep);
             if (WaterSellOn) TendPurifiers(ep);
             if (WaterSellOn && (Directives.Current.Raw.Value<bool?>("auto_print") ?? false)) AutoPrint(ep);
             var pitcher = Pitcher();
             if (pitcher == null) { KeepForWine(); return; }
-            if (WaterHelper.GetFilterItem(pitcher) == null || FilterLeft(pitcher) <= 0)
-            {
-                var spent = WaterHelper.GetFilterItem(pitcher);
-                if (spent != null) Chore.Accept(EmporiumEntry.Instance.invElement, spent, -1);
-                var fresh = Owned().Where(i => i.identifier == "water_filter" && Parent(i) == null && DurabilityHelper.GetRealDurability(i) > 0).OrderByDescending(DurabilityHelper.GetRealDurability).FirstOrDefault();
-                if (fresh == null) return;
-                foreach (var inv in GraphUtils.FindChildrenType<GameInventory>(pitcher))
-                    if (Chore.Accept(inv, fresh, -1) == 0 && Parent(fresh) == pitcher) break;
-                if (FilterLeft(pitcher) <= 0) return;
-            }
+            if (!FreshFilter(pitcher)) return;
             // Keep about two bottles' worth of clean water ahead of the empty bottles and the bays.
             var owned = Owned().ToList();
             int haveMl = owned.Where(i => CleanWater(i)).Sum(WaterHelper.GetCurrentCapacityML);
@@ -313,7 +339,7 @@ namespace Fence.Gym
                 Chore.Act("tap", c, () => c.onThisTargetItemFunc?.Invoke(c, faucet));
                 Chore.Act("purify", c, () => unit.onThisTargetItemFunc?.Invoke(unit, c));
                 WaterTreatedMl += WaterHelper.GetCurrentCapacityML(c);
-                ep.Human("production", null, ep.Uid(c), new JObject { ["action"] = "purify_water", ["ml"] = WaterHelper.GetCurrentCapacityML(c), ["purity"] = WaterHelper.GetWaterPurity(c) }, "player:water");
+                ep.Human("production", null, ep.Uid(c), new JObject { ["action"] = "purify_water", ["ml"] = WaterHelper.GetCurrentCapacityML(c), ["purity"] = Label(c) }, "player:water");
             }
         }
     }

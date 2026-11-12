@@ -380,6 +380,28 @@ namespace Fence.Gym.Tests
             Assert.Null(r["defaults"]["player:jackson_visit"]);
         }
 
+        // `arms: {}` on the Gunsmith start (docs/re/ARMS.md): the permit stays on display, gun-order clients come and
+        // are filled from the kit's guns for cash; without `arms` none come (the window takes the permit off display).
+        [Fact]
+        public void ArmsEngineFillsGunOrders()
+        {
+            string d = Dir("arms");
+            File.WriteAllText(Path.Combine(d, "arms.json"), "{\"arms\":{}}");
+            File.WriteAllText(Path.Combine(d, "none.json"), "{}");
+            JsonObject Run(string file) => Play(1, 12, Path.Combine(d, file + ".jsonl"), x =>
+            {
+                x["human"] = "player"; x["difficulty"] = "hard"; x["start"] = "gunsmith"; x["skip_intro"] = true; x["directives"] = Path.Combine(d, file + ".json");
+            });
+            var on = Run("arms");
+            Assert.True((int)on["stats"]["game_errors"] == 0, string.Join("; ", on["errors"].AsArray()));
+            var arms = on["player"]["arms"];
+            Assert.True((int)arms["orders"] >= 2, "arms: " + arms);
+            Assert.True((int)arms["order_income"] > 0, "arms: " + arms);
+            var off = Run("none");
+            Assert.Null(off["player"]["arms"]);
+            Assert.DoesNotContain("\"gun_order\"", File.ReadAllText(Path.Combine(d, "none.jsonl")));
+        }
+
         // `engine: wine+furnace` on hard: Dr. Jackson's day-6 furnace is bought, scrap and ore go in, ingots come
         // out and sell; the furnace, its modules and inputs are never sold. A list parses like the joined form.
         [Fact]

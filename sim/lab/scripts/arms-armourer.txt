@@ -1,0 +1,11 @@
+# The Armourer routes against gunsmith and the appraiser on hard (docs/research/ROUTES.md, "The Armourer"), with and without the Board.
+# FENCE_GYM_DLL=… python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-armourer.txt -dir var/sim/exp/armourer -seeds 60 -days 1000 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 2910000
+# python3 sim/lab/scripts/armsreport.py var/sim/exp/armourer gunsmith appraiser armourer armourer_printer armourer_sprint
+appraiser | -human player -start apprentice -directives sim/lab/scripts/directives/routes/appraiser.json
+gunsmith | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/gunsmith.json
+armourer | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_printer | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_printer.json
+armourer_sprint | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_sprint.json
+gunsmith_noboard | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/gunsmith_noboard.json
+armourer_noboard | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_noboard.json
+armourer_printer_noboard | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_printer_noboard.json

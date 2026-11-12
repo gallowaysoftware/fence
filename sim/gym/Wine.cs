@@ -19,7 +19,7 @@ namespace Fence.Gym
         static int WineRacks => WineOn ? Directives.Current.Raw.Value<int?>("wine_racks") ?? 0 : 0;
 
         // The machines the wine levers buy at Dr. Jackson's, and how many of each.
-        public static int JacksonWineWants(string id) => id == "wine_rack" ? WineRacks : id == "water_purifier" && WinePurifierOn ? 1 : JacksonDnaWants(id);
+        public static int JacksonWineWants(string id) => id == "wine_rack" ? WineRacks : id == "water_purifier" && WinePurifierOn ? 1 : id == "water_tank" && ReedOn && (QualityPlan?.Value<bool?>("reed_tank") ?? true) ? Reeds : JacksonDnaWants(id);
 
         // HQ (99.00 %) and better: the wine term +1 and a slow enough health loss in the bays.
         const int HqPurity = 9900;
@@ -36,7 +36,7 @@ namespace Fence.Gym
         {
             var free = Owned().Where(i => Usable(i) && Parent(i) == null).OrderByDescending(Cond).ThenBy(i => i.uniqueId).ToList();
             bool yeast = GraphUtils.FindAllChildrenType<GameItem>(bottle).Any(i => Yeasts.Contains(i.identifier)) || Owned().Any(i => Yeasts.Contains(i.identifier) && Parent(i) == null);
-            int fixedPart = WineHelper.GetWaterQualityScore(bottle) + (yeast ? 1 : 0) + 1;
+            int fixedPart = KnownWaterTerm(bottle) + (yeast ? 1 : 0) + 1;
             int reachable = fixedPart + free.Where(b => Cond(b) > 0).Sum(b => Points(Cond(b)));
             if (free.Count < 2) reachable--;
             if (reachable < target)
@@ -80,11 +80,12 @@ namespace Fence.Gym
         static void PourHq(GameItem bottle)
         {
             if (!WinePurifierOn || WaterHelper.GetCurrentCapacityML(bottle) != 0) return;
-            var hq = Owned().Where(i => CleanWater(i) && WaterHelper.GetWaterPurity(i) >= HqPurity).OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).ToList();
+            var hq = Owned().Where(i => CleanWater(i) && Label(i) >= HqPurity).OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).ToList();
             if (hq.Sum(WaterHelper.GetCurrentCapacityML) < 749) return;
             foreach (var src in hq)
             {
                 if (WaterHelper.GetCurrentCapacityML(bottle) >= 749) break;
+                Poured(bottle, LabelGrade(src));
                 Chore.Act("pour", bottle, () => WaterHelper.TransferLiquid(src, bottle));
             }
         }
@@ -108,15 +109,17 @@ namespace Fence.Gym
                     }
                 }
                 var c = PurifierSlotItem(m);
-                if (c != null && (WaterHelper.GetWaterPurity(c) >= HqPurity || (purifyingSince.TryGetValue(c.uniqueId, out int put) && put < ep.Day - 2)))
+                if (c != null && (PurifierDone(m, c) || (purifyingSince.TryGetValue(c.uniqueId, out int put) && put < ep.Day - 2)))
                 {
                     Chore.Accept(stock, c, -1);
                     if (Parent(c) == null) PurifiedMl += WaterHelper.GetCurrentCapacityML(c);
+                    // Its label is stale (the purifier never relabels): tested, so the bottles and bays see HQ.
+                    if (Parent(c) == null) TestWater(c);
                     purifyingSince.Remove(c.uniqueId);
                     c = null;
                 }
                 if (c != null) continue;
-                var next = Owned().Where(i => CleanWater(i) && WaterHelper.GetWaterPurity(i) < HqPurity && !Bottle(i))
+                var next = Owned().Where(i => CleanWater(i) && Label(i) < HqPurity && !Bottle(i))
                     .OrderByDescending(WaterHelper.GetCurrentCapacityML).ThenBy(i => i.uniqueId).FirstOrDefault();
                 if (next != null && PutIn(m, next)) purifyingSince[next.uniqueId] = ep.Day;
             }
@@ -147,6 +150,7 @@ namespace Fence.Gym
         public static void Sold(GameItem item, int amount, StoreClient buyer)
         {
             if (item.identifier == "wine_berry") soldBerries++;
+            Quality.WaterSold(item, amount);
             if (item.identifier != "wine_bottle" || !WineHelper.IsFinishedWine(item)) return;
             soldBottles++;
             soldValue += amount;

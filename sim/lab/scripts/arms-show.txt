@@ -1,0 +1,3 @@
+# Held guns and mods in the display case (`arms.show_weapons`) against the armourer route, hard.
+armourer | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_show | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_show.json

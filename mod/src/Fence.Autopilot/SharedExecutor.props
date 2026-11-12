@@ -18,6 +18,8 @@
     <Compile Include="$(GymSrc)/Wine.cs" Link="Gym/Wine.cs" />
     <Compile Include="$(GymSrc)/Dna.cs" Link="Gym/Dna.cs" />
     <Compile Include="$(GymSrc)/Water.cs" Link="Gym/Water.cs" />
+    <Compile Include="$(GymSrc)/Quality.cs" Link="Gym/Quality.cs" />
+    <Compile Include="$(GymSrc)/Hydro.cs" Link="Gym/Hydro.cs" />
     <Compile Include="$(GymSrc)/Furnace.cs" Link="Gym/Furnace.cs" />
     <Compile Include="$(GymSrc)/Vending.cs" Link="Gym/Vending.cs" />
     <Compile Include="$(GymSrc)/Fountain.cs" Link="Gym/Fountain.cs" />
@@ -28,6 +30,7 @@
     <Compile Include="$(GymSrc)/Crops.cs" Link="Gym/Crops.cs" />
     <Compile Include="$(GymSrc)/Lab.cs" Link="Gym/Lab.cs" />
     <Compile Include="$(GymSrc)/Printer.cs" Link="Gym/Printer.cs" />
+    <Compile Include="$(GymSrc)/Arms.cs" Link="Gym/Arms.cs" />
     <Compile Include="$(GymSrc)/Breadth.cs" Link="Gym/Breadth.cs" />
     <Compile Include="$(GymSrc)/Appraisal.cs" Link="Gym/Appraisal.cs" />
     <Compile Include="$(GymSrc)/Labels.cs" Link="Gym/Labels.cs" />

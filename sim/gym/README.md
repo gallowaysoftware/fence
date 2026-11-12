@@ -478,7 +478,7 @@ the same way, or completely within a second or two (a half-written file is retri
   the rent and floor; `fountain: "landlord"` takes the landlord's offer instead (days 43, 57, 71, 85; +150 weekly rent,
   compounding). Each night it pours and sells, with no customer and no chance, a fixed set of bottles from its Base,
   HQ and Pure slots (more and larger as its attractiveness rises: 1.2 L a night at 15, up to 9.5 L at 100). At bedtime
-  each empty slot gets the fullest owned water vessel whose true grade reaches it (better water goes up a slot first);
+  each empty slot gets the fullest owned water vessel whose tested label reaches it (better water goes up a slot first);
   each morning its cash is collected, near-empty vessels come back for the water engine, a charged cell goes in, and
   common electronics raise its attractiveness before the vending machine's. It needs a water engine to feed it. The
   summary's `player.fountain` and each day's `fountain` give income, attractiveness and vessels poured; sales are
@@ -497,6 +497,15 @@ the same way, or completely within a second or two (a half-written file is retri
   `wine_dna_precision: true` also tunes Jackson's precision module on the first Hardy disk. The summary's
   `production.wine_sold` gives every bottle sold by price, age, grade and buyer, plus berry grades at harvest and
   bottle scores at the start.
+  Output grades (`sim/gym/Hydro.cs`, `sim/gym/Quality.cs`, docs/research/QUALITY.md): `quality: {bays, bottles,
+  reeds}`. `bays` (default true) gives each bay the best-graded water owned by its label, never tops a better grade up
+  with a worse one, and doses nutrient tablets into the plant's mineral band from a ledger (or the AquaScan's reading);
+  `bottles` (default true) pours tested High Quality water into the wine bottles before rations; `reeds: N` (default 0)
+  grows hydroreed in N more bays, each curing a vessel of raw tap water into plant-safe water the other bays drink
+  first (`Production.PlantSafeWater()` lists it for any engine). Treated water now waits up to a week, unsold, for the
+  strip that puts its true grade on the label. Every water decision reads the label or a test, never the hidden
+  purity. The summary's `production.quality` gives the bays' health cost a point, their minerals against the band,
+  the bottles' water grade, ingot purities and water sold by priced and true grade.
   Stock breadth (`sim/gym/Breadth.cs`, docs/re/CLIENTS.md; all off unless set): `breadth: {top, k, window,
   queue, max_pct, lot_max}` keeps `k` sellable units (default 2) of each of the `top` types (default 6) the
   buyers of the last `window` days (default 14) asked for, by visible interest tags weighted by budget;

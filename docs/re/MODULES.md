@@ -116,7 +116,7 @@ nodes always get Support. Effects act on the module's own base stats:
 
 | Machine (value) | Bay types | Base power / speed | P does | E does | Q does | Breakpoints that matter |
 |---|---|---|---|---|---|---|
-| Hydroponic bay (300) | universal, hydroponic | 8 / 8, P ratio 2 | speed: 9 at P≥25, 10 at 50, 11 at 75, **12 at 100**, 16 at 200 | draw | harvest count `round½↑(base·(1 + ⌊Q/2⌋/100))` (`HydroponicHelper.GetHarvestCount`); also nutrifruit size split | bloomberry (work 23/12): **every night at P≥100** (first harvest night 2), else every 2. Berries 6 → **7 at Q≥18**, **8 at Q≥50**, **9 at Q≥84**, 10 at Q≥118 |
+| Hydroponic bay (300) | universal, hydroponic | 8 / 8, P ratio 2 | speed: 9 at P≥25, 10 at 50, 11 at 75, **12 at 100**, 16 at 200 | draw | harvest count `round½↑(base·(1 + ⌊Q/2⌋/100))` (`HydroponicHelper.GetHarvestCount`); also nutrifruit size split | bloomberry (work 22/12, PLANTS.md): **every night at P≥100** (first harvest night 2), else every 2. Berries 6 → **7 at Q≥18**, **8 at Q≥50**, **9 at Q≥84**, 10 at Q≥118 |
 | Wine rack (350) | universal | 24 | lowers draw (÷2) | lowers draw (÷2) | extra aging steps `1 + Q/125` per night | **Q≥125: 3 steps a night** (own tick + 2), else 2 |
 | Furnace (200) | universal, furnace | 8 per smelt | — | draw | flux level `Q/100` (−1 with blast) | Q≥100 replaces flux; Q≥200 +1 purity (no blast) |
 | Water purifier (250) | universal | 4 (only nights it removes) | budget × (dirt bonus + P/100) | draw | purity cap 99.01 → 99.16 (Q≥15), 99.36 (25), 99.65 (50), 99.80 (75), **99.90 = Pure (Q≥100)**, 100 (200) (`GetMaxPurityCap`) | Q≥100 for Pure |

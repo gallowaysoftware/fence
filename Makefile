@@ -7,7 +7,8 @@ export GAME_DIR
 -include local.mk
 DRIFT_URL ?= http://localhost:9002/v1
 DRIFT_MODEL ?= qwen38-27b-mlx
-# The narrator's own model beside it (docs/STREAM-OPS.md, "The narrator's model"), at the same URL.
+# The narrator's first fallback beside it, called directly at the same URL (docs/STREAM-OPS.md,
+# "The narrator's model"); on stream the narrator is $(DRIFT_MODEL) through the gate (NARRATOR_*).
 DRIFT_NARRATOR_MODEL ?= mlx-community/Qwen3.5-9B-MLX-4bit
 DRIFT_FLAGS = -policy llm -base-url $(DRIFT_URL) -model $(DRIFT_MODEL) -no-schema -thinking off -temperature 0.2
 
@@ -176,7 +177,9 @@ league-gym: league-bin
 	$(LEAGUE) gym $(ARGS)
 
 # The show layer (docs/SHOW.md): replay a finished league game through the panel and the
-# narrator into var/show/demo. The narrator calls drift lightly; SHOW_LLM_URL= for captions.
+# narrator into var/show/demo. SHOW_LLM_URL= for captions. It narrates on the 9B directly: a replay
+# runs without the gate, and the 9B cannot take the 27B's one slot from a strategist (a league's or
+# a stream's); SHOW_LLM_MODEL=$(DRIFT_MODEL) for the stream's voice when nothing else uses the 27B.
 SHOW_LLM_URL ?= $(DRIFT_URL)
 SHOW_LLM_MODEL ?= $(DRIFT_NARRATOR_MODEL)
 show-demo:
@@ -192,9 +195,19 @@ stream-preflight:
 # The drift gate (docs/STREAM-OPS.md, "The drift gate"): one drift slot for the strategist
 # ($(GATE_URL)/plan/v1) and the narrator ($(GATE_URL)/narrate/v1), the strategist first.
 GATE_URL ?= http://127.0.0.1:7380
-.PHONY: gate
+# The stream's narrator (owner, 2026-11-12): the strategist's 27B through the gate. Fallback: the 9B,
+# NARRATOR_URL=$(DRIFT_URL) NARRATOR_MODEL=$(DRIFT_NARRATOR_MODEL) NARRATOR_TIMEOUT=8s.
+NARRATOR_URL ?= $(GATE_URL)/narrate/v1
+NARRATOR_MODEL ?= $(DRIFT_MODEL)
+NARRATOR_TIMEOUT ?= 15s
+NARRATOR_FLAGS = -llm-provider openai -llm-url $(NARRATOR_URL) -llm-model $(NARRATOR_MODEL) -llm-timeout $(NARRATOR_TIMEOUT)
+.PHONY: gate show-live
 gate:
 	go run ./cmd/fencegate -upstream $(DRIFT_URL) $(ARGS)
+
+# fenceshow on the live bridge with the stream's narrator; ARGS for the rest (-persona, -route, -tts-url, …).
+show-live:
+	go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player drift -model $(DRIFT_MODEL) $(NARRATOR_FLAGS) $(ARGS)
 
 # The stream run's day-0 route (docs/STREAM-OPS.md, "Starting a run"): drift's 27B through the gate,
 # lean prompt, the last run's route off the menu. ARGS="-format sprint_91", "-dry-run", ...

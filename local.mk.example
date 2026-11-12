@@ -1,4 +1,5 @@
 # Copy to local.mk (untracked) and point at your own OpenAI-compatible endpoint.
 DRIFT_URL = http://192.0.2.10:9002/v1
 DRIFT_MODEL = qwen38-27b-mlx
+# The narrator is DRIFT_MODEL through the gate (Makefile NARRATOR_*); this 9B is its first fallback.
 DRIFT_NARRATOR_MODEL = mlx-community/Qwen3.5-9B-MLX-4bit

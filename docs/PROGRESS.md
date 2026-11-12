@@ -3,6 +3,69 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## The arms trade — 2026-11-12: permits, gun orders and mods for the Armourer; a stream route, not a faster one
+
+**Result.** The Gunsmith start's arms trade, from the decompiled source (docs/re/ARMS.md), checked in the lab
+(`fence-lab arms.*`, docs/sim/VERIFIED.md "Arms": 34 claims confirmed) and played by a new executor engine, `arms`
+(sim/gym/Arms.cs, off by default; contract in docs/PROTOCOL.md and the directives schema). New route `armourer`
+(docs/research/ROUTES.md, "The Armourer"): 60/60 on hard, median win day 98, a week behind `gunsmith` (paired
++11.6 ± 9.3 days); 0/60 without the Board, like every route.
+
+**Found.**
+
+- Gun-order clients come only from a weapon permit **on display** (50 / 40 / 35 % a day by tier, climbing after a
+  missed day). The executor's window took the start's permit out of the case on day 1: `gunsmith` saw no order.
+- Each permit covers its own contraband tier only; revocation returns guns, not ammunition, to contraband.
+- Orders pay base + every bonus row strictly cleared, no reputation; a best order pays 1.5 × the gun's market value
+  with its mods; service orders pay your parts at value and failed repairs never.
+- An order client takes an ordinary customer's slot, and a Basic order nets about a customer's margin; Mid and
+  High orders need mods and guns the shop cannot source. That is why the arms trade does not speed hard up.
+- Two headless gaps fixed: directories built without field initializers (slotting any magazine, barrel, grip or
+  stock threw), and service-order guns read as destroyed. The printer no longer claims inputs no owned chip uses
+  (it took common electronics off the vending machine).
+
+**Measured** (hard, 2910001–060, `sim/lab/scripts/arms-armourer.txt`, `armsreport.py`).
+
+| Arm | Wins | Median win day | Δ vs `gunsmith` | Orders a run (income) | Permit |
+|---|---|---|---|---|---|
+| `gunsmith` | 60/60 | 91 | — | 0 | I |
+| `appraiser` | 60/60 | 98 | +0.7 ± 4.3 | — | — |
+| `armourer` | 60/60 | 98 | +11.6 ± 9.3 | 4.4 (852) | II, day 62 |
+| + printer | 60/60 | 105 | +16.3 ± 8.5 | 27.3 (3 453) | II |
+| Permit I only | 60/60 | 98 | +4.2 ± 7.2 | 4.3 (813) | I |
+| Board off (`gunsmith` / `armourer` / + printer) | 0/60 each | — | last day 168 / −4.8 ± 8.1 / −12.1 ± 8.5 | | |
+
+**Live.** Arms.cs is a shared executor file (window, permits, holds, printer order reach the mod); filling a gun
+order live needs a GUNSMITH step in the autopilot (stage, slot mods, press accept): until then keep `arms` off live.
+
+## Co-host — 2026-11-12: a second voice needles the player's calls; the strategist does not notice
+
+**Result.** fenceshow `-cohost` (off by default) adds Rook, a sceptical rival in the booth: after the
+narrator tells one of the player's decisions in the model's own words (the day-0 thesis, a fork, a bet, a
+change of course, falling behind the book, a loss), Rook needles it in one line, and every second time
+the narrator answers back. Same 27B as the narrator, on the gate's `/filler/v1`, so plans and narrator
+lines go first; at most one exchange per 5 narrator lines, standing down for any moment as loud as the
+decision; its numbers pass the narrator's fact check and a line failing twice is not spoken. Its own
+Kokoro voice (the other sex and accent), a tagged italic caption on the panel ("ROOK · CO-HOST", "SHARK
+ANSWERS"), `say.speaker`/`name`/`reply_to` in the feed, exchanges kept apart in the VOD kit (a clip
+bonus, `clips[].exchange`), and `-feed … -recorded-lines` replays a recording's lines exactly. On drift,
+the rehearsal at its recorded pace with the live-like strategist load (days 30–41 and 56–68, 48 min):
+two exchanges, one answered, one dropped for repeating itself; narrator 1.66 and 1.23 lines a minute
+with it against 1.42 and 1.31 without; plan p50 22.7 / 16.0 s against 22.4 / 14.8 s, the plan's longest
+queue wait 3.4 / 3.1 s against 4.1 / 3.3 s. A first version that stood down for any waiting moment
+spoke no line in five tries on a decision-rich gym window. docs/SHOW.md, "The co-host".
+
+## Drift narrator — 2026-11-12: the stream's narrator is the 27B through the gate; the 9B falls back
+
+**Decision (owner).** The narrator speaks on the strategist's own 27B through the gate's `/narrate/v1`
+(`-llm-timeout 15s`, `make show-live`); drift's Qwen3.5-9B, called directly with `-llm-timeout 8s`, is the
+first fallback, the API the second. From the 2026-11-11 measurements on a quiet drift: in character as
+often (81 % against 82 %), a clearly better voice, and the fact check passed 25 of 26 of its lines against
+the 9B's 27 of 33; the cost is captions while a morning plan holds drift. The pre-flight's drift gate row
+now expects the narrator on `/narrate/v1` and warns instead when it calls the strategist's model around
+the gate, racing the plans for the one slot. drift stays in the fleet's agent pool; the owner does not run
+omp, its client, while streaming. docs/STREAM-OPS.md, "The narrator's model".
+
 ## Chemistry engine — 2026-11-12: the best grade the kit allows; the route still waits on supply
 
 **Result.** `lab: {products: [...]}` (`sim/gym/Lab.cs`, shared with the mod, off by default and byte-identical when
@@ -17,6 +80,32 @@ win day 125 against the `sprinter`'s 97 (+56.6 ± 14.2), a legal variety route `
 Cook 0/60, median last day 35 (the evaporator runs out of power by week 3–4). The walls are beans, alcohol, power and
 capital around the lab, sized in docs/research/CHEMISTRY-ENGINE.md, "The closed loop". docs/re/CHEMISTRY.md was
 filled from the game source.
+
+## Output quality — 2026-11-12: the best grade from what a player sees; grades up, buyout days flat
+
+**Result.** Every water decision in the executor now reads the label or a strip/AquaScan test, never the hidden purity.
+- Bays take the best-graded water and get nutrient tablets into their mineral band. In band went from 3–8 % of
+  bay-nights to 60–70 %.
+- Bottles get tested HQ water before rations.
+- Treated water waits for its test instead of selling at the raw label.
+
+On 60 fresh hard seeds against main, every route still wins 60/60 and no median win day moves (Δ −3.7 … +3.3,
+all CIs across 0). The wine routes:
+- 4–9 points fewer bad berries;
+- mean score +0.3–0.6;
+- Master Vintage 17–20 % → 25–36 % of bottles sold;
+- the same wine income, because the bays run dry for weeks.
+
+`water_baron`: production +1 020 ± 366 a run. The verdict audit's −17 (cellar) and −12 (fountain) day targets are
+**not** reached. They need the staged clean-water build. The hydroreed pipeline built here (`quality.reeds`: tap
+water filtered into a 20 L tank, cured to HQ, the taps after the permit) starts around day 81 and costs days, so it
+is off.
+
+New:
+- `docs/research/QUALITY.md`: the per-engine max-grade table, the information boundary, clean water at scale, the
+  measurements.
+- `docs/re/PLANTS.md`: every plant and trait from the decompile.
+- `production.quality` in the gym summary, read by `sim/lab/scripts/quality.py`.
 
 ## Hidden systems audit — 2026-11-12: what the executor leaves on the table, ranked
 

@@ -60,7 +60,7 @@ One JSON object per line on disk (`-record`), one SSE message on the wire. Every
 | `ghost` | `ghost`: `route`, `fallback`, `status` (`ahead`, `on pace`, `behind`), `zone` (`above`, `inside`, `below` the 10–90 % band), `net_worth`, `p10`, `p50`, `p90` (this morning's), `path` (the run's mornings so far, `[day, net worth]`) | each morning's snapshot against the run's book (below, "The ghost band") |
 | `run_end` | `end`: `ending`, `day`, `cash`, `net_worth`, `won` (a buyout) | `run_end` |
 | `bet` | `bet`: `claim`, `kind`, `target`, `item`, `by`, `staked` (day), `outcome` (`staked`, `won`, `lost`, `abandoned`, `due`, `expired`), `fact` (what settled it), `judged` (the model judged it) | the bridge's `bet` lines (replay) or `/v1/summary`'s `bet` (live), settled by the builder (below) |
-| `say` | `say`: `line`, `audio` (URL path or absent), `voice`, `for` (the moment's seq), `source` (`llm`/`caption`), `check` (`pass`, `retry`, `fallback`), `faults` (the first try's), `ms` (LLM time for the line), `mood` (`MoodOf` when it spoke), `callback` (`bet`, `ledger`: the history the line was given) | the narrator |
+| `say` | `say`: `line`, `audio` (URL path or absent), `voice`, `for` (the moment's seq), `source` (`llm`/`caption`), `check` (`pass`, `retry`, `fallback`), `faults` (the first try's), `ms` (LLM time for the line), `mood` (`MoodOf` when it spoke), `callback` (`bet`, `ledger`: the history the line was given); in a co-host exchange `speaker` (`cohost` on the co-host's line), `name` (the speaker's on-air name) and `reply_to` (on the narrator's answer: the co-host line's seq) | the narrator and the co-host |
 
 Levels are the loudness contract. Moments (level 2) are: the first plan and plans that change
 the run (permit, mortgage, engine, upgrades, cash floor, augs, selling down), trades of 500+ or a
@@ -743,13 +743,14 @@ in the player's persona and voice, and publishes a `say` event with the WAV the 
 - **Sharing the GPU.** `-yield-to-game` (on) checks every 30 s for `Probably Stolen.exe` and
   stops calling a narrator model served on this machine while it runs; the API and a remote node
   keep narrating in character (the stream's plan: `docs/STREAM-OPS.md`). On stream drift both plays
-  and narrates, the narrating on a small model of its own (Qwen3.5-9B, `$DRIFT_NARRATOR_MODEL`):
-  `-llm-url $DRIFT_URL -llm-model $DRIFT_NARRATOR_MODEL`, around the drift gate, so a line never
-  waits for a plan (`docs/STREAM-OPS.md`, "The narrator's model"). The fallback is the 27B through
-  the gate, `http://127.0.0.1:7380/narrate/v1`, which queues the line behind the strategist's plans and
-  answers 503 for a line that waited over 5 s, so the caption is spoken. fenceshow asks the gate
-  whether its model is on this machine, so `-yield-to-game` leaves drift speaking. Off stream, point
-  it at drift directly (`DRIFT_URL` in `local.mk`; `make show-demo` does) or at an API; a narrator line is ~400 prompt tokens and ~40 out, one
+  and narrates on the same 27B (owner, 2026-11-12): `-llm-url http://127.0.0.1:7380/narrate/v1
+  -llm-model $DRIFT_MODEL -llm-timeout 15s` (`make show-live`), through the drift gate, which queues
+  the line behind the strategist's plans and answers 503 for a line that waited over 5 s, so the
+  caption is spoken. The first fallback is drift's small model (Qwen3.5-9B, `$DRIFT_NARRATOR_MODEL`),
+  called directly with `-llm-url $DRIFT_URL -llm-timeout 8s`, around the gate, since it is a process
+  of its own (`docs/STREAM-OPS.md`, "The narrator's model"). fenceshow asks the gate whether its model
+  is on this machine, so `-yield-to-game` leaves drift speaking. Off stream, point it at drift's 9B
+  directly (`DRIFT_URL` in `local.mk`; `make show-demo` does) or at an API; a narrator line is ~400 prompt tokens and ~40 out, one
   every 15–30 s. Do not point it at llama-swap on 127.0.0.1:9000 by a model name that is not
   already loaded: llama-swap would load a second 27B next to the one the leagues use.
 
@@ -831,8 +832,9 @@ board pays" (a real one, from the streak line before).
 Drift as player and narrator, on the same replay (days 30–41) at the recorded pace with a live-like
 strategist load: the 27B shared through the drift gate, 1.34 lines a minute and 81 % in character (the
 captions while the morning plan holds drift); the narrator on its own Qwen3.5-9B, 1.44 a minute and
-82 % (the captions from the fact check), a line in 1.1 s, the 27B's voice clearly better. Tables and
-lines: docs/STREAM-OPS.md, "The drift gate" and "The narrator's model".
+82 % (the captions from the fact check), a line in 1.1 s, the 27B's voice clearly better. The owner
+picked the 27B through the gate (2026-11-12); the 9B is the fallback. Tables and lines:
+docs/STREAM-OPS.md, "The drift gate" and "The narrator's model".
 
 ### Measured: bets and callbacks (2026-11-11)
 
@@ -892,6 +894,107 @@ cannot see (it reads numbers and a few claims, not who sold what); the diary lin
 land in a burst after its plan and the narrator still drops what ages out; the bet lines took
 the place of routine ones rather than adding to them.
 
+## The co-host
+
+Off by default (`-cohost`). The narrator is the player talking to the viewers; the co-host is a second
+voice in the booth, **Rook** (`-cohost-name`), a dry, sceptical rival pawnbroker who needles the
+player's decisions, and now and then the narrator answers back: a short exchange, not a debate
+(`internal/show/cohost.go`).
+
+- **What it reacts to.** Only the player's decisions and their costs, right after the narrator has
+  spoken about one in the model's own words (never after a caption): the day-0 route and thesis, a
+  fork, a bet staked, won, lost or dropped, a morning plan that changes course (`PlanPivot`, the test
+  that makes a changed plan a moment), falling behind the book, a sale at a loss and a down day. Each
+  has its own cue ("doubt it: what they passed over", "rub it in, briefly, without cruelty").
+- **Sparse.** At most one exchange per `-cohost-every` narrator lines (5; the day-0 thesis may be
+  needled at once), and the narrator answers every `-cohost-reply-every`th exchange (2: the first, the
+  third, …). It runs in the narrator's own loop, after the narrator's line has played: each of its lines
+  waits for the one before to finish (1 s apart) and stands down if a moment as loud as the decision
+  (`Priority`) is waiting for the voice by then, so it never takes a big moment's turn and never talks
+  over the narrator; a quieter moment (a counter story, the night) waits out the exchange, which its
+  doubled age limit allows. Standing down on any waiting moment silenced it completely in measurement
+  (below).
+- **Its model.** The narrator's own (on stream drift's 27B), asked on the gate's **`/filler/v1`**
+  when the narrator is on `/narrate/v1` (`-cohost-url` overrides): the gate serves plans first, narrator
+  lines next, the co-host last, and drops a co-host call that queues more than 3 s, so it is the first
+  voice to give way, never the strategist's plans nor a moment's line; the gate's metrics count its calls
+  apart (`filler`). The answer back is the narrator persona's, on the same filler role.
+- **Facts are sacred.** The co-host is given the moment's facts and the narrator's line, and its line
+  passes the same `CheckLine` and its own phrasebook's repeat check (the narrator's answer uses the
+  narrator's); a line failing twice is not spoken at all: no caption stands in for a jab. It invents
+  attitude, never numbers.
+- **Its voice.** A Kokoro voice unlike the narrator's, the other sex and the other accent
+  (`CohostVoice`: `bf_alice` beside the male personas, `bm_daniel` beside the female ones;
+  `-cohost-voice` overrides).
+- **On the panel** (the lower third's caption): the co-host's line under a name tag in words, "ROOK ·
+  CO-HOST", italic in its own rose colour, set in from the left behind a diamond marker instead of the
+  narrator's bar; the narrator's answer is tagged "SHARK ANSWERS" (its persona name). A plain narrator
+  line has no tag, as before. The tags are words, so a VOD without chat (or a viewer who cannot tell the
+  colours apart) reads who said what. The caption sits outside the column, so `fit()`'s squeeze levels
+  (the column's `s1`–`s10`, the lower third's Twitch box's `s1`–`s4`) never touch it; its lines clamp
+  at four under a tag, which fits the 315-pixel lower third.
+- **Recorded.** Each line is a `say` event in the `-record` feed with its `speaker`, `name`, `for` (the
+  moment) and `reply_to`, its WAV beside the narrator's (`cohost-<moment seq>.wav`,
+  `reply-<moment seq>.wav`). A restart reads the co-host's lines back into its own phrasebook.
+  `fenceshow -feed FEED -recorded-lines -recorded-pace -audio-dir DIR` replays a recorded show as it
+  went out, the narrator's lines and the exchanges with their audio in their recorded places, instead
+  of narrating afresh, so the same recording always replays the same show. The VOD kit
+  (`internal/vod`) keeps exchanges apart from the narrator's lines (a clip's `line` stays the
+  narrator's), gives a moment with an exchange a bonus, runs its clip until the answer is spoken, and
+  lists the exchange in `kit.json` (`clips[].exchange`, "Rook: …").
+
+### Measured: the co-host on drift (2026-11-12)
+
+The stream's setup (docs/STREAM-OPS.md, "The drift gate"): the narrator on drift's Qwen3.8-27B through
+the gate's `/narrate/v1` with `-llm-timeout 15s`, the co-host on its `/filler/v1`, CPU Kokoro (the Shark
+`am_fenrir`, Rook `bf_alice`), and the strategist load of "The narrator's model": each morning's plan
+and delta directives written through `/plan/v1` when the replay reaches it. The dress rehearsal's
+decision log (seed 2950001, the Shark on the sprinter route) replayed at the recorded pace (`-recorded-pace
+-narration-paced=false -fill-after 40s`, a game day about 2 minutes), with and without `-cohost` (the
+defaults: every 5 lines, an answer every 2nd exchange). drift was otherwise idle: in every run MTPLX
+logged exactly the gate's calls.
+
+| Window | Run | Narrator lines/min | In character | Exchanges (spoken / tried) | Co-host lines, answers | All voices/min | Plan call p50 / p95 | Morning p50 / p95 | Plan's longest queue wait | Moments too old |
+|---|---|---|---|---|---|---|---|---|---|---|
+| days 30–41 (23 min) | without | 1.42 | 26 / 33 (79 %) | – | – | 1.42 | 22.4 / 33.9 s | 24.3 / 35.8 s | 4.1 s | 0 |
+| | with | 1.66 | 31 / 38 (82 %) | 0 / 0 | 0, 0 | 1.66 | 22.7 / 27.2 s | 27.1 / 32.1 s | 3.4 s | 0 |
+| days 56–68 (25 min) | without | 1.31 | 27 / 32 (84 %) | – | – | 1.31 | 14.8 / 20.6 s | 16.8 / 22.3 s | 3.3 s | 1 |
+| | with | 1.23 | 25 / 30 (83 %) | 2 / 3 | 2, 1 | 1.35 | 16.0 / 18.5 s | 18.3 / 21.1 s | 3.1 s | 2 |
+
+- **Sparse, as meant.** It speaks only after a decision the narrator told in the model's own words. In
+  days 30–41 the one change of course came in a morning while the plan held drift, so the narrator's
+  line was a caption and the co-host had nothing to answer (the one down day was not spoken at all); in
+  days 56–68 three changes of course were told in character, giving two exchanges (the first answered)
+  and one dropped because both tries repeated the co-host's own earlier line. Two exchanges in 48 minutes of the rehearsal at its recorded pace;
+  a run with forks and bets has more decisions to answer.
+- **The strategist does not notice.** The co-host's calls are short (1.3–2.4 s a line on drift, the gate's filler
+  upstream p50 1.6 s) and come after a narrator line, never during a plan: the plan's longest wait in the queue was
+  3.1–3.4 s with the co-host against 3.3–4.1 s without (a plan waits at most for one call in flight
+  either way), and plan and morning times moved within the run-to-run noise. No co-host call was dropped by
+  the gate.
+- **The narrator keeps its lines.** Lines a minute and the in-character share are within a run's noise of
+  the runs without it; one extra moment aged out in 25 minutes while an exchange held the voice.
+- **Standing down on any waiting moment silenced it.** A first version stood down whenever any moment
+  waited. On a decision-rich window (a gym game with bets, days 8–24, fixed pace at `-speed 0.35`, the same
+  load) it tried five exchanges and stood all five down (a counter story or a night was always waiting),
+  and spoke no line; it now yields only to a moment as loud as the decision (above).
+- **Replay.** `-feed … -recorded-lines` played a recorded 30-day sample with two exchanges back twice: all
+  90 lines, the exchanges included, came back with the same moments, speakers, audio and answer links.
+
+A few exchanges from these runs (the co-host's lines and the narrator's answers as the model wrote them;
+the moments are described, not quoted):
+
+| Day | The moment | Rook | The narrator (the Shark) answers |
+|---|---|---|---|
+| 5 | a morning plan buying a service to put off the rent | You have five hundred fifty spare credits. Buying grace is pure theater. | Relax, Rook. I got seven hundred fifty, not five fifty. |
+| 23 | a morning plan selling an old rig before its price falls | You call it a duck, but five hundred eighty-five is a lot of cash. | (not every exchange is answered) |
+| 56 | a morning plan turning the shop to brewing | So you just want to brew? That is a lot of effort to avoid one crime. | Brewing keeps the cops bored. Bored cops don't count my inventory. |
+| 60 | a morning plan of three flips once the power is back | Three flips with power back? Bold, but your till already covers the rent. | (not answered) |
+
+Every number in them passed the fact check (550 and 750 were that morning's cash over the rent and its cash; 585
+the plan's own figure). The model writes numbers out in words now and then though the prompt asks for digits;
+the check reads both.
+
 ### TTS setup
 
 Kokoro is the same service llm-economic-domination's video pipeline uses
@@ -919,11 +1022,13 @@ make show-demo                                    # replay days 38–46 of a fin
 make show-demo ARGS="var/league/<l>/<match> 40-44 1"
 scripts/panel-demo.sh var/rehearsal/run1              # every panel element at once, screenshots in var/panel/demo/shots
 go run ./cmd/fenceshow -replay var/league/<l>/<match> -days 40-60 -speed 1.5
-go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded live feed
+go run ./cmd/fenceshow -feed var/show/feed.jsonl          # replay a recorded live feed, narrated afresh
+go run ./cmd/fenceshow -feed var/show/feed.jsonl -recorded-lines -recorded-pace -audio-dir var/show/audio  # as it went out
 go run ./cmd/fenceshow -replay var/rehearsal/run1 -route sprinter -prev-run var/sim/prev.summary.json  # a rehearsal against its book and an earlier run
 go run ./cmd/fenceshow -live-match var/league/<l>/<match> -record var/show/feed.jsonl
-go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 \
-   -player drift -model $DRIFT_MODEL -persona shark -llm-url $DRIFT_URL -llm-model $DRIFT_NARRATOR_MODEL
+go run ./cmd/fenceshow -live-log var/log -bridge http://127.0.0.1:7341 -player drift -model $DRIFT_MODEL \
+   -persona shark -llm-url http://127.0.0.1:7380/narrate/v1 -llm-model $DRIFT_MODEL -llm-timeout 15s   # make show-live
+make show-live ARGS="-persona shark -cohost"              # the same with the co-host
 go run ./cmd/fencevod -feed var/show/stream-2026-11-20.jsonl \
    -recording "var/stream/2026-11-20/2026-11-20 19-58-12.mkv" -out var/vod/2026-11-20   # the VOD kit
 ```

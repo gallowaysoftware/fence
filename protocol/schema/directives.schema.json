@@ -271,6 +271,17 @@
       },
       "description": "gym executor: hold goods of these types from ordinary buyers until a market event or an Upper Levels buyer with tips, or max_days"
     },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bays": {"type": "boolean", "description": "best-graded water in the bays, never a worse grade on a better one, nutrient tablets to the plant's mineral band (default true)"},
+        "bottles": {"type": "boolean", "description": "tested High Quality or Pure water in the wine bottles before rations (default true)"},
+        "reeds": {"type": "integer", "minimum": 0, "description": "hydroreed bays curing raw tap water into plant-safe water for the other bays (default 0)"},
+        "reed_tank": {"type": "boolean", "description": "with reeds, buy Dr. Jackson's 20 L water tank for each reed (default true)"}
+      },
+      "description": "gym executor: the best grade the equipment allows (docs/research/QUALITY.md)"
+    },
     "specialty": {
       "type": "object",
       "additionalProperties": false,
@@ -285,6 +296,29 @@
         }
       },
       "description": "gym executor: buy only goods of these types (a lot when they are lot_share of its estimate)"
+    },
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "on": {"type": "boolean"},
+        "window": {"type": "boolean"},
+        "window_when_stocked": {"type": "boolean"},
+        "orders": {"type": "boolean"},
+        "permits": {"type": "boolean"},
+        "mods": {"type": "boolean"},
+        "buy_mods": {"type": "boolean"},
+        "print_guns": {"type": "boolean"},
+        "show_weapons": {"type": "boolean"},
+        "keep_guns": {"type": "integer", "minimum": 0},
+        "min_pct": {"$ref": "#/$defs/pct"},
+        "repair_parts": {"type": "integer", "minimum": 0},
+        "permit_margin": {"type": "integer", "minimum": 0},
+        "permit_reserve": {"$ref": "#/$defs/credits"},
+        "permit_from": {"type": "integer", "minimum": 0},
+        "permit_max": {"type": "integer", "minimum": 1, "maximum": 3}
+      },
+      "description": "gym executor: the arms engine (docs/re/ARMS.md): weapon permits on display for gun-order clients, orders filled from stock with mods and repairs, permits II and III bought near their Security gates, guns held and printed for orders"
     },
     "lab": {
       "description": "gym executor: the chemistry lab (docs/research/CHEMISTRY-ENGINE.md), off when absent. \"caffeine\" is the older form of {products: [\"caffeine_pill\"]}",

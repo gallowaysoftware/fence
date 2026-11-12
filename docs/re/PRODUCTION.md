@@ -50,24 +50,26 @@ Per-machine module rules, breakpoints and loadouts: [`MODULES.md`](MODULES.md).
 | Speed | 8 progress per night (`BASE_PROCESSING_SPEED`), performance modules at ratio 2 | VISIBLE (progress in tooltip) | `InitProgressTypeMachine(…, 8)`; `MACHINE_PERFORMANCE_RATIO_INT = 2` |
 | Night logic | No seed: idle (finishes a dangling cycle). Seed but no power or not enough water: **paused, no progress, no penalty**. `STATE_READY` + seed: draw power, `HydroponicHelper.StartGrowing`, grow one cycle. `STATE_WORKING`: draw power, grow one cycle | tooltip status VISIBLE (`GetGrowStatus`: no water / no power / awaiting seed / starting / growing) | `Hydroponic()` cycle lambda |
 | Planting | Drop a seed into slot 3 any time; growth starts on the next night. The seed cannot be removed while `STATE_WORKING` (slot remove filter). A hatchet removes (destroys) the plant: `HydroponicHelper.RemovePlantFromHydroponic(GameItem)` | VISIBLE | `SetupInputSlot`; `InitHatchetPlantRemoval` |
-| Harvest | Automatic at night into the output grid; the player drags produce out. No ripeness window, no rot on the vine (inferred: nothing decays output) | VISIBLE | `HydroponicHelper.ContinueGrowing` → `FinishGrowing` → `PlantDefinition.onHarvest` |
+| Harvest | Automatic at night into the 9×6 output grid (overflow goes to a hopper, else the ship inventory); the player drags produce out. No ripeness window: the bay never touches its output again after delivering it | VISIBLE | `HydroponicHelper.ContinueGrowing` → `FinishGrowing` → `PlantDefinition.onHarvest` |
 | Water | `GetWaterUsePerCycle(seed)` ml per night (plant `waterUseRate` × genetics `WATER_USE`), removed from the water-slot container | VISIBLE (seed tooltip) | `HandleWaterConsumption` |
-| Nutrients / contaminants | Each progress point checks the water slot's `mineral` level against `nutrimentLevel ± nutrimentRange` (below: health −1 %, above: −0.5 %) and consumes `mineralUseRate`; each other contaminant (heavy metal, chemical, microbe, organic, acid, base) costs health on a step table (0 up to 6.4 % per point) × `contaminantEffect` × genetics sensitivity. Chemistry: see `WATER.md` | HIDDEN in the tooltip; VISIBLE as "growth score" with the plant analyser (WATER.md) | `HandleNutriment`, `HandleContaminant`, `ApplyContaminantEffect` |
+| Nutrients / contaminants | Each progress point of the night's speed (so a harvest costs nights × speed points: 24 / 16 for a bloomberry at speed 8, even though the work is 22 / 12) checks the water slot's `mineral` level against `nutrimentLevel ± nutrimentRange` (below: health −1 %, above: −0.5 %) and consumes `mineralUseRate`; each other contaminant (heavy metal, chemical, microbe, organic, acid, base) costs health on a step table (0 up to 6.4 % per point) × `contaminantEffect` × genetics sensitivity. Chemistry: see `WATER.md` | HIDDEN in the tooltip; VISIBLE as "growth score" with the plant analyser (WATER.md) | `HandleNutriment`, `HandleContaminant`, `ApplyContaminantEffect` |
 | Health | `PLANT_HEALTH_INT` (×100 scale), reset to `startingHealth` (100 × genetics) at each cycle start. For a perennial the reset (`StartNextFruitingCycle`) runs in the **same night as the harvest**, right after the berries roll (`FinishGrowing`), so the morning after a harvest always reads 100 % — the berries just harvested got the depleted health. Not clamped at 0 (measured, docs/sim/VERIFIED.md) | HIDDEN | `StartGrowing`, `StartNextFruitingCycle` |
 | Yield | `GetHarvestCount(seed)` = `round(base × (1 + quality/100))`, base = plant `harvestQuantity` × genetics `HARVEST_QUANTITY`, quality = `ModuleHelper.GetAjustedQuality` (quality bonus / `MACHINE_QUALITY_RATIO_INT` 2) | base VISIBLE (seed tooltip "harvest quantity"); module bonus DERIVABLE | `GetHarvestCount`, `GetBaseHarvestQuantity` |
 | Growth time | `GetRequiredProgress(seed)` = `requiredProgress / GROWTH_SPEED multiplier`; perennials, once established, use `refruitProgress` (or 50 %) | VISIBLE ("required work") | `GetRequiredProgress`, `GetRefruitBaseProgress` |
-| Upgrade path | Hydroponic modules (performance → speed, quality → yield); plant genetics via `PlantGeneticsHelper` / DNA manipulator (see §6) | | |
+| Upgrade path | Hydroponic modules (performance → speed, quality → yield; `MODULES.md` §3); plant genetics via `PlantGeneticsHelper` / DNA manipulator (`PLANTS.md`) | | |
 
 ### Plants (`PlantList.Register()`)
 
-| Seed id (value) | Produce | Work (first / refruit) | Nights at speed 8 | Base yield | Notes |
+Work and yield are effective (innate traits applied); every plant's traits, health-to-output mapping and breeding are in `PLANTS.md`.
+
+| Seed id (value) | Produce | Work (first / refruit) | Nights at speed 8 | Yield | Notes |
 |---|---|---|---|---|---|
-| `bloomberry_seed` (40) | `wine_berry` ×6 | 23 / 12 (18 / 10 base, ÷ 0.8) | 3, then **every 2** | 6 (8 base × 0.75) | The innate `perennial` trait carries HARVEST_QUANTITY −25 % and GROWTH_SPEED −20 % (measured, docs/sim/VERIFIED.md: 6 every harvest over 324 harvests). Perennial: the seed is never consumed; nutrients 200±75, contaminant ×1.25, water 100 ml/night |
-| `nutrifruit_seed` (40; 8 or 4 once freed) | nutrifruit (S/M/L/huge by health), +3 seeds | 23 | 3 | 5 | Size split by health and quality (`PlantHarvest.SplitByHealth`) |
-| `kotton_seed` (20) | kotton fiber (46 each, sizes) or `kotton_fabric` with the loom module; 1–2 seeds | 32 | 4 | 9 | Water 176 |
-| `dream_cap_seed` (24, contraband 1) | dream cap (23, contraband 2) / meal cap with module / nightmare cap with module; +1 seed | 28 | 4 | 8 | Contraband status stripped by the dream-cap or smuggler module |
-| `coffee_bean` (28) | coffee beans, ×0.5–0.8 if health ≤ 70 | 21 | 3 | 8 | |
-| `fillerweed_seed` (9) | fillerweed (11) ×(n−1) + 1 small, +1–2 seeds | 11 | 2 | 4 | Water 287; +4 with production module (no seeds then) |
+| `bloomberry_seed` (40) | `wine_berry` ×6 | 22 / 12 (18 / 10 base ÷ 0.8; 22.5 rounds half-to-even) | 3, then **every 2** | 6 (8 base × 0.75) | The innate `perennial` trait carries HARVEST_QUANTITY −25 % and GROWTH_SPEED −20 % (measured, docs/sim/VERIFIED.md: 6 every harvest over 324 harvests). Perennial: the seed is never consumed; nutrients 200±75, contaminant ×1.25, water 100 ml/night |
+| `nutrifruit_seed` (40; 8 or 4 once freed) | nutrifruit (S/M/L/huge by health), 3 seed outputs | 16 (23 ÷ fast grower II) | 2 | 7 (5 × bountiful II) | Size split by health and quality (`PlantHarvest.SplitByHealth`). Innate infertile X floors seed yield: no seeds come back until the strain is freed (Eleanor story) |
+| `kotton_seed` (20) | kotton fiber (36 / 46 / 60 by size) or `kotton_fabric` with the loom module; 1–2 seeds by health | 43 (32 ÷ slow grower) | 6 | 13 (9 × bountiful III) | Water 265 (176 × thirsty II); frail II: contaminants hit ×1.9; nutrients 350 ± 150 |
+| `dream_cap_seed` (24, contraband 1) | dream cap (23, contraband 2) / meal cap with module / nightmare cap with module; +1 seed (fertile: +25 % a second) | 28 | 4 | 8 | Contraband status stripped by the dream-cap or smuggler module |
+| `coffee_bean` (28) | coffee beans, ×0.5–0.8 if health ≤ 70 | 21 | 3 | 8 | The beans are its own seeds: each inherits the parent's traits |
+| `fillerweed_seed` (9) | fillerweed (11) ×(n−1) + 1 small, +1–2 seeds | 8 (11 ÷ fast grower II) | 1 | 5 (4 × bountiful II) | Water 450 (287 × thirsty III); immune to contaminants; +4 with production module (no seeds then) |
 | `hydroreed_seed` (20) | hydroreed filters (per filter module), +1–2 seeds | 18 | 3 | 0 | Purifier plant |
 
 ### Berries: the quality grades
@@ -132,9 +134,10 @@ nothing beyond the ≥ 2 bonus. Pure water (+1) lifts every row one step.
 |---|---|---|---|
 | Where | **Anywhere owned.** A finished, non-counterfeit bottle ages in its own night callback wherever it sits (stock, showcase, counters) | VISIBLE (tooltip "aged n days") | `InitWineBottle` cycle case 2 → `WineHelper.OnAgeWine` → `AgableHelper.OnAge` |
 | Rate | `AGE_INT` +1 and `unitValue` +3 per night (`AGE_VALUE_MOD_PER_DAY_INT`), so +3 × grade multiplier credits per night (Master Vintage +5.25) | DERIVABLE | `AgableHelper.OnAge` |
-| Cap | **None.** No upper bound on age or value in code | (inferred) | `AgableHelper` |
-| Wine rack (`wine_rack`, "Age Well", unitValue 350) | 6x4 bottle grid (finished non-counterfeit wine only), battery, module bay. Each night with power (24, cut by performance and efficiency modules) it applies `1 + max(0, quality%)/125` extra aging steps to every bottle | VISIBLE | `MachineWineRack.AgeWell()`, `GetAgingDays(GameItem)` |
-| Rack + own tick | Bottles inside the rack are found by `FindAllItem`, so they also take their own +1 (inferred): **2 steps/night** without quality modules, 3 at 125 % quality | (inferred) | `PlayerStore.FindAllItem` recursion |
+| Cap | **None.** `OnAge` only increments the age and adds the per-day value; nothing reads the age back to stop it, and no other code touches `AGE_INT` except the reset below | DERIVABLE | `AgableHelper.OnAge` |
+| Starts | The night after the finishing night: the finishing night runs the fermentation branch only, aging is the finished branch of the same callback | VISIBLE | `InitWineBottle` cycle cases 1 and 2 |
+| Wine rack (`wine_rack`, "Age Well", unitValue 350) | 6x4 grid, but a wine bottle is 1×4, so it holds **6** bottles (finished non-counterfeit wine only; PRODUCTION-VERDICTS.md), battery, module bay. Each night with power (24, cut by performance and efficiency modules) it applies `1 + max(0, quality%)/125` extra aging steps to every bottle | VISIBLE | `MachineWineRack.AgeWell()`, `GetAgingDays(GameItem)` |
+| Rack + own tick | Bottles inside the rack are still walked by the nightly item pass, so their own callback adds its +1 on top of the rack's steps: **2 steps/night** bare, 3 at quality ≥ 125, 4 at ≥ 250 (measured: rack 0, 2, 4 … vs stock 0, 1, 2 …, docs/sim/VERIFIED.md). The rack draws only when it holds at least one ageable bottle | VISIBLE | `PlayerStore.FindAllItem` recursion, `MachineWineRack.AgeWell` |
 | Reset | Drinking or pouring out resets age and grade (`ResetToEmptyBottle`) | | |
 
 Sources: bottles from the retired winemaker (4 per visit, also yeasts, 8 berries, water), the
@@ -187,6 +190,34 @@ scrap, which also needs room in the output, and pays the same per-night draw (8,
 blast module). The smelt takes the *last* 2 or 3 of the input's scrap followed by its ore, so ore
 is used first. Junk-made scrap lands in the **output** grid, not the input: a player has to move
 it back before it can be smelted. A failed power draw does nothing that night.
+
+**Which metal a smelt takes, and what it means for purity.** The furnace lines up every scrap in the
+input, then every ore, and takes the last 2 (3 with blast) of that line: ore always goes first, and
+all of it together, so a mixed load never spreads ore thinly; a player needs no sorting. The purity
+step is the integer `2 × ore / inputs`: unblasted, 0/1/2 ore give +0/+1/+2; blasted, 0/1/2/3 ore give
++0/**+0**/+1/+2. The one loss is the remainder: with the blast module a lone ore that ends up beside
+two scrap adds nothing (a 15-credit ore smelted as scrap), and two ore beside one scrap add one step
+instead of two. Holding a leftover ore back (out of the input) until the next delivery makes it a
+full 3-ore smelt. The flux level is `quality bonus / 100` (integer, raw quality, −1 with blast); a
+`flux_agent` lifts a level below 1 to 1 and is consumed only then; an `advanced_flux_agent` lifts it
+to 1 and is never consumed; with quality ≥ 100 (≥ 200 blasted) no flux is used at all.
+
+**What each purity takes** (no sale price check needed: an ingot's label is set to its true purity
+when it is made, so it is priced right before any test):
+
+| Target | Unblasted (2 inputs, 1 ingot) | Blasted (3 inputs, 2 ingots) |
+|---|---|---|
+| Very high (75) | 2 ore + a flux (or quality ≥ 100: four fineness) | 3 ore + a flux (quality 100–199 still needs the flux) |
+| **Perfect (150)** | 2 ore and quality ≥ 200 | 3 ore and quality ≥ 300 |
+
+Quality ≥ 200 does not fit a standard 4-square bay with ordinary modules (four fineness = 100). It
+needs a neural core: uncapped core (+100) + capped core (+50) + two fineness, or a bay kit with the
+uncapped core + four fineness. The uncapped core is 1 500 from the Hypertech smuggler (network 2 500)
+and contraband 4; the capped core (250, contraband 3) only drops from crates, barter and the exchange.
+Perfect doubles an ingot's value over Very high (+75 an ingot, one ingot a night unblasted), so it
+repays a ~4 000 outlay only over ~55 smelting nights, and blasted Perfect (quality 300) is out of
+reach without two uncapped cores. For a normal run Very high is the practical ceiling: 2 or 3 ore and
+a flux each smelt.
 
 **Room.** Junk, scrap, ore and ingots are all 3×2 (six cells; `item_shapes.json`), flux is 1×1.
 The input and output grids are 9×6, so each holds nine of them: six junk plus a flux leave room
@@ -250,9 +281,9 @@ the chain; their chemistry is in `WATER.md`.
 
 | Machine (id, unitValue) | Power | Inputs → outputs, timing | What sets output | Entry points | Source |
 |---|---|---|---|---|---|
-| Water purifier (`water_purifier`, 250) | 4, only if it removed something | Purifies one liquid container in place, once per night | Max purity by quality bonus (99.01 % at < 15, 100 % at ≥ 200); budget grows with dirtiness. See `WATER.md` | `MachinePurifier.WaterPurifier()`, `PurifyContainer(GameItem, GameItem, System.Boolean)` | Dr. Jackson with `WATER_TRADER` (300); retired water merchant |
-| Evaporator (`evaporator`, 300) | 6 | Removes up to 300 ml (× performance) of evaporable liquid per night; distillate = evaporated × quality % (solvent-recovery module: alcohol only) | quality % = recovery | `MachineEvaporator.Evaporator()` | `RETIRED_CHEMIST` bundle (1000) |
-| Moisture farm (`moisture_farm`, 350) | 6 | Fills a container with 850 ml × (1 + perf %) per night, ÷ (1 + 0.25 × (farms running − 1)) | Water grade from quality + 50 (Ghostwater by default) | `MachineMoistureFarm.MoistureFarm()`, `GetOutputVolume`, `GetOutputQuality(GameItem)` | Dr. Jackson with `WATER_TRADER`; Scrapper (broken) |
+| Water purifier (`water_purifier`, 250) | 4 (efficiency-modified), drawn only on a night it removed something; it still refuses to run unless the cell could pay | Purifies one owned liquid container in place, once per night (any liquid container fits the slot, including an unfermented wine bottle) | Max purity by raw quality bonus: 99.01 % below 15, 99.16 (15), 99.36 (25), 99.65 (50), 99.80 (75), **99.90 = Pure at ≥ 100**, 100 at ≥ 200. Budget = (min(volume, 10 L) × 0.3 % + 25 ml) × max(0, dirt bonus + performance/100) × 1.25. Full rules in `WATER.md` §1.5 | `MachinePurifier.WaterPurifier()`, `PurifyContainer(GameItem, GameItem, System.Boolean)` | Dr. Jackson once `WATER_TRADER` is unlocked: always offered while none is owned, 25 % a visit after; retired water merchant |
+| Evaporator (`evaporator`, 300) | 6 | Removes up to 300 ml × (1 + performance/100) of the evaporative liquids (water, alcohol, lipobond) from the input container per night, split in proportion; each liquid lands in the distillate container at removed × quality % (quality clamped 0–100), the rest is lost. The input's other contaminants stay behind, so the input gets dirtier | The distillate is **100 % of what evaporated**: pure water at any quality > 0, only its volume scales with quality (1 fineness ≈ 69 ml/night, 2 ≈ 126, 4 ≈ 204, capped core + 2 fineness ≈ 552). Solvent-recovery module: alcohol only, water discarded. The distillate container's label is not updated (re-test it) | `MachineEvaporator.Evaporator()` | `RETIRED_CHEMIST` bundle (1000) |
+| Moisture farm (`moisture_farm`, 350) | 6 | Fills a container with 850 ml × (1 + perf %) per night, ÷ (1 + 0.25 × (farms running − 1)), by pouring a freshly made premade fill into it (so an empty container gets a true label; a top-up keeps the container's old label) | Grade from quality + 50: < 0 Gutterflow, < 50 Rust, < 100 Ghost (bare), < 150 Base (Q ≥ 50), < 200 HQ (Q ≥ 100), else **Pure (Q ≥ 150: six fineness, so a bay kit)**; the grade's premade roll and contaminant mix | `MachineMoistureFarm.MoistureFarm()`, `GetOutputVolume`, `GetOutputQuality(GameItem)` | Dr. Jackson once `WATER_TRADER` is unlocked (always offered while none is owned, 25 % after); Scrapper (broken) |
 | Bottle printer (`bottle_printer`, 100) | 4 / 6 / 11 **per button press** (real time) | Prints an empty `small_bottled_water` (450 ml, 4) / `bottled_water` (750 ml, 5; needs 3 upgrades) / `large_bottled_water` (2 L, 9; 9 upgrades) | Upgrades by targeting with electronic material, max 9 | `MachineBottlePrinter.BottlePrinter()`, `UpgradePrinter(GameItem, GameItem)` | starting kit; Dr. Jackson with `WATER_TRADER` |
 | 3D printer (`printer`, 350) | 8 per working night | Chip (kept) + materials → goods; progress machine, speed 24/night vs chip target 10–120 (e.g. 1 plastic → 6 small bottles in 1 night; 2 plastic → printed gun in 3; 1 ingot → 2–5 gun parts by purity) | Ingot purity (−30…+100 quality), quality ratio 4 | `MachinePrinter.Printer()`, `FinishPrinting(...)` | `RETIRED_GUNSMITH` (650) |
 | Desequencer (`desequencer`, 350, **contraband 2**) | 10 | crypto chip (kept) + blank keycard (15, consumed) → keycard; speed 33/night vs 75–150 (3–5 nights); outputs contraband 2–3 (sec 100, cmd 125) | — | `MachineDesequencer.Desequencer()` | Dr. Jackson |

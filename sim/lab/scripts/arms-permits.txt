@@ -1,0 +1,5 @@
+# Weapon Permit II bought on its gate (~day 41, before Georgio's loan) and Permit III with the alarm and a Security transmitter, against gunsmith (hard, 16 seeds).
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-permits.txt -dir var/sim/exp/permits -seeds 16 -days 300 -parallel 8 -- -difficulty hard -perks vending+short_sleeper -seed0 2910000
+gunsmith | -human player -start gunsmith -directives sim/lab/scripts/directives/routes/gunsmith.json
+armourer_early_permit | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_early_permit.json
+armourer_permit3 | -human player -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_permit3.json

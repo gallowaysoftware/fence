@@ -616,6 +616,11 @@ namespace Fence.Gym
             customer[k] = (int)customer[k] + amount;
         }
 
+        public void Flow(string key, int amount)
+        {
+            if (today != null) money[key] = (money.Value<int?>(key) ?? 0) + amount;
+        }
+
         // Sales and purchases by line of business (cash_flow): wine and water sold, engine inputs bought.
         public void ItemTrade(bool sold, GameItem item, int amount)
         {
@@ -634,6 +639,7 @@ namespace Fence.Gym
             Lab.Trade(sold, item, amount);
             SupplyProbe.Trade(sold, item, amount);
             Printer.Trade(sold, item, amount);
+            Arms.Trade(sold, item, amount);
             if (sold) Production.Sold(item, amount, GameBarter.CurrentClient());
             if (!sold && GameBarter.CurrentClient()?.identifier == "inventor") JacksonBought(false, item.identifier, amount);
         }
@@ -777,6 +783,7 @@ namespace Fence.Gym
             today["production"] = Production.Status();
             if (Furnace.Status() is JObject furnace) today["furnace"] = furnace;
             if (Rats.Status() is JObject rats) today["rats"] = rats;
+            if (Arms.Status() is JObject arms) today["arms"] = arms;
             if (Fish.Status() is JObject fish) today["fish"] = fish;
             if (Lab.Status() is JObject lab) today["lab"] = lab;
             if (Conceal.Status() is JObject bay) today["smuggler_bay"] = bay;
@@ -820,6 +827,7 @@ namespace Fence.Gym
             if (Rats.Status() is JObject rats) s["rats"] = rats;
             if (Fish.Status() is JObject fish) s["fish"] = fish;
             if (Printer.Status() is JObject printer) s["printer"] = printer;
+            if (Arms.Status() is JObject arms) s["arms"] = arms;
             if (SupplyProbe.Totals() is JObject probe) s["supply_probe"] = probe;
             s["jackson"] = new JObject
             {

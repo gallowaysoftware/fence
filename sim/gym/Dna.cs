@@ -21,8 +21,12 @@ namespace Fence.Gym
         // Hardy ranks wanted on each bloomberry seed (a second rank costs a second operation at ~55 %).
         static int DnaRanks => Math.Max(1, Directives.Current.Raw.Value<int?>("wine_dna_ranks") ?? 1);
 
-        const string Trait = "hardy";
-        static readonly HashSet<string> Donors = new HashSet<string>(StringComparer.Ordinal) { "fillerweed_seed", "nutrifruit_seed", "hydroreed_seed" };
+        // `wine_dna_trait` (default "hardy"): "purifying" cleans the bloomberry's own bay water to rank I's floors (refruit
+        // health ~90 on any Basewater, docs/re/PLANTS.md §2), and only the hydroreed carries it (rank IV: four uses a disk).
+        static string Trait => Directives.Current.Raw.Value<string>("wine_dna_trait") == "purifying" ? "purifying" : "hardy";
+        static readonly HashSet<string> HardyDonors = new HashSet<string>(StringComparer.Ordinal) { "fillerweed_seed", "nutrifruit_seed", "hydroreed_seed" };
+        static readonly HashSet<string> PurifyingDonors = new HashSet<string>(StringComparer.Ordinal) { "hydroreed_seed" };
+        static HashSet<string> Donors => Trait == "purifying" ? PurifyingDonors : HardyDonors;
 
         public static int DnaOps, DnaReplanted;
 

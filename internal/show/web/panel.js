@@ -352,7 +352,7 @@
   function pushMoment(ev, redraw) {
     moments.push(ev); if (moments.length > MOMENTS) moments.shift();
     // Between narrator lines the dimmed caption echoes the latest big moment.
-    if (ev.level >= 2 && !playing && $("caption").classList.contains("idle")) text($("caption-text"), ev.text);
+    if (ev.level >= 2 && !playing && $("caption").classList.contains("idle")) showEcho(ev.text);
     if (redraw === false) return;
     const ol = $("moment-list");
     ol.insertBefore(li(ev, "k-" + ev.kind), ol.firstChild);
@@ -379,11 +379,24 @@
   // Narration: at most one line waits while another plays; a newer line replaces it.
   const voice = $("voice");
 
-  function showCaption(line) {
-    const c = $("caption");
-    text($("caption-text"), line);
+  // An exchange names its speakers in words, so the VOD reads who said what without colour or chat:
+  // the co-host's line and the narrator's answer to it carry a name tag; plain narration has none.
+  function showCaption(say) {
+    const c = $("caption"), cohost = say.speaker === "cohost", tagged = cohost || !!say.reply_to;
+    text($("caption-text"), say.line);
+    c.classList.toggle("cohost", cohost);
+    c.classList.toggle("reply", !cohost && tagged);
+    const name = $("speaker-name");
+    name.classList.toggle("hidden", !tagged);
+    text(name, !tagged ? "" : cohost ? (say.name || "Co-host") + " · co-host" : (say.name || "the player") + " answers");
     c.classList.remove("idle");
     clearTimeout(idleTimer);
+  }
+  function showEcho(line) {
+    const c = $("caption");
+    text($("caption-text"), line);
+    c.classList.remove("cohost", "reply");
+    $("speaker-name").classList.add("hidden");
   }
   function idleLater(ms) {
     clearTimeout(idleTimer);
@@ -393,7 +406,7 @@
   function say(ev) {
     if (!ev.say) return;
     if (!audioOn || !ev.say.audio) {
-      showCaption(ev.say.line);
+      showCaption(ev.say);
       idleLater(Math.max(5000, ev.say.line.split(" ").length * 420));
       return;
     }
@@ -403,7 +416,7 @@
 
   function play(ev) {
     playing = true;
-    showCaption(ev.say.line);
+    showCaption(ev.say);
     $("caption").classList.add("speaking");
     voice.src = ev.say.audio;
     const p = voice.play();
@@ -445,7 +458,7 @@
     $("ticker-list").innerHTML = ""; $("moment-list").innerHTML = "";
     for (const e of s.ticker || []) pushTicker(e);
     for (const e of s.moments || []) pushMoment(e);
-    if (s.say && s.say.say) { showCaption(s.say.say.line); idleLater(3000); }
+    if (s.say && s.say.say) { showCaption(s.say.say); idleLater(3000); }
     fit();
   }
 

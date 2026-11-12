@@ -4,6 +4,7 @@
 "purist_sprint": {"deadline_day": 91, "handicaps": ["no_haggle", "clean_shop", "no_mortgage", "no_insurance"], "seeds": "8100001-060", "routes": {
   "apothecary": {"wins": 9, "runs": 60, "lo": 8, "hi": 26, "median_win_day": 91},
   "appraiser": {"wins": 19, "runs": 60, "lo": 21, "hi": 44, "median_win_day": 84},
+  "armourer": {"wins": 10, "runs": 60, "lo": 9, "hi": 28, "median_win_day": 88},
   "bulk_buyer": {"wins": 21, "runs": 60, "lo": 24, "hi": 48, "median_win_day": 91},
   "clean_shop": {"wins": 19, "runs": 60, "lo": 21, "hi": 44, "median_win_day": 84},
   "fair_dealer": {"wins": 19, "runs": 60, "lo": 21, "hi": 44, "median_win_day": 84},
@@ -40,6 +41,7 @@
 "sprint_91": {"deadline_day": 91, "handicaps": [], "seeds": "8100001-060", "routes": {
   "apothecary": {"wins": 14, "runs": 60, "lo": 14, "hi": 35, "median_win_day": 91},
   "appraiser": {"wins": 24, "runs": 60, "lo": 29, "hi": 53, "median_win_day": 84},
+  "armourer": {"wins": 17, "runs": 60, "lo": 19, "hi": 41, "median_win_day": 84},
   "bulk_buyer": {"wins": 27, "runs": 60, "lo": 33, "hi": 58, "median_win_day": 91},
   "clean_shop": {"wins": 23, "runs": 60, "lo": 27, "hi": 51, "median_win_day": 91},
   "fair_dealer": {"wins": 28, "runs": 60, "lo": 35, "hi": 59, "median_win_day": 91},

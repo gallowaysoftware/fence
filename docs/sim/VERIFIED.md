@@ -32,6 +32,8 @@ item does not fit (`W.Own`), since it measures mechanisms, not space.
 | `Headless.PatchGame` replaces every fluent `With*/Set*/Add*` method on `Machinery*` types with `return this` | `MachineryPanelRow.Add` and `MachineryPanel.SetContent` never attach their panels: **every machine and wine bottle has no slots** (`MachineHelper.GetBodyStorage` returns null). No hydroponics, furnace, rack, purifier, bottle or battery slot works headless | Only drawing methods are stubbed on `Machinery*` types (`sim/headless/Headless.cs`, patch version `25-lab2`). Gym smoke (seeds 3 and 5 farmer, 30 days) still runs clean |
 | `GameItemElement.IsDestroyed()` is `handler == null`, and the fake render handler compares equal to null | `ChemicalHelper.RunNightlyChemicalSimulation` skips every container: no chlorine, acid/base, heat or organic reactions at night | Handlers marked alive before each play-time pass and before sleep (`Episode.PassTime`/`Sleep`; the lab's `W.Sleep` too) |
 | Nightly burglary (33 % + 5 %/uninsured day) | Items under observation vanish | The lab keeps insurance on (`W.NoBurglary`) |
+| Directories were made with `GetUninitializedObject`, which skips instance field initializers | `GunModDirectory`'s per-gun allow lists are null: slotting any magazine, barrel, grip, stock or launcher into a gun throws | `Game` runs each directory's constructor (branch `arms-trade`); no other directory has instance initializers but the unused one |
+| `IsDestroyed()` (above) also hides a service order's gun | `GunOrderData.GetPlacedServiceGun` returns null, so a service order can never be accepted | the gym marks that gun's render node alive (`Episode.Arms.cs`) |
 
 ## Barter (`docs/re/BARTER.md`)
 
@@ -239,7 +241,33 @@ What works: pure water with 6 nutrient tablets per 6 L (≈ 150 bp mineral) keep
 band) → 0 % bad. Pure water alone → ≈ 25–29 % under/over-ripe (no minerals: −1 %/point). Filtering or
 purifying strips minerals too, so add tablets afterwards.
 
+## Arms (`docs/re/ARMS.md`)
+
+`fence-lab arms.permits|mods|orders|printer`, hard, the Gunsmith start; items made through `DirectoryMaster.Item`, as
+the game makes them (the lab's `W.Make` skips the identifier and the permit check).
+
+| Claim | Method | n | Result | Verdict |
+|---|---|---|---|---|
+| A permit covers its own contraband level only (I: printed gun, frame, .22 ammo legal; heavy pistol, AP ammo 2, SMG 3 stay contraband; II: heavy pistol, glock legal; III: SMG legal) | new items under each permit | 1 per item | as stated; a new printed gun is `RESTRICTED_1` | CONFIRMED |
+| Permit I revoked with II held: guns of level 1 turn contraband again, new and owned | `OnPermitRevoked(1, FIREARM)` | 1 | contraband 1 | CONFIRMED |
+| Revocation leaves ammunition covered | new lethal .22 after the revocation | 1 | legal | CONFIRMED (a bug: only FIREARM is revoked) |
+| A permit is granted at the shutter with the upgrade owned and Security at the gate | `HandlePermit` with III owned at Security 79, then 80 | 2 | not granted / granted; the item lands owned on the front counter | CONFIRMED |
+| Permit and gunsmith upgrade costs on hard | `GetCost` | 1 | 450 / 900 / 1 350; Retired Gunsmith 975 | INFO |
+| Gun stats: base × (100 + condition + mod %) + flat; a New printed gun FP 19, with a .22 extended mag 46 | slot the mag | 1 | 19 / 46 | CONFIRMED |
+| A gun's value is its own plus its mods' | estimate with the mag | 1 | 50 + 35 = 85 | CONFIRMED |
+| Mods fit by caliber; improved and plain springs exclude each other | slot a 10 mm mag; both springs | 2 | refused / refused | CONFIRMED |
+| An order pays base + every bonus row strictly cleared, destroys the gun | basic firepower order, printed gun FP 19 | 20 | 20/20 exact | CONFIRMED |
+| Orders move no reputation | Security and Lower Levels over 20 deliveries | 20 | 0.0 / 0.0 | CONFIRMED |
+| A best order pays 1.5 × the market value with mods | printed gun + extended mag + red dot | 20 | 20/20; estimate 145, paid 217 | CONFIRMED |
+| The Gunsmith start's old printer: pistol chip loaded, 7 power a night, a printed pistol in 3 nights, legal under Permit I, New, estimate 50 | 2 plastic, quiet nights | 1 | as stated | CONFIRMED |
+| A permit in stock brings no gun-order client; on display it brings ~0.6 a day | gym: the `gunsmith` route (permit moved to stock on day 1) against `arms` (permit kept on display) | 70 days / 16 runs | 0 in 70 days / 59–85 in ~100–120 days | CONFIRMED (gym) |
+
 ## Corrections needed in `docs/re` / `docs/sim` (not made here)
+
+Items 2, 3, 4, 5 and 7 are now in `PRODUCTION.md` and `WATER.md` (checked 2026-11-12 against the decompile,
+docs/research/QUALITY.md). One refinement to item 2: the decompile gives a perennial bloomberry's first-cycle work
+as **22** (18 ÷ 0.8 = 22.5 rounds to even in single precision), not 23; harvest timing (3 nights, then every 2) and
+the 6 berries are unchanged (`docs/re/PLANTS.md`).
 
 1. **STATE.md / SPEC §6.1** — heat decay is 18 per night for every item; the contraband slow-down
    (−2/−4/−6/−8) is dead code (tag test against the tag's value). Stolen contraband cools exactly as fast

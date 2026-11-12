@@ -210,7 +210,7 @@ namespace Fence.Gym
             bool avoidStolen = D.AvoidStolen ?? true;
             // A display buyer lifts the case's items to the counter and inspects them like any buyer, so an
             // undisclosed fake in the case costs rep the same way.
-            var pool = owned.Where(i => !Contraband(i) && !(avoidStolen && StolenHelper.IsStolenItem(i)) && !P.Reserved(i) && !D.HoldUids.Contains(i.uniqueId) && !HidesFake(i) && !WineAging(i) && !Style.KeepsPerfume(i)).ToList();
+            var pool = owned.Where(i => !Contraband(i) && !(avoidStolen && StolenHelper.IsStolenItem(i)) && (!P.Reserved(i) || Arms.Showable(i)) && !D.HoldUids.Contains(i.uniqueId) && !HidesFake(i) && !WineAging(i) && !Style.KeepsPerfume(i)).ToList();
             List<GameItem> picked;
             if (D.ShowUids != null)
                 picked = pool.Where(i => D.ShowUids.Contains(i.uniqueId)).Take(capacityHint).ToList();
@@ -253,6 +253,13 @@ namespace Fence.Gym
             {
                 picked.Remove(cert);
                 picked.Insert(0, cert);
+                if (picked.Count > capacityHint) picked.RemoveAt(picked.Count - 1);
+            }
+            // A weapon permit on display is what brings its tier's gun-order client (Arms.cs).
+            foreach (var permit in Arms.WindowFirst(owned))
+            {
+                picked.Remove(permit);
+                picked.Insert(0, permit);
                 if (picked.Count > capacityHint) picked.RemoveAt(picked.Count - 1);
             }
             defaults.Take("player:window", picked.Count + " items");
@@ -545,6 +552,8 @@ namespace Fence.Gym
             order.AddRange(Suppliers.Upgrades());
             order.AddRange(Lab.Upgrades());
             order.AddRange(Crops.Upgrades());
+            order.AddRange(Production.ReedUpgrades());
+            order.AddRange(Arms.Upgrades());
             if (D.UpgradesBuy != null) order.AddRange(D.UpgradesBuy);
             else order.AddRange(Engine.Upgrades(v));
             // Growth bought with Wild favor (a currency good for nothing else) or real surplus: more traffic
@@ -569,9 +578,9 @@ namespace Fence.Gym
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
                 if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
-                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id))
+                if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) || Arms.WantsUpgrade(id))
                 {
-                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Lab.WantsUpgrade(id) ? Lab.UpgradeReserve : Crops.WantsUpgrade(id) ? 300 : Suppliers.Reserve(id))) continue;
+                    if (funds - u.Cost < keep + (id == "VENDING_MACHINE" ? Vending.Reserve : id == "VENDING_FOUNTAIN" ? Fountain.Reserve : Lab.WantsUpgrade(id) ? Lab.UpgradeReserve : Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) ? 300 : Arms.WantsUpgrade(id) ? Arms.UpgradeReserve : Suppliers.Reserve(id))) continue;
                     picks.Add(id);
                     funds -= u.Cost;
                     favor = Math.Max(0, favor - u.Cost);

@@ -12,6 +12,7 @@
   --bad: #e07a6a;
   --twitch: #9147ff;
   --twitch-text: #b48cff;
+  --cohost: #e58fb6;
   --font: "Inter", "IBM Plex Sans", "Noto Sans", "DejaVu Sans", "Segoe UI", sans-serif;
 }
 
@@ -253,6 +254,18 @@ body.snap * { animation: none !important; transition: none !important; }
 .caption.speaking #speaker { animation: talk 1.1s ease-in-out infinite; }
 @keyframes talk { 50% { transform: scaleY(.55); } }
 #caption-text { font-size: 34px; line-height: 1.25; font-weight: 520; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
+/* The co-host: its own colour, a square marker that does not pulse like the player's bar, italic, set
+   in from the left like a voice across the table, and a name tag in words. Only #audience is squeezed
+   in the lower third (fit()), so none of this gives way. Four lines leave room for the tag. */
+.caption-body { min-width: 0; flex: 1 1 auto; }
+#speaker-name { font-size: 16px; letter-spacing: .12em; text-transform: uppercase; font-weight: 650; color: var(--accent); margin: 2px 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.caption.cohost { margin-left: 56px; }
+.caption.cohost #speaker { width: 22px; height: 22px; border-radius: 3px; margin-top: 2px; background: var(--cohost); transform: rotate(45deg); }
+.caption.cohost.speaking #speaker { animation: nod 1.1s ease-in-out infinite; }
+@keyframes nod { 50% { transform: rotate(45deg) scale(.7); } }
+.caption.cohost #speaker-name { color: var(--cohost); }
+.caption.cohost #caption-text { font-style: italic; color: #f3dbe6; -webkit-line-clamp: 4; }
+.caption.reply #caption-text { -webkit-line-clamp: 4; }
 body.layout-lower #lower { padding: 18px 28px; }
 
 #unmute { position: fixed; right: 16px; bottom: 16px; background: var(--accent); color: #0e1116; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 16px; }
