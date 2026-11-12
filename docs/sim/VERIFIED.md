@@ -262,6 +262,33 @@ the game makes them (the lab's `W.Make` skips the identifier and the permit chec
 | The Gunsmith start's old printer: pistol chip loaded, 7 power a night, a printed pistol in 3 nights, legal under Permit I, New, estimate 50 | 2 plastic, quiet nights | 1 | as stated | CONFIRMED |
 | A permit in stock brings no gun-order client; on display it brings ~0.6 a day | gym: the `gunsmith` route (permit moved to stock on day 1) against `arms` (permit kept on display) | 70 days / 16 runs | 0 in 70 days / 59–85 in ~100–120 days | CONFIRMED (gym) |
 
+## Formula exploits (`docs/research/FORMULA-EXPLOITS.md`)
+
+`sim/lab/FormulaExps.cs` (`fence-lab all -only formula.`). Each experiment runs the optimiser's version of a
+mechanic beside the way the guide or the executor runs it, on the game's own machines and functions.
+
+| Claim | Method | n | Result | Verdict |
+|---|---|---|---|---|
+| Alcohol is a solvent: R1 reads it against the mush still present, so caps fed one at a time into ≈ 5 × one cap's alcohol extract fully | 6 caps, 4-module blender and plate at 45 °C: all at once in 700 ml vs one at a time in 120 ml (20 s each) | 6 runs | both 50.0 % (66 ml extract); solvent to evaporate 1024 vs 195 ml, **4 vs 1** evaporator nights; 12 caps one at a time in the same 120 ml: 50.0 %, 1 night. Same 120 ml with all 6 caps at once: 23.8 %; 60 ml one at a time: 42.8 % | CONFIRMED |
+| The batched extraction still makes lab-pure dust | 120 ml alcohol, 6 caps one at a time, acid = protein, base, kotton + filter, 4 modules | 33 units | 33 × lab pure at 99.2 %, value 1386 (same as the 700 ml chain), **1 night**, 60 ml alcohol back at Q 50 | CONFIRMED |
+| R7 (coffee) reads alcohol against each second's 15 % chunk | 3 beans at 60 °C, alcohol 0.1…1.3 × the mush | 6 | caffeine 28.6 / 50.3 / 68.6 / **75.0** / 75.0 / 75.0 % of the mush at 0.1 / 0.25 / 0.5 / **0.75** / 1 / 1.3 × | CONFIRMED (0.75 × is enough, not 1.3 ×) |
+| Evaporator distillate = Q % of each evaporated liquid; solvent recovery keeps only alcohol | 200 ml water + 100 alcohol + mineral + microbe, one night | 6 | Q 0: nothing; solvent (Q 50): 50 ml alcohol; solvent + 2 quality (Q 66): 66; **solvent + 2 fineness (Q 100, P −16): 84 of 84 ml evaporated**; 4 quality (Q 32): 64 water + 32 alcohol; 4 fineness (Q 100): 136 water + 68 alcohol. Mineral and microbes never distil | CONFIRMED |
+| Water tablets: chlorine reaches its 0.7 %-of-volume floor with far fewer tablets than one per litre | 5.8 L filtered rust jug, 360 s | 5 | 2 tablets = 6 tablets (chemical 71 bp, microbes 0); UV + 1 tablet leaves 117 bp | CONFIRMED (2 per 6 L jug) |
+| Pure water with no modules: two filter passes, hydroreed to its floors, UV | 5.8 L rust, `PlantWaterQuality.Purify` rank IV nightly, then `OnUVUsed` | 2 | 2 passes: reed plateaus at 9988 bp by night 12, UV → **9990 (Pure)**; 1 pass: 9987 → 9989 (HQ) | CONFIRMED |
+| Fish pellet taint is strictly above 25 % of lifetime kcal; no growth penalty | tilapia with pellet share 0.20…0.27 | 5 | tainted only at 0.2501 and 0.27; growth speed 1.00 in every case | CONFIRMED |
+| Window: an item with several display types counts in full for each | `ShowcaseHelper.GetDisplayCaseCustomer`, day 20, SHOWCASE_I | 300 openings × 4 | 35 caffeine pills (350): hospital admin + upper maid every time; 15 pills: nurse + household; 3 cleavers (195): self-defence + household; 2 surgery tools (400): one buyer | CONFIRMED |
+| Appraisal: blocking a type removes it from the visit pool (Senior and Master) | `AppraisalItemRegistry.GetPool`, 2000 items per type | 2000 × 3 | fee per item at a perfect estimate, Master: hand 155, ribwich 159, plasma 181; blocking hand + ribwich leaves plasma only, at rank 2 and 3 | CONFIRMED |
+| The buyout never collects deferred rent | day 91, `temporaryRent` 621, cash = price | 1 | buyout allowed, cash 0 after, arrears still 621 eight days later, no game over | CONFIRMED |
+| Permit donation per visit 25 + 10 × ⌊day/7⌋ | `StoreClientList.GetBribeAmount`, days 45…185 | 21 | 85, 95 … 155 by day 94 (sum 960), 285 on day 185: uncapped | CONFIRMED (MITIGATIONS' "25–95" is wrong) |
+| Burglary 33 + 5n % with n uninsured nights, reset by one insured night | `PlayerStore.HandleInsurance`, 6000 nights per policy | 42 000 | thefts a night: always 0; 1 night in 2 insured 0.198; 1 in 3 0.281; **1 in 4 0.317**; 1 in 5 0.374; 1 in 6 0.417; never 0.995 | CONFIRMED |
+| A learning-algorithm module trains in an unpowered security alarm | fineness + learning effect, no battery, 55 nights | 55 | quality 0 → +1 a night → 50 (2 × base) at night 50; P and E (negative) untouched | CONFIRMED |
+| Printed melee condition uses the integer average of the ingot bonuses | `ApplyPrintedMeleeCondition`, unmodded printer | 3000 × 5 | Poor 45 % (all Fair), **0 %** (one High in three, or Fair + High), **100 %** (one Low in three, or Fair + Low) | CONFIRMED |
+| Poison barter mints a cell charged with the items' value, capped 100 | `ExchangeList.PoisonBarter` with 2 nightmare caps | 1 | caps 52 each → a 100-charge cell worth 110 | CONFIRMED |
+| Fridge: chilled +20 % innate on drinks, rations and premium water; wine refused | one powered night per item | 14 | soda 15→18, ration 30→36, beer 18→22, milk 16→19, energy drink 18→22, premium water 325→390, nudka 85→102 (chill zone); wine bottle refused; draw 2 a night; the feature is lost the night after the item leaves | CONFIRMED |
+| Weapons: a frame finished with a gun part is a New gun with base stats × (100 + quality) % and fills Mid orders bare | `GunFrameHelper.Finish`, deliveries through the order client's accept, hard, Permits II–III | 10 a case | heavy Q 0: 39/39/44/39/52/52 New, every Mid kind's mandatory rows met; paid general 394, firepower 385, best 300, suppressed 276, handling 274, stylish 250, big 195; Q 30 general 430; a heavy bought Fair (25/25/28/25/34/34) meets none; heavy Q 30 + springs + silencer: High reliability 816; Q 36 + trigger + compensator: High handling 685; handmade Q 0: Basic general 280 | CONFIRMED (ROUTES' "Mid/High need what the shop cannot get" CONTRADICTED) |
+| Printed gun + mag_22_ext + pistol_switch reaches High firepower | same | 10 | FP 58, mandatory not met | CONTRADICTED (the read predicted 85) |
+| Repair at resale (Poor → Fair): parts per step and value gained | `GunHelper.TryRepairGun` until the step, 400 per gun | 2400 | handmade 1.00 / 16, heavy 1.20 / 21, glock 1.37 / 26, revolver 1.39 / 31, SMG 1.74 / 36, shotgun 1.84 / 41: break-even part price 16–22 | REFINED (RECIPES §1.6 "pays above ~200" is wrong; never pays with a 25 part at market 0) |
+
 ## Corrections needed in `docs/re` / `docs/sim` (not made here)
 
 Items 2, 3, 4, 5 and 7 are now in `PRODUCTION.md` and `WATER.md` (checked 2026-11-12 against the decompile,

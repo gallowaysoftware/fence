@@ -176,7 +176,12 @@ Expected value multiplier for melee by s = q + ingot bonus (computed from the 11
   `system_module_fineness` (+25, q 6). +7.2 % on every melee print. Good needs s ≥ 40 (Very high
   ingots + quality 40, or the capped neural core's +50).
 - Per run (computed, Fair ingots): machete 456 → 488 with a fineness module (+32); kitchen knife 148 →
-  158. Fair ingots + fineness = High ingots without it, so ore is not worth spending on purity here.
+  158. Fair ingots + fineness = High ingots without it, so ore is not worth spending on purity here **when a
+  fineness or 3 quality modules are fitted**.
+- **The ingot term is the integer average over the run's ingots** (`MachinePrinter.CaptureIngotQuality`), so one
+  ingot sets the whole run (lab, `FormulaExps.PrinterIngotMix`, 3 000 rolls each): on an unmodded printer, one High
+  among three Fair (20/3 = 6) or a Fair + High knife pair (10) gives **0 % Poor**; one Low among three Fair (−6) or a
+  Fair + Low pair (−10) gives **100 % Poor**. Load order picks the ingots (consumed from the end of the input list).
 
 ### 1.5 Gun frames → guns (item-on-item)
 
@@ -215,8 +220,13 @@ chance = base repairability + the carried chance, which grows by the base after 
 to 0 on success (so base × attempts since the last success). Base repairability (`GUN_REPAIRBILITY_TAG`,
 `GunHelper.InitGun`): printed and handmade 100, heavy 80, short tac revolver 75, heavy-s 70, glock 65,
 revolver 60, SMG 40, shotgun 35. Success raises the condition one step: Poor → Fair → Good →
-Excellent, never to New; New and Excellent cannot be repaired (`CanRepair`). A part (25) buys +12–13 %
-of the gun's value, so repair pays on every gun above ~200 (computed).
+Excellent, never to New; New and Excellent cannot be repaired (`CanRepair`). A step adds +13 % (Poor → Fair) or
++12 % of the gun's unit value (mods excluded) and costs the expected parts per step: measured 1.00 / 1.20 / 1.37 /
+1.39 / 1.74 / 1.84 for handmade / heavy / glock / revolver / SMG / shotgun, value gained 16 / 21 / 26 / 31 / 36 / 41
+(lab, `FormulaExps.RepairCost`, 400 each). Break-even part price 16–22: **at resale, repair does not pay with a bought
+part (25) on any gun at market 0**; with a self-printed part (≈ 19: Fair ingot + power over 3 parts) it pays a few
+credits on the glock, revolver, SMG and shotgun; a +35–50 % restricted markup or weapon event moves every
+break-even up by that factor. In orders a step is worth far more (+3 to +13 on every stat, often a whole row).
 
 ### 1.7 Who buys the output
 

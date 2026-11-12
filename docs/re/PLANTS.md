@@ -167,9 +167,11 @@ crossing, no pollination, no mutation in the plant code (bought and spawned seed
 - **Hydroreed** (purifying IV, immune to contaminants, 20 ml a night, 3-night cycle, returns 1–2 seeds, 20 a
   seed) is a water-treatment machine in disguise: in its bay's container it removes 28 % of every non-mineral
   contaminant a night down to ≤ 6 bp each. Filtered-and-tableted tap water (chemical ≈ 71, heavy ≈ 99 bp) falls
-  below 10 bp of each in about six nights, keeping its minerals; the container ends ≈ 99.9 % (heavy metal floor 6 +
-  chemical 4 bp of water ≈ 99.90 %, on the HQ/Pure edge). One hydroreed bay cleans ~1 L a night, enough for ~10
-  bloomberry bays (100 ml a night each). It runs only while a seed grows, so it must be replanted the morning after
+  below 10 bp of each in about six nights, keeping its minerals; the container ends at the floors (heavy metal 6 + chemical 4 + microbe 2 bp): 9988 bp, HQ. **Pure needs the
+  filterables gone and the microbes too:** two filter passes first, then UV after the reed: 9990 bp (lab,
+  `FormulaExps.ReedPure`; one filter pass leaves 0.6 bp and ends at 9989). The removal is a percentage of each
+  contaminant with no volume budget and the bay's slot takes any owned liquid container, so a 20–50 L tank cleans
+  in the same nights as a litre (`PlantWaterQuality.Purify`, `MachineHydroponic`). It runs only while a seed grows, so it must be replanted the morning after
   each harvest (it is not perennial).
 - A **purifying bloomberry** cleans its own bay's water the same way at rank I's floors (§2 table): 10 % a night,
   so a fresh 6 L of tap-treated water converges in about two weeks, and top-ups of a few hundred ml barely move it.

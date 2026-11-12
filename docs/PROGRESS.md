@@ -21,6 +21,37 @@ engine the route does not make. The cause is the menu: none of the three new per
 (`caffeine_lab`, `aquafarmer_sprinter`, a reed build) is on it yet. Until they are, a card with these personas should
 fix a start whose menu holds a fitting route, or the thesis will promise what the run does not do.
 
+## Formula exploits — 2026-11-12: every formula read as an optimising player; the solvent, the frame, the permit
+
+**Result.** `docs/research/FORMULA-EXPLOITS.md` ranks 20 exploits (plus read-only candidates and 12 loops) found by
+re-reading every docs/re formula and its source for consumed-vs-reusable terms, carry-over, thresholds and rounding;
+`docs/research/SOURCES-SINKS.md` is the source/sink graph for the 36 liquids, every production item, power, cash,
+rep, crime and weapons. 18 lab experiments (`sim/lab/FormulaExps.cs`, docs/sim/VERIFIED.md "Formula exploits")
+verify the top ones on the game's own machines and functions.
+
+**Found (verified).**
+
+- **Alcohol is a standing solvent** (owner's finding): 6 or 12 caps blended one at a time into 120 ml extract at the
+  full 50 %; the 6-cap chain presses the same 33 lab-pure units after **1 evaporator night instead of 4**, on 120 ml
+  instead of 700. Coffee needs 0.75 × alcohol, not 1.3 ×. Solvent recovery + 2 fineness returns all of it.
+- **Weapons are built, not bought:** a heavy pistol from a printed frame is New and clears every Mid order bare
+  (394 / 385 / 300 … a delivery); a bought Fair one clears none. Frame-built heavies fill High reliability (816) and
+  High handling (685). ROUTES' "Mid/High need what the shop cannot get" is corrected; only High big needs an SMG.
+- **The permit** costs 960 of donated goods by day 94 against 2000, and without it the aug all-clear never comes
+  (every aug a bounty); the gym's bribe reserve under-holds from day 59. **The buyout never collects Grace-deferred
+  rent.** Insuring one night in four costs 43 % less. Blocking hand and ribwich at the appraisal: +31 a day.
+- Pure water without modules (two filter passes, reed, UV: 9990 bp); 2 tablets per jug, not 6; fish pellets up to
+  exactly 25 %; 35 caffeine pills in the window bring two tier-3 buyers; two nightmare caps mint a 100-charge cell;
+  learning modules train in an unpowered alarm; one ingot sets a printed melee run; the fridge's +20 %.
+- Corrected in docs/re: CHEMISTRY (batching, coffee ratio, removal paths, distillate), WATER (tablets, rations,
+  distillate, Pure route), PLANTS (reed has no volume budget), MITIGATIONS (permit formulas, Grace and the buyout,
+  insurance fee includes cash), CONCEALMENT (crime decay, insurance pulse), WINDOW (multi-type tiers), AQUACULTURE
+  (pellet threshold), RECIPES (ingot average, repair break-even), MODULES (alarm trains learning modules), ARMS (mods
+  carry value; service orders), HIDDEN-SYSTEMS and ROUTES (repair, Mid/High orders).
+- Contradicted: a printed pistol with an extended mag and a pistol switch does not reach High firepower.
+
+**Next.** Per-agent instructions are the last section of FORMULA-EXPLOITS.md; nothing in the engines changed here.
+
 ## Personas — 2026-11-12: the Fishmonger, the Pharmacist and the Botanist; ten checked against the code
 
 **Result.** Thirteen personas (docs/personas), every playable start and Season 2 card with an archetype

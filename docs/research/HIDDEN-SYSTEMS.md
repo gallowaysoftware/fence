@@ -191,7 +191,7 @@ Each section has the same parts:
   - **Shabby** marks every start-kit machine (resells at 25 %).
   - **Gun condition also scales all six stats** ±30 % (`GunHelper.UpdateCurrentGunStats`).
   - **Gun repair:** chance = repairability × attempts since the last success. The part is used either way: 1.0–1.85 parts per step.
-  - **Repair never pays at resale; it pays through gun orders** (`GunOrderData`: Basic 86–95 + ~46 per bonus threshold met; Best market × 1.5; service orders 30/60/100). RECIPES.md §1.6's "pays above ~200" ignores failed attempts.
+  - **Repair does not pay at resale with a bought part (25) at market 0 (break-even part price 16–22, lab; RECIPES §1.6); it pays through gun orders** (`GunOrderData`: Basic 86–95 + ~46 per bonus threshold met; Best market × 1.5; service orders 30/60/100). (RECIPES §1.6 now has the measured condition.)
   - **Kits.** Module bay kit 150, +100 value, max 2 per machine. Storage kit 1 063, +2 tabs.
   - **Broken machines carry stuck modules and charged cells** (`MachineBrokenHelper`; RECIPES.md §5 says scrap only).
 - **Unknown:** the gunsmith and gun-order flows are stubbed headless.

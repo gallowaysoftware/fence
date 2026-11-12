@@ -161,8 +161,15 @@ Frames: handmade 70 (level 1), heavy 100 (level 2); a gun part on a frame gives 
 - **Mods** (`GunModDirectory`, `GunModHelper`): eight slots (stock, rail, magazine, underbarrel, barrel, three
   special); one mod a slot; both owned (or the client's service gun); some only fit listed guns (magazines by caliber,
   barrel/bipod/launcher SMG only, grip/stocks SMG and shotgun); improved and plain springs exclude each other (lab).
-  **No mod is contraband.** A gun's value is its own plus each mod's (lab), so modding never adds resale value; it
-  adds order value. Notable: `mag_22_ext` (35) FP +60 % +18; `mag_22_high` (25) FP +30 % +9; `internal_springs` (40)
+  **No mod is contraband.** A mod's list value is added to the gun's price wherever the gun is valued (sales to
+  weapon buyers, best orders at 1.5 ×, the ammo follow-up budget), but without the gun's condition or restricted
+  markup (lab: the sum). So a modded gun sells for the gun plus its mods: a weapon buyer, who never buys a loose mod,
+  pays for one on a gun, and a best order pays mods at 1.5 ×. Stats never change a price by themselves; they pay
+  through order rows (strictly above each threshold) and service orders (fee + rows + **every part of yours on the
+  client's gun at value**, `GunOrderData.GetPartsValue`), so a stocked mod kit is a supply question, not a value one.
+  The three special slots refuse a duplicate mod; the stock slot fits SMG and shotgun only; `pistol_switch` pistols
+  only. A declined service gun returns a gun part for every repair attempt, failed ones included
+  (`GunHelper.ReturnPlayerParts`; read). Notable: `mag_22_ext` (35) FP +60 % +18; `mag_22_high` (25) FP +30 % +9; `internal_springs` (40)
   REL +25 % +10 (the "improved" springs, 20, are worse: +12 % +5); `rds` (60) STY +20 % +5, ACC +25 % +10; `silencer`
   (55) suppression 2; `laser` (50) STY and ERG +20 % +6.
 

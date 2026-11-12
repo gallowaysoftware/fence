@@ -375,7 +375,7 @@ trade does not make the Board-free format winnable.
   permit and sending every order away cost `gunsmith` ~7 days on 16 seeds (`arms1`).
 - **A Basic order pays about what that customer would.** Base 63–110 plus bonuses, ~115 a delivered order on
   average, for a gun worth ~50 that goes with it: ~65 net, an ordinary customer's margin.
-- **Mid and High orders need what the shop cannot get.** Mid rows (FP > 25, REL > 32, ACC > 33, STY > 25) need
+- **Mid and High orders: corrected 2026-11-12 (docs/research/FORMULA-EXPLOITS.md §W).** A heavy pistol finished from a printed frame is New and clears every Mid order's mandatory rows bare (lab: Mid general 394, firepower 385, best 300 a delivery; a bought Fair heavy clears none), and frame-built heavies with springs + silencer or trigger + compensator fill High reliability (816) and High handling (685). Only High big (size > 16: an SMG or shotgun) needs a gun the shop cannot print; the heavy pistol is 10 mm, so it fills the handling and best orders too (Mid handling 274, Mid best 300, lab). What follows is the original measurement, made with bought guns and pistol chips only. Mid rows (FP > 25, REL > 32, ACC > 33, STY > 25) need
   magazines, springs and sights on a printed or handmade pistol, or a 10 mm gun under Permit II; the retired gunsmith
   stocks them on 18–50 % rolls at +30 % on hard and nothing else supplies them. With the printer, Permit II (900)
   brought 11 Mid offers a run and filled 0.1. High orders want an SMG or shotgun (level 3): Permit III (1 350) is left off by default

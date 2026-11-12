@@ -108,7 +108,11 @@ nodes always get Support. Effects act on the module's own base stats:
 | Degrading | stats ×2; each working night −1 on every positive stat (negatives stay) |
 | Learning algorithm | positive stats start at 0 and gain +1 per working night up to 2× base |
 
-"Working night" = each `OnMachineActioned` call: a night the machine did its job, or a turbo boost.
+"Working night" = each `OnMachineActioned` call: a night the machine did its job, or a turbo boost. **The security
+alarm calls it every night in its Early pass whether or not it has power**, so an unpowered alarm is a free trainer
+for learning modules (lab: a learning fineness went 0 → 50 in 50 nights, `FormulaExps.LearningAlarm`) and a
+nightly 10 % ruin roll for overvolted ones. The learned stats are stored on the module and kept when it moves. About
+8.8 % of random modules roll the learning effect (`ModuleEffectHelper.InitRandomEffect`; read).
 
 ## 3. Per machine
 

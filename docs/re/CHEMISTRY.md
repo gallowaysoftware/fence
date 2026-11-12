@@ -22,9 +22,11 @@ container. Other recipes (printer chips, food, crafting) are in `RECIPES.md`.
   evaporator), in real time while the store is open and for **360 simulated seconds every night**
   (`ChemicalHelper.RunNightlyChemicalSimulation`, called from `PlayerStore` before machines run).
   Temperature only moves on a heating plate; off the plate a container cools toward 26 °C.
-- Only three things remove a liquid from a container: a **reaction** (turns it into something else, often
-  `debris`), a **filter** on a pour (removes large particles), and **evaporation** (evaporator overnight,
-  or boiling above the liquid's boiling point). Everything with particle size 5 that is not evaporative
+- Inside the lab, three things remove a liquid from a container: a **reaction** (turns it into something else,
+  often `debris`), a **filter** on a pour (removes large particles), and **evaporation** (evaporator overnight,
+  or boiling above the liquid's boiling point). Water tools also remove them (the purifier, portable purifier,
+  purifying plants, RAS filters and UV turn contaminants into water; `docs/research/SOURCES-SINKS.md` §1) and the
+  finisher draws them. Everything with particle size 5 that is not evaporative
   (protein, fat, starch, acid, base, reducing agent, chemical contaminant, heavy metal…) can only leave by
   reaction — that is why purification is chemistry and not filtering.
 - The money is in **lab-pure dream dust** (≈ 5.5 units per dream cap with 4 modules everywhere, 42 base,
@@ -76,7 +78,7 @@ the active ingredients included, into water (largest particles first), so a batc
 | `water` | 10 | — | 100 | | | everything wet |
 | `heavy_metal` | 12 | — (purifier) | | | | 2–8 % impurity of every supply bottle |
 | `organic_waste` | 40 | water filter | | | | feces, food, rust water |
-| `microplastic` | 25 | water filter | | | | water |
+| `microplastic` | 25 | water filter | | | | nothing in the code adds it |
 | `microbe` | 50 | never filtered (UV only) | | | | caps, beans, water |
 | `chemical_contaminant` | 2 | — (chlorine, purifier) | | | | supply-bottle impurity |
 | `physical_contaminant` | 100 | water filter (not kotton) | | | | caps, beans; **the finisher's impurity** |
@@ -161,9 +163,13 @@ Measured (lab, `chem.extraction*`, `chem.proteinfat`):
 **The extraction ratio, reconsidered.** The manual's "3–6× alcohol" maximises extract per *cap*. Per
 ml of solvent (which the evaporator must remove at 300 ml a night, §3) a low ratio is 2.5× better:
 ratio 1 yields 25 % of the mush but 0.25 ml extract per ml alcohol, ratio 5 yields 50 % but only 0.10.
-When caps are cheap (own hydroponic bay) and evaporator nights or alcohol are the constraint, run
-ratio 1–2; when caps are scarce, ratio 5. Never above 5. CthuLuck's batch method (add mush in 25 ml
-portions to 100 ml alcohol) exploits the same rule.
+Neither is the right question: **alcohol is not a reactant**, and the ratio is read against the mush still in
+the vessel. Keep ≈ 5 × one cap's mush (110–120 ml) of alcohol in the vessel and blend caps into it one at a time,
+20 s at 45 °C each: every cap converts at the full 50 %, and the same 120 ml serves 6 or 12 caps (lab,
+`FormulaExps.DreamBatch`: 66 ml extract from 6 caps either way; 195 ml of solvent to evaporate instead of 1024, so
+**1 evaporator night instead of 4**; 33 lab-pure units from the batched chain, `DreamBatchPure`). All 6 caps at once
+in 120 ml give 23.8 %. CthuLuck's batch method (mush in 25 ml portions into 100 ml alcohol) is this rule. The binding
+input becomes caps and plate time, not alcohol or evaporator nights.
 
 ## 3. Equipment
 
@@ -185,7 +191,7 @@ accepts only an owned liquid container. Values from
 |---|---|---|---|---|
 | Blender (`blender`, 200) | modules 4×4, input grid 4×4 (any blendable item), container slot (owned liquid container) | Button (does nothing without a container or if it is full): each blendable item in the input poured into the slotted container (§1 Blending), checked for "full" before each item. Blendable (`BLENDABLE_TAG`): dream/nightmare/meal caps, coffee beans, nutrifruit, water and nutrient tablets, feces, and every chem product (dusts, pills, nomore injector). Tooltip shows the loss % | instant, button | `MachineBlender.Blender`, `CreateTooltip` |
 | Heating plate (`heating_plate`, 250) | modules, container slot (owned), temperature readout, off/low/high, target − / + (shown only at ≥ 2 modules) | Each second, if not off and the container is not empty: T += (target − T) × f/350 + 1, capped at target (a hotter container is left alone); f = 10 low / 30 high, ×4 at 3 modules, ×16 at 4. The plate's own cooling bug: it marks the *machine*, not the container, as heating, so the container also cools every second → it settles a little below target (≈ 0.2 °C for 250 ml–3 L at 2 modules; lower for small volumes once water boils off). Target: 99 on a new plate; 0/1 modules force 99/160 every tick; at ≥ 2 the stored target is kept and each press moves it 5, clamped to 26…160, so the reachable values depend on where it starts (from 99: …44, 49, 54…124, 129…; after hitting 160: multiples of 5; after hitting 26: 31, 36, 41, 46…). The readout under the target shows the container's T as a truncated whole °C, so a container settled at 44.8 reads 44. Tooltip: max temperature (99 / 160) and slow / fast / very fast. No power | **per second, and 360 s every night** — a container left on it overnight sits at target for 6 minutes | `MachineHeatingPlate.HeatingPlate`, `HeatLiquidOnStove`, `CreateTooltip`; `ChemicalHelper.HandleAmbientTempDrop` |
-| Evaporator (`evaporator`, 300) | battery, modules 4×4 (universal, evaporator), container, distillate slot, note | At cycle end (each night, and on a turbo boost: `TURBO_BOOST_ELIGIBLE_TAG`), if a battery is seated, the container holds any evaporative liquid and the battery pays the draw (base 6, modules change it): removes up to round(300 ml × (1 + P/100)) of the evaporative liquids (water, alcohol, **lipobond**) split in proportion to their amounts; nothing else leaves. Distillate: each removed liquid × Q % (Q clamped 0–100) is added to the distillate container if one is seated (else lost); with `evaporator_module_solvent_recovery` (275, Q +50, E −25) only the alcohol share is kept, water and lipobond are discarded. The distillate add caps each liquid at the container's capacity but not the total. No temperature effect | night (after the 360 s chemistry) and turbo | `MachineEvaporator.Evaporator`, `CanEvaporateContainer`; `MODULES.md` |
+| Evaporator (`evaporator`, 300) | battery, modules 4×4 (universal, evaporator), container, distillate slot, note | At cycle end (each night, and on a turbo boost: `TURBO_BOOST_ELIGIBLE_TAG`), if a battery is seated, the container holds any evaporative liquid and the battery pays the draw (base 6, modules change it): removes up to round(300 ml × (1 + P/100)) of the evaporative liquids (water, alcohol, **lipobond**) split in proportion to their amounts; nothing else leaves. Distillate: each removed liquid × Q % (Q clamped 0–100) is added to the distillate container if one is seated (else lost); with `evaporator_module_solvent_recovery` (275, Q +50, E −25) only the alcohol share is kept, water and lipobond are discarded. Q from universal modules recovers alcohol too, mixed with clean water: solvent + 2 fineness = Q 100 returns **all** the alcohol evaporated at 252 ml a night (lab, `FormulaExps.Distillate`). The distillate add caps each liquid at the container's capacity but not the total. No temperature effect | night (after the 360 s chemistry) and turbo | `MachineEvaporator.Evaporator`, `CanEvaporateContainer`; `MODULES.md` |
 | Chem finisher (`chem_finisher`, 300) | modules, container slot (owned), output 6×4, Configure + Output buttons, target and status lines | Configure lists all 7 recipes (no unlocks), each with its name, required volume (ml, 2 decimals) and a "no wet" note. Status line, every second: no target / ready / wet ingredient (> 100 µL water + alcohol + lipobond) / not enough reagent (total < recipe volume). **No predicted purity or grade.** Output (if ready): draws the recipe volume from the container in proportion, removes loss % of the unit's volume (truncated) and adds the same amount of physical contaminant, places it in the output grid, then grades it. One press = one unit. The finisher never checks that the active ingredient is present: any dry residue can be pressed into any recipe. If the output grid has no room the unit is not placed anywhere (the return value is ignored) and its volume is gone (read, not lab-tested) | instant, button | `MachineChemFinisher.ChemFinisher`, `CanOutput`, `IntroduceImpurity`; `ChemFinisherUIManager.OpenUI`; `ChemFinisherRecipe.CanOutput` |
 | Composition spectrometer (`chem_scanner`, 400) | — | Target any liquid container, chem item or chem product, owned or not; not consumed, no power, no ownership check on the scanner itself. Panel refreshes every second while open (§4.1) | instant | `MedsItemDirectory.ChemScanner`, `ChemScannerUIManager` |
 | AquaScan (`aquascan`, 200) | — | Must be owned; targets liquid containers only (owned or not). Same per-liquid composition list (µL and %) as the spectrometer, plus water purity (tested vs label) and it stamps "last scan" water purity on the container's tooltip. No toxicity/euphoria lines, cannot read pills or dusts | instant | `AmenitiesItemDirectory.AquaScan`, `WaterScannerUIManager.RefreshUI`, `WaterHelper.SetLastScanResult` |
@@ -337,8 +343,8 @@ no filter → 51 units at 36.5 % (junk, 4 each, 204 total); kotton filter only �
 1. Blender (4 modules): 3 coffee beans → 134 ml coffee mush, 24 ml caffeine already free, 24 ml fat,
    24 ml protein, 24 ml physical, 10 ml water.
 2. One mini alcohol bottle (175 ml alcohol). Plate ≥ 50 °C (60 used): 120 s → caffeine 24 → 125 ml (R7
-   reads the ratio against each second's 15 % chunk, so alcohol ≈ 1.3× the mush already gives the full
-   75 %). Caffeine never degrades; heat freely.
+   reads the ratio against each second's 15 % chunk, so alcohol **0.75 × the mush** already gives the full
+   75 %; 0.5 × gives 68.6 %, 0.25 × 50.3 %, lab `FormulaExps.CoffeeRatio`). Caffeine never degrades; heat freely.
 3. **Cool below 55 °C**, then lipobond 1 : 8 of the fat (3 ml) and acid = protein (24 ml); 90 s; base for any
    leftover acid. (Lipobond added at 60 °C boils off first: 4.9 ml of fat survives and the batch drops to
    95.7 % pharma, lab.)

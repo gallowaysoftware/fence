@@ -82,7 +82,7 @@ sturgeon 14. A fish keeps its old sprite until the tank has room for the new one
 | Diet | carnivores: meat only (no pellets, industrial feed or other food); omnivores anything | VISIBLE | `CanEat`, `TryFeed` flags |
 | Starvation | first night at 0 hunger: starving; second: dies (a group is destroyed) | VISIBLE (status) | `HandleStarvation` |
 | Weight | follows the kcal it has *grown* (absorbed on nights it aged), interpolated on the fully-fed curve | VISIBLE (weight) | `GetWeightForBodyKcal` |
-| Pellet taint | more than 25 % of lifetime kcal from gutterflow pellets (gutter tilapia exempt): every fillet and egg jar is **trash grade** (−75 %, not food) | VISIBLE (pellet line, then the trash-grade feature) | `IsPelletTainted`, `GutterflowPelletHelper.ApplyTrashGrade` |
+| Pellet taint | **strictly** more than 25 % of lifetime kcal from gutterflow pellets (gutter tilapia exempt): every fillet and egg jar is **trash grade** (−75 %, not food). Pellets carry no growth penalty (only industrial feed does), so an omnivore tank can take pellets up to 25 % of its diet (lab: 0.25 clean, 0.2501 tainted; growth speed unchanged) | VISIBLE (pellet line, then the trash-grade feature) | `IsPelletTainted`, `GutterflowPelletHelper.ApplyTrashGrade` |
 
 ### 2.3 Breeding (tilapia kinds only)
 
