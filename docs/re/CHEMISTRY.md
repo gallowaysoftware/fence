@@ -522,6 +522,24 @@ clamp) — at least five visits after first reaching 100. Then visits stop, prot
 returns; the dealer, shady farmer and retired chemist keep coming. ("Cartel 100 = free to leave" in
 `docs/personas/cook.md` is wrong.)
 
+**What the exit costs on hard** (checked against `StoreClientListCartel`, `StoreReputation`, `Difficulty`):
+
+- Every change goes through `StoreReputation.ModReputation`: gains × 0.75 and losses × 1.25 on hard, the total clamped to
+  ±200 as each change lands. A visit lands the count's change first, then the purity's, so a visit that hits 200 on its
+  count and then loses on its purity ends under 200; at the fifth authorized visit (threshold 200) that is no exit.
+  Only a mean at or above the required purity keeps the clamp.
+- The perk's threshold (100, +25 for each exit stage) is re-checked at every rep change, not once: a rep that falls
+  under the raised threshold before the next visit unlocks nothing there.
+- The check-in's materials cost 12 rep (6 with Reliable Chemist), so 15 (7.5) on hard.
+- A met count at the required purity + 10 gains 0.75 × (count + 10) on hard: 15, 18.75, 22.5, 26.25, 30 for weeks
+  1–5, so 100 falls at week 5 and the exit at week 9 (day 64) on the counts alone; ~25 extra units in weeks 1–4 bring
+  both a week forward.
+- The handler counts every dream dust on the counters, whatever is in it: a unit pressed from a container of acid
+  grades 0 % (`GradeProduct` divides the active by the unit's total) and counts. Units at the container's purity plus
+  such blanks put the mean anywhere below the container's purity, with the extract the mean needs and no more.
+- A dried residue in a container is not contraband; caps (level 2) and pressed dust are. Caps in the display case
+  summon the showcase inspector.
+
 **Protection** (`CARTEL_PROTECTION`, free, mandatory): no burglary at all (it replaces insurance). It does
 **not** touch inspections, evidence or crime; sales to Cartel-faction clients carry no crime
 (`MITIGATIONS.md`).

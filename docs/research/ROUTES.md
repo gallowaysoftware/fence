@@ -1,6 +1,6 @@
 # Hard routes: a menu for the stream
 
-Thirty-five hard-difficulty policies that win (twelve of them invented by the model: below, "Invented routes"), each with a different start, perk set, engine or trading style, so a stream
+Thirty-eight hard-difficulty policies that win (twelve of them invented by the model: below, "Invented routes"), each with a different start, perk set, engine or trading style, so a stream
 does not show the same run every night. Each one is a directives file in
 `sim/lab/scripts/directives/routes/<name>.json`; its `_route` key (ignored by the gym and the autopilot)
 gives the start and perks to pass on the command line:
@@ -10,7 +10,7 @@ fence-gym run -seed N -days 1000 -human player -difficulty hard -start <start> -
   -directives sim/lab/scripts/directives/routes/<name>.json
 ```
 
-Each route but `rancher` and `pharma` (2026-11-11, hard only) also has a challenge version, `routes/challenge/<name>.json` (below, "The challenge routes").
+13 of them also have a challenge version, `routes/challenge/<name>.json` (below, "The challenge routes"); the rest are hard only.
 
 **What they share.** Every route is the appraisal incumbent (`hard_income_mortgage_appraisal.json`) with
 one thing changed. The Appraisal Board's fees (~49k a run, the same in every route) pay for the shop. Since
@@ -56,6 +56,8 @@ Wins are buyouts; the CI is Wilson 95 %.
 | `pharma_vintner` | apprentice / vending + short sleeper | `vintner` + `pharma: "phone"`, sales to 55 %, `buyout_by_day: 95` | 60/60 (94–100 %) on 8710001–060 | **97** | — | — | Invented by Qwen: a wine cellar with Dale's injectors; 22 of 60 by the mortgage, +33.6 ± 14.1 days. |
 | `armourer` | gunsmith / vending + short sleeper | `gunsmith` + `arms: {"permit_from": 60}` | 60/60 (94–100 %) | **98** | — | — | The arms trade: the weapon permit stays in the window, gun-order clients are served from the counter's guns (modded to clear the order's rows), Weapon Permit II once Security reaches 50 after Georgio's loan. A week slower than `gunsmith` (below, "The Armourer"). |
 | `fence` | fence / vending + short sleeper | `outlaw` + `stolen: {"single_max_pct": 90, "wholesale_max_pct": 95}` | 60/60 (94–100 %) | **105** | — | — | The Fence start's native trade: thieves' lots bought for their legal goods at the clean value under the five-finger discount, cooled in the bay and sold at heat 0, no haggling with the Black Market, which reaches Safe Hands (a thief a week) in 36 of 60 runs. Three times `outlaw`'s stolen trade, the same win day (below, "The Fence"). |
+| `aquafarmer` | aquafarmer / vending + short sleeper | `engine: "wine+fish"`, `fish_big`, `fish_roe`, `crops: {fillerweed_seed: 2}`, Jackson's cells | 60/60 (94–100 %) on 8100001–060 | **196** | — | — | — | The Aquafarmer start as the fish trade: tilapia bred and filleted every morning, eels and a sturgeon bought, the roe jarred, fillerweed grown for feed; ~135 fish and ~9 100 of fillets a run. Every win is the mortgage's end (below, "The fish engine"). |
+| `cook` | chemist / vending + short sleeper | `lab: {products: ["dream_dust"], sell: false, cartel: {}}`, `power` | 57/60 (86–98 %) on 8100001–060 | **105** | — | — | — | The Chemist start gets out of the cartel: the weekly dust cooked from the cartel's own caps, banked as residue so no inspector finds it, pressed on the handler's morning to his count at his purity + 10, until the exit (median day 64); then the lab goes cold and the Board buys the shop (below, "The Cook gets out"). |
 | `gunsmith_farm` | gunsmith / vending + short sleeper | `farmer`'s policy on the Gunsmith start, 3 bays, wine only, `pharma: "phone"` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: guns, wine and medicine on one counter; 34 of 60 by the mortgage. |
 | `fountain_pharma` | water merchant / vending + short sleeper | `fountain` + `pharma: "phone"`, sales to 50 %, `buyout_by_day: 105` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: water at night, injectors in the back; 34 of 60 by the mortgage. |
 | `household_sprinter` | apprentice / vending + short sleeper | `sprinter` + `specialty` household (lot share 0.3), lots to 85 %, sales to 52 %, `buyout_by_day: 94` | 60/60 (94–100 %) on 8710001–060 | **195** | — | — | Invented by Qwen: a discount store; 37 of 60 by the mortgage. |
@@ -479,6 +481,54 @@ after the insurance cut; and a Mid kit needs ~70 printer-nights under Permit II 
 unchanged (`forge` off); the forge directives live in `arms/armourer_forge*.json`. Lab.json, the ghost band and the
 deadline odds are unchanged because the route is.
 
+## The Gauntlet on the fair-play build (2026-11-12)
+
+Season 1 (docs/CAMPAIGN.md) plays each start on its native route. Each one re-measured on the ghost-band seeds
+8100001–060, hard, 1000-day horizon, executor alone, on the build that streams: main 7baeecd (fair play: the
+executor reads only what a player sees) plus this branch. Wins are buyouts (cash or the mortgage's end), Wilson 95 %.
+"Before" is the same seeds on main a4509e0 (chem-loop and gene-lines merged; 24 spot runs on it matched the
+frame-forge build exactly); Δ is the paired win day, fair play minus before, ± 1.96 SE. "Ghost band" is the band each
+route carried in `internal/show/data/ghost_bands.json` before today.
+
+| Start | Route | Persona | Wins, fair play (95 % CI) | Median win day | Before | Δ win day | Ghost band before |
+|---|---|---|---|---|---|---|---|
+| Apprentice | `appraiser` | magnate | 60/60 (94–100 %) | 98 | 60/60, 94.5 | −4.0 ± 5.4 | 60/60, 98 |
+| Hydroponic Farmer | `farmer` | vintner | 60/60 (94–100 %) | 91 | 60/60, 91 | +1.2 ± 6.4 | 60/60, 98 |
+| Gunsmith | `armourer` | armourer | 60/60 (94–100 %) | 105 | 60/60, 105 | −1.9 ± 11.1 | 60/60, 105 |
+| Water Merchant | `water_baron` | water-baron | 60/60 (94–100 %) | 105 | 60/60, 105 | +0.2 ± 12.7 | 60/60, 108 |
+| Rancher | `rancher` | rancher | 60/60 (94–100 %) | 87.5 | 60/60, 84 | −0.7 ± 5.1 | 60/60, 88 |
+| Rancher | `rancher_sprinter` | rancher | 60/60 (94–100 %) | 84 | 60/60, 77 | +0.9 ± 14.5 | 60/60, 77 |
+| Fence | `fence` | fence | 60/60 (94–100 %) | 105 | 60/60, 105 | +0.7 ± 10.0 | 60/60, 105 |
+| Rock Bottom | `rock_bottom` | shark | 57/60 (86–98 %) | 126 | 57/60, 119 | −4.2 ± 15.8 | 57/60, 126 |
+| Aquafarmer | `aquafarmer` | fishmonger | 60/60 (94–100 %) | 196 | 60/60, 196 | — | new |
+| Chemist | `cook` | cook | 57/60 (86–98 %) | 105 | — | — | new |
+
+No regression: every route wins as often as its ghost band said, and no paired win day moved (every Δ is within its
+interval). `rock_bottom`'s three losses are rent on day 14 (8100009, 8100011, 8100054), the early-rent hole of
+"Rock Bottom made robust" above. The ghost bands of these ten routes are now the fair-play runs. The median moves
+between columns (`rancher_sprinter` 77 → 84) are the median of a lumpy distribution, not a shift.
+
+## The Cook gets out (2026-11-12)
+
+`cook` is the Chemist start as its own story: the cartel's quota met week after week from the lab it is handed, until
+the Authorized Exit completes; then insurance returns, the lab goes cold (`lab.cartel.after_exit` empty: no dust is
+ever sold to a buyer) and the shop runs the Board, wine and a furnace to the buyout. The engine is `lab.cartel`
+(sim/gym/Lab.Cartel.cs; docs/research/CHEMISTRY-ENGINE.md, "The Cook gets out"; the rules in docs/re/CHEMISTRY.md §7.3).
+
+On 8100001–060 (fair-play build): **57/60 (86–98 %)**, median win day 105; every win leaves the cartel first, at the
+visit of day 57 (19 runs), 64 (32) or 71 (6); 55 cash buyouts, 2 by the mortgage. A run meets 8–9 weekly counts (10 …
+45 or 50: 220–270 units) from ~89 caps (medians): ~206 units pressed from the bank, ~90 blanks, ~96 units over the
+counts. Security ends at a median 27.5. The three losses are a visit with no dust (`cartel_retired` on days 51, 64,
+120): the evaporator stalled for power on 20–46 mornings in those runs, the bank ran dry, the planner padded the count
+with blanks below the purity, the rep fell and the next visit found nothing. Income (Board / counter / production /
+Georgio) 66/24/0/10 %, plus the cartel's stipend.
+
+What the Cook needed, none of it in the old engine (0/60, dying ~day 35–40): pressed dust kept between visits is seized
+by the inspectors and a visit with none ends the run, so the dust is kept as residue and pressed on the morning; the
+cut to the required purity + 10 is made with blanks rather than by cutting the bank, so the bank keeps its purity for
+later weeks; the rep is planned against the hard multipliers and the ±200 clamp; modules go to the blender first; caps
+never sit in the window. Board-free it was not tried: the Board is allowed on a Gauntlet card.
+
 ## Who plays which route
 
 Each route's `_route` key names the persona (`docs/personas`) that plays it when a run names none, and a brief
@@ -496,6 +546,8 @@ by its own buy list: on a route the route's base policy does the buying.
 | `gunsmith` | armourer | | its native start: Security's goodwill from day one |
 | `outlaw` | fence | shark | its native start: Security's bad books, no courting the police |
 | `fence` | fence | shark | its native start played as the stolen-goods trade: thieves, the bay, the Black Market |
+| `aquafarmer` | fishmonger | | its native start: two tanks, a fillet knife every morning |
+| `cook` | cook | | its native start: the cartel's quota, cooked and counted until the way out |
 | `smelter` | smelter | | trash into metal |
 | `lean` | honest-broker | magnate | pure trading and appraisal with a clean name |
 | `water_baron` | water-baron | | the tap |
@@ -517,9 +569,7 @@ by its own buy list: on a route the route's base policy does the buying.
 | `med_speculator` | shark | | waits for the shortage |
 | `luxury_sprinter` | magnate | shark | luxuries and art, in a hurry |
 
-The cook has no route: the drug-dealer start ends on day 8 (`cartel_retired`).
-Off the menu, two candidates name their personas: `lab/caffeine_lab` the pharmacist (a legal lab) and
-`fish/aquafarmer_sprinter` the fishmonger (docs/CAMPAIGN.md, "The archetypes").
+Off the menu, `lab/caffeine_lab` names the pharmacist (a legal lab; docs/CAMPAIGN.md, "The archetypes").
 
 **One run spec.** A league plays "model × persona × route" with `routes` in place of `starts`, `perks`,
 `personas` and `executor.directives`:
@@ -574,7 +624,15 @@ replay spoke as the default magnate ("a respectable cushion against the inevitab
 | water merchant, `wine+water` | 20/20 | 175 | 23 876 | less water (6k), more wine: a weaker water route |
 | water merchant, incumbent unchanged | 20/20 | 175 | 25 787 | sells little water (3k): not a water route |
 
-## The fish engine on the Aquafarmer start (2026-11-12): a candidate, not on the menu
+## The fish engine on the Aquafarmer start (2026-11-12)
+
+**On the menu as `aquafarmer`** (persona fishmonger): `fish/aqua_fish_all` with the route key, 60/60 (94–100 %) on
+the ghost-band seeds 8100001–060, 1000-day horizon, fair-play build (main 7baeecd + this branch), every win the
+mortgage's end (median day 196); ~135 fish filleted and ~9 100 of fillets a run (medians), income Board / counter /
+production / Georgio 69/27/0/4 %. `fish/aqua_fish_max` (no fillerweed bays) also won 60/60 at day 196 on the pre-fair-play
+build; the bays stay, as the fish's own feed. A cash buyout is not on: the tanks spend the savings the sprint would.
+
+The measurements that put it there:
 
 `engine: "fish"` (`sim/gym/Fish.cs`, docs/re/AQUACULTURE.md) on `rancher_sprinter`'s policy with the Aquafarmer start
 (`directives/fish/aquafarmer_sprinter.json`; the fish arms add `jackson_equipment` and `jackson_need: 7` so Dr. Jackson's
@@ -782,6 +840,7 @@ is, `purist_sprint` the route with the purist's four vows laid over it and locke
 | `outlaw` | 15/60 (16–37 %) | 84 | 4/60 (3–16 %) | 88 |
 | `apothecary` | 14/60 (14–35 %) | 91 | 9/60 (8–26 %) | 91 |
 | `household_sprinter` | 13/60 (13–34 %) | 91 | 5/60 (4–18 %) | 84 |
+| `cook` | 16/60 (17–39 %) | 91 | 9/60 (8–26 %) | 91 |
 | `fence` | 12/60 (12–32 %) | 91 | 5/60 (4–18 %) | 91 |
 | `luxury_sprinter` | 11/60 (11–30 %) | 84 | 3/60 (2–14 %) | 91 |
 | `speculator` | 10/60 (9–28 %) | 91 | 7/60 (6–22 %) | 91 |
@@ -794,6 +853,7 @@ is, `purist_sprint` the route with the purist's four vows laid over it and locke
 | `fountain` | 4/60 (3–16 %) | 88 | 4/60 (3–16 %) | 91 |
 | `rock_bottom` | 2/60 (1–11 %) | 91 | 2/60 (1–11 %) | 91 |
 | `luxury_gambler` | 0/60 (0–6 %) | — | 0/60 (0–6 %) | — |
+| `aquafarmer` | 0/60 (0–6 %) | — | 0/60 (0–6 %) | — |
 
 The deadline reorders the menu. The format's own lab route, `sprinter`, is mid-table (24/60 here, 31/60 on
 8300001–060); the fast engines lead: `rancher_sprinter` (rats only, lots to 85 %, sales to 50 %) wins 54/60, and
@@ -806,6 +866,11 @@ against 29), which come up to the furnaces under the vows.
 `sprint_91`'s summaries for the 22 routes the ghost band already ran on these seeds are the ghost band's
 (`ghost_bands.py run`: same seeds, horizon and route files); a fresh run of seed 8100060 on this gym reproduced
 all 22 exactly (ending, day, cash). The other 12 routes and every `purist_sprint` run are new.
+
+`aquafarmer` and `cook` (added 2026-11-12) were measured on the fair-play build: `sprint_91` is their ghost band's runs,
+and `purist_sprint` ran with a 100-day horizon (`fenceformat lab -days 100`), which decides the same buyouts by day 91
+as 1000 days would. The Aquafarmer never makes day 91 (every win is the mortgage's end at ~196); the Cook does in a
+quarter of its runs (16/60).
 
 ## Reproducing
 

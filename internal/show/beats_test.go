@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -52,7 +53,8 @@ func TestBuilderBeatsGym(t *testing.T) {
 		ev("run_end", 77, map[string]any{"ending": "buyout_mortgage", "day": 77, "cash": 13000}),
 	)
 	all, _ := json.Marshal(evs)
-	if bytes.Contains(all, []byte(secret)) || bytes.Contains(all, []byte("115")) {
+	// As a whole number: the run_start's ghost book carries five-digit net worths such as 11502.
+	if bytes.Contains(all, []byte(secret)) || regexp.MustCompile(`\b115\b`).Match(all) {
 		t.Fatalf("a hidden or slip value reached the feed: %s", all)
 	}
 	bt := beats(evs)

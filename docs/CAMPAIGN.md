@@ -27,26 +27,26 @@ Nine playable starts in the installed build (`StartingScenario` list in the deco
 hard, as the archetype the start suggests, with the route the model picks. Order: the reference first, then
 ascending difficulty, the cartel last.
 
-| # | Start | Archetype | Route menu today | Lab on hard | Blocker |
-|---|---|---|---|---|---|
-| 1 | Apprentice | Honest Broker | 20+ routes | 60/60 | — |
-| 2 | Hydroponic Farmer | Vintner (Botanist for Green Water) | `farmer` | 60/60 | — |
-| 3 | Gunsmith | Armourer | `gunsmith`, `gunsmith_farm` | 60/60 | — |
-| 4 | Water Merchant | Water Baron | `water_baron`, `fountain`, `water_night_shift`, `fountain_pharma` | 60/60 | — |
-| 5 | Rancher (Rat Wrangler) | Rancher | `rancher`, `rancher_sprinter` | 60/60 | — |
-| 6 | Fence | Fence | `outlaw`, `fence_fortress` | 60/60 | Security −30 on hard |
-| 7 | Rock Bottom | Shark | `rock_bottom` | 57/60 | the underdog |
-| 8 | Aquafarmer | Fishmonger | none on the menu; candidates `aquafarmer_sprinter` (`engine: fish`), `aqua_fish_weed` | 53/60; 60/60 with fillerweed bays (mostly at the mortgage's end) | ghost band and deadline odds; selectable (docs/re/AQUACULTURE.md §4) |
-| 9 | Chemist | Cook | none | 0/60 (the cartel ends 46 runs, median last day 35) | the evaporator's power and the cartel's growing count (docs/research/CHEMISTRY-ENGINE.md, "The Cook, why it fails") |
+| # | Start | Archetype | Native route (persona) | Lab on hard, fair play | Median win day | Native path on screen | Ready |
+|---|---|---|---|---|---|---|---|
+| 1 | Apprentice | Honest Broker | `appraiser` (magnate) | 60/60 (94–100 %) | 98 | the Board, a cellar, a furnace, vending: the reference | yes |
+| 2 | Hydroponic Farmer | Vintner (Botanist for Green Water) | `farmer` (vintner) | 60/60 (94–100 %) | 91 | the start's bays making wine | yes |
+| 3 | Gunsmith | Armourer | `armourer` (armourer) | 60/60 (94–100 %) | 105 | weapon permits, gun orders filled and modded, Permit II | yes |
+| 4 | Water Merchant | Water Baron | `water_baron` (water-baron) | 60/60 (94–100 %) | 105 | water purified and bottled (~16 k a run) | yes |
+| 5 | Rancher (Rat Wrangler) | Rancher | `rancher`, `rancher_sprinter` (rancher) | 60/60 each (94–100 %) | 87.5 / 84 | rats bred, fed and cut for the counter | yes |
+| 6 | Fence | Fence | `fence` (fence) | 60/60 (94–100 %) | 105 | thieves' lots bought, cooled in the bay, sold at heat 0 | yes |
+| 7 | Rock Bottom | Shark | `rock_bottom` (shark) | 57/60 (86–98 %) | 126 | broke on day 1; the three losses are rent on day 14 | yes |
+| 8 | Aquafarmer | Fishmonger | `aquafarmer` (fishmonger) | 60/60 (94–100 %) | 196 | tanks bred and filleted every morning (~135 fish, ~9 100 of fillets); every win the mortgage's end | yes (slow) |
+| 9 | Chemist | Cook | `cook` (cook) | 57/60 (86–98 %) | 105 | the cartel's quota cooked from its own caps until the exit (day 57–71 in every win), then the Board | yes |
 | — | Junker, Organ Trader, Street Food Vendor, Moonshiner, Pharmacist | — | — | — | coming soon in this build: not playable |
 
-**The lab column overstates readiness.** Those wins are mostly the Appraisal Board winning from any start, not
-the start's own trade: the `gunsmith` route is the Board plus wine and a furnace, and never buys a weapon permit,
-fills a gun order, mods a gun or runs the printer. A Gauntlet run plays the start's **native path** at the best its
-kit allows (the Gunsmith's arms trade, the Farmer's bays, the Water Merchant's water, the Rancher's rats, the
-Fence's stolen goods, the Chemist's lab, the Aquafarmer's tanks), so each start needs a native route measured
-on hard before it airs; the Board is allowed alongside unless the card bans it. Native engines in progress:
-chemistry, water/hydroponics/wine quality, fish and rats, the arms trade.
+Measured 2026-11-12 on the ghost-band seeds 8100001–060, hard, 1000-day horizon, executor alone, on the fair-play
+build (main 7baeecd: the executor reads only what a player sees); docs/research/ROUTES.md, "The Gauntlet on the
+fair-play build". Every start clears the 54/60 bar. A Gauntlet run plays the start's **native path** at the best its
+kit allows; the Board is allowed alongside unless the card bans it, and every route here still lives on it (each is
+0/60 without it where measured). Left for the cards: the Aquafarmer wins only at the mortgage's end (day ~196), a
+long stream; the Cook's three losses are a visit with no dust after evaporator power stalls; the Board-free versions
+(Season 2) are not won.
 
 ## Season 2, the Specialists: niche runs with jeopardy
 
@@ -93,11 +93,11 @@ Every persona, its native start and route, its cards and how it sounds. A route'
 | Botanist | Hydroponic Farmer | none yet (`quality.reeds` is built, the staged build is not) | Green Water | `af_heart` | two weeks for water a machine cleans overnight |
 | Armourer | Gunsmith | `armourer`, `gunsmith` | Season 1 #3 | `bm_lewis` | a gun shop waiting on a permit |
 | Water Baron | Water Merchant | `water_baron`, `fountain`, `water_night_shift` | Season 1 #4 | `af_sarah` | tap water at a markup, one jug from a fraud case |
-| Fishmonger | Aquafarmer (or Water Merchant) | `aquafarmer_sprinter` (candidate) | Season 1 #8, Water to Fish | `bm_fable` | a fish stall in a pawn shop, one dark night from empty tanks |
+| Fishmonger | Aquafarmer (or Water Merchant) | `aquafarmer` | Season 1 #8, Water to Fish | `bm_fable` | a fish stall in a pawn shop, one dark night from empty tanks |
 | Rancher | Rancher | `rancher`, `rancher_sprinter` | Season 1 #5 | `am_adam` | a pawn shop that smells like a barn |
 | Fence | Fence | `outlaw`, `fence_fortress` | Season 1 #6, Bounty Hunter | `am_michael` | one inspection from a cell |
 | Shark | Rock Bottom | `rock_bottom`, `sprinter` | Season 1 #7, Colorful Character | `am_fenrir` | a hustler with no engine |
-| Cook | Chemist | none (0/60) | Season 1 #9, The Cook | `af_nicole` | the cartel owns the lab, the way out keeps receding |
+| Cook | Chemist | `cook` | Season 1 #9, The Cook | `af_nicole` | the cartel owns the lab, the way out keeps receding |
 | Pharmacist | Apprentice → Retired Chemist | `caffeine_lab` (candidate: 60/60 with the Board, 0/60 without) | Legal Highs | `bf_isabella` | coffee pills while the cooks make the money |
 | Smelter | Apprentice (the Junker start is not playable) | `smelter`, `smelter_sprinter`, `ore_monopolist` | Foundry | `am_puck` | a scrapyard calling itself a foundry |
 | Magnate | any | `appraiser` (the default persona) | Closed Loop | `bm_george` | four engines half fed |

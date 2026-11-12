@@ -11165,6 +11165,45 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
+      "id": "autopilot.storereputation.getperkbyid",
+      "type": "StoreReputation",
+      "member": "GetPerkByID",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "StoreReputationPerk",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.difficultyrules.reputationgainmultiplier",
+      "type": "DifficultyRules",
+      "member": "reputationGainMultiplier",
+      "kind": "field",
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.difficultyrules.reputationlossmultiplier",
+      "type": "DifficultyRules",
+      "member": "reputationLossMultiplier",
+      "kind": "field",
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
       "id": "autopilot.machineryhelper.getcurrentqualitybonus",
       "type": "MachineryHelper",
       "member": "GetCurrentQualityBonus",

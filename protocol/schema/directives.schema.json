@@ -531,6 +531,75 @@
               "type": "integer",
               "minimum": 0
             },
+            "cartel": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "the Chemist start's way out of the cartel (docs/research/CHEMISTRY-ENGINE.md, \"The Cook gets out\"): dried batches banked as residue and pressed on the weekly visit's morning, blanks set the mean purity",
+              "properties": {
+                "bank": {
+                  "type": "boolean",
+                  "description": "bank dried dust batches unpressed until the visit (default true)"
+                },
+                "reserve_weeks": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "visits whose share the bank keeps (default 2)"
+                },
+                "unit_value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "rep a bank unit above the reserve is worth (default 0.25)"
+                },
+                "reserve_value": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "rep a bank unit inside the reserve is worth (default 3)"
+                },
+                "extra_max": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "units over the count at most (default 40)"
+                },
+                "materials": {
+                  "enum": [
+                    "need",
+                    "always",
+                    "never"
+                  ],
+                  "description": "the check-in's materials: when short of the next visit (default), always, never"
+                },
+                "materials_extra": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "materials_margin": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "caps_max": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "dream caps held at most (default 10): past the smuggler's bay an inspection seizes them"
+                },
+                "blender_first": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 4,
+                  "description": "chem modules into the blender first, up to this many (default 2)"
+                },
+                "after_exit": {
+                  "type": "array",
+                  "items": {
+                    "enum": [
+                      "caffeine_pill",
+                      "dream_dust",
+                      "fanta_pill"
+                    ]
+                  },
+                  "description": "what the lab makes once the cartel is left (default nothing)"
+                }
+              }
+            },
             "alcohol_ratio": {
               "type": "number",
               "minimum": 0.25,

@@ -37,6 +37,7 @@ rules.
 | `phanta_target` | 0.66 | the purity a too-pure Phanta residue is cut to (toxic from 75 %) |
 | `sell`, `on_shelf` | true, 6 | our own dust and Phanta go to buyers; six of each stay out of the smuggler's bays for them |
 | `quota_extra`, `quota_margin` | 10, 12 | the Chemist start: dust held beyond the cartel's count; the cut's floor above the required purity |
+| `cartel` | off | the Chemist start's way out (below, "The Cook gets out"): dried batches banked as residue, pressed with blanks on the handler's morning; `reserve_weeks` 2, `unit_value` 0.25, `reserve_value` 3, `extra_max` 40, `materials` `need`, `blender_first` 2, `caps_max` 10, `after_exit` nothing |
 | `reserve`, `after_permit` | 500, true | as the old `lab_reserve`, `lab_after_permit` |
 
 ### The chains (each step is one morning; the day's seconds run the reactions)
@@ -328,7 +329,7 @@ debris. From 19acb0e a batch waits for kotton as it does for a water filter (not
   run. Here it borrows the display case.
 - **The Cook** needs caps the source does not sell at that rate (no seed for sale; the cartel gives 3–6 a week).
   The count rises by 5 a week. Not winnable on these sources; the exit (rep 100, then +25 for each of four stages)
-  was reached to stage 2 at most.
+  was reached to stage 2 at most. (Superseded: below, "The Cook gets out", 57/60 on the same caps.)
 - **Unbuilt:** distilling wine for alcohol (a 150 ml pour; ~120 a bottle sold against 65 a pack: it does not pay
   while packs come), a powerblock beside the evaporator (needs grid placement), fineness and quality modules from
   barter (wired, too rare to measure), nightmare caps for the poison barter's cell.
@@ -336,6 +337,53 @@ debris. From 19acb0e a batch waits for kotton as it does for a water filter (not
   The bath feeds increments from `Lab.Second()`: blender presses and vessel moves once a second. The live driver
   already ticks `Lab.Second()` (LiveMachines.cs), so it needs those presses gated like the others. Not attempted:
   the loop does not win.
+
+## The Cook gets out (2026-11-12, branch gauntlet)
+
+**Question.** The Chemist start was 0/60 (`cook`, `cook_loop` above: the cartel ends the run around day 37–40). Can it
+leave the cartel and win on hard?
+
+**Verdict.** Yes: the `cook` route (docs/research/ROUTES.md, "The Cook gets out") wins **57/60 (86–98 %)** on
+8100001–060 on the fair-play build, median day 105, and every win completes the Authorized Exit first (day 57, 64 or
+71). Caps were never the wall the supply loop took them for: the old engine pressed pharma-grade dust for a quota judged
+at 40–70 %, stocked it where inspectors seize it, and staged the count lowest purity first.
+
+**What was built** (`lab.cartel: {...}`, sim/gym/Lab.Cartel.cs; hooks in Lab.cs; off unless the key is present):
+
+- **The bank.** A dried dust batch is poured, where it sits, into a bank container instead of pressed (an empty
+  vessel; failing one, two part-used alcohol minis poured together or a bottle of plain water poured out; last, the
+  100 ml cylinder, which the doses then skip; a fuller bank moves into a larger vessel). A container of residue is not
+  contraband, so nothing pressed sits in the shop between visits.
+- **The visit's morning.** The bank's purity on the spectrometer, × the finisher's keep, gives each unit's purity. The
+  plan picks N units and K of them from the bank, the rest blanks pressed from an acid or base bottle (0 %), to
+  maximise the rep after the visit as the handler computes it (hard ×0.75 / ×1.25, each change clamped at ±200, count
+  before purity), +50 when it holds the raised exit threshold, less 0.25 a bank unit above the next two visits' need
+  and 3 inside it. Met counts at a mean over req − 5 are tried first. Blanks first, then the bank, which stays seated in
+  the finisher; every dust held goes to the counters, the purest first. Units pressed before a bank existed: the count,
+  nearest req + 10.
+- **Materials** at the check-in when the bank, the batch and the caps held come short of the next count +5 at req + 10
+  (× 1.5). **Caps held** at most 10; contraband never goes into the display case (`Stow`). **Modules** to the blender
+  first (2): 35 → 20 → 10 % loss is more extract than the finisher's 12 → 6 → 3.
+- **After the exit** the lab makes nothing (`after_exit`): no dust is ever sold to a buyer.
+- A fix in the shared drying code: a night's draw is the evaporator's usage (7 with a module), not 6; at a battery of
+  exactly 6 the batch never dried and the next visit came empty.
+
+**Measured** (hard, 1000 days, `-human player -start chemist -perks vending+short_sleeper`):
+
+| Arm | Seeds | Wins (95 %) | Median win day | Exit | Endings |
+|---|---|---|---|---|---|
+| `cook_loop` (the supply loop's Cook) | 2910001–030 | 0/30 (0–11 %) | — | none | cartel 20, sec 9, arrest 1 |
+| first bank + plan (pre-fair-play, superseded) | 2910001–030 | 20/30 (49–81 %) | 108.5 | 17 | buyout 20, sec 6, cartel 4 |
+| `cook` (fair play, final) | 8100001–060 | **57/60 (86–98 %)** | 105 | 57, median day 64 | buyout 55, mortgage 2, cartel 3 |
+
+The `sec` endings of the early arm were caps the inspectors found: in the display case (with the stock grid full the
+lab's `Stow` put them there, and the showcase inspector then came every two or three days) or past the smuggler's bay. The three final losses are supply: the evaporator stalled for power
+on 20–46 mornings, the bank ran dry and a visit found no dust. Per run (medians): 89 caps, 206 units from the bank, 90
+blanks, the blender and the finisher at 4 modules each by the last visit in 56 of 60 runs, Security 27.5 at the end.
+
+**What is left.** The power stalls behind the three losses (cells bought late on a thin early cash line); the exit
+at week 7 rather than 8–9 needs ~25 extra units in weeks 1–4; Board-free was not tried. Live: the hooks are item moves,
+pours and the finisher's button, gated like the rest of the lab (below).
 
 ## Live
 

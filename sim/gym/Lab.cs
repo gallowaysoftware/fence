@@ -14,7 +14,7 @@ namespace Fence.Gym
     // the Retired Chemist; without it the doses come from the recipe's nominal amounts), temperature only on the plate's
     // readout (whole degrees), the finisher's status line (ready / wet / not enough), a unit's grade label, and the
     // chemistry a knowledgeable player knows (yields, windows, ratios). The grade histogram reads each unit's label.
-    internal static class Lab
+    internal static partial class Lab
     {
         const string Caffeine = "caffeine_pill", Dust = "dream_dust", Phanta = "fanta_pill";
 
@@ -45,6 +45,7 @@ namespace Fence.Gym
         {
             get
             {
+                if (CartelPlan && PlayerStore.Instance.isCartelExited) return (CartelCfg["after_exit"] as JArray)?.Select(x => (string)x).Where(x => Recipes.Any(r => r.Id == x)).ToList() ?? new List<string>();
                 if (Cfg?["products"] is JArray a) return a.Select(x => (string)x).Where(x => Recipes.Any(r => r.Id == x)).ToList();
                 return Directives.Current.Raw.Value<string>("lab") == "caffeine" ? new List<string> { Caffeine } : new List<string>();
             }
@@ -156,6 +157,7 @@ namespace Fence.Gym
             made.Clear();
             per.Clear();
             modulePlan = null;
+            ResetCartel();
         }
 
         static bool Up => NetworkUpgrade.GetUpgradeById("RETIRED_CHEMIST")?.IsUnlocked() ?? false;
@@ -225,7 +227,7 @@ namespace Fence.Gym
 
         static int Have(string liquid) => (int)Bottles(liquid).Sum(b => Total(b) * Share(b, liquid));
 
-        static bool Mine(GameItem i) => i.uniqueId == vessel || i.uniqueId == filterPitcher;
+        static bool Mine(GameItem i) => i.uniqueId == vessel || i.uniqueId == filterPitcher || (bank != 0 && i.uniqueId == bank);
 
         // The lab's own vessels stay out of the water engine.
         public static bool Holds(GameItem i) => On && Mine(i);
@@ -285,6 +287,7 @@ namespace Fence.Gym
         public static bool CartelMaterials()
         {
             if (!Cartel) return false;
+            if (Banking) return CartelMaterialsBanked();
             int caps = Owned().Count(i => i.identifier == "dream_cap" && Loose(i));
             return DustHeld().Count + caps * 3 < QuotaCount;
         }
@@ -296,8 +299,10 @@ namespace Fence.Gym
             var back = EmporiumEntry.Instance.backInvinvElement;
             int n = 0;
             // The count exactly (more is +1 rep a unit, but the next week's visit with none is the end of the run).
-            foreach (var d in DustHeld().Where(i => !ReferenceEquals(i.parentInventory, back)).OrderBy(Grade).Take(Math.Max(1, QuotaCount)))
-                if (Chore.Accept(back, d, -1) == 0) n++;
+            if (Banking) n = StageBanked();
+            else
+                foreach (var d in DustHeld().Where(i => !ReferenceEquals(i.parentInventory, back)).OrderBy(Grade).Take(Math.Max(1, QuotaCount)))
+                    if (Chore.Accept(back, d, -1) == 0) n++;
             QuotaStaged += n;
             QuotaVisits++;
         }
@@ -323,9 +328,13 @@ namespace Fence.Gym
             if (!On || !Up) return;
             var e = EmporiumEntry.Instance;
             foreach (var i in new[] { e.backInvinvElement, e.frontInvinvElement }.SelectMany(inv => inv.childItems).Where(i => i != null && GeneralHelper.IsItemOwned(i) && (Reserved(i) && (!IsInputGood(i) || !Legacy) || (!Legacy && (Recipes.Any(r => Makes(r.Id) && Takes(r, i.identifier)) || i.identifier == Module || i.identifier == Pack)))).ToList())
-                if (Chore.Accept(e.invElement, i, -1) != 0 && Chore.Accept(e.showcaseElement, i, -1) != 0 && !Legacy
-                    && (MakeRoom(PlayerRole.Cells(i)) ? Chore.Accept(e.invElement, i, -1) : 1) != 0 && MakeRoom(e.showcaseElement, PlayerRole.Cells(i)))
-                    Chore.Accept(e.showcaseElement, i, -1);
+            {
+                // Contraband (dream caps) never goes in the display case: it summons the showcase inspector.
+                bool hot = ContrabandHelper.GetContrabandLevelInInt(i) > 0;
+                if (Chore.Accept(e.invElement, i, -1) == 0 || (!hot && Chore.Accept(e.showcaseElement, i, -1) == 0) || Legacy) continue;
+                if (MakeRoom(PlayerRole.Cells(i)) && Chore.Accept(e.invElement, i, -1) == 0) continue;
+                if (!hot && MakeRoom(e.showcaseElement, PlayerRole.Cells(i))) Chore.Accept(e.showcaseElement, i, -1);
+            }
         }
 
         // A full stock grid leaves a bought machine on the back counter, where the next buyer's "sell all" takes it (the
@@ -559,7 +568,7 @@ namespace Fence.Gym
                 case "coffee_bean":
                 case "dream_cap":
                     if (!Makes(id == "coffee_bean" ? Caffeine : Dust)) return 0;
-                    return Math.Max(0, (Up ? Hold : 2) - Owned().Count(i => i.identifier == id && Loose(i)));
+                    return Math.Max(0, (id == "dream_cap" && Banking ? CapsMax : Up ? Hold : 2) - Owned().Count(i => i.identifier == id && Loose(i)));
                 case Pack:
                     if (Legacy) return Up && Owned().Count(i => i.identifier == Pack) == 0 && (Have("alcohol") < 350000 || !Bottles("acid").Any() || (Makes(Caffeine) && !Bottles("lipobond_agent").Any())) ? 1 : 0;
                     return Up ? Math.Max(0, PacksWanted() - Owned().Count(i => i.identifier == Pack)) : 0;
@@ -664,6 +673,8 @@ namespace Fence.Gym
             // load a blender it cannot start (docs/research/CHEMISTRY-ENGINE.md, "Live").
             if (!Legacy && ep.MachineButton(blender, LocHelper.GetLocalizedMechanic("mech_blender_btn_start")) == null) { Stall("no_buttons"); return; }
             if (ById(vessel) == null) { step = Step.Idle; product = null; feeding = bathDone = false; }
+            Tidy(evap);
+            QuotaMorning(ep, finisher);
             switch (step)
             {
                 case Step.Mixed when feeding: Resume(plate); return;
@@ -687,7 +698,7 @@ namespace Fence.Gym
             foreach (var mod in Owned().Where(i => i.identifier == Module && Loose(i)).ToList())
             {
                 int f = Fitted("chem_finisher");
-                string to = f < 4 && (Legacy || f == 0) ? "chem_finisher" : Legacy ? "blender" : PlateFirst ? "heating_plate" : NextModule().machine ?? (f < 4 ? "chem_finisher" : "blender");
+                string to = Banking && Fitted("blender") < BlenderFirst ? "blender" : f < 4 && (Legacy || f == 0) ? "chem_finisher" : Legacy ? "blender" : PlateFirst ? "heating_plate" : NextModule().machine ?? (f < 4 ? "chem_finisher" : "blender");
                 var m = Find(to);
                 if (m == null || Fitted(to) >= 4) continue;
                 if (Chore.Accept(Modules(m), mod, -1) == 0) ModulesFitted++;
@@ -697,7 +708,7 @@ namespace Fence.Gym
         // The filter pitcher, and the work vessel: the largest other empty pitcher, jug or water bottle.
         static bool PickVessels()
         {
-            var cands = Owned().Where(i => WorkVessels.Contains(i.identifier) && (Loose(i) || Mine(i)) && !Production.HeldForWine(i)).OrderBy(i => i.uniqueId).ToList();
+            var cands = Owned().Where(i => WorkVessels.Contains(i.identifier) && (Loose(i) || Mine(i)) && !Production.HeldForWine(i) && (bank == 0 || i.uniqueId != bank)).OrderBy(i => i.uniqueId).ToList();
             if (ById(filterPitcher) == null) filterPitcher = cands.FirstOrDefault(i => i.identifier == Pitcher && i.uniqueId != vessel)?.uniqueId ?? 0;
             if (ById(vessel) is GameItem cur && step == Step.Idle && cands.Any(i => i.uniqueId != filterPitcher && Total(i) < 20000 && Capacity(i) > Capacity(cur))) vessel = 0;
             if (ById(vessel) == null) vessel = cands.Where(i => i.uniqueId != filterPitcher && Total(i) < 20000).OrderByDescending(Capacity).ThenBy(i => i.uniqueId).FirstOrDefault()?.uniqueId ?? 0;
@@ -979,7 +990,7 @@ namespace Fence.Gym
         {
             if (ul <= 0) return 0;
             int want = ul;
-            var glass = Glass.Select(Find).Where(g => g != null).ToList();
+            var glass = Glass.Select(id => Owned().Where(i => i.identifier == id && i.uniqueId != bank).OrderBy(i => i.uniqueId).FirstOrDefault()).Where(g => g != null).ToList();
             foreach (var src in Bottles(liquid).ToList())
             {
                 double share = Share(src, liquid);
@@ -1296,11 +1307,14 @@ namespace Fence.Gym
             if (WaterHelper.IsWet(v))
             {
                 if (step == Step.Dried) { Evaporate(evap, v); return false; }
-                if (Charge(evap) < 6 && !Legacy) ChargeEvaporator(evap);
-                if (Charge(evap) < 6) Stall("evaporator_power");
+                // A night's draw is the machine's usage (7 with a module), not 6: a battery left at 6 never runs.
+                int draw = Math.Max(6, MachineryHelper.GetMachinePowerUsage(evap));
+                if (Charge(evap) < draw && !Legacy) ChargeEvaporator(evap);
+                if (Charge(evap) < draw) Stall("evaporator_power");
                 return false;
             }
             var r = R(product);
+            if (r.Id == Dust && BankBatch(ep, v)) return true;
             if (r.Id == Phanta) CutPhanta(v, Fitted("chem_finisher"));
             if (r.Id == Dust) CutForQuota(v, Fitted("chem_finisher"));
             // A vessel the stock grid had no room for after an earlier press still sits in the finisher.
@@ -1415,7 +1429,7 @@ namespace Fence.Gym
             };
             if (modulePlan != null) o["module_plan"] = modulePlan;
             if (NewGameData.Instance?.startType == NewGameData.StartType.DRUG_DEALER)
-                o["cartel"] = new JObject { ["exited"] = PlayerStore.Instance.isCartelExited, ["rep"] = StoreReputation.GetCartelReputation(), ["count"] = QuotaCount, ["purity"] = QuotaPurity, ["visits"] = QuotaVisits, ["staged"] = QuotaStaged, ["cut_ml"] = CutUl / 1000, ["exit_stage"] = PlayerStore.Instance.cartelExitStage };
+                o["cartel"] = new JObject { ["exited"] = PlayerStore.Instance.isCartelExited, ["rep"] = StoreReputation.GetCartelReputation(), ["count"] = QuotaCount, ["purity"] = QuotaPurity, ["visits"] = QuotaVisits, ["staged"] = QuotaStaged, ["cut_ml"] = CutUl / 1000, ["exit_stage"] = PlayerStore.Instance.cartelExitStage, ["plan"] = CartelCfg != null ? CartelStatus() : null };
             return o;
         }
     }

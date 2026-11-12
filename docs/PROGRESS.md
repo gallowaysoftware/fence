@@ -3,6 +3,33 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## The Gauntlet — 2026-11-12: every start wins hard on its native path; the Cook gets out
+
+**Result.** All nine playable starts have a menu route that plays the start's own trade and wins on hard at or above
+54/60, measured on the fair-play build (main 7baeecd + branch gauntlet), seeds 8100001–060, 1000-day horizon, Wilson
+95 %: `appraiser` 60/60 (day 98), `farmer` 60/60 (91), `armourer` 60/60 (105), `water_baron` 60/60 (105), `rancher` and
+`rancher_sprinter` 60/60 (87.5 / 84), `fence` 60/60 (105), `rock_bottom` 57/60 (126), **`aquafarmer` 60/60 (196, every
+win the mortgage's end)** and **`cook` 57/60 (105; every win completes the Authorized Exit first, day 57–71)**. The two
+new routes carry their ghost bands, deadline odds and lab entries (docs/research/ROUTES.md; docs/CAMPAIGN.md, Season 1).
+
+**Found.**
+
+- No regression from today's merges: the eight existing routes win as their ghost bands said, the paired win day
+  moved by nothing measurable across chem-loop, gene-lines, frame-forge and fair play, and 24 spot runs were
+  byte-identical across the frame-forge → gene-lines merges.
+- The Cook was never short of caps. The old engine pressed pharma-grade dust for a quota judged at 40–70 %, kept it in
+  stock where inspectors seize it (and a visit with no dust ends the run), and handed over the count lowest purity
+  first. `lab.cartel` (sim/gym/Lab.Cartel.cs) banks the dried residue, presses it on the handler's morning with acid
+  blanks (a unit pressed from acid grades 0 % and counts) to the required purity + 10, plans the rep against hard's
+  multipliers and the ±200 clamp (a purity loss after a count that hit 200 leaves the rep under the last exit bar), and
+  puts modules in the blender first. docs/re/CHEMISTRY.md §7.3 has the rules, CHEMISTRY-ENGINE.md the build.
+- Two fixes in shared lab code: the evaporator's night draw is its usage (7 with a module), not 6 (a battery left at 6
+  never dried the batch); contraband never goes into the display case when the stock grid is full (it summoned the
+  showcase inspector every few days).
+
+**Left.** The Cook's three losses are evaporator power stalls that empty the bank; the Aquafarmer is a 196-day stream;
+nothing here is Board-free.
+
 ## Fair play — 2026-11-12: the executor reads only what a player could; it costs no wins
 
 **Result.** Every executor read of hidden per-item truth now goes through `sim/gym/Known.cs`, the measurement layer:
