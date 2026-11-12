@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fence.Sim;
 
 namespace Fence.Lab
 {
@@ -346,6 +347,43 @@ namespace Fence.Lab
                 W.PS.SellItem(g);
                 R.Near($"sell contraband pistol (value {gv}) to {fac}: trafficking = value{(fac == "BM" ? " / 2" : "")}", fac == "BM" ? gv / 2.0 : gv, sec.GetTotalTraffickingCrimes(), 1.01, 1, "crimes: " + Crimes());
                 W.Unseat(); W.ClearInventory(W.E.backInvinvElement);
+            }
+        }
+
+        // The wanted list (no docs/re file yet): each poster client's bounty and faction terms, and what reporting one
+        // pays on hard (PlayerStore.OnCustomerReported, then the alarm's onSecAlarmLeftAction).
+        public static void Wanted(int seed)
+        {
+            W.New(seed, "hard");
+            const string SEC = "FACTION_SECURITY";
+            var ids = new[] { "wanted_intro", "wanted_intro2", "wanted1", "wanted1_return", "wanted2", "wanted2_return", "wanted3", "wanted4",
+                "wanted5", "wanted6", "wanted6_supply", "wanted7", "wanted8", "wanted8_weekly", "wanted9" };
+            foreach (var id in ids)
+            {
+                StoreClient c;
+                try { c = W.NewClient(id); } catch (Exception e) { R.Info($"wanted {id}: factory", "threw " + e.GetType().Name); continue; }
+                R.Info($"wanted {id}: wanted/stealth/reward/faction/penalty/improves/degrades",
+                    $"{c.isWanted}/{c.isStealthWanted}/{c.reportReward}/{c.clientFaction}/{c.reputationPenalty}/{c.reportImprovesFaction}/{c.reportDegradesFaction}");
+            }
+            foreach (var id in new[] { "wanted1", "wanted3", "wanted8_weekly", "wanted9" })
+            {
+                W.ResetReps();
+                var c = W.Seat(id);
+                string fac = c.clientFaction;
+                int cash0 = W.Cash; double sec0 = W.Rep(SEC), f0 = fac == null ? 0 : W.Rep(fac);
+                string err = null;
+                try
+                {
+                    W.PS.OnCustomerReported();
+                    var a = W.PS.onSecAlarmLeftAction; W.PS.onSecAlarmLeftAction = null;
+                    a?.Invoke();
+                    Scheduler.Settle();
+                }
+                catch (Exception e) { err = e.GetType().Name + ": " + e.Message; }
+                R.Info($"report {id} on hard: cash / Security / own-faction ({fac}) change, reported",
+                    $"{W.Cash - cash0} / {W.Rep(SEC) - sec0:0.##} / {(fac == null ? 0 : W.Rep(fac) - f0):0.##} / {c.reported}", 1,
+                    $"reward {c.reportReward}{(err == null ? "" : "; " + err)}");
+                W.Unseat();
             }
         }
 

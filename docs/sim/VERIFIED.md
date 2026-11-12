@@ -57,6 +57,7 @@ item does not fit (`W.Own`), since it measures mechanisms, not space.
 | Q&A #3: flag set 35 % for LOWER_LEVEL_CITIZEN clients | 400 real openings | 303 LL buyers | 38.0 % (99 % CI 31–45) | CONFIRMED (the factory alone never sets it; it happens at generation) |
 | Q&A #4: buying stolen is no crime; selling stolen = FENCING value×heat/100; contraband = trafficking value; BM buyer ÷2 | `BuyItem` / `SellItem`, crime ledger | 1 each | 0; 160 (=200×0.8); 272; BM 92 and 148 | CONFIRMED |
 | Threaten "from day 12" (trigger unverified) | gym play, intro on and off, seeds 2/8/21 | 4 runs | `isAugIntroduced` flips on day 12 in every run (Shotgun.Unlock from the mentor dialogue) | CONFIRMED |
+| Wanted list (no docs/re file before; now `docs/re/CLIENTS.md` "The wanted list"): bounty and faction terms per poster client; a report pays the bounty, +5 Security, and the faction change, scaled by difficulty (hidden-systems audit, 2026-11-12) | `barter.wanted`: each `wanted*` factory's fields; seat, `OnCustomerReported`, run the alarm's `onSecAlarmLeftAction`, hard | 1 per case | bounties 100–1 500; `wanted8_weekly` +125 cash / **+3.75** Security / **−7.5** LL; `wanted9` +300 / +3.75 / 0; `wanted1`, `wanted3` not reported headless (storyline intercept) | CONFIRMED (hard: rep gains × 0.75, losses × 1.25) |
 
 ## Window (`docs/re/WINDOW.md`)
 
@@ -173,6 +174,7 @@ copy, since `sim/gym` had uncommitted work.
 | Security rep: clean +3; only concealed items 0; lazy inspector skipping a trash can full of contraband +3; low alone −2 and kept; low + mid −5, low kept, mid seized; stolen base 200 at heat 100 −5 | same | 1 each | as stated | CONFIRMED |
 | Stolen non-contraband in stock is seized with chance = heat | 4 000 inspections per heat | 4 000 × 3 | 24.5 / 48.7 / 73.4 % (25 / 50 / 75) | CONFIRMED |
 | Luck voids the whole find with chance = luck | two mid items (stock + trash), luck 15 and 20 | 4 000 each | 15.0 / 20.0 %; never one without the other | CONFIRMED |
+| Liquid luck (+75 while active) voids the whole find; a voided find gives no clean +3 (hidden-systems audit, 2026-11-12) | one mid item in stock, base luck 0, `liquidLuckDaysLeft` 3 (`conceal.odds`) | 4 000 | 74.1 % (99 % CI 72.3–75.8) voided; Security change 0 on all 2 963 voided finds | CONFIRMED |
 | Personality ⅓ each; always normal at bribery crime ≥ 500; bribe = clamp(100 + 2·day − 2·Sec, 40, 400) | `GetInspectorPersonality`, `GetBribeAmount` | 30 000; 5 000; 6 | 33.8 / 32.9 / 33.3 %; 100 % normal; formula exact | CONFIRMED |
 | A shady inspector who sees contraband on the counter at arrival offers no bribe and searches | `OnArrival` then the dialogue chain, picking the last choice | 2 | clean counter: 2 choices, bribe taken, nothing searched; counter contraband: 1 choice, stock searched | CONFIRMED |
 | Security visitor (patrol officer) arrival: contraband of level 1 or 2 on the front counter, back counter or showcase triggers, and the chain ends in a full search of the shop; in stock, trash or the open stash nothing happens | `OnArrival`, then the dialogue chain | 12 | as stated | CONFIRMED |
@@ -256,5 +258,5 @@ purifying strips minerals too, so add tablets afterwards.
 | Tooltip/UI visibility claims (what the player sees) | No UI |
 | Security patrol reacting to contraband added to the case while present | Needs the arrival flow of a specific patrol client; not set up |
 | Rent "grows whether paid or not" | Not paying ends the run without `LANDLORD_GRACE`; not exercised |
-| Appraisal, gunsmith, barter-offer and info-dealer flows | Tablet modes still stubbed in the gym |
+| Gunsmith, barter-offer and info-dealer flows | Tablet modes still stubbed in the gym (the Appraisal Board's `OnEstimate` now runs in the gym, docs/re/APPRAISAL.md; no lab experiment yet) |
 | Owned contraband dropped on a counter or the showcase while a security visitor stands there starts a search | Headless placement does not reach the visitor's area handlers (`GameItem.OnAddedTo*Area`); calling the handlers directly does turn the visit non-dismissable (`conceal.patrol`, INFO) |

@@ -112,13 +112,19 @@ There is no daily drift and no other writer. Presence is read in exactly two pla
   is a morning check: the visit that crosses 100 kills the run at the next sleep.
 - **All-clear** (`PlayerStore.IsAugAllClearDue(System.Int32) : System.Boolean`). Never with
   Aug Menace. Otherwise it needs all of: day ≥ intro + 50 (62), presence **≤ 0**, a business
-  permit, and that permit held at least 25 days. When due, a Security officer visits instead of
-  an aug, `isAugEnded` is set, augs stop for good, and the shotgun is taken unless the player
+  permit, and that permit held at least 25 days. It is tested on every aug-handling call before the
+  spawn-day test, so the officer comes on the first day it is due, not only on an aug's spawn day
+  (`StoreClientManager.HandleAugClient`). When due, a Security officer visits, `isAugEnded` is set, augs stop for good, and the shotgun is taken unless the player
   holds gun permit I (`StoreClientListSecurity.CreateAugAllClearOfficer()`).
 
 On hard you survive at most 5 augs left alive with no kills (15 + 6×15 = 105 → dead). On
 challenge it is also 5 (15 + 6×16 = 111). Each kill on hard buys back two-thirds of an escape.
 On normal one kill (15 − 25 → 0) already qualifies for the all-clear.
+
+In practice the arc is short (measured, gym, hard `appraiser` route, seeds 2910001–009): the two scripted
+augs (intro + 1 and + 6) are shot, presence is 0 from day 19, the permit is bought early, and the last aug
+comes on day 57–62 in 8 of 9 runs (76 in one): the all-clear ends augs around day 62 while the runs last to
+day 70–119. Keeping the threat alive means letting an aug walk now and then (escape +15, kill −10 on hard).
 
 ## 2. Tells
 

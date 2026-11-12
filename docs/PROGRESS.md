@@ -3,6 +3,31 @@
 The scoreboard for "something that can play the game well". Newest entries first. Numbers
 come from the headless gym (real game rules, see `sim/gym/README.md`) unless stated.
 
+## Hidden systems audit — 2026-11-12: what the executor leaves on the table, ranked
+
+**Result.** Every system outside the quality and livestock agents' (appraisal, barter, clients, inspection, heat and
+concealment, labeler, augs, conditions and repair, modules, perks, scavenging, night outings, black market, market
+events, reputation, debt, Wild, window, and the decomp's undocumented systems), audited from the decompiled source
+against docs/re and the executor: docs/research/HIDDEN-SYSTEMS.md, ranked gap table first. Top gaps:
+
+1. The fake-exposure guard reads hidden truth (a fidelity breach, M).
+2. Wanted posters are never reported (~2.1k a run, S–M, mind Lou).
+3. The Appraisal Board never blocks low-fee types (~+290 a week from Master, S).
+4. Informant tips create the event they foretell, and the executor buys into running events (M).
+5. The Alert perk still pays for insurance (S).
+
+**Measured.**
+
+| Check | Result |
+|---|---|
+| Aug arc, gym (`appraiser`, hard, 9 seeds) | Presence 0 from day 19; the all-clear ends augs by day 57–62 in 8 of 9 runs |
+| Liquid luck, lab (`conceal.odds`) | Voids 74.1 % of finds; no clean +3 Security when it does |
+| Wanted reports, lab (`barter.wanted`) | Bounties 100–1 500; on hard +3.75 Security and −7.5 LL per report |
+| Early RENOVATION3, gym (30 paired seeds) | **Refuted:** the buyout comes 5.8 ± 2.4 days later |
+
+Corrections went into AUGS, CONCEALMENT, MITIGATIONS, CLIENTS (a new "The wanted list" section) and VERIFIED.md;
+the decomp-only corrections that still need a lab check are listed at the end of HIDDEN-SYSTEMS.md.
+
 ## Panel layout — 2026-11-11: one column that fits, whatever is live
 
 **Result.** The format card, the ghost band, Twitch's prediction and vote and the model's forks each added to

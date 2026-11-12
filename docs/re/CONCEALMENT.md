@@ -76,7 +76,8 @@ Per scheduled or triggered inspection (MEASURED unless CODE):
 - **Security reputation.** −Σ (1 + contraband level + stolen tier), capped at 25, where the stolen
   tier is +1/+2/+3/+4 for base value < 50 / < 85 / < 140 / ≥ 140. Measured: low −2, mid −3, low +
   mid −5, a stolen 200-base item −5. A clean inspection gives **+3 only if nothing flaggable was
-  concealed** anywhere (bays, closed stash) and it was not a showcase inspection or a search set
+  concealed** anywhere (bays, closed stash), no luck roll voided a find (measured: 0 change over 2 963
+  voided finds, docs/sim/VERIFIED.md), and it was not a showcase inspection or a search set
   off by dropping an item in front of security; a lazy
   inspector who skipped a trash can full of contraband still gives +3.
 

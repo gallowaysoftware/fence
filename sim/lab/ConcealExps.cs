@@ -232,6 +232,32 @@ namespace Fence.Lab
                 R.Rate($"odds: luck {luck}: whole find overlooked (both items kept)", luck / 100.0, saved, n);
             }
             W.PS.healthData.luck = 0;
+            // Liquid luck (LiquidLuckHelper: each bottle adds 3 days, +75 luck while any are left); a voided find
+            // should also withhold the clean-inspection Security bonus.
+            W.PS.healthData.liquidLuckDaysLeft = 3;
+            int kept = 0;
+            var keptSec = new List<double>();
+            for (int i = 0; i < n; i++)
+            {
+                ClearShop();
+                var a = Owned("dream_dust");
+                W.Place(E.invElement, a);
+                double s0 = Sec;
+                Inspect(0);
+                if (Alive(a)) { kept++; keptSec.Add(Sec - s0); }
+            }
+            R.Rate("odds: liquid luck active, base luck 0: whole find overlooked", 0.75, kept, n);
+            if (keptSec.Count > 0) R.Exact("odds: liquid luck voided a find: Security rep change", 0.0, keptSec.Average(), keptSec.Count, $"min {keptSec.Min():0.##} max {keptSec.Max():0.##}");
+            W.PS.healthData.liquidLuckDaysLeft = 0;
+            var clean = new List<double>();
+            for (int i = 0; i < Math.Min(n, 200); i++)
+            {
+                ClearShop();
+                double s0 = Sec;
+                Inspect(0);
+                clean.Add(Sec - s0);
+            }
+            R.Info("odds: clean shop, no luck: Security rep change per inspection", $"{clean.Average():0.###} (min {clean.Min():0.##} max {clean.Max():0.##})");
         }
 
         // Inspector personality odds and the bribe price.

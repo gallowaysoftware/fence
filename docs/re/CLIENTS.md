@@ -83,3 +83,29 @@ The executor (`-start apprentice -perks vending+short_sleeper`, `hard_income_mor
 buyers a day on days 31–100 and 6 on days 100–200, offering 1.4k and 2.6k of budget; it sells 29 % and 19 %
 of it. 41–45 % of buyers leave with nothing staged. See `docs/PROGRESS.md` "Stock breadth" for the
 breakdown by want and by why nothing was staged.
+
+## The wanted list (reporting)
+
+Measured with `fence-lab barter.wanted` (hard, docs/sim/VERIFIED.md) and the gym (`appraiser` route, hard,
+seeds 2910001–009); the rest from code (`PlayerStore.OnCustomerReported`, `GrantWantedCaptureReward`,
+`ApplyReportFactionChange`, `StoreClient.CanReport`).
+
+| Client id | Bounty | Faction | Report changes that faction | Gym visits a run (all dismissed today) |
+|---|---|---|---|---|
+| `wanted1` (+ `_return`) | 300 | Lower Levels | −6 (the report did not go through headless: a storyline intercept, `tryInterceptReport`) | 1 + 3 |
+| `wanted2` (+ `_return`) | 450 | Lower Levels | **+6** (improves) | 1 + 8 |
+| `wanted3` | 100 | Revolution | −6 (the report did not go through headless; not measured) | 1 |
+| `wanted4` | 300 | Revolution | −6 | 1 |
+| `wanted5` | 1 500 | Black Market | none; **but** reporting her starts the Lou chain, which ends in a demand of 1 000 on hard and a game over if underpaid (`LouBombHelper`, `LouOperativeHelper`; read, not measured) | 1 |
+| `wanted6` (+ `_supply`) | 400 | Lower Levels | −6 | 1 + 9 |
+| `wanted7` | 125 | Lower Levels | −6 | 8 |
+| `wanted8` (+ `_weekly`) | 125 | Lower Levels | −6 | 1 + 7 |
+| `wanted9` | 300 | Lower Levels | none (penalty 0) | 1 |
+
+- A correct report pays the bounty when the alarm's officer leaves, +5 Security, closes the poster, and applies
+  the faction change. Difficulty scales the reputation: measured on hard, `wanted8_weekly` gave +125 cash,
+  **+3.75** Security (gain × 0.75) and **−7.5** Lower Levels (loss × 1.25); `wanted9` +300 / +3.75 / 0.
+- Shooting a wanted client (`OnWantedClientShot`) pays the same bounty and faction change as reporting it.
+- Not reportable: after a bargain coercion, or a client marked not arrestable / not dismissable.
+- The gym's executor dismisses every wanted visit (`BarterRules.CoverageGap`): 26–59 visits a run (mean 46 over
+  9 runs). Bounties on first visits sum to ~3.6k (~2.1k without `wanted5`); reporting also ends the return visits.
