@@ -268,6 +268,31 @@ value/400 with LL ×0.66, UL ×1.2) are in docs/re/STATE.md and docs/sim/SPEC.md
 | Shark | Savings, Proficient Scavenger, Welfare Program; refunds Blackmail (refuse it), Wild's Bad Side | LL 20; UL and BM have no death floor |
 | Magnate | Vending, Wild's Favorite; refund Bad Lease | SEC 80 + UL 100 (budgets) |
 
+### 4.1 Measured in the gym (2026-11-16)
+
+Every route card but `no_vending` used to take `vending + short_sleeper` (the apprentice's best in `docs/PROGRESS.md`,
+"Levers"). Each persona's representative route was replayed by the executor (`-human player`, hard,
+gym `fbe5c67`) with its card's directives and 3–4 legal loadouts from the fit column, paired on seeds
+2700001–030 (`sim/lab/scripts/arms-perks-persona.txt`); the leaders were rerun on fresh seeds
+2800001–060 (`arms-perks-confirm.txt`). Days are days to the buyout (lower is better); ± is the
+paired 95 % interval. The executor reads no persona, so these are the perks' effect on the route's
+play, not on a model's.
+
+| Route (persona) | Loadout now on the card | vs `vending + short_sleeper`, fresh seeds | Likely mechanism (not isolated) |
+|---|---|---|---|
+| cook (cook) | `short_sleeper + intimidating` | days −10±6 (median 97 → 90), 60/60 | crimes ×0.67: the dust stock draws fewer and smaller inspections |
+| smelter (smelter) | `short_sleeper + proficient_scavenger + lucky` | days −4±3 (76 → 69), nw60 +1 008±596 | 7 searches a night feed the furnaces; vending earns little beside them |
+| gunsmith (armourer) | `model_citizen + well_connected` | days −6±4 (83 → 76) | Security 70 on day 1 (§2.6) |
+| aquafarmer (fishmonger) | `vending + short_sleeper + unlucky + wild_favorite` | nw200 +5 538±1 504; buyout day unchanged (the mortgage's end, 196) | upgrades ×0.9 and insurance ×0.5 on a route that buys tanks for 28 weeks |
+| vintner (vintner) | `vending + short_sleeper + bad_lease + wild_favorite` | nw60 +1 079±489; days −3±3 | the same discount; the lease's rent is small before the buyout |
+
+No better loadout was found (every alternative within noise, or worse) for appraiser and sprinter
+(identical directives, so one test), apothecary, fence, water baron and rancher; they keep
+`vending + short_sleeper`. Clearly worse: Convict on the fence (+32±20 days) and cook (+13±8),
+Gambling Addiction + Proficient on the smelter (+8±5), Welfare + Unlucky on the apothecary
+(+14±10 days, nw60 −1 222±761), Gambling + Lucky on the sprinter (+7±5). Gambling + Lucky was
+neutral on the cook (−2±6 days on fresh seeds); its inspection save was not measured apart.
+
 ## 5. State space: what matters, clusters, sampling
 
 ### 5.1 Materiality

@@ -1,0 +1,7 @@
+# Follow-ups to arms-cheap.txt: liquid luck where contraband is sold, a two-week rent skip, Marketplace requests.
+# nice python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cheap2.txt -dir var/sim/exp/cheap -seeds 60 -days 1000 -parallel 6 -- -difficulty hard -seed0 2910000
+appraiser_contraband | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_contraband.json
+appraiser_contraband_luck | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_contraband_luck.json
+appraiser_rentskip2 | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_rentskip2.json
+appraiser_requests | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_requests.json
+appraiser_wanted_all | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_wanted_all.json

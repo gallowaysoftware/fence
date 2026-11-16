@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Fence.Autopilot;
 using Fence.Barter;
+using Fence.Bridge;
 using Fence.Decisions;
 using Fence.Gym;
 using Fence.Protocol;
@@ -27,11 +29,11 @@ namespace Fence.Mod
         public const string DefaultDirectives = "{\"augs\":\"shoot\",\"bargain\":\"discount\",\"bargain_buy\":\"ev_positive\",\"bays\":2,\"buy\":{\"single_max_pct\":75,\"wholesale_max_pct\":88},\"conceal\":{\"policy\":\"always\"},\"engine\":\"wine+furnace\",\"jackson_every\":14,\"permit\":\"buy\",\"sell\":{\"liquidate_min_pct\":78,\"min_pct\":57},\"upgrades_cash_max\":937,\"window_mode\":\"concentrate\",\"mortgage_margin\":0.8,\"appraisal\":\"join\",\"buyout_by_day\":140,\"buyout_save\":[\"insurance\"],\"buyout_save_from\":56}";
         // What the live hands cannot do yet, over any plan: the poster stash (M3), and the labeler, which the gym
         // rewrites without its window.
-        public const string LiveOnlyDirectives = "{\"conceal\":{\"use_poster\":false},\"labeler\":null,\"fakes\":null}";
+        public const string LiveOnlyDirectives = "{\"conceal\":{\"use_poster\":false},\"labeler\":null,\"fakes\":null,\"stock_reserve_cells\":10,\"stage_variety\":true}";
 
         // Customers whose dialogue choices the executor's role decides by a rule of its own; anyone else's
-        // choice falls to "first enabled", which the autopilot hands to the human instead.
-        const string NoRule = "dialogue:first_enabled";
+        // no-rule fallback (no no-deal choice on offer) is what the autopilot hands to the human instead.
+        const string NoRule = DefaultHumanRole.DialogueFirstEnabledNoRule;
         static readonly HashSet<string> BigDecisions = new HashSet<string>(StringComparer.Ordinal)
         {
             "landlord", "landlordVending", "loan_shark2", "loan_shark_collect", "georgioLoan", "businessPermitOfficial",
@@ -70,8 +72,13 @@ namespace Fence.Mod
         bool polling;
         bool stopped;
         bool executing;
+        // From the bag choice until travel: the game itself clears the front counter as the player leaves.
+        bool leavingStore;
+        readonly BridgeSession session;
+        readonly BridgeClient client;
 
         public AutopilotDriver(FenceLog log, Func<IEnumerator, bool> startCoroutine, Recorder.Emit emit, Recorder recorder, BarterAdvisor advisor,
+            BridgeSession session, BridgeClient client,
             Func<bool> setting, Func<string> paceSetting, Func<string> holdSetting, Func<string> directivesSetting)
         {
             this.log = log;
@@ -89,6 +96,8 @@ namespace Fence.Mod
             role = new PlayerRole(defaults, new Knobs(""));
             Chore.Hands = new ChoreHands(this);
             advisor.Traded = Traded;
+            this.session = session;
+            this.client = client;
         }
 
         public AutopilotState State => sw.State;
@@ -183,12 +192,14 @@ namespace Fence.Mod
         {
             if (action == HumanActions.ServicesSet && memory.SleepRequested) return Actors.Autopilot;
             if (action == HumanActions.OpenTablet || action == HumanActions.CloseTablet) return null;
+            if (leavingStore && (action == HumanActions.FrontRemove || action == HumanActions.FrontAdd)) return null;
             if (sw.Running && !executing) Pause("you made a move (" + action + "): the autopilot stopped so it cannot fight you");
             return null;
         }
 
         void Stop(AutopilotState to, string why)
         {
+            leavingStore = false;
             bool stoppedNow = to == AutopilotState.Handover ? sw.Handover(why) : sw.Fault(why);
             if (!stoppedNow) return;
             var v = last;
@@ -204,11 +215,22 @@ namespace Fence.Mod
             if (!Enabled) return ("", false, null);
             switch (sw.State)
             {
-                case AutopilotState.Running: return ("Autopilot ▶ " + (lastLine.Length > 0 ? lastLine : "starting"), false, "Pause autopilot");
+                case AutopilotState.Running: return ("Autopilot ▶ " + (lastLine.Length > 0 ? Plain(lastLine) : "starting"), false, "Pause autopilot");
                 case AutopilotState.Paused: return (AutopilotEvents.Banner(sw.State, sw.Reason) + " — press Resume autopilot", false, "Resume autopilot");
                 default: return (AutopilotEvents.Banner(sw.State, sw.Reason), true, "Resume autopilot");
             }
         }
+
+        // Chore ids read as debug on stream ("ring bell: 3 customers waiting"); say it like a person.
+        static string Plain(string line) => line switch
+        {
+            var s when s.StartsWith("ring bell") => s.Replace("ring bell", "letting the next customer in"),
+            var s when s.StartsWith("move ") => s.Replace("move ", "putting "),
+            var s when s.StartsWith("stage ") => s.Replace("stage ", "staging "),
+            var s when s.StartsWith("close shutter") => "closing for the evening",
+            var s when s.StartsWith("open shutter") => "opening the shop",
+            _ => line,
+        };
 
         // ---- the tick ----
 
@@ -226,6 +248,7 @@ namespace Fence.Mod
 
             var (view, snap) = LiveGame.Read(game, memory.ClientSeq, recorder != null && recorder.Filter.Loading);
             if (!GunOrdersUsable) view.ArmsOrders = false;
+            if (!WantedUsable) view.WantedReportOn = false;
             last = view;
             if (!(memory.GunDecided && ReferenceEquals(memory.ClientKey, view.ClientKey))) ReadAugVerdict(view, snap);
             CheckShot(view);
@@ -245,6 +268,7 @@ namespace Fence.Mod
                 case StepKind.Idle:
                     return;
                 case StepKind.Wait:
+                    if (view.MorningPanelOpen && !memory.Reported) EmitMorningReport(view);
                     if (watchdog.Stalled(quiet)) Stop(AutopilotState.Faulted, "no progress for " + Watchdog.LimitMs / 1000 + " s (" + step.Reason + ")");
                     return;
                 case StepKind.Handover:
@@ -311,7 +335,12 @@ namespace Fence.Mod
                     PlanWindow();
                     return;
                 case StepKind.Move:
+                    // Transfer-all: drain every queued move into the same destination back-to-back in
+                    // this one action (one paced step, one expectation) instead of one step each.
                     MoveOne(gate, memory.Moves.Dequeue(), v);
+                    var first = memory.Moves.Count > 0 ? Destination(memory.Moves.Peek()) : "";
+                    while (memory.Moves.Count > 0 && first != "" && Destination(memory.Moves.Peek()) == first)
+                        MoveOne(gate, memory.Moves.Dequeue(), v);
                     return;
                 case StepKind.OpenShutter:
                     hands.Shutter(gate);
@@ -382,6 +411,9 @@ namespace Fence.Mod
                     int day = v.Day;
                     expecting = Expectation.Within("the next morning", now, SleepMs, x => x.InStore && x.Day != day && x.Store == StorePhase.Morning);
                     return;
+                case StepKind.WantedReport:
+                    ReportWanted(v, now);
+                    return;
                 default:
                     ExecuteM2(step, v, gate, now);
                     return;
@@ -390,24 +422,34 @@ namespace Fence.Mod
 
         // ---- the day's plan ----
 
-        // The executor's plan for the day: directives (the setting's base, the strategist's day plan over it, what the
+        // The morning baseline: the bridge's base directives when it has them (docs/PROTOCOL.md, GET /v1/summary),
+        // else the in-game setting, else the default. A bad bridge document faults: it comes from outside.
+        internal static string ResolveBaseline(string inGameSetting, string bridgeBase)
+        {
+            if (!string.IsNullOrWhiteSpace(bridgeBase)) return bridgeBase;
+            if (!string.IsNullOrWhiteSpace(inGameSetting)) return inGameSetting;
+            return DefaultDirectives;
+        }
+
+        // The executor's plan for the day: directives (the baseline, the strategist's day plan over it, what the
         // live hands cannot do yet over both) and the shared morning plan (ExecutorMorning.Plan) on the ledger the
         // game's run stats and this session's sales give.
         void Morning(int day)
         {
             planDay = day;
+            var summary = advisor.LatestSummary;
             Directives baseline;
             try
             {
-                baseline = Directives.Parse(JObject.Parse(string.IsNullOrWhiteSpace(Safe(directivesSetting)) ? DefaultDirectives : Safe(directivesSetting)));
+                baseline = Directives.Parse(JObject.Parse(ResolveBaseline(Safe(directivesSetting), summary?.BaseDirectives)));
             }
             catch (Exception e)
             {
-                Stop(AutopilotState.Faulted, "autopilot_directives is not valid JSON directives: " + e.Message);
+                string from = !string.IsNullOrWhiteSpace(summary?.BaseDirectives) ? "the bridge's base directives" : "autopilot_directives";
+                Stop(AutopilotState.Faulted, from + " is not valid JSON directives: " + e.Message);
                 return;
             }
             Directives plan = null;
-            var summary = advisor.LatestSummary;
             if (summary?.Directives != null && (summary.PlanDay ?? day) == day)
             {
                 try
@@ -443,19 +485,18 @@ namespace Fence.Mod
             var owned = LiveGame.StockAndCase();
             var want = new HashSet<GameItem>(role.Window(owned, WindowCapacity));
             string rule = lastDefault;
-            var hidden = new[] { "item_true_condition" };
             int outs = 0, ins = 0;
             foreach (var i in LiveGame.InCase().Where(i => !want.Contains(i)))
             {
-                Queue(MoveKinds.Unshowcase, i, null, "not in today's window", rule, hidden);
+                Queue(MoveKinds.Unshowcase, i, null, "not in today's window", rule, null);
                 outs++;
             }
             foreach (var i in want.Where(i => !LiveGame.IsIn(i, LiveHands.Case)))
             {
-                Queue(MoveKinds.Showcase, i, null, "today's window: the best of its type, nothing hot or hiding a flaw", rule, hidden);
+                Queue(MoveKinds.Showcase, i, null, "today's window: the best of its type, nothing hot, and nothing whose claim the player knows or suspects to be better than the truth", rule, null);
                 ins++;
             }
-            Record("plan_window", null, ins + " into the case, " + outs + " out", rule, hidden);
+            Record("plan_window", null, ins + " into the case, " + outs + " out", rule, null);
         }
 
         void PlanStageBuyer(LiveView v)
@@ -474,6 +515,19 @@ namespace Fence.Mod
         {
             memory.StagedSeller = true;
             var theirs = LiveGame.TheirsOnCounter();
+            // A wholesale offer needs no staging: OnWholesaleClick weighs everything on the front counter
+            // (GetAllNonOwnedItem) and the counter verdict (PlayerPolicy.Buy) reads `theirs`, not the staged
+            // list — moving items one by one to weigh a lot the wholesale price already settles is wasted
+            // motion. Stage only when there is no wholesale price or the lot costs more than it would as
+            // staged singles at the buy cap.
+            long est = 0;
+            foreach (var i in theirs) est += (long)i.GetCurrentValue(false, true, true, false, 0L);
+            var ws = LiveGame.WholesaleOffer();
+            if (ws is int w && est > 0 && w <= est * (Directives.Current.SingleMaxPct ?? 85) / 100.0)
+            {
+                Record("plan_stage_seller", null, "none: the wholesale " + w + " is under the lot's estimate " + est + ", the counter weighs it where it lies", lastDefault, null, v);
+                return;
+            }
             var picks = role.StageFromSeller(LiveGame.Client(), theirs, LiveGame.Cash());
             string rule = lastDefault;
             foreach (var i in picks) Queue(MoveKinds.StageTheirs, i, v.ClientKey, "worth weighing a price for", rule, null);
@@ -488,24 +542,49 @@ namespace Fence.Mod
             var left = LiveGame.OwnedOnBack();
             // Gifts dropped on the front counter as already ours: the free ore courier and the miner's dividend the furnace uses, and the phone suppliers' free deliveries and dividends.
             if (Furnace.On || Suppliers.On) left.AddRange(LiveGame.OwnedOnFront().Where(i => (Furnace.On && Furnace.IsInput(i.identifier)) || Suppliers.IsGift(i)));
-            foreach (var i in left) Queue(MoveKinds.Unstage, i, null, "unsold, back to stock", "unstage_leftovers", null);
+            foreach (var i in left)
+            {
+                if (i.IsTag("DOCUMENT") && Appraisal.Dossier() != null) Queue(MoveKinds.StowKit, i, null, "a document: into the dossier", "unstage_leftovers", null);
+                else Queue(MoveKinds.Unstage, i, null, "unsold, back to stock", "unstage_leftovers", null);
+            }
             if (left.Count > 0) Record("plan_unstage", null, left.Count + " unsold item" + (left.Count == 1 ? "" : "s") + " back to stock", "unstage_leftovers", null);
         }
 
         void Queue(string kind, GameItem item, object clientKey, string why, string rule, IList<string> hidden) =>
             memory.Moves.Enqueue(new PlannedMove { Kind = kind, Item = item, Uid = game.Uid(item), Name = LiveGame.Name(item), Why = why, Rule = rule, HiddenUsed = hidden, ClientKey = clientKey });
 
+        // The stock destination a simple move kind sends its item to; "" for the special kinds
+        // (MoveSpecial handles those). Consecutive moves into the same destination run back-to-back
+        // in one action, the driver's transfer-all: one expectation, one paced step, a move-all
+        // arrow's work.
+        static string Destination(PlannedMove m) => m.Kind == MoveKinds.Showcase ? LiveHands.Case
+            : m.Kind == MoveKinds.Stage || m.Kind == MoveKinds.StageTheirs || m.Kind == MoveKinds.Donate || m.Kind == MoveKinds.JacksonStage ? LiveHands.Back
+            : m.Kind == MoveKinds.Unshowcase || m.Kind == MoveKinds.Unstage ? LiveHands.Stock
+            : "";
+
         void MoveOne(ActGate gate, PlannedMove m, LiveView v)
         {
             var item = (GameItem)m.Item;
             if (MoveSpecial(gate, m, item, v)) return;
-            string to = m.Kind == MoveKinds.Showcase ? LiveHands.Case
-                : m.Kind == MoveKinds.Stage || m.Kind == MoveKinds.StageTheirs || m.Kind == MoveKinds.Donate || m.Kind == MoveKinds.JacksonStage ? LiveHands.Back
-                : LiveHands.Stock;
+            string to = Destination(m);
+            var from = item.parentInventory;
             if (!hands.Move(gate, item, to))
             {
                 Record(m.Kind, m, "skipped: the game does not let it move now", m.Rule, null, v);
                 return;
+            }
+            // A full destination refuses the move and leaves the item where it was: skip it. Only an item that
+            // went somewhere unexpected is a fault. Unsold leftovers try the case before staying on the back
+            // counter (the night clears only the front's).
+            if (!LiveGame.IsIn(item, to) && ReferenceEquals(item.parentInventory, from))
+            {
+                if (m.Kind == MoveKinds.Unstage && LiveGame.IsIn(item, LiveHands.Back) && hands.Move(gate, item, LiveHands.Case) && LiveGame.IsIn(item, LiveHands.Case))
+                    to = LiveHands.Case;
+                else
+                {
+                    Record(m.Kind, m, "skipped: no room in " + to + ", it stays where it was", m.Rule, null, v);
+                    return;
+                }
             }
             if (!LiveGame.IsIn(item, to))
             {
@@ -522,12 +601,24 @@ namespace Fence.Mod
 
         // ---- the customer ----
 
+        int noEnableRetries;
+
+
         void Choose(ActGate gate, LiveView v, long now)
         {
             var view = LiveGame.Dialogue(out var infos);
             int pick = role.Dialogue(view);
             string rule = lastDefault;
-            if (rule == NoRule)
+            if ((rule == NoRule || rule == "dialogue:no_enabled_choice") && ++noEnableRetries < 3
+                && view.Choices.All(c => !c.Enabled))
+            {
+                // Choices can enable late: the waste customer's barrels land on the table in a
+                // SetEndAction that runs after the dialogue opens. Retry instead of handing over.
+                expecting = Expectation.Within("the dialogue to enable its choices", now, 2_000,
+                    x => x.ClientKey == v.ClientKey && x.DialogueActive);
+                return;
+            }
+            if (rule == NoRule || rule == "dialogue:no_enabled_choice")
             {
                 Stop(AutopilotState.Handover, (v.ClientName ?? "a customer") + " asks something the executor has no rule for");
                 return;
@@ -539,6 +630,7 @@ namespace Fence.Mod
                 return;
             }
             var line = LiveGame.CurrentLine();
+            noEnableRetries = 0;
             hands.Choose(gate, pick);
             Record("dialogue_choice", null, FeatureText.Plain(choice.Text), rule, null, v, detail: (view.ClientId ?? "") + " [" + pick + "]");
             expecting = Expectation.Within("the dialogue choice takes", now, ExpectMs, x => !ReferenceEquals(LiveGame.CurrentLine(), line));
@@ -610,12 +702,56 @@ namespace Fence.Mod
                 : Expectation.Within("the customer leaves", now, LeaveMs, x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client));
         }
 
+        // The gym's wanted rule (Fence.Gym.Wanted.Report) with its action (Episode.Wanted): the poster face is
+        // reported for its bounty, the arrest presentation plays, then the client is dismissed like a served
+        // customer. Directive off, hook missing, or Lou under plain report fall through to the old dismiss path.
+        void ReportWanted(LiveView v, long now)
+        {
+            var info = game.Client();
+            if (info == null || !info.IsWanted || info.IsStealthWanted)
+            {
+                Stop(AutopilotState.Handover, "the wanted poster is not at the counter anymore");
+                return;
+            }
+            double? rep = info.FactionId != null ? game.Reputations()?.FirstOrDefault(r => r.FactionId == info.FactionId)?.Value : null;
+            if (!BarterRules.WantedReportable(true, v.CanReport, info.WantedPosterId,
+                info.ReportDegradesFaction, info.ReportImprovesFaction, info.ReputationPenalty, rep))
+            {
+                // The role's script skips this poster (Fence.Gym.Wanted.Report → Skip): the mod cannot report
+                // her, so she is dismissed like a served customer — NOT a handover. Lou (wanted5) under plain
+                // report lands here every visit; handing her to the player paused the game at the counter.
+                Dismiss(v, "the poster " + (v.ClientName ?? "client") + " is not reportable under the rules: sent away", "player:report_wanted", now);
+                return;
+            }
+            memory.WantedReported = true;
+            host.Human(HumanActions.Report, advisor.InForce(), null, new JObject { ["poster"] = info.WantedPosterId }, "player:report_wanted");
+            Record("report_wanted", null, "the poster " + (v.ClientName ?? "") + " reported for the bounty", "player:report_wanted", null, v, detail: info.WantedPosterId);
+            // The Security button through the hands (ActSafetyTests: the press sits behind its gate check).
+            var gate = ActGate.TryOpenAutopilot(() => Enabled && sw.Running);
+            if (gate == null || !hands.Report(gate))
+            {
+                Stop(AutopilotState.Faulted, "the wanted report was refused");
+                return;
+            }
+            // PlayerStore.OnCustomerReported returns early on a storyline intercept (tryInterceptReport), leaving
+            // the client at the counter: like the gym, fall through to the old path on the next tick.
+            if (!game.Client()?.Reported ?? true) return;
+            object client = v.ClientKey;
+            expecting = Expectation.Within("the poster leaves after the arrest", now, LeaveMs, x => !x.ClientPresent || !ReferenceEquals(x.ClientKey, client));
+        }
+
         // ---- the night ----
 
         // The executor's services, then the tablet's own rules as the player meets them (Episode.Sleep): the
         // dearest optional service goes while the bill exceeds the cash.
         void SetServices(ActGate gate, LiveView v)
         {
+            if (nightAsked)
+            {
+                nightAsked = false;
+                memory.NightAsk = null;
+                Record("night_choice", null, "no answer by the tablet: the role's night stands", "bridge:night", null);
+            }
             memory.ServicesSet = true;
             var night = LiveGame.Night(v.Day);
             var want = role.Services(night) ?? new HashSet<string>(night.Services.Where(s => s.Using).Select(s => s.Id));
@@ -656,9 +792,49 @@ namespace Fence.Mod
                 HiddenUsed = hidden,
             };
             emit(RecordKinds.Autopilot, AutopilotEvents.Build(a), null);
+            advisor?.NoteAutopilot(action, m?.Name, why, a.ClientSeq > 0);
             if (action == "pause" || action == "resume") return;
             lastAction = action;
             lastLine = action.Replace('_', ' ') + (m != null ? " " + m.Name : "") + (string.IsNullOrEmpty(why) ? "" : ": " + why);
+        }
+
+        void EmitMorningReport(LiveView v)
+        {
+            memory.Reported = true;
+            try
+            {
+                var ps = PlayerStore.Instance;
+                var station = StoreStation.Instance;
+                if (ps == null || station == null) return;
+                var data = new JObject
+                {
+                    ["day"] = v.Day,
+                    ["night_log"] = new JArray((ps.nightLogs ?? new List<string>()).Select(x => (object)x).ToArray()),
+                    ["rent"] = new JObject { ["due"] = ps.GetRentValue(), ["days_left"] = ps.dayUntilRent },
+                    ["cash"] = ps.playerCash,
+                    ["net_worth"] = ps.GetTotalEstimatedValue(),
+                };
+                var cal = new JArray();
+                var m = station.storeEventManager;
+                if (m != null)
+                {
+                    for (int i = v.Day; i < v.Day + DaySnapshot.CalendarDays; i++)
+                    {
+                        var evs = m.GetActiveEventOnDay(i, true, true);
+                        if (evs == null) continue;
+                        var dayJ = new JObject { ["day"] = i, ["events"] = new JArray() };
+                        foreach (var ev in evs)
+                            if (ev != null) ((JArray)dayJ["events"]).Add(new JObject { ["id"] = ev.identifier ?? "", ["name"] = ev.GetDisplayName() ?? "", ["type"] = ev.eventType.ToString().ToLowerInvariant() });
+                        if (((JArray)dayJ["events"]).Count > 0) cal.Add(dayJ);
+                    }
+                }
+                data["calendar"] = cal;
+                emit(RecordKinds.MorningReport, data, null);
+            }
+            catch (Exception e)
+            {
+                log.Warn("autopilot: morning report: " + e.Message);
+            }
         }
 
         static string Safe(Func<string> f)

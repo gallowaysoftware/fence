@@ -113,6 +113,8 @@ namespace Fence.Tests
             // M3: the gun, on the executor's verdict from the visible tells.
             ("Shotgun", "OnClick"),
             ("StoreUIManager", "Shoot"),
+            // The Security button on a poster face (StoreSecButton.OnClick), item 24.
+            ("PlayerStore", "OnCustomerReported"),
             // The ported engines: machine windows' buttons, the RAS blend, the gun order's Accept.
             ("SelectableElement", "Select"),
             ("MachineFeedDispenser", "Blend"),
@@ -171,7 +173,6 @@ namespace Fence.Tests
             ("AugHelper", "OnAugLeftAlive"),
             ("AugHelper", "OnShootoutLeave"),
             ("PlayerStore", "OnWantedClientShot"),
-            ("PlayerStore", "OnCustomerReported"),
             ("PowerHelper", "DrawPowerSource"),
         };
 

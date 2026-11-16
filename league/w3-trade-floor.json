@@ -1,0 +1,53 @@
+{
+    "name": "w3-trade-floor",
+    "players": [
+        {
+            "id": "player",
+            "mode": "local"
+        },
+        {
+            "id": "drift-delta",
+            "endpoint": "drift",
+            "mode": "plan",
+            "bridge_flags": [
+                "-directives",
+                "delta",
+                "-forks"
+            ]
+        },
+        {
+            "id": "local-qwen",
+            "endpoint": "localmodel",
+            "mode": "plan",
+            "bridge_flags": [
+                "-directives",
+                "delta",
+                "-forks"
+            ]
+        }
+    ],
+    "baseline": "player",
+    "seeds": [
+        2610003,
+        2610004,
+        2610005,
+        2610006,
+        2610007,
+        2610008,
+        2610009,
+        2610010
+    ],
+    "routes": [
+        {
+            "route": "water_baron",
+            "persona": "water-baron"
+        }
+    ],
+    "days": 140,
+    "difficulty": "hard",
+    "executor": {
+        "human": "player"
+    },
+    "plan_wait": "100s",
+    "deadline_ms": 110000
+}

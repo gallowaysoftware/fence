@@ -1,0 +1,70 @@
+# Starting perks per persona: each route's incumbent vending+short_sleeper against loadouts from the fit
+# column of docs/re/PERKS.md (≤ 3 points, ≤ 4 slots). Paired within a route; compare arms sharing a prefix.
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-perks-persona.txt -dir DIR -seeds 30 -days 1000 -parallel 24 -- -seed0 2700000
+
+# cook (cook)
+cook_base      | -difficulty hard -start chemist -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_luck      | -difficulty hard -start chemist -perks vending+short_sleeper+gambling_addiction+lucky -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_intim     | -difficulty hard -start chemist -perks short_sleeper+intimidating -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_scav      | -difficulty hard -start chemist -perks vending+short_sleeper+side_street+proficient_scavenger -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_convict   | -difficulty hard -start chemist -perks vending+short_sleeper+convict+lucky -human player -directives sim/lab/scripts/directives/routes/cook.json
+
+# smelter (smelter)
+smelter_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/smelter.json
+smelter_scav      | -difficulty hard -start apprentice -perks vending+short_sleeper+side_street+proficient_scavenger -human player -directives sim/lab/scripts/directives/routes/smelter.json
+smelter_novend    | -difficulty hard -start apprentice -perks short_sleeper+proficient_scavenger+lucky -human player -directives sim/lab/scripts/directives/routes/smelter.json
+smelter_gamble    | -difficulty hard -start apprentice -perks vending+short_sleeper+gambling_addiction+proficient_scavenger -human player -directives sim/lab/scripts/directives/routes/smelter.json
+
+# vintner (vintner)
+vintner_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/vintner.json
+vintner_wild      | -difficulty hard -start apprentice -perks vending+short_sleeper+unlucky+wild_favorite -human player -directives sim/lab/scripts/directives/routes/vintner.json
+vintner_lease     | -difficulty hard -start apprentice -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/vintner.json
+vintner_pipes     | -difficulty hard -start apprentice -perks vending+short_sleeper+known_snitch+working_pipes -human player -directives sim/lab/scripts/directives/routes/vintner.json
+
+# appraiser (magnate)
+appraiser_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/appraiser.json
+appraiser_prime     | -difficulty hard -start apprentice -perks vending+short_sleeper+prime_real_estate -human player -directives sim/lab/scripts/directives/routes/appraiser.json
+appraiser_lease     | -difficulty hard -start apprentice -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/appraiser.json
+appraiser_primewild | -difficulty hard -start apprentice -perks vending+prime_real_estate+wild_favorite -human player -directives sim/lab/scripts/directives/routes/appraiser.json
+
+# sprinter (shark)
+sprinter_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/sprinter.json
+sprinter_luck      | -difficulty hard -start apprentice -perks vending+short_sleeper+gambling_addiction+lucky -human player -directives sim/lab/scripts/directives/routes/sprinter.json
+sprinter_scav      | -difficulty hard -start apprentice -perks vending+short_sleeper+wild_bad_side+proficient_scavenger -human player -directives sim/lab/scripts/directives/routes/sprinter.json
+sprinter_welfare   | -difficulty hard -start apprentice -perks short_sleeper+proficient_scavenger+welfare_program -human player -directives sim/lab/scripts/directives/routes/sprinter.json
+
+# apothecary (honest-broker)
+apothecary_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/apothecary.json
+apothecary_prime     | -difficulty hard -start apprentice -perks vending+short_sleeper+prime_real_estate -human player -directives sim/lab/scripts/directives/routes/apothecary.json
+apothecary_diplo     | -difficulty hard -start apprentice -perks vending+short_sleeper+blabbermouth+diplomatic -human player -directives sim/lab/scripts/directives/routes/apothecary.json
+apothecary_welfare   | -difficulty hard -start apprentice -perks vending+short_sleeper+unlucky+welfare_program -human player -directives sim/lab/scripts/directives/routes/apothecary.json
+
+# gunsmith (armourer)
+gunsmith_base      | -difficulty hard -start gunsmith -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_model     | -difficulty hard -start gunsmith -perks vending+short_sleeper+unlucky+model_citizen -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_mcwc      | -difficulty hard -start gunsmith -perks model_citizen+well_connected -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_vmc       | -difficulty hard -start gunsmith -perks vending+model_citizen -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+
+# fence (fence)
+fence_base      | -difficulty hard -start fence -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/fence.json
+fence_luck      | -difficulty hard -start fence -perks vending+short_sleeper+gambling_addiction+lucky -human player -directives sim/lab/scripts/directives/routes/fence.json
+fence_convict   | -difficulty hard -start fence -perks vending+short_sleeper+convict+lucky -human player -directives sim/lab/scripts/directives/routes/fence.json
+fence_intim     | -difficulty hard -start fence -perks short_sleeper+intimidating -human player -directives sim/lab/scripts/directives/routes/fence.json
+
+# water_baron (water-baron)
+water_baron_base      | -difficulty hard -start water_merchant -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/water_baron.json
+water_baron_pipes     | -difficulty hard -start water_merchant -perks vending+short_sleeper+known_snitch+working_pipes -human player -directives sim/lab/scripts/directives/routes/water_baron.json
+water_baron_wild      | -difficulty hard -start water_merchant -perks vending+short_sleeper+unlucky+wild_favorite -human player -directives sim/lab/scripts/directives/routes/water_baron.json
+water_baron_side      | -difficulty hard -start water_merchant -perks vending+short_sleeper+side_street+wild_favorite -human player -directives sim/lab/scripts/directives/routes/water_baron.json
+
+# rancher (rancher)
+rancher_base      | -difficulty hard -start rancher -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/rancher.json
+rancher_wild      | -difficulty hard -start rancher -perks vending+short_sleeper+side_street+wild_favorite -human player -directives sim/lab/scripts/directives/routes/rancher.json
+rancher_welfare   | -difficulty hard -start rancher -perks vending+short_sleeper+unlucky+welfare_program -human player -directives sim/lab/scripts/directives/routes/rancher.json
+rancher_lease     | -difficulty hard -start rancher -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/rancher.json
+
+# aquafarmer (fishmonger)
+aquafarmer_base      | -difficulty hard -start aquafarmer -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json
+aquafarmer_pipes     | -difficulty hard -start aquafarmer -perks vending+short_sleeper+known_snitch+working_pipes -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json
+aquafarmer_wild      | -difficulty hard -start aquafarmer -perks vending+short_sleeper+unlucky+wild_favorite -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json
+aquafarmer_lease     | -difficulty hard -start aquafarmer -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json

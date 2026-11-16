@@ -93,7 +93,9 @@ func TestLiveShowEndToEnd(t *testing.T) {
 		"rent": map[string]any{"due": 468, "days_left": 0}, "property": map[string]any{"owned": false, "buyout_price": 24650, "mortgage": map[string]any{"weekly": 1666, "weeks_left": 9}}})
 	send("autopilot", 70, ap("dialogue_choice", "Accept (-298 Credits)", "appraisalBoardPromotion [0]"))
 	send("autopilot", 70, map[string]any{"day": 70, "phase": "customer", "action": "stage", "target": map[string]any{"uid": 9, "name": "Lamp"},
-		"why": "what Mara wants, within the budget", "client": "Mara", "hidden_used": []string{"item_exposable"}})
+		"why": "what Mara wants, within the budget", "client": "Mara", "client_seq": 41, "hidden_used": []string{"item_exposable"}})
+	send("autopilot", 70, map[string]any{"day": 70, "phase": "customer", "action": "counter", "client": "Mara", "client_seq": 41,
+		"why": "sell_all for about 132 (estimate 132)"})
 	send("money", 70, map[string]any{"kind": "mortgage_payment", "amount": 1666, "credits_left": 436})
 	send("autopilot_fault", 70, map[string]any{"day": 70, "phase": "customer", "state": "handover", "reason": "Ivo: appraisal customer, not dismissable"})
 	send("autopilot", 70, ap("resume", "resumed by the player (overlay)", ""))
@@ -147,7 +149,7 @@ func TestLiveShowEndToEnd(t *testing.T) {
 	for sc.Scan() && sc.Text() != "event: state" {
 	}
 	if !sc.Scan() || !strings.Contains(sc.Text(), show.BeatHandover) || !strings.Contains(sc.Text(), `"hidden_used":1`) {
-		t.Errorf("SSE state = %.300s", sc.Text())
+		t.Errorf("SSE state = %s", sc.Text())
 	}
 	for _, page := range []string{"/", "/column", "/lower", "/about"} {
 		r, err := http.Get(panel.URL + page)

@@ -206,11 +206,11 @@ func TestWaitIdle(t *testing.T) {
 func TestPromptStatesRentCover(t *testing.T) {
 	n := &Narrator{}
 	ev := Event{Day: 41, Text: "Shot an aug.", Clock: &Clock{Cash: 1304, RentDue: 321, RentDays: 1}}
-	if got := n.prompt(ev, FactsOf(ev), nil, ""); !strings.Contains(got, "Rent: 321 due in 1 day. Your cash covers it with 983 to spare. You are NOT short on rent.") {
+	if got := n.prompt(ev, FactsOf(ev), nil); !strings.Contains(got, "Rent: 321 due in 1 day. Your cash covers it with 983 to spare. You are NOT short on rent.") {
 		t.Errorf("prompt = %q", got)
 	}
 	ev = Event{Day: 42, Text: "Paid the rent.", Clock: &Clock{Cash: 100, RentDue: 300, Arrears: 50, RentDays: 0}}
-	if got := n.prompt(ev, FactsOf(ev), nil, ""); !strings.Contains(got, "you are short by 250") {
+	if got := n.prompt(ev, FactsOf(ev), nil); !strings.Contains(got, "you are short by 250") {
 		t.Errorf("prompt = %q", got)
 	}
 }
@@ -230,6 +230,12 @@ func TestPersona(t *testing.T) {
 	n.defaults()
 	if s := n.system(Mood{}); !strings.Contains(s, "You are the Magnate") || !strings.Contains(s, "old-money") || !strings.Contains(s, "numbers are sacred") {
 		t.Errorf("system = %q", s)
+	}
+	if s := n.system(Mood{}); !strings.Contains(s, "Background stays background") || !strings.Contains(s, "cellar, furnace, vending machine or bays") {
+		t.Errorf("system lacks background sentence: %q", s)
+	}
+	if s := n.system(Mood{}); !strings.Contains(s, "one line per concrete action") || !strings.Contains(s, "too abstract") {
+		t.Errorf("system lacks concreteness sentence: %q", s)
 	}
 	n.player = &Player{Persona: "shark"}
 	if n.voice() != "am_fenrir" || !strings.Contains(n.system(Mood{}), "street hustler") {

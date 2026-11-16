@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -35,11 +36,20 @@ type Builder struct {
 	haveClock bool
 	heat      *Heat
 
-	names    map[int64]string
-	cost     map[int64]int64
+	names map[int64]string
+	cost  map[int64]int64
+	// cashed is the items whose sale or purchase is already in clock.Cash: the live log reports a
+	// trade both as per-item money events and, when the bridge advised it, as an outcome.
+	cashed   map[cashKey]bool
 	upgrades map[string]string
 	clients  map[int64]client
 	counters map[string]counter
+	// lots is a wholesale customer's lot price (customer name to price), kept from their
+	// observation until their lot is bought; lotItems is the lot's uids bought per customer name
+	// since their last observation; lotTaken is true only after a decision accepted the lot.
+	lots     map[string]int64
+	lotItems map[string][]int64
+	lotTaken map[string]bool
 
 	morningCash, morningNW int64
 	// mornings is the last day whose morning was published; the day's waking_up event has
@@ -76,30 +86,55 @@ type Builder struct {
 	// names that have held a dialogue with the shop (ledger.go).
 	bets     bet.Tracker
 	speakers map[string]bool
+	// staged is the items the autopilot put out per customer, named in its decision's line.
+	staged map[int64][]string
+	// stagedHidden is the hidden reads behind those moves; the decision's line carries them.
+	stagedHidden map[int64][]string
+	// dealt is the customers the autopilot traded with: their closing dismiss says nothing new.
+	dealt map[int64]bool
 	// headline is the latest prose plan's headline and its day, for the night's diary.
 	headline    []string
 	headlineDay int
 	ghost       ghostRun
+	// lab is the autopilot's current run of machine presses, told as one line when it ends;
+	// boardBeat is the last appraisal-board beat (the live log reports the click twice).
+	lab       *labRun
+	boardBeat string
 }
 
-type client struct{ name, faction, intent string }
+type client struct {
+	name, faction, intent string
+	budget                *int64
+	interests             []string
+	wholesale             *wholesaleView
+}
 
 type counter struct {
-	client client
+	client *client
 	seq    int64
 	items  map[int64]itemView
 	whole  bool
+	// reason is the model's call for this customer (the Thinking ticker line): a moment
+	// the narrator can speak about (counterBeat).
+	reason string
 }
 
 func NewBuilder(p Player) *Builder {
 	return &Builder{
-		Player:   p,
-		names:    map[int64]string{},
-		cost:     map[int64]int64{},
-		upgrades: map[string]string{},
-		clients:  map[int64]client{},
-		counters: map[string]counter{},
-		speakers: map[string]bool{},
+		Player:       p,
+		names:        map[int64]string{},
+		cost:         map[int64]int64{},
+		cashed:       map[cashKey]bool{},
+		lots:         map[string]int64{},
+		lotItems:     map[string][]int64{},
+		lotTaken:     map[string]bool{},
+		upgrades:     map[string]string{},
+		clients:      map[int64]client{},
+		counters:     map[string]counter{},
+		speakers:     map[string]bool{},
+		staged:       map[int64][]string{},
+		stagedHidden: map[int64][]string{},
+		dealt:        map[int64]bool{},
 	}
 }
 
@@ -171,10 +206,19 @@ type logOutcome struct {
 }
 
 type clientView struct {
-	Name      string          `json:"name"`
-	Faction   string          `json:"faction"`
-	Intent    string          `json:"intent"`
-	Wholesale json.RawMessage `json:"wholesale"`
+	Name      string         `json:"name"`
+	Faction   string         `json:"faction"`
+	Intent    string         `json:"intent"`
+	Budget    *int64         `json:"budget"`
+	Interests []string       `json:"interests"`
+	Wholesale *wholesaleView `json:"wholesale"`
+}
+
+// wholesaleView is a customer's wholesale offer, as the decision's context carries it:
+// the price the whole lot sells for, the per-item item_bought costs summing above it.
+type wholesaleView struct {
+	Price       *int64 `json:"price"`
+	DiscountPct *int64 `json:"discount_pct"`
 }
 
 type itemView struct {
@@ -229,6 +273,13 @@ func (b *Builder) Feed(line []byte) ([]Event, error) {
 }
 
 func (b *Builder) event(e *logEvent) []Event {
+	if e.Kind == "autopilot" {
+		return b.autopilot(e)
+	}
+	return append(b.flushLab(), b.eventOf(e)...)
+}
+
+func (b *Builder) eventOf(e *logEvent) []Event {
 	if e.Kind == "run_start" {
 		b.runRules(e.Data)
 	}
@@ -270,6 +321,7 @@ func (b *Builder) event(e *logEvent) []Event {
 		if b.started {
 			b.Player.Difficulty, b.Player.Start, b.Player.Perks = "", "", nil
 			b.ended, b.heat, b.planDay, b.planDirectives, b.day, b.mornings = false, nil, 0, nil, 0, 0
+			b.lab, b.boardBeat = nil, ""
 			b.bets = bet.Tracker{}
 			b.ghost = ghostRun{}
 		}
@@ -283,7 +335,9 @@ func (b *Builder) event(e *logEvent) []Event {
 		p := b.Player
 		return []Event{{Kind: KindRunStart, Level: LevelMoment, Day: max(e.GameDay, 1), Player: &p, Text: runStartText(p)}}
 	case "day_snapshot":
-		return b.snapshot(e)
+		return append(b.resumed(e), b.snapshot(e)...)
+	case "morning_report":
+		return b.morningReport(e)
 	case "customer_observed":
 		return b.customer(e)
 	case "human_action":
@@ -292,8 +346,6 @@ func (b *Builder) event(e *logEvent) []Event {
 		return append(b.money(e), b.moneyBets(e)...)
 	case "aug":
 		return b.aug(e)
-	case "autopilot":
-		return b.autopilot(e)
 	case "autopilot_fault":
 		return b.autopilotFault(e)
 	case "appraisal":
@@ -502,6 +554,42 @@ func (b *Builder) snapshot(e *logEvent) []Event {
 	return out
 }
 
+func (b *Builder) morningReport(e *logEvent) []Event {
+	var r MorningReport
+	if json.Unmarshal(e.Data, &r) != nil {
+		return nil
+	}
+	if r.Cash > 0 {
+		b.clock.Cash = r.Cash
+		b.haveClock = true
+	}
+	if r.NetWorth > 0 {
+		b.clock.NetWorth = r.NetWorth
+	}
+	if r.Rent.Due > 0 {
+		b.clock.RentDue = r.Rent.Due
+		b.clock.RentDays = r.Rent.DaysLeft
+	}
+	var text string
+	switch {
+	case len(r.NightLog) > 0:
+		text = fmt.Sprintf("Day %d: %s in the till, rent %s in %s. %s",
+			r.Day, num(r.Cash), num(r.Rent.Due), plural(r.Rent.DaysLeft, "day"), r.NightLog[0])
+	default:
+		text = fmt.Sprintf("Day %d: %s in the till, rent %s in %s.",
+			r.Day, num(r.Cash), num(r.Rent.Due), plural(r.Rent.DaysLeft, "day"))
+	}
+	return []Event{{
+		Kind:    KindMorning,
+		Level:   LevelNotable,
+		Day:     r.Day,
+		Clock:   b.Clock(),
+		Morning: &r,
+		Text:    text,
+		Beat:    BeatReport,
+	}}
+}
+
 func (b *Builder) learn(it itemView) {
 	if it.UID == 0 {
 		return
@@ -581,11 +669,17 @@ func (b *Builder) customer(e *logEvent) []Event {
 	if json.Unmarshal(e.Data, &d) != nil || d.Context.Client == nil {
 		return nil
 	}
-	c := client{name: d.Context.Client.Name, faction: d.Context.Client.Faction, intent: d.Context.Client.Intent}
+	cv := d.Context.Client
+	c := client{name: cv.Name, faction: cv.Faction, intent: cv.Intent, budget: cv.Budget, interests: cv.Interests, wholesale: cv.Wholesale}
 	b.clients[d.ClientSeq] = c
+	out := b.settleLots()
+	if cv.Wholesale != nil && cv.Wholesale.Price != nil {
+		b.lots[c.name] = *cv.Wholesale.Price
+		b.lotTaken[c.name] = false
+	}
 	if c.intent == "dialogue" {
 		b.speakers[c.name] = true
-		return nil
+		return out
 	}
 	b.today.Customers++
 	text := fmt.Sprintf("%s%s wants to %s.", c.name, factionTag(c.faction), intentWords(c.intent))
@@ -594,7 +688,7 @@ func (b *Builder) customer(e *logEvent) []Event {
 			text = fmt.Sprintf("%s%s, %s: %s.", c.name, factionTag(c.faction), intentWords(c.intent), strings.TrimSuffix(w, "."))
 		}
 	}
-	return []Event{{Kind: KindThought, Level: LevelTicker, Text: text}}
+	return append(out, Event{Kind: KindThought, Level: LevelTicker, Text: text})
 }
 
 func factionTag(f string) string {
@@ -619,9 +713,20 @@ func intentWords(intent string) string {
 
 func (b *Builder) decision(id string, r *logRequest, resp *logResponse) []Event {
 	c := counter{items: map[int64]itemView{}}
+	out := b.settleLots()
 	if cl := r.Context.Client; cl != nil {
-		c.client = client{name: cl.Name, faction: cl.Faction, intent: cl.Intent}
-		c.whole = len(cl.Wholesale) > 0 && string(cl.Wholesale) != "null"
+		cv := client{name: cl.Name, faction: cl.Faction, intent: cl.Intent}
+		c.client = &cv
+		c.whole = cl.Wholesale != nil
+		if p := lotPrice(cl.Wholesale); p != nil {
+			b.lots[cl.Name] = *p
+			b.lotTaken[cl.Name] = false
+		}
+	}
+	if resp != nil && resp.Choice.Option == "accept_wholesale" {
+		if n := clientName(c); n != "" {
+			b.lotTaken[n] = true
+		}
 	}
 	for _, it := range append(r.Context.Counter.Theirs, r.Context.Counter.Yours...) {
 		c.items[it.UID] = it
@@ -633,18 +738,22 @@ func (b *Builder) decision(id string, r *logRequest, resp *logResponse) []Event 
 	}
 	// Only a model's own reasoning is worth the ticker; the fallback's is boilerplate.
 	if resp == nil || resp.Rationale == "" || resp.Source == "" || resp.Source == "fallback" {
-		return nil
+		return out
 	}
 	t := strings.TrimSpace(resp.Rationale)
 	if t == b.lastThought {
-		return nil
+		return out
 	}
 	b.lastThought = t
-	who := c.client.name
+	if c.client != nil {
+		c.reason = t
+		b.counters[id] = c
+	}
+	who := clientName(c)
 	if who == "" {
 		who = r.Kind
 	}
-	return []Event{{Kind: KindThought, Level: LevelTicker, Text: fmt.Sprintf("%s: %s", who, clip(t, 200))}}
+	return append(out, Event{Kind: KindThought, Level: LevelTicker, Text: fmt.Sprintf("%s: %s", who, clip(t, 200))})
 }
 
 func (b *Builder) outcome(id string, o *logOutcome) []Event {
@@ -652,7 +761,7 @@ func (b *Builder) outcome(id string, o *logOutcome) []Event {
 	c := b.counters[id]
 	switch res.Kind {
 	case "trade":
-		return b.trade(c, res.Side, res.Items, res.CashDelta)
+		return b.trade(c, res.Side, res.Items, res.CashDelta, c.reason)
 	case "bargain":
 		if res.Accepted == nil {
 			return nil
@@ -664,14 +773,27 @@ func (b *Builder) outcome(id string, o *logOutcome) []Event {
 		if res.Walked {
 			verdict = "walked out"
 		}
-		who := c.client.name
-		if who == "" {
-			who = "The customer"
-		}
-		b.haggled(c.client.name, optionWords(res.Option), verdict)
-		return []Event{{Kind: KindThought, Level: LevelTicker, Who: b.character(c.client.name), Text: fmt.Sprintf("Haggled with %s (%s): %s.", who, optionWords(res.Option), verdict)}}
+		who := clientName(c)
+		b.haggled(clientName(c), optionWords(res.Option), verdict, c.reason)
+		return []Event{{Kind: KindThought, Level: LevelTicker, Who: b.character(clientName(c)), Text: fmt.Sprintf("Haggled with %s (%s): %s.", who, optionWords(res.Option), verdict)}}
 	}
 	return nil
+}
+
+// lotPrice is the wholesale lot's price, nil when the offer or its price is missing.
+func lotPrice(w *wholesaleView) *int64 {
+	if w == nil || w.Price == nil {
+		return nil
+	}
+	return w.Price
+}
+
+// clientName is the counter's customer name, empty when the counter has no client.
+func clientName(c counter) string {
+	if c.client == nil {
+		return ""
+	}
+	return c.client.name
 }
 
 // isFake is an item whose shown name marks it as counterfeit: the shop has seen through it.
@@ -684,8 +806,12 @@ func optionWords(opt string) string {
 	return strings.ReplaceAll(opt, "_", " ") + "%"
 }
 
-func (b *Builder) trade(c counter, side string, uids []int64, cash int64) []Event {
-	t := &Trade{Side: side, Count: len(uids), Cash: abs(cash), Customer: c.client.name, Faction: c.client.faction}
+func (b *Builder) trade(c counter, side string, uids []int64, cash int64, reason string) []Event {
+	clientName, faction := "", ""
+	if c.client != nil {
+		clientName, faction = c.client.name, c.client.faction
+	}
+	t := &Trade{Side: side, Count: len(uids), Cash: abs(cash), Customer: clientName, Faction: faction}
 	var names []string
 	costKnown := len(uids) > 0
 	for _, u := range uids {
@@ -713,7 +839,12 @@ func (b *Builder) trade(c counter, side string, uids []int64, cash int64) []Even
 		}
 	}
 	t.Items = groupNames(names)
-	b.clock.Cash += cash
+	if fresh := !allCashed(b.cashed, side, uids); fresh {
+		b.clock.Cash += cash
+	}
+	for _, u := range uids {
+		b.cashed[cashKey{side, u}] = true
+	}
 	if side == "sold" {
 		b.bets.Sold(uids, abs(cash))
 	}
@@ -738,7 +869,7 @@ func (b *Builder) trade(c counter, side string, uids []int64, cash int64) []Even
 		}
 	}
 	ev := Event{Kind: KindTrade, Level: tradeLevel(t, b.clock.NetWorth), Trade: t, Clock: b.Clock(), Text: tradeText(t), Who: b.character(t.Customer)}
-	b.counterBeat(&ev)
+	b.counterBeat(&ev, reason)
 	return []Event{ev}
 }
 
@@ -881,6 +1012,9 @@ func (b *Builder) action(e *logEvent) []Event {
 		if b.clients[d.ClientSeq].name == boardMember || speaker(d.History) == boardMember {
 			return b.boardChoice(d.Text, true, d.History)
 		}
+		if speaker(d.History) == cartelHandler {
+			return b.cartelChoice(d.Text, d.History)
+		}
 	}
 	return nil
 }
@@ -889,18 +1023,65 @@ func (b *Builder) action(e *logEvent) []Event {
 // (what docs/SHOW.md's gym replays read from gym.summary.json); its pauses and resumes into autopilot events.
 // The day's plan arrives from /v1/summary instead.
 func (b *Builder) autopilot(e *logEvent) []Event {
-	var d struct {
-		Action string `json:"action"`
-		Target *struct {
-			Name string `json:"name"`
-		} `json:"target"`
-		Why        string   `json:"why"`
-		Detail     string   `json:"detail"`
-		Client     string   `json:"client"`
-		HiddenUsed []string `json:"hidden_used"`
-	}
+	var d autopilotAction
 	if json.Unmarshal(e.Data, &d) != nil || d.Action == "" {
 		return nil
+	}
+	if b.labStep(d) {
+		return nil
+	}
+	if d.Action == "chore_move" || d.Action == "chore" {
+		return nil
+	}
+	return append(b.flushLab(), b.autopilotLine(d)...)
+}
+
+type autopilotAction struct {
+	Action string `json:"action"`
+	Target *struct {
+		Name string `json:"name"`
+	} `json:"target"`
+	Why        string   `json:"why"`
+	Detail     string   `json:"detail"`
+	Rule       string   `json:"rule"`
+	Client     string   `json:"client"`
+	ClientSeq  *int64   `json:"client_seq"`
+	HiddenUsed []string `json:"hidden_used"`
+}
+
+func (b *Builder) autopilotLine(d autopilotAction) []Event {
+	// The night's summary says what the searches brought; only a reason to stop early is news.
+	if d.Action == "scavenge_done" && (d.Why == "no searches left" || d.Why == "enough searches") {
+		return nil
+	}
+	if handsOnly[d.Action] {
+		if d.ClientSeq != nil {
+			seq := *d.ClientSeq
+			if (d.Action == "stage" || d.Action == "stage_theirs") && d.Target != nil {
+				b.staged[seq] = append(b.staged[seq], d.Target.Name)
+			}
+			for _, h := range d.HiddenUsed {
+				if !slices.Contains(b.stagedHidden[seq], h) {
+					b.stagedHidden[seq] = append(b.stagedHidden[seq], h)
+				}
+			}
+		}
+		return nil
+	}
+	if d.Action == "counter" && d.ClientSeq != nil {
+		seq := *d.ClientSeq
+		hidden := d.HiddenUsed
+		for _, h := range b.stagedHidden[seq] {
+			if !slices.Contains(hidden, h) {
+				hidden = append(hidden, h)
+			}
+		}
+		text, ok := b.counterLine(seq, d.Client, d.Detail, d.Why)
+		if !ok {
+			return nil
+		}
+		delete(b.stagedHidden, seq)
+		return []Event{{Kind: KindThought, Level: LevelTicker, HiddenUsed: hidden, Text: text}}
 	}
 	switch d.Action {
 	case "pause", "resume":
@@ -915,9 +1096,14 @@ func (b *Builder) autopilot(e *logEvent) []Event {
 		return nil
 	case "dialogue_choice":
 		if id, _, _ := strings.Cut(d.Detail, " "); id == boardIntroID || id == boardPromotionID {
-			if evs := b.boardChoice(d.Why, id == boardPromotionID, nil); evs != nil {
+			// A nil beat for a join or an accept is the click's second report, not a choice to tell.
+			if evs := b.boardChoice(d.Why, id == boardPromotionID, nil); evs != nil || boardTaken(d.Why, id == boardPromotionID) {
 				return evs
 			}
+		}
+		// The handler's own dialogue (human_action) carries the count and purity it asked for.
+		if d.Client == cartelHandler && strings.HasPrefix(d.Rule, "player:cartel_") {
+			return nil
 		}
 	}
 	what := strings.ReplaceAll(d.Action, "_", " ")
@@ -962,15 +1148,17 @@ func serviceName(id string) string {
 
 func (b *Builder) money(e *logEvent) []Event {
 	var d struct {
-		Kind      string `json:"kind"`
-		NetWorth  *int64 `json:"net_worth"`
-		Credits   *int64 `json:"credits"`
-		Amount    int64  `json:"amount"`
-		Left      *int64 `json:"credits_left"`
-		Price     int64  `json:"price"`
-		Value     int64  `json:"value"`
-		Cost      int64  `json:"cost"`
-		CashSpent int64  `json:"cash_spent"`
+		Kind       string `json:"kind"`
+		ItemUID    *int64 `json:"item_uid"`
+		ClientName string `json:"client"`
+		NetWorth   *int64 `json:"net_worth"`
+		Credits    *int64 `json:"credits"`
+		Amount     int64  `json:"amount"`
+		Left       *int64 `json:"credits_left"`
+		Price      int64  `json:"price"`
+		Value      int64  `json:"value"`
+		Cost       int64  `json:"cost"`
+		CashSpent  int64  `json:"cash_spent"`
 	}
 	if json.Unmarshal(e.Data, &d) != nil {
 		return nil
@@ -984,16 +1172,34 @@ func (b *Builder) money(e *logEvent) []Event {
 	ev := func(level int, amount int64, format string, a ...any) []Event {
 		return []Event{{Kind: KindMoney, Level: level, Amount: amount, Clock: b.Clock(), Text: fmt.Sprintf(format, a...)}}
 	}
+	reclaims := []Event{}
+	if d.Kind == "item_bought" && d.ItemUID != nil {
+		u := derefOr(d.ItemUID)
+		b.lotItems[d.ClientName] = append(b.lotItems[d.ClientName], u)
+		if b.cost[u] == 0 {
+			b.cost[u] = d.Cost
+		}
+		reclaims = b.settleLots()
+	}
 	switch d.Kind {
 	case "day_ended":
+		reclaims = append(reclaims, b.settleLots()...)
+		b.lotItems = map[string][]int64{}
+		b.lots = map[string]int64{}
+		b.lotTaken = map[string]bool{}
 		if d.Credits != nil {
 			b.clock.Cash = *d.Credits
 		}
 		if d.NetWorth != nil {
 			b.clock.NetWorth = *d.NetWorth
 		}
-		return []Event{b.daySummary()}
+		return append(reclaims, b.daySummary())
 	case "rent_paid":
+		if d.Left != nil {
+			b.clock.Cash = *d.Left
+		} else {
+			b.clock.Cash -= d.Amount
+		}
 		return with(ev(LevelNotable, -d.Amount, "Paid the rent: %d.", d.Amount), landlord)
 	case "rent_missed":
 		return with(ev(LevelMoment, 0, "Missed the rent."), landlord)
@@ -1012,7 +1218,29 @@ func (b *Builder) money(e *logEvent) []Event {
 		return ev(LevelMoment, -d.Amount, "Bribed the inspector: %d.", d.Amount)
 	case "burglary":
 		return ev(LevelMoment, 0, "The shop was burgled.")
+	case "item_sold", "item_bought":
+		if k := (cashKey{strings.TrimPrefix(d.Kind, "item_"), derefOr(d.ItemUID)}); d.ItemUID != nil && !b.cashed[k] {
+			b.cashed[k] = true
+			if d.Kind == "item_sold" {
+				b.clock.Cash += d.Cost
+			} else {
+				b.clock.Cash -= d.Cost
+			}
+		}
+		return reclaims
+	case "vending_sale":
+		b.clock.Cash += d.Value
+		return nil
 	case "service_paid", "wild_upgrade":
+		// wild_upgrade reports cash_spent, service_paid reports cost; both drain cash.
+		cost := d.Cost
+		if d.Kind == "wild_upgrade" {
+			cost = d.CashSpent
+		}
+		b.clock.Cash -= cost
+		if cost != 0 {
+			return ev(LevelTicker, -cost, "Paid for the %s: %d.", d.Kind, cost)
+		}
 		return nil
 	}
 	if d.Amount != 0 {
@@ -1380,4 +1608,223 @@ func clip(s string, n int) string {
 		return s
 	}
 	return strings.TrimSpace(s[:n]) + "…"
+}
+
+// cashKey is one side of one item's trade: an item bought and later sold is cashed twice.
+type cashKey struct {
+	side string
+	uid  int64
+}
+
+func derefOr(p *int64) int64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+func allCashed(cashed map[cashKey]bool, side string, uids []int64) bool {
+	if len(uids) == 0 {
+		return false
+	}
+	for _, u := range uids {
+		if !cashed[cashKey{side, u}] {
+			return false
+		}
+	}
+	return true
+}
+
+// settleLots reclaims the gap between the per-item item_bought sum and the wholesale lot
+// price actually paid: the per-item costs sum above the wholesale price the game takes,
+// and the gap is the drift between the panel's cash and the game's. It runs whenever a lot
+// is recorded for a customer whose previous lot is still outstanding, and at the day
+// boundary; it consumes the lot and the uids, so an outcome record cannot re-apply it.
+//
+// It reclaims only for a lot the bridge's decision accepted (lotTaken): a customer who
+// offered a lot but for whom the player bought singles at per-item prices paid those
+// prices, so no credit. A wholesale buy made through the game UI without a bridge
+// decision therefore gets no reclaim (the panel keeps the per-item sums); that is the
+// accepted cost of not fabricating cash.
+func (b *Builder) settleLots() []Event {
+	var out []Event
+	for name, uids := range b.lotItems {
+		lot, ok := b.lots[name]
+		if !ok || len(uids) == 0 {
+			continue
+		}
+		if !b.lotTaken[name] {
+			continue
+		}
+		sum := int64(0)
+		for _, u := range uids {
+			sum += b.cost[u]
+		}
+		if sum < lot {
+			continue
+		}
+		b.clock.Cash += sum - lot
+		gap := sum - lot
+		out = append(out, Event{Kind: KindMoney, Level: LevelTicker, Amount: gap, Clock: b.Clock(),
+			Text: fmt.Sprintf("Bought %s's lot for %s, not %s: the till keeps the difference.", name, num(lot), num(sum))})
+		delete(b.lots, name)
+		delete(b.lotItems, name)
+		delete(b.lotTaken, name)
+	}
+	return out
+}
+
+// handsOnly are the autopilot's mechanical steps: the reason is in the batch's plan or the counter
+// decision that follows, so they make no line of their own.
+var handsOnly = map[string]bool{
+	"stage": true, "stage_theirs": true, "plan_stage": true, "plan_stage_seller": true, "unstage": true,
+	"showcase": true, "unshowcase": true, "chore_move": true, "loot_home": true, "ring_bell": true,
+	"open_tablet": true, "open_phone": true, "dial": true, "phone_choice": true, "hang_up": true, "open_door": true,
+	"choose_bag": true, "travel": true, "return": true, "close_morning_report": true, "wild_close": true,
+	"open_shutter": true, "close_shutter": true, "chore": true, "scavenge": true, "plan_loot": true,
+}
+
+var (
+	askingRe    = regexp.MustCompile(`^asking (\d+) \(wholesale ([-\d]+)\) against (\d+): over the plan's limits or the floor (\d+)$`)
+	soldRe      = regexp.MustCompile(`^sell_all for about (\d+) \(estimate (\d+)(, liquidating)?\)$`)
+	inputsRe    = regexp.MustCompile(`^engine inputs for (\d+) \(estimate (\d+)\)$`)
+	inputsLotRe = regexp.MustCompile(`^engine inputs, wholesale (\d+)$`)
+	lotRe       = regexp.MustCompile(`^wholesale (\d+) for an estimate of (\d+)$`)
+	discountRe  = regexp.MustCompile(`^demand_discount_(\d+) \(EV (\d+) vs (\d+)\)$`)
+)
+
+// counterLine is one customer's counter decision as a reason a viewer can follow: who, what they
+// came for, what was on the counter and why this call. ok is false for a line that adds nothing.
+func (b *Builder) counterLine(seq int64, name, detail, why string) (string, bool) {
+	c := b.clients[seq]
+	if name == "" {
+		name = c.name
+	}
+	items := groupNames(b.staged[seq])
+	list := strings.Join(items, ", ")
+	var wantParts []string
+	if len(c.interests) > 0 {
+		var is []string
+		for _, i := range c.interests {
+			is = append(is, strings.ReplaceAll(i, "_", " "))
+		}
+		wantParts = append(wantParts, "after "+strings.Join(is, ", "))
+	}
+	if c.budget != nil && *c.budget > 0 {
+		wantParts = append(wantParts, fmt.Sprintf("budget %d", *c.budget))
+	}
+	wants := strings.Join(wantParts, "; ")
+	deal := func() { b.dealt[seq] = true; delete(b.staged, seq) }
+	switch {
+	case why == "nothing sellable staged" || why == "nothing to weigh":
+		if b.dealt[seq] {
+			delete(b.dealt, seq)
+			return "", false
+		}
+		if c.intent == "sell" || why == "nothing to weigh" {
+			return fmt.Sprintf("Sent %s away: nothing of theirs worth buying.", name), true
+		}
+		if wants != "" {
+			return fmt.Sprintf("%s left empty-handed: nothing in stock fits (%s).", name, wants), true
+		}
+		return fmt.Sprintf("%s left empty-handed: nothing in stock fits.", name), true
+	case why == "contraband":
+		delete(b.staged, seq)
+		return fmt.Sprintf("Turned %s away: their goods are contraband.", name), true
+	}
+	if m := soldRe.FindStringSubmatch(why); m != nil {
+		deal()
+		line := fmt.Sprintf("Sold %s to %s for about %s", orItems(list), name, m[1])
+		if m[3] != "" {
+			line += ", clearing stock below the usual margin"
+		} else if m[1] == m[2] {
+			line += ", the full estimate"
+		}
+		if wants != "" {
+			line += " (" + wants + ")"
+		}
+		return line + ".", true
+	}
+	if m := inputsRe.FindStringSubmatch(why); m != nil {
+		deal()
+		return fmt.Sprintf("Bought %s from %s for %s (estimate %s): engine inputs are worth paying up for.", orItems(list), name, m[1], m[2]), true
+	}
+	if m := inputsLotRe.FindStringSubmatch(why); m != nil {
+		deal()
+		return fmt.Sprintf("Bought %s's whole lot for %s: every piece feeds the engines.", name, m[1]), true
+	}
+	if m := lotRe.FindStringSubmatch(why); m != nil {
+		deal()
+		line := fmt.Sprintf("Bought %s's whole lot for %s against an estimate of %s", name, m[1], m[2])
+		if p, e := atoi(m[1]), atoi(m[2]); e > 0 {
+			line += fmt.Sprintf(" (%d%%, room to resell)", p*100/e)
+		}
+		return line + ".", true
+	}
+	if m := discountRe.FindStringSubmatch(why); m != nil {
+		return fmt.Sprintf("Pushed %s for %s%% off: expected gain %s, walk-out risk included, beats %s at their price.", name, m[1], m[2], m[3]), true
+	}
+	if m := askingRe.FindStringSubmatch(why); m != nil {
+		delete(b.staged, seq)
+		lot := ""
+		if m[2] != "-" {
+			lot = " (" + m[2] + " for the lot)"
+		}
+		return fmt.Sprintf("Passed on %s from %s: asking %s%s, more than it will spend while keeping %s for rent.", orItems(list), name, m[1], lot, m[4]), true
+	}
+	what := strings.ReplaceAll(detail, "_", " ")
+	if what == "" {
+		what = "decided"
+	} else if c := detail[len(detail)-1]; c >= '0' && c <= '9' {
+		what += "%"
+	}
+	if list != "" {
+		what += " " + list
+	}
+	return fmt.Sprintf("%s (%s): %s.", strings.ToUpper(what[:1])+what[1:], name, clip(why, 160)), true
+}
+
+func orItems(list string) string {
+	if list == "" {
+		return "the goods"
+	}
+	return list
+}
+
+func atoi(s string) int64 {
+	n, _ := strconv.ParseInt(s, 10, 64)
+	return n
+}
+
+// resumed starts the run from a loaded save's first snapshot: the game sends run_start only for
+// a new game, so without it a session that loads a save never names its player.
+func (b *Builder) resumed(e *logEvent) []Event {
+	if b.started {
+		return nil
+	}
+	var d struct {
+		RunID string `json:"run_id"`
+		Store struct {
+			Difficulty string `json:"difficulty"`
+		} `json:"store"`
+		Perks struct {
+			Starting []string `json:"starting"`
+		} `json:"perks"`
+	}
+	if json.Unmarshal(e.Data, &d) != nil || d.RunID == "" {
+		return nil
+	}
+	run := d.RunID
+	if b.Player.ID != "" {
+		run = b.Player.ID + ":" + d.RunID
+	}
+	b.fill(d.Store.Difficulty, b.Player.routeStart, d.Perks.Starting)
+	b.Player.Book = BookFor(b.Player.Route, b.Player.Difficulty, b.Player.Start)
+	if f := b.Player.Format; f != nil && slices.Contains(f.Handicaps, "no_board") {
+		b.Player.Book = nil
+	}
+	b.run, b.started = run, true
+	p := b.Player
+	day := max(e.GameDay, 1)
+	return []Event{{Kind: KindRunStart, Level: LevelNotable, Day: day, Player: &p, Text: fmt.Sprintf("Resumed a saved run on day %d.", day)}}
 }

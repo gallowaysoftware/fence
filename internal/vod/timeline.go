@@ -235,6 +235,7 @@ func (r *Run) Merge(o *Run) {
 	}{
 		{&p.ID, q.ID}, {&p.Model, q.Model}, {&p.Persona, q.Persona}, {&p.PersonaName, q.PersonaName},
 		{&p.PersonaTagline, q.PersonaTagline}, {&p.Route, q.Route}, {&p.RouteBrief, q.RouteBrief},
+		{&p.RouteEngine, q.RouteEngine},
 		{&p.Difficulty, q.Difficulty}, {&p.Start, q.Start}, {&p.Planner, q.Planner}, {&r.Format, o.Format},
 	} {
 		if *f.dst == "" {

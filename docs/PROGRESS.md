@@ -2320,3 +2320,77 @@ drift ~2 game-days/min, 5090 ~4; heavy is busy with the knowledge pipeline.
 
 Live play (owner, hard, day 108–113): alive, cash ~7.4k, mature shop — the gym's
 player is far weaker than a human; the rules are not the bottleneck.
+
+### The save-floor verdict: graduated `day.Floor` stays, `TradeFloor` rejected (2026-11-15)
+Three builds × two models, water_baron, hard, 8 seeds each (gym `a1de49f` = graduated,
+`1aeb639` = TradeFloor split read only by `PlayerRole.Buy`):
+
+| Arm | Fountain day (median) | NW end (median) |
+|---|---|---|
+| graduated, drift | **40** | **24 528** |
+| graduated, qwen | 52 | 19 640 |
+| trade floor, drift | 40.5 | 22 242 |
+| trade floor, qwen | 57 | 17 445 |
+
+The split buys nothing on drift (40.5 vs 40) and hurts qwen on both measures. Model quality
+dominates: drift fountains ~12 days earlier and +5k NW on the same build. Keep the graduated
+floor; retire the `TradeFloor` field.
+
+### Model comparison on the graduated floor (2026-11-15)
+Drift vs qwen, same build (`a1de49f`), 8 seeds: drift fountains 12 days earlier (40 vs 52) and
++5k NW (24.5k vs 19.6k). The archetype's payback ordering holds across both models — the
+levers are sound; the planner quality is the lever. Per-archetype drift results by route in
+`var/league/w2-water-scale/REPORT.md` and `var/league/w3-trade-floor/REPORT.md`.
+
+### The chemist thorough test (2026-11-15)
+The chemistry archetypes never surfaced the chemical analyser to the player-model: `Lab.Status()`
+rode only in the ledger's day records (yesterday's state), and the live mod never sent it at all.
+Fixed in two layers on `gym-f147591`:
+1. `Lab.Status()` now carries `scanned` (the work vessel's spectrometer panel: per-liquid µL and %,
+   total ml, toxicity, euphoria — ChemScannerUIManager.RefreshUI's fields) and `bottles` (each loose
+   reagent bottle's panel), both gated on owning the chem_scanner — the model sees exactly what a
+   player with the scanner sees, no more (Known.Spectrometer's rule).
+2. `StepMode.Snapshot` (the plan-mode morning view) now includes the lab block fresh, so the model
+   reads the analyser before deciding.
+
+Chemistry routes on the scan-view build (heuristic, 4 seeds): apothecary 108.5 (lab 105), pharma
+70 (90), pharma_vintner 80.5 (97), cook 91 (105), fountain_pharma 105/2 (195) — all at or better
+than lab. The drift probe verifies the model actually reads the panel.
+
+### The live mod's analyser (2026-11-15, later)
+`GameDay` now implements `ILabDayGame`: when the shop owns a chem_scanner and the lab engine
+runs, the live day snapshot carries the spectrometer panel for the work vessel and each loose
+reagent bottle. `IDayGame` itself is unchanged (the optional interface keeps older game views
+valid). Hook entries for the five `ChemicalFeedbackHelper` members; RuntimeResolver covers the
+type; 522 mod tests pass.
+
+### paths.json is live (2026-11-15, later)
+`levers.paths: ["wine","fountain"]` expands at composition time: path keys fill gaps in the
+base (they never clobber it — the base's `engine` stays; a composition's explicit levers still
+override). `LoadMenu` reads `paths.json` beside the routes; unknown names are rejected with the
+menu's list in the error; the registry carries the 11 paths of docs/re/PATHS.md.
+
+### The cartel handler: schedule, hand-over, and the live gap (2026-11-16)
+From the decomp (StoreClientManager.cs:770, StoreClientListCartel.cs:249-268):
+- The handler visits on **day % 7 == 1** (days 8, 15, 22…); a check-in visitor on day % 7 == 4.
+- At the dialogue's "yes", the game takes **every `dream_dust` item on the counters**.
+- **Zero dust handed over → gunshot → `ExecuteGameOver("cartel_retired")`** — this ended the
+  first live chemist run (day 8, no lab directives, nothing cooked).
+- The purity-scam path fires when the handed dust fails the purity check (`cartelRequiredPurity`,
+  default 40, +5/week).
+
+The live mod now names the visit at handover (Planner, `v.CartelHandler`) instead of the generic
+"not dismissable" spin, and `QuotaMorning` (shared, runs from `Lab.EndMorning` in live too)
+stages blanks and the count on quota mornings when the lab directives are set.
+
+### Starting perks per persona (2026-11-16)
+Every route card but `no_vending` took `vending + short_sleeper`, the apprentice's best. Replayed by
+the executor per persona's route (hard, gym `fbe5c67`, 30 paired seeds 2700001–030, then the leaders on
+60 fresh seeds 2800001–060), five cards changed: cook `short_sleeper + intimidating` (days to buyout
+−10±6), smelter `short_sleeper + proficient_scavenger + lucky` (−4±3), gunsmith `model_citizen +
+well_connected` (−6±4), aquafarmer `vending + short_sleeper + unlucky + wild_favorite` (nw200
++5 538±1 504), vintner `vending + short_sleeper + bad_lease + wild_favorite` (nw60 +1 079±489). No
+better loadout for appraiser/sprinter (identical directives), apothecary, fence, water baron, rancher;
+Convict hurt the fence (+32±20 days) and the cook (+13±8). Table and the losers: `docs/re/PERKS.md` §4.1.
+The five ghost bands were rebuilt on the band seeds; the cards' new medians: cook 84, smelter 70,
+gunsmith 84, vintner 77, aquafarmer 196 (the mortgage's end).

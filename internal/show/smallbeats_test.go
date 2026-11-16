@@ -113,7 +113,7 @@ func slices2(ss ...[]Event) []Event {
 func TestSmallBeatPromptAndPriority(t *testing.T) {
 	n := &Narrator{}
 	ev := Event{Day: 3, Kind: KindThought, Beat: BeatNight, Text: "Night at the dumping ground: back with nothing."}
-	got := n.prompt(ev, FactsOf(ev), nil, "")
+	got := n.prompt(ev, FactsOf(ev), nil)
 	if !strings.Contains(got, "This moment: the night out") || strings.Contains(got, "big moment") {
 		t.Errorf("prompt = %q", got)
 	}

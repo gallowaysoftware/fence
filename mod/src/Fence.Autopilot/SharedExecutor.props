@@ -14,6 +14,7 @@
     <Compile Include="$(GymSrc)/HumanRole.cs" Link="Gym/HumanRole.cs" />
     <Compile Include="$(GymSrc)/KnobHumanRole.cs" Link="Gym/KnobHumanRole.cs" />
     <Compile Include="$(GymSrc)/PlayerRole.cs" Link="Gym/PlayerRole.cs" />
+    <Compile Include="$(GymSrc)/CounterFit.cs" Link="Gym/CounterFit.cs" />
     <Compile Include="$(GymSrc)/Production.cs" Link="Gym/Production.cs" />
     <Compile Include="$(GymSrc)/Wine.cs" Link="Gym/Wine.cs" />
     <Compile Include="$(GymSrc)/Dna.cs" Link="Gym/Dna.cs" />
@@ -47,6 +48,14 @@
     <Compile Include="$(GymSrc)/AugRule.cs" Link="Gym/AugRule.cs" />
     <Compile Include="$(GymSrc)/Modules.cs" Link="Gym/Modules.cs" />
     <Compile Include="$(GymSrc)/Style.cs" Link="Gym/Style.cs" />
+    <Compile Include="$(GymSrc)/BuildOrder.cs" Link="Gym/BuildOrder.cs" />
+    <Compile Include="$(GymSrc)/BuildKits.cs" Link="Gym/BuildKits.cs" />
+    <Compile Include="$(GymSrc)/Wanted.cs" Link="Gym/Wanted.cs" />
+    <Compile Include="$(GymSrc)/LiquidLuck.cs" Link="Gym/LiquidLuck.cs" />
+    <Compile Include="$(GymSrc)/Requests.cs" Link="Gym/Requests.cs" />
+    <Compile Include="$(GymSrc)/WindowTiers.cs" Link="Gym/WindowTiers.cs" />
+    <Compile Include="$(GymSrc)/Scratchers.cs" Link="Gym/Scratchers.cs" />
+    <Compile Include="$(GymSrc)/Fridge.cs" Link="Gym/Fridge.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DemandTrace.Off.cs" Link="Gym/DemandTrace.Off.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ModSide.Live.cs" Link="Gym/ModSide.Live.cs" />
   </ItemGroup>

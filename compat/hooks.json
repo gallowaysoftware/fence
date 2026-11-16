@@ -745,6 +745,19 @@
       "required": false
     },
     {
+      "id": "state.afterhour_pocket_backpack",
+      "type": "EmporiumEntry",
+      "member": "afterhourPocketSlotInvBackpack",
+      "kind": "field",
+      "returns": "GameSlotInventory",
+      "why": "The equipped satchel's slot: GetAllOwnedItems never visits the afterhours pockets, so the pack plan reads the bag (and its grid) here.",
+      "features": [
+        "autopilot.executor",
+        "autopilot.hands"
+      ],
+      "required": false
+    },
+    {
       "id": "state.front_counter",
       "type": "EmporiumEntry",
       "member": "frontInvinvElement",
@@ -787,7 +800,7 @@
         "advise.barter"
       ],
       "required": false,
-      "why": "Singleton; its …Offered getters run the same Refresh() the game's own panel and StoreClient.CanReport do."
+      "why": "Singleton; its \u2026Offered getters run the same Refresh() the game's own panel and StoreClient.CanReport do."
     },
     {
       "id": "barter.nego_instance",
@@ -979,7 +992,8 @@
       "returns": "System.Double",
       "features": [
         "advise.barter",
-        "record.snapshot.reputation"
+        "record.snapshot.reputation",
+        "autopilot.wanted"
       ],
       "required": false
     },
@@ -1162,7 +1176,8 @@
       "features": [
         "advise.barter",
         "record.customer",
-        "autopilot.executor"
+        "autopilot.executor",
+        "autopilot.wanted"
       ],
       "required": false
     },
@@ -1226,7 +1241,8 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.wanted"
       ],
       "required": false
     },
@@ -1238,7 +1254,19 @@
       "returns": "System.Boolean",
       "features": [
         "advise.barter",
-        "record.customer"
+        "record.customer",
+        "autopilot.wanted"
+      ],
+      "required": false
+    },
+    {
+      "id": "client.reported",
+      "type": "StoreClient",
+      "member": "reported",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.wanted"
       ],
       "required": false
     },
@@ -5031,7 +5059,8 @@
       "params": [],
       "returns": "System.Void",
       "features": [
-        "record.human.report"
+        "record.human.report",
+        "autopilot.wanted"
       ],
       "required": false,
       "why": "Prefix: player reported the current customer."
@@ -5305,6 +5334,19 @@
       ],
       "required": false,
       "why": "Static. VISIBLE odds."
+    },
+    {
+      "id": "night.scav_can",
+      "type": "ScavHelper",
+      "member": "CanScavenge",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "record.night.scavenge"
+      ],
+      "required": false,
+      "why": "Static. VISIBLE: the search button refuses while a fresh wound shows."
     },
     {
       "id": "night.scavenge_attempt",
@@ -6779,6 +6821,22 @@
       "why": "Cells the grid allows."
     },
     {
+      "id": "snap.grid_shape_local",
+      "type": "GridShape",
+      "member": "GetLocal",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32"
+      ],
+      "returns": "System.Byte",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "A cell of an item's shape, for the counter's placement test."
+    },
+    {
       "id": "snap.inventory_items",
       "type": "GameInventory",
       "member": "childItems",
@@ -8045,6 +8103,52 @@
       ],
       "required": false,
       "why": "The autopilot's reads and presses (LiveGame, LiveHands)."
+    },
+    {
+      "id": "autopilot.scratcherhelper.marksymbolscratched",
+      "type": "ScratcherHelper",
+      "member": "MarkSymbolScratched",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.scratcherhelper.isfullyscratched",
+      "type": "ScratcherHelper",
+      "member": "IsFullyScratched",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.scratcherhelper.tryredeemprize",
+      "type": "ScratcherHelper",
+      "member": "TryRedeemPrize",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
       "id": "autopilot.vendingmachinehelper.canupgradedattractiveness",
@@ -9325,6 +9429,96 @@
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
     },
     {
+      "id": "autopilot.hydroponichelper.isgrowingseed",
+      "type": "HydroponicHelper",
+      "member": "IsGrowingSeed",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.islethal",
+      "type": "ChemicalFeedbackHelper",
+      "member": "IsLethal",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot"
+      ],
+      "required": false,
+      "why": "The composition spectrometer's toxicity line (CHEMISTRY.md \u00a74.1), for the lab view."
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.getlethaldose",
+      "type": "ChemicalFeedbackHelper",
+      "member": "GetLethalDose",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot"
+      ],
+      "required": false,
+      "why": "The composition spectrometer's toxicity line (CHEMISTRY.md \u00a74.1), for the lab view."
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.istoxic",
+      "type": "ChemicalFeedbackHelper",
+      "member": "IsToxic",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot"
+      ],
+      "required": false,
+      "why": "The composition spectrometer's toxicity line (CHEMISTRY.md \u00a74.1), for the lab view."
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.isnarcotic",
+      "type": "ChemicalFeedbackHelper",
+      "member": "IsNarcotic",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "record.snapshot"
+      ],
+      "required": false,
+      "why": "The composition spectrometer's euphoria line (CHEMISTRY.md \u00a74.1), for the lab view."
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.geteuphorialevel",
+      "type": "ChemicalFeedbackHelper",
+      "member": "GetEuphoriaLevel",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "record.snapshot"
+      ],
+      "required": false,
+      "why": "The composition spectrometer's euphoria line (CHEMISTRY.md \u00a74.1), for the lab view."
+    },
+    {
       "id": "autopilot.gameitemfunc.canthistargetitemfunc",
       "type": "GameItemFunc",
       "member": "canThisTargetItemFunc",
@@ -9391,6 +9585,43 @@
       ],
       "required": false,
       "why": "The dossier and the bin: a container item's inventory."
+    },
+    {
+      "id": "PixelWindow.Show",
+      "type": "PixelWindow",
+      "member": "Show",
+      "kind": "method",
+      "returns": "PixelWindow",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Opens a machine's window on screen so the chemistry is visible while the engine works.",
+      "params": []
+    },
+    {
+      "id": "GameItemElement.handler",
+      "type": "GameItemElement",
+      "member": "handler",
+      "kind": "property",
+      "returns": "TreeNodeRender",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "The machine item's world object: the camera jumps here so the chore plays on camera."
+    },
+    {
+      "id": "TreeNodeRender.rectTransform",
+      "type": "TreeNodeRender",
+      "member": "rectTransform",
+      "kind": "property",
+      "returns": "UnityEngine.RectTransform",
+      "features": [
+        "autopilot.hands"
+      ],
+      "required": false,
+      "why": "Where the item sits in the shop (its world rect): the chemistry camera aims here."
     },
     {
       "id": "PlayerStore.dayWhenLoanOfferedGeorgio",
@@ -12077,6 +12308,567 @@
       ],
       "required": false,
       "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefridge.getchillzone",
+      "type": "MachineFridge",
+      "member": "GetChillZone",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "GameGridInventory",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefridge.isspirit",
+      "type": "MachineFridge",
+      "member": "IsSpirit",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefridge.ischillable",
+      "type": "MachineFridge",
+      "member": "IsChillable",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.getshowcasetypevisitorcount",
+      "type": "PlayerStore",
+      "member": "GetShowcaseTypeVisitorCount",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storylineschedule.startday",
+      "type": "StorylineSchedule",
+      "member": "StartDay",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.daywithoutinsurance",
+      "type": "PlayerStore",
+      "member": "dayWithoutInsurance",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storerequest.canthisitemfillrequest",
+      "type": "StoreRequest",
+      "member": "CanThisItemFillRequest",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storerequest.canfillrequest",
+      "type": "StoreRequest",
+      "member": "CanFillRequest",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.wantedposterid",
+      "type": "StoreClient",
+      "member": "wantedPosterId",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.reportdegradesfaction",
+      "type": "StoreClient",
+      "member": "reportDegradesFaction",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.reportimprovesfaction",
+      "type": "StoreClient",
+      "member": "reportImprovesFaction",
+      "kind": "field",
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.reputationpenalty",
+      "type": "StoreClient",
+      "member": "reputationPenalty",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.healthdata.liquidluckdaysleft",
+      "type": "HealthData",
+      "member": "liquidLuckDaysLeft",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor",
+        "autopilot.wanted"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storereputation.getstorereputation",
+      "type": "StoreReputation",
+      "member": "GetStoreReputation",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "StoreReputation",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclient.canreport",
+      "type": "StoreClient",
+      "member": "CanReport",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.islastallowed",
+      "type": "AppraisalItemRegistry",
+      "member": "IsLastAllowed",
+      "kind": "method",
+      "params": [
+        "AppraisalItemType",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.canblock",
+      "type": "AppraisalItemRegistry",
+      "member": "CanBlock",
+      "kind": "method",
+      "params": [
+        "AppraisalItemType",
+        "System.Int32"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalitemtype.id",
+      "type": "AppraisalItemType",
+      "member": "id",
+      "kind": "field",
+      "returns": "System.String",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.getall",
+      "type": "AppraisalItemRegistry",
+      "member": "GetAll",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.IReadOnlyList<AppraisalItemType>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.playerstore.appraisalblacklist",
+      "type": "PlayerStore",
+      "member": "appraisalBlacklist",
+      "kind": "field",
+      "returns": "System.Collections.Generic.List<System.String>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.startingperk.isalert",
+      "type": "StartingPerk",
+      "member": "IsAlert",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getpelletkcal",
+      "type": "MachineFeedDispenser",
+      "member": "GetPelletKcal",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getpelletshare",
+      "type": "AquacultureHelper",
+      "member": "GetPelletShare",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Single",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.findadjacentytype",
+      "type": "GameItem",
+      "member": "FindAdjacentType",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Collections.Generic.List<T>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameitem.unitcount",
+      "type": "GameItem",
+      "member": "unitCount",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gameinventory.tryinventoryslot",
+      "type": "GameInventory",
+      "member": "TryInventorySlot",
+      "kind": "method",
+      "params": [
+        "GameItem",
+        "System.Int32",
+        "GridShape",
+        "TagSystem"
+      ],
+      "returns": "SlotMarker",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.slotmarker.numtransfer",
+      "type": "SlotMarker",
+      "member": "numTransfer",
+      "kind": "field",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.slotmarker.tryacceptonce",
+      "type": "SlotMarker",
+      "member": "TryAcceptOnce",
+      "kind": "method",
+      "params": [
+        "System.Int32"
+      ],
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshapebuilder.ctor",
+      "type": "GridShapeBuilder",
+      "member": ".ctor",
+      "kind": "method",
+      "params": [
+        "GridShape"
+      ],
+      "returns": "System.Void",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshapebuilder.settransform",
+      "type": "GridShapeBuilder",
+      "member": "SetTransform",
+      "kind": "method",
+      "params": [
+        "System.Int32",
+        "System.Int32",
+        "System.Boolean",
+        "System.Int32"
+      ],
+      "returns": "GridShapeBuilder",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshapebuilder.minx",
+      "type": "GridShapeBuilder",
+      "member": "minX",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshapebuilder.miny",
+      "type": "GridShapeBuilder",
+      "member": "minY",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.minx",
+      "type": "GridShape",
+      "member": "minX",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.miny",
+      "type": "GridShape",
+      "member": "minY",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.maxx",
+      "type": "GridShape",
+      "member": "maxX",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.maxy",
+      "type": "GridShape",
+      "member": "maxY",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.globalwidth",
+      "type": "GridShape",
+      "member": "globalWidth",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.gridshape.globalheight",
+      "type": "GridShape",
+      "member": "globalHeight",
+      "kind": "property",
+      "returns": "System.Int32",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The gym executor's rules, shipped in Fence.Mod for the autopilot (docs/STREAM.md)."
+    },
+    {
+      "id": "autopilot.storeclientdata.isbutcherhunting",
+      "type": "StoreClientData",
+      "member": "IsButcherHunting",
+      "kind": "method",
+      "params": [],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The night guard: while the butcher hunts, an outing without a gun in the bag is refused by the game (the need-gun notice) and the searches wound."
+    },
+    {
+      "id": "autopilot.emporiumentry.getallowneditemsbytag",
+      "type": "EmporiumEntry",
+      "member": "GetAllOwnedItemsByTag",
+      "kind": "method",
+      "params": [
+        "System.String"
+      ],
+      "returns": "System.Collections.Generic.List<GameItem>",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The night guard's armed-bag check: the backpacks the game would let the player leave with while the butcher hunts."
+    },
+    {
+      "id": "autopilot.gunhelper.hasguninside",
+      "type": "GunHelper",
+      "member": "HasGunInside",
+      "kind": "method",
+      "params": [
+        "GameItem"
+      ],
+      "returns": "System.Boolean",
+      "features": [
+        "autopilot.executor"
+      ],
+      "required": false,
+      "why": "The night guard's armed-bag check: the game's own gun-in-container rule (GunHelper.HasGunInside)."
     }
   ]
 }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Fence.Autopilot;
 using Fence.Barter;
+using Fence.Bridge;
+using Fence.Decisions;
 using Fence.Gym;
 using Fence.Protocol;
 using Fence.Recording;
@@ -21,6 +23,9 @@ namespace Fence.Mod
         ActGate actGate;
         readonly Dictionary<int, int> soldByDay = new Dictionary<int, int>();
         NightPlan nightPlan;
+        // The night's decision with the bridge, in flight (the role's plan stands as the fallback until it lands).
+        bool nightAsked;
+        int nightCounter;
         Appraisal.Answer answer;
         int scavenges;
 
@@ -54,6 +59,10 @@ namespace Fence.Mod
             {
                 Stop(AutopilotState.Faulted, what + ": " + e.GetType().Name + ": " + e.Message);
             }
+            finally
+            {
+                LiveCam.Restore(); // the camera goes back to the counter whatever the chore did
+            }
         }
 
         // The engines' hands (Fence.Gym.Chore) live: each move and machine action needs the step's open gate, is
@@ -68,6 +77,8 @@ namespace Fence.Mod
             public int Accept(GraphNodeStorage to, GameItem item, int amount)
             {
                 var gate = d.actGate ?? throw new InvalidOperationException("an engine moved an item outside an autopilot action");
+                if (to is GameItem machine && LiveCam.IsMachine(machine)) LiveCam.Focus(machine); // the grid on camera
+                else if (LiveCam.IsMachine(item)) LiveCam.Focus(item);
                 int left = d.hands.Accept(gate, item, to, amount);
                 if (left < 0) throw new InvalidOperationException("the move of " + LiveGame.Name(item) + " was refused (paused)");
                 if (left == 0 && !LiveGame.Under(item, to)) throw new InvalidOperationException("the move of " + LiveGame.Name(item) + " did not take");
@@ -79,6 +90,7 @@ namespace Fence.Mod
             public T Act<T>(string what, GameItem target, Func<T> act)
             {
                 var gate = d.actGate ?? throw new InvalidOperationException("an engine acted outside an autopilot action");
+                if (LiveCam.IsMachine(target)) LiveCam.Focus(target); // the press on camera
                 if (!d.hands.Chore(gate, act, out T result)) throw new InvalidOperationException(what + " was refused (paused)");
                 if (d.choreQuiet) d.quietChores++;
                 else d.Record("chore", target == null ? null : d.Planned(target), what, "chore", null);
@@ -103,7 +115,15 @@ namespace Fence.Mod
                     memory.EveningDone = true;
                     RunChore("vending", () => Vending.Evening(host));
                     RunChore("fountain", () => Fountain.Evening(host));
-                    RunChore("lab", Lab.EndMorning);
+                    RunChore("lab", () =>
+                    {
+                        var scanner = LiveGame.Owned(EmporiumEntry.Instance.invElement)
+                            .Concat(LiveGame.Owned(EmporiumEntry.Instance.backInvinvElement))
+                            .Concat(LiveGame.Owned(EmporiumEntry.Instance.frontInvinvElement))
+                            .FirstOrDefault(i => i?.identifier == "chem_scanner");
+                        if (scanner != null) LiveCam.Focus(scanner); // the analyser's panel open while the lab runs
+                        Lab.EndMorning();
+                    });
                     return;
                 case StepKind.OpenPhone:
                     hands.OpenPhone(gate);
@@ -149,13 +169,14 @@ namespace Fence.Mod
                     expecting = Expectation.Within("the afterhours choices open", now, ExpectMs, x => x.ResponseOpen || x.BlockedBy != null);
                     return;
                 case StepKind.ChooseBag:
-                    if (!LiveGame.FirstChoiceIsNoBag())
+                    if (!LiveGame.ButcherHunting() && !LiveGame.FirstChoiceIsNoBag())
                     {
                         Stop(AutopilotState.Handover, "the door's choices are not the afterhours bag choice");
                         return;
                     }
-                    hands.ChooseNoBag(gate);
-                    Record("choose_bag", null, "out without a backpack (the gym's outing)", "night:outing", null);
+                    leavingStore = true;
+                    hands.ChooseBag(gate);
+                    Record("choose_bag", null, LiveGame.ButcherHunting() ? "out with the first armed bag (the butcher hunts)" : "out without a backpack (the gym's outing)", "night:outing", null);
                     expecting = Expectation.Within("the map opens", now, TravelMs, x => x.MapOpen || (x.BlockedBy != null && !x.ResponseOpen));
                     return;
                 case StepKind.Travel:
@@ -166,9 +187,7 @@ namespace Fence.Mod
                     return;
                 case StepKind.PlanLoot:
                     memory.LootPlanned = true;
-                    foreach (var i in NightOuting.LootOrder(LiveGame.Ground()))
-                        Queue(MoveKinds.Loot, i, null, "the loot home, most valuable first", "night:loot", null);
-                    Record("plan_loot", null, LiveGame.Ground().Count + " item(s) in the bag to bring home", "night:loot", null);
+                    PlanLoot(v);
                     return;
                 case StepKind.PlanJackson:
                     PlanJackson(v);
@@ -178,8 +197,11 @@ namespace Fence.Mod
                     return;
                 case StepKind.PlanCarryHome:
                     memory.CarriedHome = true;
+                    // The pockets and backpack's contents are on the counter; whatever was left on the ground is gone.
                     foreach (var i in LiveGame.Ground().Concat(LiveGame.OwnedOnBack()).ToList())
                         Queue(MoveKinds.CarryHome, i, null, "bought at Dr. Jackson's: into stock (the case, or his counter, which comes home with us, when stock is full)", "player:jackson_buy", null);
+                    if (memory.CarryLeft.Count > 0)
+                        Record("carry_left", null, memory.CarryLeft.Count + " item(s) were left on the ground: expelled by the return", "night:carry", null, v, detail: string.Join(",", memory.CarryLeft));
                     return;
                 case StepKind.Return:
                     memory.Returning = true;
@@ -274,7 +296,29 @@ namespace Fence.Mod
             }
         }
 
-        // One item of loot into stock; when it does not fit, cheap stock is left on the ground for it
+        // The player carries home only what the pockets and backpack hold (NightOuting.Pack); the rest is left on
+        // the ground and the return expels it. What is carried is queued into stock, most valuable first.
+        void PlanLoot(LiveView v)
+        {
+            var bag = LiveGame.Ground();
+            // The equipped satchel lives in afterhourPocketSlotInvBackpack, which GetAllOwnedItems never
+            // visits — without it the pack budgets two pockets and the rest is expelled at the dump.
+            var slotItem = EmporiumEntry.Instance.afterhourPocketSlotInvBackpack?.childItem;
+            var owned = slotItem != null && NightOuting.IsBackpack(slotItem)
+                ? slotItem
+                : NightOuting.OwnedBackpack(NightOuting.OwnedBackpacks());
+            // A backpack found that night is on the ground, not owned: the player would put it on (its grid still
+            // counts, and it takes a pocket).
+            var pack = NightOuting.Pack(bag, owned ?? bag.FirstOrDefault(NightOuting.IsBackpack));
+            memory.CarryLeft = pack.left.Select(game.Uid).ToList();
+            foreach (var i in pack.carried)
+                Queue(MoveKinds.Loot, i, null, "the carry home, most valuable first", "night:loot", null);
+            if (pack.left.Count > 0)
+                Record("carry_left", null, pack.left.Count + " item(s) do not fit the pockets and backpack: left at the dump", "night:carry", null, v, detail: string.Join(",", pack.left.Select(i => i.identifier ?? "")));
+            Record("plan_loot", null, bag.Count + " item(s) in the bag, " + pack.carried.Count + " carried home", "night:loot", null);
+        }
+
+        // One item of the carry into stock; when it does not fit, cheap stock is left on the ground for it
         // (NightOuting.RoomFor, as the gym does) or the loot stays there itself. A failed fit is a choice, not a fault.
         void LootHome(ActGate gate, PlannedMove m, GameItem loot, LiveView v)
         {
@@ -378,23 +422,147 @@ namespace Fence.Mod
             view.Locations.AddRange(LiveGame.Locations());
             nightPlan = role.Night(view);
             string rule = lastDefault;
+            // The butcher hunts: an outing without a gun in the bag is refused by the game (the
+            // need-gun notice, "did not take: the map opens" without it) and the searches wound.
+            // No armed bag among the choices → the night is spent at home, whatever the plan said.
+            if (LiveGame.ButcherHunting() && !LiveGame.HasArmedBag())
+            {
+                memory.Outing = null;
+                memory.Scavenge = false;
+                Record("plan_night", null, "the butcher hunts and no bag carries a gun: staying in", "night:butcher", null);
+                return;
+            }
             memory.Outing = nightPlan.Outing;
             memory.Scavenge = nightPlan.Scavenge;
             scavenges = 0;
-            if (nightPlan.CallWild && WildRead.Reachable())
-                memory.Calls.Enqueue(new PhoneCall { Number = StorePhoneClient.WILD_CLIENT_NUMBER, Choice = 0, Who = "Wild's Network", Why = "browse the network" });
-            Record("plan_night", null, (nightPlan.Outing == null ? "no outing" : "out to " + nightPlan.Outing + (nightPlan.Scavenge ? ", searching" : ""))
-                + (nightPlan.CallWild ? WildRead.Reachable() ? "; Wild by phone" : "; Wild unreachable (" + WildRead.Why() + ")" : ""), rule, null);
+            nightAsked = false;
+            if (AskNight(v, view, rule))
+                Record("plan_night", null, "the role's night as a fallback; the bridge decides the outing", rule, null);
+            else
+            {
+                if (nightPlan.CallWild && WildRead.Reachable())
+                    memory.Calls.Enqueue(new PhoneCall { Number = StorePhoneClient.WILD_CLIENT_NUMBER, Choice = 0, Who = "Wild's Network", Why = "browse the network" });
+                Record("plan_night", null, (nightPlan.Outing == null ? "no outing" : "out to " + nightPlan.Outing + (nightPlan.Scavenge ? ", searching" : ""))
+                    + (nightPlan.CallWild ? WildRead.Reachable() ? "; Wild by phone" : "; Wild unreachable (" + WildRead.Why() + ")" : ""), rule, null);
+            }
         }
 
+        // The bridge is in a mode that takes decisions (advise or act; observe never asks).
+        bool bridgeWants() => session != null && session.WantsDecisions(BridgeClient.NowMs());
+
+        // The night's decision with the bridge (kind "night"): the role's plan stands as the fallback until
+        // the answer lands, and OpenDoor applies the bridge's option. Never blocks: the ask is a coroutine
+        // with the session's deadline; defer, timeout or error keep the role's plan.
+        bool AskNight(LiveView v, Fence.Gym.NightView view, string rule)
+        {
+            if (!bridgeWants()) return false;
+            var nv = new Fence.Decisions.NightView
+            {
+                Day = v.Day,
+                Cash = LiveGame.Cash(),
+                RentDue = LiveGame.RentDue(),
+                RentDaysLeft = LiveGame.RentDaysLeft(),
+                Wound = LiveGame.Wound(),
+                BagItems = LiveGame.OwnedOnBack().Count,
+                PlanNotes = Directives.Current?.Raw?.Value<string>("name"),
+            };
+            foreach (var loc in view.Locations)
+                nv.Locations.Add((loc, LiveGame.LocationName(loc)));
+            foreach (var s in view.Services)
+                nv.Services.Add((s.Id, s.Cost, s.Using));
+            string id = "n-" + launchTag + "-" + v.Day + "-" + (++nightCounter);
+            var request = NightContext.Request(nv, id, session.Mode, new LiveWants());
+            if (WildRead.Reachable()) request.Options.Add(new DecisionOption { Id = NightContext.CallWild, Label = "call Wild's Network by phone" });
+            nightAsked = true;
+            memory.NightAsk = id;
+            client.Decide(request, o => OnNightDecided(o, v.Day, rule));
+            return true;
+        }
+
+        // Production.Wants through the builder's interface: the engines' wants for the jackson_wants table.
+        sealed class LiveWants : IProductionWants
+        {
+            public int Wants(string id)
+            {
+                try { return Production.Wants(id); } catch { return 0; }
+            }
+        }
+
+        void OnNightDecided(DecisionOutcome o, int day, string rule)
+        {
+            if (memory.Day != day || !nightAsked) return;
+            nightAsked = false;
+            memory.NightAsk = null;
+            if (o == null || o.Choice == null || o.Choice.IsDefer)
+            {
+                Record("night_choice", null, "the bridge deferred (" + (o?.Reason ?? "no answer") + "): the role's night stands", rule, null);
+                return;
+            }
+            string option = o.Choice.Option;
+            switch (option)
+            {
+                case NightContext.GoJackson:
+                    if (LiveGame.Location(Locations.Jackson) == null)
+                    {
+                        Record("night_choice", null, "the bridge chose Dr. Jackson's but the door will not open tonight: the role's night stands", "bridge:night", null);
+                        return;
+                    }
+                    memory.Outing = Locations.Jackson;
+                    memory.Scavenge = false;
+                    Record("night_choice", null, "Dr. Jackson's (the bridge's night)", "bridge:night", null);
+                    return;
+                case NightContext.Scavenge:
+                    if (LiveGame.Location(Locations.Dump) == null)
+                    {
+                        Record("night_choice", null, "the bridge chose the dumping ground but the door will not open tonight: the role's night stands", "bridge:night", null);
+                        return;
+                    }
+                    memory.Outing = Locations.Dump;
+                    memory.Scavenge = true;
+                    scavenges = 0;
+                    Record("night_choice", null, "the dumping ground, searching (the bridge's night)", "bridge:night", null);
+                    return;
+                case NightContext.StayIn:
+                    memory.Outing = null;
+                    memory.Scavenge = false;
+                    Record("night_choice", null, "staying in (the bridge's night)", "bridge:night", null);
+                    return;
+                case NightContext.CallWild:
+                    if (!WildRead.Reachable())
+                    {
+                        Record("night_choice", null, "the bridge chose Wild but the line is unreachable (" + WildRead.Why() + "): the role's night stands", "bridge:night", null);
+                        return;
+                    }
+                    memory.Calls.Enqueue(new PhoneCall { Number = StorePhoneClient.WILD_CLIENT_NUMBER, Choice = 0, Who = "Wild's Network", Why = "browse the network" });
+                    Record("night_choice", null, "Wild's Network by phone (the bridge's night)", "bridge:night", null);
+                    return;
+                default:
+                    Record("night_choice", null, "the bridge's answer (" + option + ") is not one of this night's options: the role's night stands", "bridge:night", null);
+                    return;
+            }
+        }
+
+        // The door is the night's commitment: the bridge's option, if it has landed by then, is applied before it.
         void OpenDoor(ActGate gate, long now)
         {
             string shut = NightOuting.DoorShut();
             if (shut != null)
             {
                 memory.OutingDone = true;
+                if (nightAsked)
+                {
+                    nightAsked = false;
+                    memory.NightAsk = null;
+                    Record("night_choice", null, "the door is shut: " + shut + " (the bridge's night is void)", "bridge:night", null);
+                }
                 Record("outing_skipped", null, "the door is shut tonight: " + shut, "night:door_shut", null);
                 return;
+            }
+            if (nightAsked)
+            {
+                nightAsked = false;
+                memory.NightAsk = null;
+                Record("night_choice", null, "no answer by the door: the role's night stands (" + BridgeClient.NowMs() + ")", "bridge:night", null);
             }
             if (!hands.OpenDoor(gate))
             {
@@ -408,6 +576,7 @@ namespace Fence.Mod
 
         void Travel(ActGate gate, long now)
         {
+            leavingStore = false;
             var loc = LiveGame.Location(memory.Outing);
             if (loc == null)
             {
@@ -424,10 +593,12 @@ namespace Fence.Mod
         void Scavenge(ActGate gate, long now)
         {
             var (left, wound) = LiveGame.ScavengeOdds();
-            if (left <= 0 || wound > (nightPlan?.MaxWoundPct ?? double.MaxValue) || scavenges >= MaxScavenges)
+            // A fresh wound greys out the search button; the game's own gate, so the press is not wasted.
+            bool wounded = !LiveGame.CanScavenge() && left > 0;
+            if (left <= 0 || wounded || wound > (nightPlan?.MaxWoundPct ?? double.MaxValue) || scavenges >= MaxScavenges)
             {
                 memory.ScavengeDone = true;
-                Record("scavenge_done", null, left <= 0 ? "no searches left" : scavenges >= MaxScavenges ? "enough searches" : "wound odds " + wound.ToString("0.#") + " % over the plan's limit", "night:scavenge", null);
+                Record("scavenge_done", null, left <= 0 ? "no searches left" : wounded ? "wounded: no more searching tonight" : scavenges >= MaxScavenges ? "enough searches" : "wound odds " + wound.ToString("0.#") + " % over the plan's limit", "night:scavenge", null);
                 return;
             }
             scavenges++;

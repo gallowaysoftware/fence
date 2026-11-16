@@ -164,6 +164,7 @@ func BuildPlanPrompt(in PlanInput) (string, error) {
 	s.render(&b, day)
 	b.WriteString(in.Exemplars)
 	renderRoute(&b, in.Route)
+	renderWaterInputFact(&b, in)
 	renderStyle(&b, in.style())
 	s.renderBuyOrder(&b, in.style())
 	if a := strings.TrimSpace(in.Audience); a != "" {

@@ -1,0 +1,50 @@
+{
+  "name": "n1-night-practice",
+  "seeds": [
+    910001,
+    910002,
+    910003,
+    910004,
+    910005,
+    910006
+  ],
+  "starts": [
+    "none"
+  ],
+  "difficulty": "hard",
+  "perks": [
+    "none"
+  ],
+  "days": 120,
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "heuristic",
+      "mode": "heuristic"
+    },
+    {
+      "id": "night-forks",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-forks",
+        "-directives",
+        "delta"
+      ]
+    },
+    {
+      "id": "night-script",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta"
+      ]
+    }
+  ],
+  "plan_wait": "100s",
+  "deadline_ms": 110000,
+  "baseline": "heuristic"
+}

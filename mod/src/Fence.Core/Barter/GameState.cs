@@ -79,6 +79,13 @@ namespace Fence.Barter
         // Game convention: negative, e.g. -15.
         public int WholesaleDiscount;
         public int? WholesalePrice;
+        // The wanted-poster identity (StoreClient.wantedPosterId); null when it could not be read.
+        public string WantedPosterId;
+        public bool ReportDegradesFaction;
+        public bool ReportImprovesFaction;
+        public int ReputationPenalty;
+        // StoreClient.reported, set by PlayerStore.OnCustomerReported; false after a storyline intercept.
+        public bool Reported;
         public bool Dismissable;
         public bool BargainAvailable;
         public bool MainDialogueStarted;

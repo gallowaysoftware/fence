@@ -103,6 +103,9 @@ func (p *LLM) Decide(ctx context.Context, req *protocol.DecideRequest) Decision 
 	if req.Kind == "stage" && !p.StageLLM {
 		return Heuristic{Plan: p.Plan}.Decide(ctx, req)
 	}
+	// The night is never time-critical (it happens after closing, the mod falls back on a
+	// defer), so the model takes it by default; the fast rules answer only when it says so
+	// via -policy flags or a defer comes back.
 	d := p.decide(ctx, req)
 	if err := CheckChoice(req, d.Choice); err != nil {
 		trace := d.Trace

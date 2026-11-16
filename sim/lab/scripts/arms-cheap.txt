@@ -1,0 +1,20 @@
+# The cheap hidden-system wins on hard (docs/research/HIDDEN-SYSTEMS.md): each lever alone against its route.
+# nice python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cheap.txt -dir var/sim/exp/cheap -seeds 60 -days 1000 -parallel 6 -- -difficulty hard -seed0 2910000
+# python3 sim/lab/scripts/cheapreport.py var/sim/exp/cheap
+appraiser | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/appraiser.json
+appraiser_wanted | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_wanted.json
+appraiser_block | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_block.json
+appraiser_rentskip | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_rentskip.json
+appraiser_luck | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_luck.json
+rancher_sprinter | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/rancher_sprinter.json
+rancher_sprinter_wanted | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_wanted.json
+rancher_sprinter_block | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_block.json
+rancher_sprinter_rentskip | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_rentskip.json
+rancher_sprinter_luck | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_luck.json
+outlaw | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/outlaw.json
+outlaw_wanted | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_wanted.json
+outlaw_block | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_block.json
+outlaw_rentskip | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_rentskip.json
+outlaw_luck | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_luck.json
+appraiser_alert_insured | -human player -start apprentice -perks alert+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_alert_insured.json
+appraiser_alert | -human player -start apprentice -perks alert+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_alert.json

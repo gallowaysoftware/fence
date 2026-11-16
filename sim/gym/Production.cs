@@ -18,6 +18,58 @@ namespace Fence.Gym
         // Selling tap water made clean (Water.cs); on by `engine: water` (or `wine+water`).
         public static bool WaterSellOn => EngineName.Contains("water");
 
+        // The water work's durable kit, quota'd per id: a working set, not everything. The kit is
+        // dual-use — with the machine purifier installed the manual filter is redundant and its spares
+        // are stock again; strips are consumed by every test; the pitcher and the test container are
+        // one-of-each tools; the tank and the portable purifier are capacity worth keeping one of.
+        // Raw-water vessels are not kit: they are inputs the surplus rule handles.
+        static readonly Dictionary<string, int> WaterKitQuota = new Dictionary<string, int>
+        {
+            ["water_filter"] = 1,
+            ["uv_filter"] = 1,
+            ["water_pitcher"] = 1,
+            ["water_test_container"] = 1,
+            ["water_test_strip"] = 2,
+            ["water_tablet_container"] = 1,
+            ["water_tablet"] = 3,
+            ["aquascan"] = 1,
+            ["water_purifier"] = 1,
+            ["portable_water_purifier"] = 1,
+            ["water_tank"] = 1,
+        };
+
+        static bool PurifierMachineOwned() => Owned().Any(i => i.identifier == "water_purifier" || i.identifier == "portable_water_purifier");
+
+        static int KitQuota(string id)
+            => id == "water_filter" && PurifierMachineOwned() ? 0
+            : WaterKitQuota.TryGetValue(id ?? "", out var n) ? n : 0;
+
+        // An item is protected when the water work needs it: the id is kit, a water plan (or a wine-side
+        // purifier) makes it relevant, and the better examples of the same id have not already filled
+        // the quota. A machine purifier alone is not a plan: without water work its supplies are stock
+        // (the machine serves them when the day comes). Called per item, so it ranks against the others
+        // owned of the same id: this filter with more durability than the quota allows is the surplus.
+        public static bool ProtectsWaterTool(string id, int myDurability = int.MaxValue)
+        {
+            if (id == null || KitQuota(id) == 0) return false;
+            if (!(EngineName.Contains("water") || WinePurifierOn)) return false;
+            if (myDurability == int.MaxValue) return true; // id-only ask (no instance): protected
+            var better = Owned().Where(i => i.identifier == id && DurabilityHelper.GetRealDurability(i) > myDurability).Count();
+            return better < KitQuota(id);
+        }
+
+        // ProtectsLabTool keeps the chemistry engine's durable kit out of the sell path: the scanner
+        // is the analyser itself (without it the player is blind to composition), the finisher,
+        // blender and thermostat are the batch's yield. Same contract as ProtectsWaterTool: an
+        // id-only ask protects unconditionally, an instance ask compares against the quota.
+        public static bool ProtectsLabTool(string id, int myDurability = int.MaxValue)
+        {
+            if (id == null) return false;
+            if (id == "chem_scanner") return Lab.On || KitQuota("chem_scanner") > 0;
+            if (id != "chem_finisher" && id != "blender" && id != "thermostat") return false;
+            return Lab.On;
+        }
+
         static readonly HashSet<string> Yeasts = new HashSet<string>(StringComparer.Ordinal) { "wine_yeast", "wine_superyeast", "wine_yeast_infinite" };
 
         // Clean enough to ferment in: base (98.00 %) or better keeps the water term >= 0 (WATER.md).
@@ -61,6 +113,7 @@ namespace Fence.Gym
             StolenTrade.Reset();
             Crops.Reset();
             Lab.Reset();
+            BuildOrder.Reset();
             ResetBreeding();
             Quality.Reset();
             ResetQuality();
@@ -99,7 +152,8 @@ namespace Fence.Gym
         public static bool Reserved(GameItem i)
         {
             if (Directives.Current.ReleaseUids.Contains(i.uniqueId) || shownWater.Contains(i.uniqueId)) return false;
-            if (Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Fish.Reserved(i) || Printer.Reserved(i) || Arms.Reserved(i) || Crops.Reserved(i) || Lab.Reserved(i) || Power.Reserved(i)) return true;
+            if (BuildOrder.Holds(i) || Furnace.Reserved(i) || Modules.Reserved(i) || Rats.Reserved(i) || Fish.Reserved(i) || Printer.Reserved(i) || Arms.Reserved(i) || Crops.Reserved(i) || Lab.Reserved(i) || Power.Reserved(i)) return true;
+            if (LiquidLuck.Reserved(i) || Requests.Reserved(i) || Fridge.Reserved(i)) return true;
             if ((PlantSafe(i) || cleanStore.Contains(i.uniqueId)) && (!SellsCured || i.identifier == "water_tank") || batches.ContainsKey(i.uniqueId) || (ReedOn && i.identifier == "water_tank") || (ReedOn && i.identifier == "water_jug" && Parent(i) == null && WaterHelper.IsEmpty(i))) return true;
             if (ReedOn && (i.IsTag("HYDROPONIC_MACHINE_TAG") || i.identifier == ReedSeedId)) return true;
             if (Fountain.Holds(i)) return true;
@@ -177,7 +231,9 @@ namespace Fence.Gym
             reservedValue = Owned().Where(i => Reserved(i) && Parent(i) == null).Sum(i => (long)PlayerRole.Est(i));
         }
 
-        public static int Wants(string id)
+        public static int Wants(string id) => BuildOrder.Cap(id, EngineWants(id));
+
+        static int EngineWants(string id)
         {
             if (DnaWants(id) > 0) return DnaWants(id);
             int w = WantsEngine(id), f = Furnace.Wants(id) + Modules.Wants(id) + Rats.Wants(id) + Fish.Wants(id) + Printer.Wants(id) + Arms.Wants(id) + (Crops.On ? Crops.Wants(id, Bays()) : 0) + Lab.Wants(id) + Power.Wants(id);
@@ -188,10 +244,14 @@ namespace Fence.Gym
         {
             if (id != "hydroponic" && Directives.Current.Raw.Value<int?>("engine_reserve_max") is int cap && reservedValue > cap) return 0;
             int clean = CleanWants(id);
-            if (clean >= 0 && (id == "water_jug" || id == "energy_credit") && WaterSellOn) return Math.Max(clean, id == "water_jug" ? WaterWants(id) : Math.Max(WaterWants(id), 0) > 0 ? 1 : 0);
+            // A wine route's water treatment (the purifier, the tablets, the strips, the vessels) is its
+            // bays' water quality, not a water-selling side business: the same supplies wanted whenever
+            // bays grow or the wine purifier is due, not only on `engine: water`.
+            bool wineWater = WineOn && NetworkUpgrade.IsWinemakerUnlocked() && (Bays().Any() || WaterWants("water_purifier") > 0);
+            if (clean >= 0 && (id == "water_jug" || id == "energy_credit") && (WaterSellOn || wineWater)) return Math.Max(clean, id == "water_jug" ? WaterWants(id) : Math.Max(WaterWants(id), 0) > 0 ? 1 : 0);
             if (clean >= 0) return clean;
-            if (id != null && (IsWaterInput(id) || id == "water_jug") && (WaterSellOn || WineOn)) return WaterWants(id);
-            if (id == "energy_credit" && WaterSellOn && Math.Max(WaterWants(id), 0) > 0) return 1;
+            if (id != null && (IsWaterInput(id) || id == "water_jug") && (WaterSellOn || wineWater)) return WaterWants(id);
+            if (id == "energy_credit" && (WaterSellOn || wineWater) && Math.Max(WaterWants(id), 0) > 0) return 1;
             if (!WineOn || !NetworkUpgrade.IsWinemakerUnlocked() || id == null) return 0;
             var owned = Owned().ToList();
             int bottles = owned.Count(EmptyBottle);
@@ -213,8 +273,8 @@ namespace Fence.Gym
                 case "water_ration": return Math.Max(0, bottles + 8 - owned.Count(WineHelper.IsWaterRation));
                 case "water_ration_small": return Math.Max(0, 2 * (bottles + 8) - owned.Count(WineHelper.IsWaterRation));
                 // The retired farmer brings a bay every visit: more bays, more berries (they bind next to water).
-                case "hydroponic": return Bays().Count >= 1 && Bays().All(b => MachineHydroponic.GetInputSlot(b).childItem != null) && Bays().Count < (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays() + Crops.ExtraBays + (ReedOn ? ReedTarget() : 0) && PlayerStore.Instance.playerCash > 1500 ? 1 : 0;
-                case "bloomberry_seed" when Crops.On: return Math.Max(0, Math.Min(Bays().Count, (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays()) - Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == "bloomberry_seed") - owned.Count(i => i.identifier == "bloomberry_seed" && Parent(i) == null)) + DnaWantsSeed();
+                case "hydroponic": return Bays().Count >= 1 && Bays().All(b => MachineHydroponic.GetInputSlot(b).childItem != null) && Bays().Count < BaysTarget() + DnaExtraBays() + Crops.ExtraBays + (ReedOn ? ReedTarget() : 0) && PlayerStore.Instance.playerCash > 1500 ? 1 : 0;
+                case "bloomberry_seed" when Crops.On: return Math.Max(0, Math.Min(Bays().Count, BaysTarget() + DnaExtraBays()) - Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem?.identifier == "bloomberry_seed") - owned.Count(i => i.identifier == "bloomberry_seed" && Parent(i) == null)) + DnaWantsSeed();
                 case "bloomberry_seed": return Math.Max(0, Bays().Count(b => MachineHydroponic.GetInputSlot(b).childItem == null && !ReedBayDue(b)) - owned.Count(i => i.identifier == "bloomberry_seed" && Parent(i) == null)) + DnaWantsSeed();
                 // A bay at its mineral level drinks about a tablet a week, more on a refill: every one offered while short.
                 case "nutrient_tablet": return QualityBays ? Math.Max(0, 6 * Bays().Count - owned.Count(i => i.identifier == "nutrient_tablet")) : Bays().Any() && owned.Count(i => i.identifier == "nutrient_tablet") < 8 ? 1 : 0;
@@ -224,12 +284,19 @@ namespace Fence.Gym
             return 0;
         }
 
-        static readonly HashSet<string> WaterIds = new HashSet<string>(StringComparer.Ordinal) { "bottled_water", "large_bottled_water", "small_bottled_water", "bottled_water_premium", "water_jug" };
+        static readonly HashSet<string> WaterIdSet = new HashSet<string>(StringComparer.Ordinal) { "bottled_water", "large_bottled_water", "small_bottled_water", "bottled_water_premium", "water_jug" };
+
+        public static bool WaterIds(string id) => WaterIdSet.Contains(id ?? "");
+
+        // The id-level half of WantsWater: the buyer's offer sheet carries ids only, so it decides "an
+        // engine input at all?" while WantsWater checks the item's purity and coverage. Water is an input
+        // only while the cellar wants it: a WaterSellOn route with no winemaker holds stock, not inputs.
+        public static bool WantsWaterId(string id) => WineOn && NetworkUpgrade.IsWinemakerUnlocked() && WaterIds(id);
 
         // A seller's water worth buying for the bottles: clean enough and not already covered.
         public static bool WantsWater(GameItem i)
         {
-            if (!WineOn || !NetworkUpgrade.IsWinemakerUnlocked() || !WaterIds.Contains(i.identifier ?? "")) return false;
+            if (!WantsWaterId(i.identifier)) return false;
             bool clean;
             try { clean = !WaterHelper.IsEmpty(i) && Label(i) >= MinPurity; }
             catch (Exception) { return false; }
@@ -278,9 +345,9 @@ namespace Fence.Gym
         }
 
         // With `engine: none` nothing is an engine input (a winemaker's bottles are plain stock then).
-        public static bool IsInput(string id) => Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Fish.IsInput(id) || Printer.IsInput(id) || Arms.IsInput(id) || Crops.IsInput(id) || Lab.IsInput(id) || Power.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
+        public static bool IsInput(string id) => BuildOrder.Manages(id) || Furnace.IsInput(id) || Modules.IsInput(id) || Rats.IsInput(id) || Fish.IsInput(id) || Printer.IsInput(id) || Arms.IsInput(id) || Crops.IsInput(id) || Lab.IsInput(id) || Power.IsInput(id) || ((WineOn || WaterSellOn) && IsInputAny(id));
 
-        static bool IsInputAny(string id) => (DnaOn && (BreedOn ? BreedDonorId(id ?? "") : Donors.Contains(id ?? ""))) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || CleanInput(id) || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds.Contains(id ?? "") || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
+        static bool IsInputAny(string id) => (DnaOn && (BreedOn ? BreedDonorId(id ?? "") : Donors.Contains(id ?? ""))) || IsWaterInput(id) || id == "hydroponic" || id == "bloomberry_seed" || CleanInput(id) || id == "nutrient_tablet" || id == "nutrient_tablet_container" || (id == "energy_credit" && (Bays().Any() || DnaUsesCells || (WaterSellOn && (Owned().Any(i => i.identifier == "water_purifier") || Fountain.Machine() != null)))) || WaterIds(id) || id == "wine_bottle" || id == "wine_berry" || id == "water_ration" || id == "water_ration_small" || (id != null && Yeasts.Contains(id));
 
         static bool Put(GameItem into, GameItem it)
         {
@@ -473,9 +540,10 @@ namespace Fence.Gym
         // Kits land on the back counter, where the next buyer's sale would take them: stow every bay.
         public static void Stow()
         {
+            BuildOrder.Stow();
             Lab.Stow();
             Fish.Stow();
-            StowDna();
+            StowMachines();
             if (!WineOn && !WaterSellOn) return;
             Earmark();
             if (!WineOn && !ReedOn) return;
@@ -485,6 +553,27 @@ namespace Fence.Gym
             StowCellarKit();
         }
 
+        // StowMachines moves the engines' machines and vessels to where they work: stock grid first
+        // (a buyer never takes a machine), back counter when the grid is full. Bays had this rule
+        // above; the purifier, furnace, rack and tanks did not, so a bought machine sat wherever the
+        // sale left it — on the ground overnight in the live game.
+        static readonly string[] MachineIds = { "water_purifier", "furnace", "wine_rack", "storage_bay", "storage_bay_chem", "water_tank", "water_jug" };
+        internal static void StowMachines()
+        {
+            var e = EmporiumEntry.Instance;
+            if (e == null) return;
+            var stock = e.invElement;
+            foreach (var m in e.backInvinvElement.childItems.Concat(e.frontInvinvElement?.childItems ?? Enumerable.Empty<GameItem>())
+                .Where(i => i != null && GeneralHelper.IsItemOwned(i) && MachineIds.Contains(i.identifier) && !HydroponicHelper.IsGrowingSeed(i))
+                .ToList())
+                if (Chore.Accept(stock, m, -1) != 0) Chore.Accept(e.backInvinvElement, m, -1);
+        }
+
+        // BaysTarget is the bay count the route wants: `bays`, grown toward `bays_max` once
+        // `bays_grow_cash` (default 2 500) is in hand — the wine-bay mirror of Cellar.ReedTarget.
+        internal static int BaysTarget() => BayWanted() > Bays().Count && PlayerStore.Instance.playerCash >= BayGrowCash() ? BayWanted() : Math.Max(Directives.Current.Raw.Value<int?>("bays") ?? 3, 0);
+        static int BayWanted() => Math.Max(Directives.Current.Raw.Value<int?>("bays") ?? 3, Directives.Current.Raw.Value<int?>("bays_max") ?? 0);
+        static int BayGrowCash() => Directives.Current.Raw.Value<int?>("bays_grow_cash") ?? 2500;
         static void TendBay(IExecutorHost ep, GameItem bay)
         {
             var stock = EmporiumEntry.Instance.invElement;
@@ -503,7 +592,7 @@ namespace Fence.Gym
             var input = MachineHydroponic.GetInputSlot(bay);
             if (input.childItem == null)
             {
-                var crop = Crops.SeedFor(Bays(), (Directives.Current.Raw.Value<int?>("bays") ?? 3) + DnaExtraBays());
+                var crop = Crops.SeedFor(Bays(), BaysTarget() + DnaExtraBays());
                 var seed = crop ?? (ReedBayDue(bay) ? ReedSeed() : SeedToPlant());
                 if (seed != null && Modules.ReadyToPlant(ep, bay) && Chore.Accept(input, seed, -1) == 0 && crop != null) Crops.Planted++;
             }

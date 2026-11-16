@@ -98,6 +98,10 @@ namespace Fence.Gym
             var r = DaySnapshot.Build(DayReads, phase, GameDay.RunId(), null);
             foreach (var (section, error) in r.Failed)
                 if (failedSections.Add(section)) SnapshotError?.Invoke(section, error);
+            // The engines' state rides the snapshot too: the lab's entry carries the chemical
+            // analyser's panel (scanned, bottles) when the scanner is owned — what a player with
+            // the scanner reads off the screen, nothing more.
+            if (Lab.Status() is JObject lab) r.Data["lab"] = lab;
             Emit(RecordKinds.DaySnapshot, r.Data, r.Hidden);
         }
 

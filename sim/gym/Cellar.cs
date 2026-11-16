@@ -104,6 +104,15 @@ namespace Fence.Gym
             return who == null || KitSellers.Contains(who);
         }
 
+        // The night visit needs this: a clean-water kit part Jackson stocks is due and undelivered (the
+        // fountain route's uv and tank come from him; the visit gate is cash-based and slips a cycle).
+        public static bool CleanKitNeedsJackson()
+        {
+            if (!ReedOn) return false;
+            foreach (var id in new[] { "uv_filter", "water_tank", "hydroponic", ReedSeedId })
+                if (CleanWants(id) > 0) return true;
+            return false;
+        }
         // How many of an id the build wants (-1: not the build's to answer).
         static int CleanWants(string id)
         {

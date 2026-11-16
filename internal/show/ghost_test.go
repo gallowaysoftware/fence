@@ -13,6 +13,13 @@ import (
 // p75 ≤ p90 each morning.
 func TestBooksCoverEveryRoute(t *testing.T) {
 	files, _ := filepath.Glob("../../sim/lab/scripts/directives/routes/*.json")
+	routes := files[:0]
+	for _, f := range files {
+		if filepath.Base(f) != "paths.json" {
+			routes = append(routes, f)
+		}
+	}
+	files = routes
 	if len(files) == 0 {
 		t.Fatal("no route files")
 	}
@@ -254,7 +261,7 @@ func TestNarratorHearsThePace(t *testing.T) {
 	if !strings.Contains(sys, "behind the book") {
 		t.Errorf("system prompt without the pace:\n%s", sys)
 	}
-	p := n.prompt(beat, FactsOf(beat), nil, "")
+	p := n.prompt(beat, FactsOf(beat), nil)
 	if !strings.Contains(p, "the race against the book") || !strings.Contains(p, "behind it; net worth 5,000, the book's median 6,000") {
 		t.Errorf("prompt:\n%s", p)
 	}

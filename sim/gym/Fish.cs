@@ -35,19 +35,35 @@ namespace Fence.Gym
         // The aquafarmer's fertilised roe (four a visit): each hatches six juveniles, ~70 of fillets apiece once fed.
         static readonly HashSet<string> RoeIds = new HashSet<string>(StringComparer.Ordinal) { "tilapia_roe", "gutter_tilapia_roe", "graft_tilapia_roe" };
         static bool BuyRoe => Directives.Current.Raw.Value<bool?>("fish_roe") ?? false;
+        // `fish_pellets: r` (docs/research/FORMULA-EXPLOITS.md §10): gutterflow pellets (0.01 a kcal, half industrial feed's
+        // price) go into an omnivore tank's dispenser while they stay within r of its stored kcal (default 0.24 when `true`).
+        // A fish is trash grade only when strictly more than 25 % of its lifetime kcal came from pellets
+        // (AquacultureHelper.IsPelletTainted), pellets carry no growth penalty, and the dispenser draws every bucket in
+        // proportion, so each fish's share follows the dispenser's. A tank stops taking pellets once any fish's tooltip
+        // shows a pellet share at r.
+        static double PelletShare
+        {
+            get
+            {
+                var t = Directives.Current.Raw["fish_pellets"];
+                if (t == null || t.Type == JTokenType.Null) return 0;
+                if (t.Type == JTokenType.Boolean) return (bool)t ? 0.24 : 0;
+                return Math.Min(0.24, Math.Max(0, (double)t));
+            }
+        }
         // Waste % at which a filter goes in (fish suffer above 3 %, die at 8 %; graft tilapia at half that).
         const double FilterAt = 1.0;
         // Room a hatch needs: a fry clutch is 2×2, and a hatch with no room is lost (AquacultureHelper.HatchRoe).
         const int ClutchCells = 4;
 
-        public static int Filleted, Died, Clutches, Hatched, Upgrades, Filters, FirstDay, HungryNights, Unpowered, BigBought, BigFilleted, Strips;
-        public static long FilletValue, FilletSold, FilletSales, FeedSpend, KcalAdded, MeatFed, BigValue, CaviarValue;
+        public static int Filleted, Died, Clutches, Hatched, Upgrades, Filters, FirstDay, HungryNights, Unpowered, BigBought, BigFilleted, Strips, Trash;
+        public static long FilletValue, FilletSold, FilletSales, FeedSpend, KcalAdded, MeatFed, BigValue, CaviarValue, PelletKcal;
         static readonly HashSet<int> seen = new HashSet<int>(), breeders = new HashSet<int>();
 
         public static void Reset()
         {
-            Filleted = Died = Clutches = Hatched = Upgrades = Filters = FirstDay = HungryNights = Unpowered = BigBought = BigFilleted = Strips = 0;
-            FilletValue = FilletSold = FilletSales = FeedSpend = KcalAdded = MeatFed = BigValue = CaviarValue = 0;
+            Filleted = Died = Clutches = Hatched = Upgrades = Filters = FirstDay = HungryNights = Unpowered = BigBought = BigFilleted = Strips = Trash = 0;
+            FilletValue = FilletSold = FilletSales = FeedSpend = KcalAdded = MeatFed = BigValue = CaviarValue = PelletKcal = 0;
             seen.Clear();
             breeders.Clear();
         }
@@ -112,7 +128,7 @@ namespace Fence.Gym
         public static bool Reserved(GameItem i)
         {
             if (!On || Tanks().Count == 0) return false;
-            if (CurrentConverterHelper.IsCurrentConverter(i) && Parent(i) == null && Tanks().Any(t => MachineRAS.IsWorthRunning(t) && !Converts(t))) return true;
+            if (CurrentConverterHelper.IsCurrentConverter(i) && Parent(i) == null && Tanks().Any(t => MachineRAS.IsWorthRunning(t) && !Converts(t) && !global::Fence.Gym.Power.HubCarries(t))) return true;
             if (i.IsTag("RAS_TAG") || Stock(i) || i.IsTag("FEED_DISPENSER_TAG") || i.identifier == Feed || i.identifier == Pellet || i.identifier == Filter) return true;
             if (Rats.Feeds.Contains(i.identifier ?? "")) return FeedStored() < FeedKcal;
             if (BigOn && i.identifier == Surgery && Parent(i) == null) return true;
@@ -165,6 +181,7 @@ namespace Fence.Gym
                     return gap <= 0 ? 0 : (gap + 4999) / 5000;
                 // Pellets only for gutter tilapia (pellet-proof); any other fish is trash grade past a quarter of pellets.
                 case Pellet:
+                    if (PelletShare > 0 && AnyLive() && Loose(Pellet).Count() < 2) return 1;
                     return tanks.Any(t => MachineRAS.GetTankGrid(t)?.childItems.Any(i => i != null && Live(i) && Species(i) == FishSpecies.GutterTilapia) ?? false) && FeedHeld() < FeedKcal ? 1 : 0;
                 case Dispenser:
                     return tanks.Count(t => SlottedDispenser(t) == null) - Owned().Count(i => i.IsTag("FEED_DISPENSER_TAG") && Parent(i) == null) > 0 ? 1 : 0;
@@ -186,7 +203,7 @@ namespace Fence.Gym
                 // Dr. Jackson's converter runs a tank on the shop's cash (1.5 a unit) once the kit's cells are spent.
                 // One per running tank that neither converts nor holds an electric eel to charge it.
                 case Converter:
-                    return Math.Max(0, tanks.Count(t => MachineRAS.IsWorthRunning(t) && !Converts(t) && !SelfPowered(t)) - Loose(Converter).Count());
+                    return Math.Max(0, tanks.Count(t => MachineRAS.IsWorthRunning(t) && !Converts(t) && !SelfPowered(t) && !global::Fence.Gym.Power.HubCarries(t)) - Loose(Converter).Count());
                 // A spare: a knife can be lost (a fight, a burglary), and without one the tank's carcasses pile up.
                 case "kitchen_knife":
                 case "kitchen_cleaver":
@@ -211,7 +228,8 @@ namespace Fence.Gym
             var g = MachineRAS.GetTankGrid(big);
             var owned = Owned().Where(i => Big(i) && !AquacultureHelper.IsDead(i)).ToList();
             int free = Cells(g) - Used(g), water = WaterMl(big) - owned.Sum(i => Species(i).stageWaterNeedMl[4]);
-            if (id == ElectricEel) return owned.Any(i => i.identifier == ElectricEel) || free < 10 || water < 1200 ? 0 : 1;
+            // With the eel hub (Power.cs) the tank keeps `eel_hub.eels` of them: each adds its output to every neighbour.
+            if (id == ElectricEel) return owned.Count(i => i.identifier == ElectricEel) >= (global::Fence.Gym.Power.HubOn ? global::Fence.Gym.Power.HubEels : 1) || free < 10 || water < 1200 ? 0 : 1;
             // Eels eat what the tilapia tanks fillet (~500 kcal a fish); `fish_eels` (default 2) is what that meat feeds.
             if (id == Eel) return free >= 10 && water >= 1200 && owned.Count(i => i.identifier == Eel) < (Directives.Current.Raw.Value<int?>("fish_eels") ?? 2) ? 1 : 0;
             if (id == Sturgeon) return owned.Count(i => i.identifier == Sturgeon) < 1 && free >= 14 && water >= 3000 && PlayerStore.Instance.playerCash > (PlayerDay.Current?.RentDue ?? 0) + 1500 ? 1 : 0;
@@ -334,8 +352,17 @@ namespace Fence.Gym
         {
             int usage = MachineryHelper.GetMachinePowerUsage(ras);
             var bat = MachineHelper.GetBatterySlot(ras);
-            if (bat == null || Converts(ras)) return;
-            var conv = Loose(Converter).FirstOrDefault();
+            if (bat == null) return;
+            // Beside the eel hub a cell is free: the converter (cash a unit) comes out for the fullest loose cell.
+            bool hub = global::Fence.Gym.Power.HubCarries(ras);
+            if (Converts(ras))
+            {
+                var spare = hub ? Loose(Cell).OrderByDescending(Energy).ThenBy(c => c.uniqueId).FirstOrDefault(c => Energy(c) >= 2 * usage) : null;
+                if (spare == null || Chore.Accept(stock, bat.childItem, -1) != 0) return;
+                Chore.Accept(bat, spare, -1);
+                return;
+            }
+            var conv = hub ? null : Loose(Converter).FirstOrDefault();
             if (conv != null && MachineRAS.IsWorthRunning(ras) && (bat.childItem == null || Chore.Accept(stock, bat.childItem, -1) == 0))
             {
                 Chore.Accept(bat, conv, -1);
@@ -531,6 +558,7 @@ namespace Fence.Gym
                 Console.Error.WriteLine($"fish-fillet d{ep.Day} {fish.identifier} age={Age(fish)} meat={AquacultureHelper.GetMeatKcal(fish)} pieces={string.Join(",", pieces.Select(p => p.identifier))}");
             if (pieces.Count == 0) return;
             Filleted++;
+            if (pieces.Any(p => p.IsTag("GUTTERFLOW_TAINTED_TAG"))) Trash++;
             breeders.Remove(fish.uniqueId);
             var ras = tankGrid?.GetParentItem();
             var disp = ras == null ? null : SlottedDispenser(ras);
@@ -570,12 +598,31 @@ namespace Fence.Gym
                     Chore.Accept(stock, bag, -1);
                 var store = MachineFeedDispenser.GetStorageGrid(disp);
                 int stored = disp.GetTagReadonly("STORED_KCAL_TAG").GetInt(), added = 0;
-                if (store == null || stored >= FeedKcal) { if (stored < need) HungryNights++; return; }
+                // With pellets a fuller dispenser lets a 4 000-kcal bag in under the share: other food to 4 000 / r.
+                double share = gutterOnly ? 0 : PelletShare;
+                bool pellets = share > 0 && Loose(Pellet).Any() && !grid.childItems.Any(i => i != null && AquacultureHelper.IsFish(i) && !AquacultureHelper.IsDead(i)
+                    && Math.Round(AquacultureHelper.GetPelletShare(i) * 100) >= Math.Round(share * 100));
+                int target = pellets ? Math.Max(FeedKcal, (int)Math.Ceiling(4000 / share)) : FeedKcal;
+                if (store == null || stored >= target) { if (stored < need) HungryNights++; if (store == null || !pellets) return; }
                 foreach (var f in Owned().Where(i => Food(i) && (i.identifier != Pellet || gutterOnly) && Parent(i) == null && !StolenHelper.IsStolenItem(i) && !Directives.Current.HoldUids.Contains(i.uniqueId)).OrderBy(i => i.identifier == Feed ? 0 : 1).ThenBy(i => i.uniqueId).ToList())
                 {
-                    if (stored + added >= FeedKcal) break;
+                    if (stored + added >= target) break;
                     int k = f.GetTagReadonly("CALORIE_VALUE_TAG").GetInt();
                     if (Chore.Accept(store, f, -1) == 0) added += k;
+                }
+                if (pellets)
+                {
+                    // Blend first so the buckets read true, then a bag at a time while the pellet bucket stays within the share.
+                    if (added > 0) { ep.MachineButton(ras, LocHelper.GetLocalizedMechanic("mech_ras_btn_blend"))?.Invoke(); }
+                    int total = disp.GetTagReadonly("STORED_KCAL_TAG").GetInt(), inPellets = MachineFeedDispenser.GetPelletKcal(disp);
+                    int extra = 0;
+                    foreach (var bag in Loose(Pellet).Where(i => !Directives.Current.HoldUids.Contains(i.uniqueId)).OrderBy(i => i.uniqueId).ToList())
+                    {
+                        int k = bag.GetTagReadonly("CALORIE_VALUE_TAG").GetInt();
+                        if (inPellets + extra + k > share * (total + extra + k) || total + extra + k > 40000) break;
+                        if (Chore.Accept(store, bag, -1) == 0) { extra += k; PelletKcal += k; }
+                    }
+                    added += extra;
                 }
                 if (added > 0 || store.childItems.Any(i => i != null))
                 {
@@ -665,7 +712,7 @@ namespace Fence.Gym
                 ["fillets_sold"] = FilletSold, ["fillet_sales"] = FilletSales, ["feed_spend"] = FeedSpend, ["kcal_added"] = KcalAdded,
                 ["hungry_nights"] = HungryNights, ["unpowered"] = Unpowered, ["upgrades"] = Upgrades, ["filters"] = Filters,
                 ["water_ml"] = new JArray(tanks.Select(WaterMl)),
-                ["big_bought"] = BigBought, ["big_filleted"] = BigFilleted, ["big_value"] = BigValue, ["strips"] = Strips, ["caviar_value"] = CaviarValue, ["meat_fed"] = MeatFed,
+                ["big_bought"] = BigBought, ["big_filleted"] = BigFilleted, ["big_value"] = BigValue, ["strips"] = Strips, ["caviar_value"] = CaviarValue, ["meat_fed"] = MeatFed, ["pellet_kcal"] = PelletKcal, ["trash"] = Trash,
                 ["big_live"] = grids.Sum(g => g.childItems.Count(i => i != null && Big(i) && !AquacultureHelper.IsDead(i))),
             };
         }

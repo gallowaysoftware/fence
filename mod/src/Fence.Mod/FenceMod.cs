@@ -290,10 +290,11 @@ namespace Fence.Mod
         const string GunFeature = "autopilot.gun";
         const string MachinesFeature = "autopilot.machines";
         const string GunOrdersFeature = "autopilot.gun_orders";
+        const string WantedFeature = "autopilot.wanted";
 
         void StartAutopilot(HashSet<string> disabled)
         {
-            autopilot = new AutopilotDriver(log, StartCoroutine, Record, recorder, advisor, () => autopilotOn(), () => autopilotPace(), () => autopilotHold(), () => autopilotDirectives());
+            autopilot = new AutopilotDriver(log, StartCoroutine, Record, recorder, advisor, session, client, () => autopilotOn(), () => autopilotPace(), () => autopilotHold(), () => autopilotDirectives());
             autopilot.GunSetting = () => autopilotGun();
             autopilot.GunUsable = !disabled.Contains(GunFeature);
             if (!autopilot.GunUsable) log.Warn("autopilot: the gun's members are missing; on an aug it hands over (see compat warnings)");
@@ -301,6 +302,8 @@ namespace Fence.Mod
             if (!autopilot.MachinesUsable) log.Warn("autopilot: the machine buttons' members are missing; the lab, the RAS blend and the bottle printer do nothing live (see compat warnings)");
             autopilot.GunOrdersUsable = !disabled.Contains(GunOrdersFeature);
             if (!autopilot.GunOrdersUsable) log.Warn("autopilot: the gun order's members are missing; order clients are sent away (see compat warnings)");
+            autopilot.WantedUsable = !disabled.Contains(WantedFeature);
+            if (!autopilot.WantedUsable) log.Warn("autopilot: the wanted-poster members are missing; posters are sent away (see compat warnings)");
             var missing = AutopilotFeatures.Where(disabled.Contains).ToList();
             if (missing.Count > 0)
             {

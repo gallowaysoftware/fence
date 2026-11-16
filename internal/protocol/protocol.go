@@ -174,6 +174,10 @@ type SummaryResponse struct {
 	// Directives is the plan as machine-readable instructions for an executor; absent
 	// when there is no plan.
 	Directives *Directives `json:"directives,omitempty"`
+	// BaseDirectives is the bridge's base directives document (the route's .Base or
+	// -base-directives file) as a JSON string; the executor's baseline under the day plan.
+	// Absent when the bridge has none.
+	BaseDirectives string `json:"base_directives,omitempty"`
 	// Bet is what the plan did to the run's bet; absent when it did nothing.
 	Bet *BetMove `json:"bet,omitempty"`
 }
@@ -258,6 +262,14 @@ type Directives struct {
 	BargainBuy     string               `json:"bargain_buy,omitempty"`
 	Speculate      *SpeculateDirectives `json:"speculate,omitempty"`
 	Specialty      *SpecialtyDirectives `json:"specialty,omitempty"`
+	// Gym executor module levers (sim/gym/Modules.cs): the security alarm and its faction
+	// transmitters, the hydroponic bay modules, the mirage projector's and the module
+	// introduction's first-time discount. Raw keys today; typed so a fork may set them.
+	Alarm              string   `json:"alarm,omitempty"`
+	Transmitters       []string `json:"transmitters,omitempty"`
+	BayModules         string   `json:"bay_modules,omitempty"`
+	ProjectorModules   string   `json:"projector_modules,omitempty"`
+	JacksonModuleIntro string   `json:"jackson_module_intro,omitempty"`
 }
 
 type SpeculateDirectives struct {

@@ -274,6 +274,9 @@ namespace Fence.Gym
         // A claim the player knows or suspects to be better than the truth: what any buyer able to check it would find.
         public static bool MayHideFake(GameItem i) => MayExpose(null, i);
 
+        // The poster wall: every wanted face but a stealth-wanted one has a poster the player can match it to.
+        public static bool OnPosterWall(StoreClient c) => c != null && c.isWanted && !c.isStealthWanted;
+
         // A container's water label is not yet known to be the truth.
         public static bool WaterUnverified(GameItem i) =>
             i.IsTag("LIQUID_CONTAINER_TAG") && !WaterHelper.IsEmpty(i) && WaterFeatureHelper.GetWaterFeature(i) is ItemFeature f && !f.IsExposed() && Truth(i, f) == null;

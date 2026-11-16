@@ -61,6 +61,8 @@ namespace Fence.Autopilot
         Fire,
         // A gun-order client's order filled from stock and accepted, or the client sent away (Arms.Prepare).
         GunOrder,
+        // A wanted poster reported for its bounty, then the arrest presentation (Fence.Gym.Wanted, Episode.Wanted).
+        WantedReport,
     }
 
     public sealed class Step
@@ -135,6 +137,7 @@ namespace Fence.Autopilot
     {
         public int Day = -1;
         public bool WindowDone;
+        public bool Reported;
         public bool ServicesSet;
         public bool SleepRequested;
         public bool ChoresDone;
@@ -143,6 +146,8 @@ namespace Fence.Autopilot
         // The night's plan (PlayerRole.Night): an outing (null: none) and whether to search the dump; each part
         // is done or given up once.
         public bool NightPlanned;
+        // The night's decision with the bridge, in flight (null: asked, or never asked this night).
+        public string NightAsk;
         public string Outing;
         public bool Scavenge;
         public bool WildCalled;
@@ -153,6 +158,8 @@ namespace Fence.Autopilot
         public bool JacksonBought;
         public bool CarriedHome;
         public bool Returning;
+        // Uids of the loot that did not fit the pockets and backpack, left on the ground (the return expels it).
+        public List<int> CarryLeft = new List<int>();
         // Upgrades to buy while Wild's window is open (null: not yet planned for this opening).
         public Queue<string> WildBuys;
 
@@ -176,6 +183,8 @@ namespace Fence.Autopilot
         public int? CashBeforeShot;
         // This customer's gun order was filled or refused: never planned again.
         public bool GunOrderDone;
+        // This poster client was reported: never reported again (the arrest presentation may still be playing).
+        public bool WantedReported;
         // The last customer left and their leftovers are not yet planned back to stock.
         public bool UnstagePending;
 
@@ -184,9 +193,11 @@ namespace Fence.Autopilot
         public void NewDay(int day)
         {
             Day = day;
-            WindowDone = ServicesSet = SleepRequested = ChoresDone = EveningDone = false;
+            WindowDone = ServicesSet = SleepRequested = ChoresDone = EveningDone = Reported = false;
             NightPlanned = WildCalled = OutingDone = ScavengeDone = LootPlanned = JacksonStaged = JacksonBought = CarriedHome = Returning = false;
+            NightAsk = null;
             Outing = null;
+            CarryLeft.Clear();
             Scavenge = false;
             WildBuys = null;
             Calls.Clear();
@@ -208,6 +219,7 @@ namespace Fence.Autopilot
             ClientKey = null;
             StagedBuyer = StagedSeller = Dismissed = ExposableChecked = DonationStaged = false;
             GunDecided = GunRaised = Fired = GunOrderDone = false;
+            WantedReported = false;
             CashBeforeShot = null;
             CounterMoves = BribeTries = 0;
             Estimate = null;
@@ -314,7 +326,7 @@ namespace Fence.Autopilot
 
         static Step Morning(LiveView v, AutopilotMemory m)
         {
-            if (v.MorningPanelOpen) return Step.Of(StepKind.ClosePanel);
+            if (v.MorningPanelOpen) return m.Reported ? Step.Of(StepKind.ClosePanel) : Step.Of(StepKind.Wait, "reading the morning report");
             if (!m.ChoresDone) return Step.Of(StepKind.Chores);
             if (m.Calls.Count > 0) return Step.Of(StepKind.Wait, "calls first");
             if (!m.WindowDone) return Step.Of(StepKind.PlanWindow);
@@ -375,6 +387,11 @@ namespace Fence.Autopilot
             }
             if (v.CoverageGap == null && v.Intent == ClientIntent.Sell && !m.StagedSeller && v.TheirItemsOnCounter) return Step.Of(StepKind.PlanStageSeller);
             if (quietMs < UncoveredQuietMs) return Step.Of(StepKind.Wait, v.CoverageGap != null ? "letting the " + Kind(v) + " customer finish" : "counter not ready");
+            // The gym's wanted rule (Fence.Gym.Wanted): a poster face the plan says to report is reported once
+            // settled, instead of the old dismiss/handover path.
+            if (v.PosterClient && v.CanReport && v.WantedReportOn && !m.WantedReported) return Step.Of(StepKind.WantedReport, "the wanted poster " + (v.ClientName ?? ""));
+            if (v.CartelHandler) return Step.Of(StepKind.Handover,
+                "the cartel handler is here: the count of dust at the required purity must be on the counters before clicking yes (the lab's quota morning stages it when the lab runs); no dust is game over");
             if (v.ClientDismissable) return Step.Of(StepKind.Dismiss, v.CoverageGap ?? "counter never became ready");
             return Step.Of(StepKind.Handover, Who(v) + ": " + Kind(v) + " customer, not dismissable");
         }
@@ -387,6 +404,7 @@ namespace Fence.Autopilot
             if (m.UnstagePending) return Step.Of(StepKind.PlanUnstage);
             if (!m.NightPlanned) return Step.Of(StepKind.PlanNight);
             if (m.Calls.Count > 0) return Step.Of(StepKind.Wait, "calls first");
+            if (m.Outing != null && !m.OutingDone && m.NightAsk != null) return Step.Of(StepKind.Wait, "the night's decision");
             if (m.Outing != null && !m.OutingDone)
             {
                 if (v.GoOutsideConfirmOpen) return Step.Of(StepKind.ConfirmGoOutside);

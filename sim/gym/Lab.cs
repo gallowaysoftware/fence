@@ -60,7 +60,7 @@ namespace Fence.Gym
         // Water filters held (kotton half that): a 20-bean batch spends about one of each, and the chemist and the
         // farmer bring them a few a week.
         static int Filters => Legacy ? 2 : Cfg.Value<int?>("filters") ?? 4;
-        static int Hold => Legacy ? MaxInputs : Cfg.Value<int?>("hold") ?? 2 * MaxInputs;
+        public static int Hold => Legacy ? MaxInputs : Cfg.Value<int?>("hold") ?? 2 * MaxInputs;
         static int Reserve => Cfg?.Value<int?>("reserve") ?? Directives.Current.Raw.Value<int?>("lab_reserve") ?? 500;
         static bool AfterPermit => Cfg?.Value<bool?>("after_permit") ?? Directives.Current.Raw.Value<bool?>("lab_after_permit") ?? true;
         // "auto" buys the next chem module when its grade or yield gain pays it back within `payback_weeks`; "none"
@@ -1409,6 +1409,28 @@ namespace Fence.Gym
             return v >= 350 ? "MEDICAL" : null;
         }
 
+
+        // ScanView mirrors the composition spectrometer's panel for one container (CHEMISTRY.md §4.1,
+        // ChemScannerUIManager.RefreshUI): every liquid in µL and % of total, total volume, and the
+        // flags the panel shows. Only when the scanner is owned — without it the player knows the
+        // bottle's type, not its composition, and the view must not know more (Known.Spectrometer).
+        static JObject ScanView(GameItem c)
+        {
+            int total = Total(c);
+            var liquids = new JObject();
+            foreach (var l in Liquid.Liquids)
+            {
+                int ul = Tag(c, l.identifier);
+                if (ul > 0) liquids[l.identifier] = new JObject { ["ul"] = ul, ["pct"] = Math.Round(ul * 100.0 / Math.Max(total, 1), 2) };
+            }
+            var o = new JObject { ["ml"] = total / 1000, ["liquids"] = liquids };
+            if (ChemicalFeedbackHelper.IsLethal(c)) o["toxicity"] = "lethal x" + ChemicalFeedbackHelper.GetLethalDose(c);
+            else if (ChemicalFeedbackHelper.IsToxic(c)) o["toxicity"] = "toxic";
+            if (ChemicalFeedbackHelper.IsNarcotic(c)) o["euphoria"] = new[] { "weak", "mild", "strong", "extreme" }[ChemicalFeedbackHelper.GetEuphoriaLevel(c) - 1];
+            return o;
+        }
+
+        static GameItem VesselItem => ById(vessel);
         public static JObject Status()
         {
             if (!On) return null;
@@ -1426,6 +1448,8 @@ namespace Fence.Gym
                 ["pills_sold"] = PillsSold, ["pill_sales"] = PillSales, ["packs_opened"] = PacksOpened, ["recovering"] = Recovering(), ["room_moves"] = RoomMoves, ["bath"] = BathOn, ["increments"] = Increments, ["chem_bay"] = Find(ChemBay) != null, ["into_bay"] = InBay, ["recovered_ml"] = RecoveredUl / 1000, ["alcohol_ml"] = Have("alcohol") / 1000, ["modules_fitted"] = ModulesFitted,
                 ["finisher_modules"] = kit.f, ["blender_modules"] = kit.b, ["plate_modules"] = plate == null ? 0 : PlateModules(plate), ["scanner"] = Scans, ["water_filter"] = kit.wf,
                 ["stalls"] = JObject.FromObject(stalls), ["expect"] = expect, ["products"] = JObject.FromObject(per),
+                ["scanned"] = Scans && VesselItem != null ? ScanView(VesselItem) : null,
+                ["bottles"] = Scans ? JArray.FromObject(Owned().Where(IsReagentBottle).Select(b => new JObject { ["id"] = b.identifier, ["scan"] = ScanView(b) }).ToList()) : null,
             };
             if (modulePlan != null) o["module_plan"] = modulePlan;
             if (NewGameData.Instance?.startType == NewGameData.StartType.DRUG_DEALER)

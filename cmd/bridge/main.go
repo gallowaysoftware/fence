@@ -366,7 +366,7 @@ func run(ctx context.Context, args []string, getenv func(string) string, stderr 
 		log.Warn("listening beyond loopback; the bridge has no authentication", "addr", ln.Addr().String())
 	}
 	bridge := server.New(server.Config{Mode: mode, Policy: pol, Model: modelName(c, client), Log: dlog,
-		Recorders: recs, Summarizer: sum, Planner: planner, AppraisalGuides: guides, Logger: log})
+		Recorders: recs, Summarizer: sum, Planner: planner, AppraisalGuides: guides, BaseDirectives: base, Logger: log})
 	// Runs before the memory and decision log close: recorders drain into memory first.
 	defer func() {
 		bridge.Close()

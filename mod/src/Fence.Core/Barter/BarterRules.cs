@@ -46,6 +46,24 @@ namespace Fence.Barter
         public static readonly int[] PricePercents = { 10, 25, 50, 75 };
         public const int CoercionPercent = 20;
 
+        // The wanted posters (docs/re/CLIENTS.md, "The wanted list"): the gym's rule (Fence.Gym.Wanted.Report) is
+        // directive-gated on the same `wanted` key; report | report_all means report poster faces at the counter,
+        // dismiss means send them away (Lou stays out either way: report_all is a gym-only extension).
+        public static bool WantedReportOn(string mode) => mode == "report" || mode == "report_all";
+
+        // The gym's wanted rule (Fence.Gym.Wanted.Report) read off the live client's fields: a poster face that is
+        // reportable, not Lou under plain report, and whose faction's rep is above the floor (wanted_rep_floor,
+        // default -60) when the report would cost that faction rep. The gym and the live mod must read the same
+        // fields; keep the two in lockstep.
+        public static bool WantedReportable(bool onPosterWall, bool canReport, string posterId, bool reportDegrades,
+            bool reportImproves, int repPenalty, double? factionRep, int repFloor = -60)
+        {
+            if (!onPosterWall || !canReport) return false;
+            if (posterId == "wanted5") return false; // Lou (Fence.Gym.Wanted.Lou) is report_all only; the live mod never turns it on.
+            if (reportDegrades && !reportImproves && repPenalty != 0 && factionRep.HasValue && factionRep.Value < repFloor) return false;
+            return true;
+        }
+
         public static bool IsBuying(ClientIntent i) => i == ClientIntent.Buy || i == ClientIntent.SellAndBuy;
         public static bool IsSelling(ClientIntent i) => i == ClientIntent.Sell || i == ClientIntent.SellAndBuy;
 

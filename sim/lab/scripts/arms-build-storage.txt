@@ -1,0 +1,15 @@
+# The planner with the storage bay as an urgent kit (docs/research/BUILD-ORDER.md): 16 seeds 9400001-016, build bo7.
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build-storage.txt -dir var/sim/exp/bo7 -seeds 16 -seed0 9400000 -procs 12 -- -difficulty hard -perks vending+short_sleeper -human player
+farmer                 | -start farmer -directives sim/lab/scripts/directives/routes/farmer.json
+farmer_weed            | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed.json
+farmer_weed_build      | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build.json
+farmer_weed_build_h98  | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build_h98.json
+sprinter               | -start apprentice -directives sim/lab/scripts/directives/routes/sprinter.json
+weed_power             | -start apprentice -directives sim/lab/scripts/directives/build/weed_power.json
+weed_power_build       | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build.json
+vintner                | -start apprentice -directives sim/lab/scripts/directives/cellar/vintner.json
+vintner_cw_power       | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_power.json
+vintner_cw_power_build | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_power_build.json
+armourer               | -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_forge         | -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge.json
+armourer_forge_build   | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_build.json

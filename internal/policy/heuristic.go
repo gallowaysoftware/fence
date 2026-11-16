@@ -32,6 +32,8 @@ func (h Heuristic) Decide(_ context.Context, req *protocol.DecideRequest) Decisi
 		d = inspectHeuristic(req)
 	case augCheckKind:
 		d = augHeuristic(req)
+	case nightKind:
+		d = nightHeuristic(req)
 	default:
 		return heuristicDefer("unknown decision kind " + strconv.Quote(req.Kind))
 	}

@@ -243,8 +243,9 @@ func TestBridgeToExport(t *testing.T) {
 		t.Fatalf("want one day: %v", err)
 	}
 	got := []int{d.GameDay, len(d.Snapshots), len(d.Customers), len(d.Decisions), len(d.HumanActions), len(d.Outcomes), len(d.Events), len(d.Labels)}
-	// Events: the shutter, and the autopilot's action and stop (kept apart from the human's moves).
-	want := []int{69, 1, 1, 1, 1, 1, 3, 3}
+	// Events: the morning report, the shutter, and the autopilot's action and stop (kept apart from
+	// the human's moves).
+	want := []int{69, 1, 1, 1, 1, 1, 5, 3}
 	if fmt.Sprint(got) != fmt.Sprint(want) {
 		t.Fatalf("day, snapshots, customers, decisions, actions, outcomes, events, labels = %v, want %v", got, want)
 	}
@@ -252,7 +253,7 @@ func TestBridgeToExport(t *testing.T) {
 	for _, e := range d.Events {
 		kinds = append(kinds, e.Kind)
 	}
-	if strings.Join(kinds, ",") != "shutter_opened,autopilot,autopilot_fault" {
+	if strings.Join(kinds, ",") != "morning_report,shutter_opened,autopilot,autopilot,autopilot_fault" {
 		t.Errorf("event kinds %v", kinds)
 	}
 	if m := d.HumanActions[0].Matched; m != nil {

@@ -76,7 +76,11 @@ autopilot names the dialogue by client id), `mortgage_signed` (down payment, wee
 `mortgage_payment` (each one, with the weeks left; the first, every fourth and the last two
 are moments, the rest notable), `buyout` (the won run's end,
 or a cash buyout), `aug_confronted` (a shot), `handover` (the autopilot stops for its human:
-"Over to the human: …") and `autopilot_back` (the first resume after it). The gym's appraisals
+"Over to the human: …"), `autopilot_back` (the first resume after it) and `cartel_quota` (the
+Chemist start's weekly count, read from the handler's lines: "The cartel's count: the handler takes the
+Dream Dust off the counter (quota 10 at 40%+ purity)."; the mid-week check-in is a notable line naming
+the next count). A board or cartel click is logged twice live (the game's `human_action` and the
+autopilot's record); the beat is told once. The gym's appraisals
 are ticker lines with the estimate and fee; the gun coming out is a notable line, marked ◆
 (`aug_truth`) when the run's `aug_detection` is `perfect`, which no player has.
 
@@ -86,7 +90,10 @@ notable trade, at most two a day and three customers apart; the caption adds the
 "…for 127 (estimate 150), after a haggle (demand discount 10%): accepted."), `night` (what the
 outing brought home, from the sleep snapshot's new items against the close snapshot's: "Night at
 the dumping ground, 5 scavenges: back with Quality Module and Scrap Metal (estimate 74)." or
-"Night at Dr. Jackson's: back with nothing."), `morning_plan` (the day's first notable plan,
+"Night at Dr. Jackson's: back with nothing."), `lab` (a notable line per run of machine presses,
+told when the autopilot moves on, beside the chem cam's view: "In the lab: pressed Output on the Chem
+Finisher (×10) and Start on the Blender."; the heating plate's corrections alone are ticker lines),
+`morning_plan` (the day's first notable plan,
 raised to a moment; later changes that day stay notable), `milestone` (net worth crossing 25,
 50 and 75 % of the buyout price, once each a run), `appraisal_streak` (the third accepted
 appraisal in a row and every fifth; a refusal starts over) and `pace` (the run against its lab book, below,

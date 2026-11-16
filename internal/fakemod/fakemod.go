@@ -42,8 +42,8 @@ type Result struct {
 // After it: the human's move, then the autopilot's (docs/STREAM.md): an action and a handover.
 // Seqs are renumbered per session, as the mod does.
 var (
-	eventsBefore = []string{"event.day_snapshot.json", "event.request.json", "event.customer_observed.json"}
-	eventsAfter  = []string{"event.human_action.json", "event.autopilot.json", "event.autopilot_fault.json"}
+	eventsBefore = []string{"event.day_snapshot.json", "event.morning_report.json", "event.request.json", "event.customer_observed.json"}
+	eventsAfter  = []string{"event.human_action.json", "event.autopilot.json", "event.autopilot_counter.json", "event.autopilot_fault.json"}
 )
 
 // Run does health → hello → events → decide → human action → outcome → summary. Like the

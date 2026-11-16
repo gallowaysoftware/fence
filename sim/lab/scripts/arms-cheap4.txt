@@ -1,0 +1,5 @@
+# The measured winners together (wanted reports, the Board blacklist, the rent skip) against their route.
+# nice python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cheap4.txt -dir var/sim/exp/cheap -seeds 60 -days 1000 -parallel 1 -- -difficulty hard -seed0 2910000
+appraiser_combined | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_combined.json
+rancher_sprinter_combined | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_combined.json
+outlaw_combined | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_combined.json

@@ -1,0 +1,13 @@
+# Baselines for the fish/power/rats/modules round (docs/re/AQUACULTURE.md §5.1, FORMULA-EXPLOITS.md §6/§10/§12): the menu
+# routes as they stand, with and without the Board, hard, ghost-band seeds 8100001-060, 1000-day horizon.
+# FENCE_GYM_DLL=var/sim/gyms/fp-base/fence-gym.dll python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-fishpower-base.txt -dir var/sim/exp/fp-base -seeds 60 -days 1000 -parallel 7 -- -difficulty hard -perks vending+short_sleeper -seed0 8100000 -no-trajectory
+aquafarmer | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer.json
+rancher_sprinter | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter.json
+rancher | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher.json
+smelter | -human player -start apprentice -directives sim/lab/scripts/directives/fishpower/smelter.json
+smelter_sprinter | -human player -start apprentice -directives sim/lab/scripts/directives/fishpower/smelter_sprinter.json
+aquafarmer_noboard | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_noboard.json
+rancher_sprinter_noboard | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter_noboard.json
+rancher_noboard | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_noboard.json
+smelter_noboard | -human player -start apprentice -directives sim/lab/scripts/directives/fishpower/smelter_noboard.json
+smelter_sprinter_noboard | -human player -start apprentice -directives sim/lab/scripts/directives/fishpower/smelter_sprinter_noboard.json

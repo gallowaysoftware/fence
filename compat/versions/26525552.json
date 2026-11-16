@@ -75,7 +75,7 @@
       "threads"
     ]
   },
-  "hooks_sha256": "540bd60785ff8ed1e5b535382820c7e10c5a3c31b2300113bbc53b6146a35ae9",
+  "hooks_sha256": "7a86b5cf70e3c6db63bd955d3f0e013c154cccd0834e16ebdc26c621bf6a9623",
   "hooks_ok": true,
   "required_ok": true,
   "hooks": [
@@ -300,6 +300,10 @@
       "status": "Ok"
     },
     {
+      "id": "state.afterhour_pocket_backpack",
+      "status": "Ok"
+    },
+    {
       "id": "state.front_counter",
       "status": "Ok"
     },
@@ -449,6 +453,10 @@
     },
     {
       "id": "client.isStealthWanted",
+      "status": "Ok"
+    },
+    {
+      "id": "client.reported",
       "status": "Ok"
     },
     {
@@ -1080,6 +1088,14 @@
       "status": "Ok"
     },
     {
+      "id": "snap.upgrade_cooldown",
+      "status": "Ok"
+    },
+    {
+      "id": "snap.upgrade_cooldown_duration",
+      "status": "Ok"
+    },
+    {
       "id": "snap.upgrade_title",
       "status": "Ok"
     },
@@ -1624,6 +1640,10 @@
       "status": "Ok"
     },
     {
+      "id": "night.scav_can",
+      "status": "Ok"
+    },
+    {
       "id": "night.scavenge_attempt",
       "status": "Ok"
     },
@@ -1928,6 +1948,22 @@
       "status": "Ok"
     },
     {
+      "id": "autopilot.shotgun_click",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.shotgun_can_pickup",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.can_shoot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.shooting_ui",
+      "status": "Ok"
+    },
+    {
       "id": "aug.is_shooting_mode",
       "status": "Ok"
     },
@@ -2048,6 +2084,10 @@
       "status": "Ok"
     },
     {
+      "id": "snap.grid_shape_local",
+      "status": "Ok"
+    },
+    {
       "id": "snap.inventory_items",
       "status": "Ok"
     },
@@ -2069,6 +2109,1714 @@
     },
     {
       "id": "snap.shape_intersects",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.uipanel",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.closeui",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.advcalendaruimanager.instance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.afterhourevents.isactive",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.chemicalhelper.dissolveinto",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.contrabandhelper.iscontraband",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.currentconverterhelper.iscurrentconverter",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.dialoguimanager.dialogchoicebubbles",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.dialoguimanager.iswaitingformanualadvance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.dialoguimanager.onadvancepressed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.directorymaster.item",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.durabilityhelper.getrealdurability",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.endofdayuimanager.initui",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.endofdayuimanager.instance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.endofdayuimanager.isopen",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.getgameitemtype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.getitemsize",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.isgameitemtype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.mayremove",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitemfunc.onitemtargetitemfunc",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitemfunc.onthistargetitemfunc",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameoveruimanager.instance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameoveruimanager.isshowing",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameslotinventory.childitem",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.generalhelper.setitemowned",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.graphutils.findallchildrentype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.graphutils.findchildrentype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.graphutils.tryacceptall",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.gethealthpercent",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.interactable.ispaused",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.customintvalue1",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.isexposable",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.usecondition",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.exposefeature",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.isfeaturematch",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.isrealfeaturecheaper",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizeddialogue",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizedmechanic",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.lochelper.getlocalizedmechanicordefault",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinebottleprinter.isnormalunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehelper.getbatteryslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehelper.getslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehelper.getbodystorage",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehydroponic.getinputslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehydroponic.getoutputslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehydroponic.getwaterslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehydroponic.getwaterslotitem",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineryhelper.getmachinepowerusage",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.mapuimanager.isintransit",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.modhelper.addgameoptionkeybind",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtobackcounter",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtodisplaycase",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.modhelper.moveitemtoinventory",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.getupgradebyid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.isretiredfarmerunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.ispowerhijackunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.iscommercialpowerunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.powerhelper.isdisposablepowersource",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.iswinemakerunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.isvendingmachineunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.isvendingfountainunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.loanofferedtogeorgio",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.lockshutterbuttonflag",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.storeclientdata",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.canendday",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.getallrepoeligibleitems",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.getbusinesspermitprice",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.isclientdimissable",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.powerhelper.candrawpowersource",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.powerhelper.getavailableenergyfromitem",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storebedroll.onclick",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.canclientexposeanyfeaturedeep",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.getinspectablechildren",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclientdata.businesspermitbribeamount",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclientmanager.clientstack",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.amountspent",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.phonestate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.stocktype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.getbrewerphoneclient",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.getminingphoneclient",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.useservice",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeservice.isoncooldown",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeshutterbutton.onclick",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeshutterbutton.instance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeuimanager.blackscreen",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeuimanager.closeshutterconfirmationpanel",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.scratcherhelper.marksymbolscratched",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.scratcherhelper.isfullyscratched",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.scratcherhelper.tryredeemprize",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.canupgradedattractiveness",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.canupgradedcapacity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getsalechance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getvendinginventory",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.getvendingprice",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.transfercashtoplayer",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.upgradeattractiveness",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.vendingmachinehelper.upgradecapacity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getpurityarrayindex",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getwaterfeature",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.onwaterlabelupdated",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.watertankhelper.getcapacityml",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.watertankhelper.canupgrade",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.watertankhelper.upgrade",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.emptycontainer",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.onuvused",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.getcurrentcapacityml",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.getfilteritem",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.getwaterpurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.isempty",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.isfull",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.transferliquid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.canemptywinebottle",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.emptywinebottle",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.getwaterqualityscore",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.getwinequalitytier",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.isfinishedwine",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.iswaterration",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.pourrationintobottle",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.winehelper.trystartfermentation",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.contentwindow",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.isclientbuying",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehelper.getmoduleinv",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineryhelper.getcurrentperformancebonus",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinealarm.toggletransmitter",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineprojector.getattractivenessboost",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.healthdata.woundstate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getdisplayedcertificate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getpromotioncost",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.getrank",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalrankhelper.iscertificate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.appraisalprogress",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.isappraisalintroduced",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.getappraisaljoincost",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.insinjectorhelper.recalled_prefix",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.labelerhelper.iseditablelabelfeature",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemconditionlist.conditionlookup",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.fakecondition",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemfeature.setexposed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.emporiumentry.finditembyuniqueid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemcondition.modvalue",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.gettraitrank",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getdisktrait",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.isblankdisk",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.planttrait.id",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.isplantdnaunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineprogresshelper.getmachinestate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getseedslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getinputdiskslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getoutputdiskslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getejectgrid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.getprecisiontrait",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantregistry.get",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantregistry.all",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantdefinition.id",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantdefinition.returnsseeds",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantdefinition.harvestisownseed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantdefinition.getinnaterank",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantdefinition.innatetraits",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.geteffectivecomplexity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getsuccesschance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.iswrittendisk",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getdiskuses",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.canapplytrait",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.gettraits",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getcomplexity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getheat",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.extractionuses",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.plantgeneticshelper.getextractabletraits",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.modulehelper.getajustedquality",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.planoperation",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.blockedreason",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.successchance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinednamanipulator.operationplan.progress",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.liquid.getcurrentpartfromid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.liquid.currentpart",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.unitvalue",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.planttrait.locked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getplant",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.isgrowingseed",
+      "status": "Ok"
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.islethal",
+      "status": "Ok"
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.getlethaldose",
+      "status": "Ok"
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.istoxic",
+      "status": "Ok"
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.isnarcotic",
+      "status": "Ok"
+    },
+    {
+      "id": "record.snapshot.chemicalfeedbackhelper.geteuphorialevel",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitemfunc.canthistargetitemfunc",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.planttraitregistry.get",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.removeplantfromhydroponic",
+      "status": "Ok"
+    },
+    {
+      "id": "Dialogue.nextDialogue",
+      "status": "Ok"
+    },
+    {
+      "id": "PixelWindow.child",
+      "status": "Ok"
+    },
+    {
+      "id": "PixelWindow.Show",
+      "status": "Ok"
+    },
+    {
+      "id": "GameItemElement.handler",
+      "status": "Ok"
+    },
+    {
+      "id": "TreeNodeRender.rectTransform",
+      "status": "Ok"
+    },
+    {
+      "id": "PlayerStore.dayWhenLoanOfferedGeorgio",
+      "status": "Ok"
+    },
+    {
+      "id": "GameItem.GetDonationCreditValue",
+      "status": "Ok"
+    },
+    {
+      "id": "PlayerStore.devMode",
+      "status": "Ok"
+    },
+    {
+      "id": "HealthData.IsSeriouslyWounded",
+      "status": "Ok"
+    },
+    {
+      "id": "StoreEventManager.IsEventActive",
+      "status": "Ok"
+    },
+    {
+      "id": "StartingPerkContent.IsAgoraphobiaResting",
+      "status": "Ok"
+    },
+    {
+      "id": "PlayerStore.isAfterhoursIntroduced",
+      "status": "Ok"
+    },
+    {
+      "id": "PlayerStore.visitLeftTonight",
+      "status": "Ok"
+    },
+    {
+      "id": "PlayerStore.isNetworkIntroduced",
+      "status": "Ok"
+    },
+    {
+      "id": "StorePhoneClient.GetWildPhoneClient",
+      "status": "Ok"
+    },
+    {
+      "id": "NetworkUpgrade.GetDefinitionsInOrder",
+      "status": "Ok"
+    },
+    {
+      "id": "NetworkUpgrade.isRepeatable",
+      "status": "Ok"
+    },
+    {
+      "id": "NetworkUpgrade.IsReady",
+      "status": "Ok"
+    },
+    {
+      "id": "MapUIManager.confirmationPanel",
+      "status": "Ok"
+    },
+    {
+      "id": "TransitUI.IsOpen",
+      "status": "Ok"
+    },
+    {
+      "id": "GenericConfirmationUIManager.Instance",
+      "status": "Ok"
+    },
+    {
+      "id": "GenericConfirmationUIManager.panel",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.Instance",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.phonePanel",
+      "status": "Ok"
+    },
+    {
+      "id": "DialoguePhoneUIManager.dialogChoiceBubbles",
+      "status": "Ok"
+    },
+    {
+      "id": "DialoguePhoneUIManager.isWaitingForManualAdvance",
+      "status": "Ok"
+    },
+    {
+      "id": "WildNetworkUI.IsOpen",
+      "status": "Ok"
+    },
+    {
+      "id": "InspectionUIManager.panel",
+      "status": "Ok"
+    },
+    {
+      "id": "EmporiumEntry.choices",
+      "status": "Ok"
+    },
+    {
+      "id": "EmporiumEntry.trashcan",
+      "status": "Ok"
+    },
+    {
+      "id": "RunStats.Current",
+      "status": "Ok"
+    },
+    {
+      "id": "RunStats.seriesStartDay",
+      "status": "Ok"
+    },
+    {
+      "id": "RunStats.netWorthByDay",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.CloseWildNetwork",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.ReturnFromAfterhour",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.OpenUI",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.WillAnswerCall",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.AutoCall",
+      "status": "Ok"
+    },
+    {
+      "id": "DialoguePhoneUIManager.OnAdvancePressed",
+      "status": "Ok"
+    },
+    {
+      "id": "PhoneUIManager.CloseUI",
+      "status": "Ok"
+    },
+    {
+      "id": "ModReflect.CallStatic",
+      "status": "Ok"
+    },
+    {
+      "id": "StoreDoor.OnClick",
+      "status": "Ok"
+    },
+    {
+      "id": "MapUIManager.OnGoOutsideConfirm",
+      "status": "Ok"
+    },
+    {
+      "id": "MapUIManager.ScavengeButtonClick",
+      "status": "Ok"
+    },
+    {
+      "id": "GenericConfirmationUIManager.ConfirmButtonPressed",
+      "status": "Ok"
+    },
+    {
+      "id": "InspectionUIManager.ChangeAppraisalServicePrice",
+      "status": "Ok"
+    },
+    {
+      "id": "InspectionUIManager.OnAppraisalServiceEstimated",
+      "status": "Ok"
+    },
+    {
+      "id": "ModHelper.MoveItemToAfterhours",
+      "status": "Ok"
+    },
+    {
+      "id": "StorePhoneClient.GetLocalizedDisplayName",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.getpharmaphoneclient",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storephoneclient.getchemphoneclient",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gutterflowpellethelper.ispellet",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.industrialfishfeedhelper.isfeed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagstate.getfloat",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.getdispenserslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getanimalkcal",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.canupgradesize",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.getcageinventory",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.genetichelper.getcurrentstat",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.canrepair",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.husbandryhelper.getspecies",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalspecies.growthstages",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getstoragegrid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagsystem.istag",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.upgradesize",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.animalcage.repair",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.destroy",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.husbandryhelper.ismature",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.husbandryhelper.onanimaldead",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.husbandryhelper.onbutcher",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineprogresshelper.canstart",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storereputation.isperkunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.usecounthelper.canuse",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.gettotalvolume",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.iswet",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinechemfinisher.canoutput",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagstate.enable",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagstate.setint",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagstate.setstring",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.modifytag",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitemfunc.onactivateslotitemfunc",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isfish",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isgroup",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.islivestock",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getspecies",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isdead",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getstage",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.canbreed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.getdispenserslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.gettankgrid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.isworthrunning",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.getwaterslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getwaterml",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gettotalwaterneedml",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.getfreecapacity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinehelper.canpower",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.haslivestock",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gethunger",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getwastepercent",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getweightgrams",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getmeatkcal",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gethealth",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getgrowthspeed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.getfiltergrid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.canupgradepowerefficiency",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.canupgradewidth",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.canupgradeheight",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.guttertilapia",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isintank",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.iscarcass",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getexpecteddraintonight",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.oldagedays",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.onfishdead",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.createfilletpieces",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridpixelelement.getelement",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.upgradepowerefficiency",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.upgradewidth",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineras.upgradeheight",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.newgamedata.instance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.newgamedata.starttype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.iscartelexited",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.cartelrequiredcount",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.cartelrequiredpurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.cartelexitstage",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getpurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getcurrentchemicalconditionid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineblender.getloss",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.tagstate.getdouble",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.liquid.liquids",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.liquid.identifier",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storereputation.getcartelreputation",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storereputation.getperkbyid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.difficultyrules.reputationgainmultiplier",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.difficultyrules.reputationlossmultiplier",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machineryhelper.getcurrentqualitybonus",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterhelper.getcontaminantpercentage",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getmineraluserate",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getwaterusepercycle",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getnutrimentlevel",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getnutrimentrange",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getcontaminanteffect",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hydroponichelper.getcontaminantsensitivity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.ingotpurityhelper.getpurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermiti",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermitii",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.permithelper.isgunpermitiii",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.permithelper.havepermit",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunhelper.isservicegun",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunhelper.canrepair",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunhelper.updatecurrentgunstats",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storereputation.getsecreputation",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.mandatoryrequirements",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.bonusrequirements",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.isserviceorder",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.isbestorder",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.tier",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.gettotalreward",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderdata.getplacedservicegun",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.id",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.value",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.iscaliber",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.ismustbelargerthan",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.ismet",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunorderrequirement.getreward",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.networkupgrade.isaquacultureiiunlocked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.gettankpoweroutput",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getmeatkcal",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getegggrams",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.layseggs",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.isgravid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.canstripeggs",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.eel",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.fishspecies.stagewaterneedml",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.stripeggs",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.window_child",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.row_panels",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.panel_content",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.intake_content",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.stack_elements",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.button_text",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.button_hidden",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.button_disabled",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.button_select",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machines.ras_blend",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.accept",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.trade_locked",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.tutorial",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.resolve_gun",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.is_accepted",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gun_orders.service_gun",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.emporiumentry.faucet",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.hands.item_destroyed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.chemicalproducthelper.getchemicalfeature",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.waterfeaturehelper.getconditionfrompurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemcondition.comparevalue",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.istag",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.itemconditionlist.conditionwaterpurity",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.ammoboxhelper.isammobox",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.canexposechem",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefridge.getchillzone",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefridge.isspirit",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefridge.ischillable",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.getshowcasetypevisitorcount",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storylineschedule.startday",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.daywithoutinsurance",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storerequest.canthisitemfillrequest",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storerequest.canfillrequest",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.wantedposterid",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.reportdegradesfaction",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.reportimprovesfaction",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.reputationpenalty",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.healthdata.liquidluckdaysleft",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storereputation.getstorereputation",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclient.canreport",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.islastallowed",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.canblock",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalitemtype.id",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.appraisalitemregistry.getall",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.playerstore.appraisalblacklist",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.startingperk.isalert",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.machinefeeddispenser.getpelletkcal",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.aquaculturehelper.getpelletshare",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.findadjacentytype",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameitem.unitcount",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gameinventory.tryinventoryslot",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.slotmarker.numtransfer",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.slotmarker.tryacceptonce",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshapebuilder.ctor",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshapebuilder.settransform",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshapebuilder.minx",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshapebuilder.miny",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.minx",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.miny",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.maxx",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.maxy",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.globalwidth",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gridshape.globalheight",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.storeclientdata.isbutcherhunting",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.emporiumentry.getallowneditemsbytag",
+      "status": "Ok"
+    },
+    {
+      "id": "autopilot.gunhelper.hasguninside",
       "status": "Ok"
     }
   ]

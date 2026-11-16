@@ -872,6 +872,60 @@ and `purist_sprint` ran with a 100-day horizon (`fenceformat lab -days 100`), wh
 as 1000 days would. The Aquafarmer never makes day 91 (every win is the mortgage's end at ~196); the Cook does in a
 quarter of its runs (16/60).
 
+## Fair-play re-measure, final stack (2026-11-13, day 2)
+
+The table above froze at 6574e77 (items 19+6). Every kept fix since then (item 4's wholesale cap, R3's
+fresh-wound stop, R7's decline default, item 14's real carry, item 21's placement check) is in this one,
+measured on the same 60 paired seeds 8100001-060, main at 8eb7010, fix at live-fixes df6ee80, hard,
+`-human player`:
+
+| Route | main wins | fix wins | main median | fix median | Δ win day (paired) |
+|---|---|---|---|---|---|
+| `appraiser` | 60/60 | 60/60 | 98 | 98 | +10.2 ± 5.6 |
+| `aquafarmer` | 60/60 | 60/60 | 196 | 196 | +1.4 ± 1.4 |
+| `armourer` | 60/60 | 60/60 | 105 | 119 | +35.5 ± 14.8 |
+| `cook` | 57/60 | 60/60 | 105 | 116 | +20.8 ± 12.4 |
+| `farmer` | 60/60 | 60/60 | 91 | 105 | +12.1 ± 8.5 |
+| `fence` | 60/60 | 60/60 | 105 | 119 | +28.4 ± 13.7 |
+| `rancher` | 60/60 | 60/60 | 88 | 105 | +18.8 ± 8.7 |
+| `rancher_sprinter` | 60/60 | 60/60 | 84 | 84 | +24.6 ± 16.7 |
+| `rock_bottom` | 57/60 | 57/60 | 126 | 112 | -19.0 ± 14.8 |
+| `water_baron` | 60/60 | 60/60 | 105 | 105 | -3.6 ± 10.4 |
+
+No route loses wins; `rock_bottom` keeps its median gain (126 vs 112) and `cook` stays 60/60. But the fair-play
+fixes cost win days on most routes — the largest shifts (armourer, fence, rancher_sprinter, cook) are exactly
+the dump-heavy ones: the gym now *declines* Georgio's 50-credit assistance (R7's default for unruled dialogues)
+and carries home only what the pockets and backpack hold (item 14), where it used to take everything for free.
+That is the honest price of playing fair, not a bug. On the appraiser route (30 seeds) the pieces are
+individually cheap: the decline-default stack (6574e77 -> 0b6fb74) costs +0.0 ± 5.2, the carry +1.4 ± 10.1,
+the placement check stacked on it +9.8 ± 11.9. The big shifts sit on the dump-heavy routes, where R7's
+decline of Georgio's assistance and item 14's real carry bite hardest — unmeasured per-fix there.
+The 36-cell floor I first gave the placement check WAS a bug (a new default the old area check never had) and
+was fixed in 238e472 before this table.
+
+## Fair-play re-measure (2026-11-13)
+
+The live-test fixes on `live-fixes` (furnace inputs reserved only with a furnace, item 19; storage never sold while
+the grid is short, item 6) change what every route earns. Both builds measured on 60 paired seeds 8100001–060
+(`arms-phase5.txt`), main at the pre-fix commit (8eb7010), fix at live-fixes 6574e77, hard, `-human player`:
+
+| Route | main wins | fix wins | main median | fix median | Δ win day (paired) |
+|---|---|---|---|---|---|
+| `appraiser` | 60/60 | 60/60 | 98 | 91 | +0.8 ± 4.0 |
+| `farmer` | 60/60 | 60/60 | 91 | 91 | −2.7 ± 6.6 |
+| `armourer` | 60/60 | 60/60 | 105 | 105 | +7.0 ± 11.1 |
+| `water_baron` | 60/60 | 60/60 | 105 | 105 | −0.1 ± 12.0 |
+| `rancher` | 60/60 | 60/60 | 88 | 91 | +1.5 ± 3.8 |
+| `rancher_sprinter` | 60/60 | 60/60 | 84 | 84 | 0.0 ± 0.0 |
+| `fence` | 60/60 | 60/60 | 105 | 105 | −4.9 ± 8.7 |
+| `rock_bottom` | 57/60 | 59/60 | 126 | 112 | −28.0 ± 13.2 |
+| `aquafarmer` | 60/60 | 60/60 | 196 | 196 | +1.2 ± 1.3 |
+| `cook` | 57/60 | 60/60 | 105 | 105 | −1.5 ± 8.9 |
+
+No route loses wins; `rock_bottom` (59 vs 57, median 112 vs 126) and `cook` (60 vs 57) improve — the furnace
+hoard and the sold storage bay were hurting the tight routes most. The item-3 staging pre-check was reverted
+(not byte-identical on 27/30 seeds); item 4, R3 and R7 land after this measurement.
+
 ## Reproducing
 
 Arms ran with `fence-gym smoke -seed0 2202000 -seeds 60 -days 1000 -parallel 10 -no-trajectory`; summaries

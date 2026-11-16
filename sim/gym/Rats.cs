@@ -35,8 +35,16 @@ namespace Fence.Gym
             return peak >= 401 ? 401 : peak >= 351 ? 351 : peak;
         }
 
-        static bool Ready(GameItem r) => Peak ? Weight(r) >= CutWeight(r) || Age(r) >= 10 || Old(r) : Weight(r) >= ButcherG || Old(r) || (Sick(r) && Weight(r) >= 100);
-        static int Females => (Directives.Current.Raw["rats_breeders"] as JArray)?.Count == 2 ? (int)Directives.Current.Raw["rats_breeders"][0] : 1;
+        // `rats_cut: "young"` (docs/research/FORMULA-EXPLOITS.md §20): a grower is cut at `rats_cut_age` (default 3, the
+        // 2–4 band). The cut table rounds any leftover weight up to one more morsel (HusbandryHelper.CreateButcherCuts), so a
+        // young rat's few cells pay more a cell-night (12.1 at age 2, 9.5 at 4, 5.0 at 10, food netted). Growers then
+        // rarely live to breed, so the marked breeders carry the births: three females by default.
+        static bool Young => Directives.Current.Raw.Value<string>("rats_cut") == "young";
+        static int YoungAge => Directives.Current.Raw.Value<int?>("rats_cut_age") ?? 3;
+
+        static bool Ready(GameItem r) => Young ? Age(r) >= YoungAge || Old(r) || (Sick(r) && Weight(r) >= 100)
+            : Peak ? Weight(r) >= CutWeight(r) || Age(r) >= 10 || Old(r) : Weight(r) >= ButcherG || Old(r) || (Sick(r) && Weight(r) >= 100);
+        static int Females => (Directives.Current.Raw["rats_breeders"] as JArray)?.Count == 2 ? (int)Directives.Current.Raw["rats_breeders"][0] : Young ? 3 : 1;
         static int Males => (Directives.Current.Raw["rats_breeders"] as JArray)?.Count == 2 ? (int)Directives.Current.Raw["rats_breeders"][1] : 1;
         // Kcal kept in the dispenser and in held food (a rat burns ~65 a night, a newborn needs ~300).
         static int FeedKcal => Directives.Current.Raw.Value<int?>("rats_feed_kcal") ?? 6000;

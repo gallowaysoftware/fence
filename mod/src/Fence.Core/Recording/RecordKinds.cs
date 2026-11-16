@@ -18,6 +18,7 @@ namespace Fence.Recording
         // Fence.Autopilot.AutopilotEvents: every autopilot action, and its stops.
         public const string Autopilot = "autopilot";
         public const string AutopilotFault = "autopilot_fault";
+        public const string MorningReport = "morning_report";
 
         // What a full queue gives up first: forwarded ModHook events are context, the recording
         // kinds are the training data.
@@ -34,6 +35,7 @@ namespace Fence.Recording
                 case Inspection:
                 case RunStat:
                 case Aug:
+                case MorningReport:
                 case Autopilot:
                 case AutopilotFault:
                     return EventPriority.High;

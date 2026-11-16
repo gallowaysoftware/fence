@@ -1,0 +1,53 @@
+{
+  "name": "w5-chemist",
+  "baseline": "h",
+  "seeds": [
+    2610003,
+    2610004,
+    2610005,
+    2610006
+  ],
+  "routes": [
+    {
+      "route": "apothecary",
+      "persona": "honest-broker"
+    },
+    {
+      "route": "pharma",
+      "persona": "honest-broker"
+    },
+    {
+      "route": "pharma_vintner",
+      "persona": "vintner"
+    },
+    {
+      "route": "cook",
+      "persona": "cook"
+    },
+    {
+      "route": "fountain_pharma",
+      "persona": "honest-broker"
+    }
+  ],
+  "days": 140,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "h",
+      "mode": "local"
+    },
+    {
+      "id": "drift",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-forks"
+      ]
+    }
+  ]
+}

@@ -27,7 +27,16 @@ namespace Fence.Gym
             int perDay = recent.Count == 0 ? 0 : (int)(recent.Sum(x => (int?)x["sold_value"] ?? 0) / recent.Count * 0.6);
             day.Rent2Floor = left <= 2 ? rent + svc * (left + 1) : left <= 5 ? Math.Max(0, rent + svc * (left + 1) - perDay * left) : 0;
             day.Floor = d.CashFloor ?? day.Rent2Floor;
-            day.CashTarget = d.SellDownToCash ?? (left <= 3 ? rent + svc * (left + 1) : 0);
+            // A pending engine purchase the plan committed to (the fountain at Wild's) is saved toward:
+            // the trade floor rises with how close the cash is to the price — small trades build stock
+            // early, but the last stretch stops eating the down payment. Jackson's kit still flows (the
+            // inputs path keeps its own floor), and selling is untouched. The purifier save and the
+            // TradeFloor split measured worse (league 2026-11-15, 3-way in docs/PROGRESS.md): retired.
+            if (Fountain.Buys && Fountain.Machine() == null && Fountain.PendingCost > 0 && today >= Fountain.BuyDay)
+            {
+                int stretch = Math.Max(0, Fountain.PendingCost + Fountain.Reserve - cash);
+                day.Floor = Math.Max(day.Floor, day.Rent2Floor + stretch / 4);
+            }
             // Under the mortgage a missed payment repossesses goods (and ends the run when there are not
             // enough): one payment always stays in cash, and the sell-down starts a day earlier.
             if (ps.isPayingMortgage && d.CashFloor == null)
@@ -90,6 +99,16 @@ namespace Fence.Gym
                 day.Floor = Math.Max(day.Floor, cash);
                 day.CashTarget = Math.Max(day.CashTarget, cash + (int)(PlayerStock.Value() * 0.5));
             }
+            // `georgio_hold_days: N` (gym, default 7; 0 off): Georgio lends a share of the cash on hand at his line 37 days after his first
+            // visit (day 43 on the usual schedule) and repays it 4x. For N days up to that morning spend nothing (stock,
+            // inputs, upgrades, vending), and sell as usual.
+            int loanDay = StorylineSchedule.StartDay("georgio") + 37;
+            if ((d.Raw.Value<int?>("georgio_hold_days") ?? 7) is int holdDays && holdDays > 0 && today > loanDay - holdDays && today <= loanDay && ps.loanOfferedToGeorgio == 0 && !ps.isPayingMortgage)
+            {
+                day.Floor = Math.Max(day.Floor, cash);
+                day.BuyoutCuts ??= new HashSet<string>(StringComparer.Ordinal);
+                day.BuyoutCuts.UnionWith(new[] { "upgrades", "inputs", "vending" });
+            }
             // `georgio_collect: early`: Georgio repays (4x) on a rent morning when the cash is under the rent. On the
             // eve of a rent day after his loan, spend the cash down below the rent (stock at up to its estimate,
             // no floor) with Landlord Grace armed as the backstop.
@@ -116,6 +135,7 @@ namespace Fence.Gym
                 int g8 = ((int)days[days.Count - 1]["net_worth_end"] - (int)days[days.Count - 56]["net_worth_start"]) / 8;
                 day.NetGainWeek = Math.Min(g4, g8);
             }
+            BuildOrder.Morning(day, days);
             return day;
         }
 
@@ -133,6 +153,16 @@ namespace Fence.Gym
             catch (Exception e) { host.Error("labels", e); }
             try { Conceal.Morning(host); }
             catch (Exception e) { host.Error("conceal", e); }
+            try { Scratchers.Morning(host); }
+            catch (Exception e) { host.Error("scratchers", e); }
+            try { LiquidLuck.Morning(host); }
+            catch (Exception e) { host.Error("liquid_luck", e); }
+            try { Requests.Morning(host); }
+            catch (Exception e) { host.Error("requests", e); }
+            try { Fridge.Morning(host); }
+            catch (Exception e) { host.Error("fridge", e); }
+            try { Appraisal.Block(); }
+            catch (Exception e) { host.Error("appraisal_block", e); }
             try { Storage.Morning(); }
             catch (Exception e) { host.Error("storage", e); }
         }

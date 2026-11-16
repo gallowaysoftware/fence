@@ -118,9 +118,30 @@ namespace Fence.Mod
             if (v.AppraisalClient && !v.InspectionOpen) v.AppraisalItemReady = NextEstimate() != null;
             v.BribeDue = PlayerCounter.BribeDue(c, PlayerStore.Instance.playerCash);
             v.GunOrder = c.clientIntent == StoreClient.ClientIntent.GUNSMITH && c.gunOrderData != null && !c.isBusinessComplete;
+            v.PosterClient = c.isWanted && !c.isStealthWanted;
+            if (v.PosterClient)
+            {
+                v.CanReport = c.CanReport();
+                v.WantedReportOn = Directives.Current != null && BarterRules.WantedReportOn(Directives.Current.Raw?.Value<string>("wanted") ?? "report");
+            }
             if (!v.GunOrder) return;
             v.ArmsOrders = Directives.Current != null && Arms.On;
             v.ServiceGunPlaced = !c.gunOrderData.isServiceOrder || c.gunOrderData.GetPlacedServiceGun() != null;
+        }
+
+        // The player's wound level (0: none, 1: wounded, 2: critically wounded), for the night's decision.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int Wound()
+        {
+            try
+            {
+                var ps = PlayerStore.Instance;
+                return ps?.healthData?.woundState ?? 0;
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         // The gun the order tablet would hand over on Accept.
@@ -158,6 +179,27 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static AfterhourLocation Location(string id) => AfterhourLocation.GetDiscovered().FirstOrDefault(l => l != null && l.Id == id && l.IsAvailable());
 
+        // The afterhours location's display name, for the night's decision.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static string LocationName(string id)
+        {
+            var loc = Location(id);
+            return loc == null ? id : loc.GetTitle();
+        }
+
+        // The butcher's cleaver event leaves him hunting the player at the afterhours locations
+        // (StoreClientData.IsButcherHunting): going out without a gun in the bag is refused by the
+        // game, and the searches are deadly.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool ButcherHunting() => StoreClientData.IsButcherHunting();
+
+        // Any owned backpack that carries a gun (GunHelper.HasGunInside): the game lets the player go
+        // out to a butcher-hunted location only with one of these.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static bool HasArmedBag() => EmporiumEntry.Instance != null
+            && EmporiumEntry.Instance.GetAllOwnedItemsByTag("BACKPACK_TAG").Any(GunHelper.HasGunInside);
+
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static List<string> Locations() => AfterhourLocation.GetDiscovered().Where(l => l != null && l.IsAvailable()).Select(l => l.Id).ToList();
 
@@ -165,7 +207,25 @@ namespace Fence.Mod
         public static (int left, double woundPct) ScavengeOdds() => (ScavHelper.GetScavTimeLeft(), ScavHelper.GetMinorWoundChance() + ScavHelper.GetMajorWoundChance());
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static List<GameItem> Ground() => Owned(EmporiumEntry.Instance.afterhourInventory).ToList();
+        public static bool CanScavenge() => ScavHelper.CanScavenge();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static List<GameItem> Ground() => Owned(EmporiumEntry.Instance.afterhourInventory)
+            // The equipped satchel and its grid: the game carries the satchel's contents home
+            // (GetAllAfterhourOwnedItems walks the backpack slot), and Pack must budget them against
+            // the bag's cells or the carry plan double-books the space and leaves loot at the dump.
+            .Concat(Owned(EmporiumEntry.Instance.afterhourPocketSlotInvBackpack))
+            .Concat(SatchelContents())
+            .ToList();
+
+        // The equipped bag's grid contents (the satchel item's content window), if one is equipped.
+        static IEnumerable<GameItem> SatchelContents()
+        {
+            var slot = EmporiumEntry.Instance?.afterhourPocketSlotInvBackpack;
+            var bag = slot?.childItem;
+            if (bag == null || !NightOuting.IsBackpack(bag) || bag.contentWindow?.child is not GameInventory inv) return Enumerable.Empty<GameItem>();
+            return Owned(inv);
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static GameInventory GroundInventory() => EmporiumEntry.Instance.afterhourInventory;
@@ -225,6 +285,12 @@ namespace Fence.Mod
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static int Cash() => PlayerStore.Instance.playerCash;
 
+        // The wholesale price the current client offers (GetWholesalePrice: the negotiated total less their
+        // discount), or null when nobody offers. -1 from the game means no offer.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int? WholesaleOffer() => PlayerStore.Instance == null || LiveGame.Client() == null ? null
+            : PlayerStore.Instance.GetWholesalePrice() is int w && w >= 0 ? w : (int?)null;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static int Crime() => PlayerStore.Instance.secData?.GetTotalCrimeValue() ?? 0;
 
@@ -259,7 +325,7 @@ namespace Fence.Mod
             return front.childItems.Where(i => i != null && !GeneralHelper.IsItemOwned(i)).ToList();
         }
 
-        static IEnumerable<GameItem> Owned(GameInventory inv) => inv?.childItems?.Where(i => i != null && GeneralHelper.IsItemOwned(i)) ?? Enumerable.Empty<GameItem>();
+        internal static IEnumerable<GameItem> Owned(GameInventory inv) => inv?.childItems?.Where(i => i != null && GeneralHelper.IsItemOwned(i)) ?? Enumerable.Empty<GameItem>();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static string Name(GameItem i) => i.GetDisplayName(false);
@@ -296,14 +362,25 @@ namespace Fence.Mod
             {
                 var (token, reply, _) = d.choices[i];
                 bool enabled = d.IsChoiceEnabledAt(i);
-                view.Choices.Add(new Fence.Gym.ChoiceView { Index = i, Label = token?.name, Text = reply?.plainText, Enabled = enabled });
-                infos.Add(new ChoiceInfo { Label = token?.name, Text = reply?.plainText, Enabled = enabled });
+                // NoDeal mirrors the headless detection (Episode.View): a decline reads as Decline…/No problem…
+                string text = reply?.plainText;
+                bool noDeal = (text ?? "").IndexOf("Decline", StringComparison.OrdinalIgnoreCase) >= 0
+                    || (text ?? "").StartsWith("No problem", StringComparison.OrdinalIgnoreCase);
+                view.Choices.Add(new Fence.Gym.ChoiceView { Index = i, Label = token?.name, Text = text, Enabled = enabled, NoDeal = noDeal });
+                infos.Add(new ChoiceInfo { Label = token?.name, Text = text, Enabled = enabled });
             }
             return view;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static object CurrentLine() => DialogUIManager.Instance.GetCurrentDialog();
+        // The rent due and its countdown, for the night's decision.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int RentDue() => PlayerStore.Instance.GetRentValue();
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static int RentDaysLeft() => PlayerStore.Instance.dayUntilRent;
+
 
         // The tablet's services, as the executor's role reads them (Episode.View).
         [MethodImpl(MethodImplOptions.NoInlining)]

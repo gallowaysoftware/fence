@@ -42,7 +42,9 @@ namespace Fence.Autopilot
         // CustomerKinds.Of.
         public string ClientKind;
         public bool ClientDismissable;
-        // BarterRules.CoverageGap: null for a covered trade customer.
+        // The cartel handler (identifier cartelHandlerWeekly, a DIALOGUE client): the visit's count
+        // and required purity are on the counters, and the dialogue itself is the player's to click.
+        public bool CartelHandler => (ClientId ?? "").StartsWith("cartel");
         public string CoverageGap;
         public bool CounterReady;
         public ClientIntent Intent;
@@ -98,6 +100,13 @@ namespace Fence.Autopilot
         public bool ArmsOrders;
         public bool ServiceGunPlaced = true;
 
+        // The wanted posters (docs/re/CLIENTS.md, "The wanted list"): a poster face at the counter (wanted, not
+        // stealth), whether the game says it is reportable, and the `wanted` directive on (report | report_all;
+        // Lou is only report_all, which the live mod never turns on).
+        public bool PosterClient;
+        public bool CanReport;
+        public bool WantedReportOn;
+
         // What progress looks like: any change here resets the watchdog.
         public string Signature()
         {
@@ -112,6 +121,7 @@ namespace Fence.Autopilot
                 WildOpen ? "W" : "-", InspectionOpen ? "I" : "-", EstimateField.ToString(),
                 ShootingMode ? "S" : "-", GunReady ? "F" : "-", Shootout ? "O" : "-", AugTells != null ? "A" : "-",
                 GunOrder ? "N" : "-", ServiceGunPlaced ? "g" : "-",
+                PosterClient ? "W" : "-",
             });
         }
     }

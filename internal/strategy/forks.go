@@ -69,6 +69,17 @@ func (fc forkContext) baseInt(key string) (int64, bool) {
 
 func i64(v int64) *int64 { return &v }
 
+// ServicesPrice is the nightly cost of the service named idPart (a substring, case-insensitive),
+// whether the mod sends full service rows or bare ids; 0, false when absent or free.
+func (s *snapshot) ServicesPrice(idPart string) (int64, bool) {
+	for _, v := range s.Services {
+		if v.Cost != nil && strings.Contains(strings.ToUpper(v.ID), strings.ToUpper(idPart)) {
+			return *v.Cost, true
+		}
+	}
+	return 0, false
+}
+
 // detectForks lists the forks today's morning raises, given what the run already decided.
 func detectForks(s *snapshot, n int, fc forkContext, st map[string]*forkState) []fork {
 	var out []fork
@@ -149,6 +160,32 @@ func detectForks(s *snapshot, n int, fc forkContext, st map[string]*forkState) [
 	}
 	if f, ok := holdFork(s, n, common, state("hold")); ok {
 		out = append(out, f)
+	}
+	if as := state("alarm"); !fc.has("alarm") && as.asked < 2 && n >= 10 && (as.lastDay == 0 || n-as.lastDay >= 7) && cash >= 450+due {
+		facts := append(common, "A burglar alarm with an overclock and a performance module (or two overclocks) stops every burglary while it has power and a charged cell; the alarm and the modules come from Dr. Jackson's counter (~450 on hard).")
+		if v, ok := s.ServicesPrice("INSURANCE"); ok {
+			facts = append(facts, fmt.Sprintf("The insurance costs %d a night instead; an uninsured shop loses about 1 000 of goods a run (a burglary every few nights once the grace nights pass).", v))
+		}
+		moment := slices.ContainsFunc(s.NightLog, func(l string) bool {
+			return strings.Contains(strings.ToLower(plainLog(l)), "burglar")
+		})
+		if moment {
+			facts = append(facts, "The night log shows a burglary.")
+		}
+		out = append(out, fork{Kind: "alarm", Title: "An alarm for the shop", Moment: moment, Facts: facts,
+			Options: []forkOption{
+				{ID: "perfect", Label: "tune an alarm to perfect and tell Security: every burglary stopped, +1 rep a night, drop the insurance", apply: func(d *protocol.Directives) {
+					d.Alarm, d.Transmitters = "perfect", []string{"sec"}
+				}},
+				{ID: "alarm", Label: "buy the alarm, skip the transmitter: every burglary stopped, no rep", apply: func(d *protocol.Directives) { d.Alarm = "perfect" }},
+				{ID: "insured", Label: "no alarm: keep paying the insurance", apply: func(d *protocol.Directives) {
+					for _, s2 := range s.Services {
+						if strings.Contains(strings.ToUpper(s2.ID), "INSURANCE") {
+							d.Services = append(d.Services, s2.ID)
+						}
+					}
+				}},
+			}})
 	}
 	return out
 }

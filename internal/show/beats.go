@@ -59,16 +59,27 @@ func choiceCost(label string) int64 {
 // boardChoice turns an answer to the appraisal board into its beat: joining, or taking a promotion.
 // promotion is whether the dialogue is the promotion offer (the live log names it by id; the gym's
 // by the choice's own words). Declining is no beat.
+func boardTaken(label string, promotion bool) bool {
+	l := strings.ToLower(label)
+	return strings.Contains(l, "join the board") || promotion && strings.Contains(l, "accept")
+}
+
 func (b *Builder) boardChoice(label string, promotion bool, history []string) []Event {
 	l := strings.ToLower(label)
 	cost := choiceCost(label)
 	switch {
 	case strings.Contains(l, "join the board"):
+		if !b.newBoardBeat("join") {
+			return nil
+		}
 		b.appraisalRank = 0
 		b.clock.Cash -= cost
 		return []Event{{Kind: KindPurchase, Level: LevelMoment, Beat: BeatAppraisalJoin, Amount: -cost, Clock: b.Clock(),
 			Text: fmt.Sprintf("Joined the appraisal board for %d: appraisal customers from now on.", cost)}}
 	case promotion && strings.Contains(l, "accept"):
+		if !b.newBoardBeat("promotion") {
+			return nil
+		}
 		b.appraisalRank = min(3, b.appraisalRank+1)
 		b.clock.Cash -= cost
 		to := fmt.Sprintf("rank %d", b.appraisalRank)
@@ -79,6 +90,17 @@ func (b *Builder) boardChoice(label string, promotion bool, history []string) []
 			Text: fmt.Sprintf("Promoted by the appraisal board to %s, for %d: bigger appraisals, bigger fees.", to, cost)}}
 	}
 	return nil
+}
+
+// newBoardBeat is false for the second report of the same click: the live log has the autopilot's
+// dialogue_choice and the game's own human_action for it.
+func (b *Builder) newBoardBeat(kind string) bool {
+	key := fmt.Sprintf("%s@%d", kind, b.day)
+	if b.boardBeat == key {
+		return false
+	}
+	b.boardBeat = key
+	return true
 }
 
 // appraisal is one estimate given to an appraisal customer (the gym's `appraisal` event): the

@@ -219,7 +219,8 @@ func (n *Narrator) cohostLine(ctx context.Context, ev Event, f Facts, told strin
 	if p.Needle != "" {
 		fmt.Fprintf(&sys, "Your angle on this player: %s.\n", p.Needle)
 	}
-	sys.WriteString("Speak ONE short sentence, two at most, at most 22 words. It is read aloud by text-to-speech: plain words only, no emojis, no stage directions, no quotation marks, no names of real people. " +
+	sys.WriteString("Name the actual thing you are reacting to — the item and its price, the customer, the upgrade — not an abstraction; if the line would survive with the object removed, it is too abstract. " +
+		"Speak ONE short sentence, two at most, at most 22 words. It is read aloud by text-to-speech: plain words only, no emojis, no stage directions, no quotation marks, no names of real people. " +
 		"Invent attitude freely, but the numbers are sacred: use at most one number, only one from the facts you are given, written in digits, and never claim anything about money, rent or trades that the facts do not say. " +
 		"Never name a weekday. Money is credits. Do not repeat your previous lines or their images.")
 	var b strings.Builder

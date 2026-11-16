@@ -60,6 +60,9 @@ namespace Fence.Gym
         // ---- purifiers: Basewater to High Quality (99.01 %) overnight, ~3 L a night ----------------
 
         static List<GameItem> Purifiers() => Owned().Where(i => i.identifier == "water_purifier" && Parent(i) == null).ToList();
+        // True while the engine still wants a machine purifier (the want the shop answers) — the morning's
+        // save floor uses it to hold cash for the visit.
+        public static bool PurifierWanted => WaterSellOn && Purifiers().Count < PurifierTarget;
 
         static GameItem PurifierSlotItem(GameItem m)
         {

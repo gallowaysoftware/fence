@@ -67,11 +67,11 @@ type config struct {
 	narrURL, narrModel, anthropicKey              string
 	narrTest                                      bool
 	// narrRemote: the narrator's URL is fencegate in front of another machine.
-	narrRemote                               bool
-	ttsURL, voice, persona, personas, wavOut string
-	obsDirs                                  []string
-	minFreeMB, minDiskMB                     int64
-	timeout                                  time.Duration
+	narrRemote                                        bool
+	ttsURL, gateURL, voice, persona, personas, wavOut string
+	obsDirs                                           []string
+	minFreeMB, minDiskMB                              int64
+	timeout                                           time.Duration
 	// hooks for tests
 	runCompat func(ctx context.Context, c config) (int, string, error)
 	gpuFree   func(ctx context.Context) (freeMB, totalMB int64, err error)
@@ -131,7 +131,8 @@ func parseFlags(args []string, getenv func(string) string, stderr io.Writer) (co
 	fs.StringVar(&c.narrURL, "narrator-url", env("FENCE_SHOW_LLM_URL", ""), "the narrator's OpenAI-compatible base URL; empty with ANTHROPIC_API_KEY set: the API")
 	fs.StringVar(&c.narrModel, "narrator-model", env("FENCE_SHOW_LLM_MODEL", ""), "the narrator's model")
 	fs.BoolVar(&c.narrTest, "narrator-test", true, "ask the narrator for one short test line")
-	fs.StringVar(&c.ttsURL, "tts-url", env("FENCE_SHOW_TTS_URL", "http://127.0.0.1:8880"), "Kokoro-FastAPI")
+	fs.StringVar(&c.ttsURL, "tts-url", env("FENCE_SHOW_TTS_URL", "http://127.0.0.1:8881"), "Kokoro-FastAPI (the stream's CPU Kokoro, fence-show-kokoro; -tts-url http://127.0.0.1:8880 for the GPU one)")
+	fs.StringVar(&c.gateURL, "gate", env("FENCE_GATE_URL", "http://127.0.0.1:7380"), "the drift gate (fencegate); the show's narrator runs through its /narrate/v1")
 	fs.StringVar(&c.persona, "persona", env("FENCE_PERSONA", show.DefaultPersona), "the run's persona: its file must exist and its voice speaks the test line")
 	fs.StringVar(&c.voice, "voice", "", "Kokoro voice for the test line; empty: the persona's")
 	fs.StringVar(&c.wavOut, "wav", "var/show/preflight.wav", "where the test line is written, to play through OBS")
@@ -547,16 +548,23 @@ func hostOf(raw string) string {
 }
 
 // checkNarrator: the narrator's model answers one short line, unless asking would load a model on
-// this machine's shared server (SHOW.md, "Sharing the GPU").
+// this machine's shared server (SHOW.md, "Sharing the GPU"). The show's default narrator is the
+// strategist's model through the drift gate's /narrate/v1 (STREAM-OPS.md, "Pre-flight").
 func checkNarrator(ctx context.Context, hc *http.Client, c config) Result {
 	r := Result{Name: "narrator LLM"}
+	if c.narrURL == "" && c.narrModel == "" && c.anthropicKey == "" && c.stratModel != "" {
+		c.narrURL, c.narrModel = gateNarrateURL(c.gateURL), c.stratModel
+	}
 	var client llm.Client
 	desc := ""
 	switch {
 	case c.narrURL == "" && c.anthropicKey != "":
 		client, desc = &llm.Anthropic{APIKey: c.anthropicKey, Model: "claude-haiku-5-5", HTTP: hc}, "Anthropic API"
-	case c.narrURL == "":
-		r.Status, r.Detail = Warn, "none configured: the narrator speaks the captions (set FENCE_SHOW_LLM_URL or ANTHROPIC_API_KEY)"
+	case c.narrURL == "" && c.narrModel == "":
+		r.Status, r.Detail = Warn, "no narrator LLM configured (set -narrator-url or FENCE_SHOW_LLM_URL, or a -strategist-model for the gate's /narrate/v1)"
+		return r
+	case strings.TrimSpace(c.narrModel) == "":
+		r.Status, r.Detail = Warn, "the narrator's model is not set (set -narrator-model, or -strategist-model for the gate's /narrate/v1)"
 		return r
 	default:
 		found, status, err := modelState(ctx, hc, c.narrURL, c.narrModel)
@@ -599,6 +607,9 @@ func checkNarrator(ctx context.Context, hc *http.Client, c config) Result {
 	return r
 }
 
+// gateNarrateURL is the drift gate's narrator endpoint.
+func gateNarrateURL(gate string) string { return strings.TrimRight(gate, "/") + "/narrate/v1" }
+
 // checkTTS speaks the test line in the persona's voice and saves it to play through OBS.
 func checkTTS(ctx context.Context, c config) Result {
 	r := Result{Name: "TTS test line"}
@@ -611,7 +622,7 @@ func checkTTS(ctx context.Context, c config) Result {
 	wav, err := k.Speak(ctx, "Pre-flight check. The narrator is on the air.", voice)
 	took := time.Since(start).Round(100 * time.Millisecond)
 	if err != nil {
-		r.Status, r.Detail = Warn, hostOf(c.ttsURL)+": "+clip(err.Error(), 100)+": piper or captions only (runbook: TTS)"
+		r.Status, r.Detail = Warn, hostOf(c.ttsURL)+": "+clip(err.Error(), 100)+": piper or captions only (start fence-show-kokoro; runbook: TTS)"
 		return r
 	}
 	_ = os.MkdirAll(filepath.Dir(c.wavOut), 0o755)
@@ -838,10 +849,13 @@ func checkGame(c config) Result {
 	r := Result{Name: "game process", Status: Go}
 	if c.gameUp() {
 		r.Detail = "Probably Stolen.exe is running: fenceshow's narrator yields a local LLM to it (-yield-to-game)"
-		if hostOf(c.narrURL) != "the remote endpoint" && !c.narrRemote && c.anthropicKey == "" && c.narrURL != "" {
-			r.Status = Warn
-			r.Detail += ", so a local narrator speaks captions only; use the API or a remote model, or -yield-to-game=false"
+		// The gate's /narrate/v1 forwards the narrator to the remote endpoint, so the game's
+		// process does not hold up its lines; only a local narrator's own model does.
+		if c.narrURL == "" || c.anthropicKey != "" || c.narrRemote || hostOf(c.narrURL) == hostOf(c.gateURL) {
+			return r
 		}
+		r.Status = Warn
+		r.Detail += ", so a local narrator speaks captions only; use the API or a remote model, or -yield-to-game=false"
 		return r
 	}
 	r.Detail = "not running yet (start it after this table is GO)"

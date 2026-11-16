@@ -1,0 +1,15 @@
+# Final: each route with the hidden-system defaults off (the old executor), on (the route file as is), and on + permit: bribe.
+# nice python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cheap5.txt -dir var/sim/exp/cheap-final -seeds 60 -days 1000 -parallel 7 -- -difficulty hard -seed0 2910000
+# python3 sim/lab/scripts/cheapreport.py var/sim/exp/cheap-final appraiser_off appraiser appraiser_bribe
+appraiser | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/appraiser.json
+appraiser_off | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_off.json
+appraiser_bribe | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_bribe.json
+sprinter | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/sprinter.json
+rancher_sprinter | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/rancher_sprinter.json
+rancher_sprinter_off | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_off.json
+rancher_sprinter_bribe | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_bribe.json
+outlaw | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/routes/outlaw.json
+outlaw_off | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_off.json
+outlaw_bribe | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_bribe.json
+appraiser_alert_insured | -human player -start apprentice -perks alert+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_alert_insured.json
+appraiser_alert | -human player -start apprentice -perks alert+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_alert.json

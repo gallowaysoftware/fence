@@ -1,0 +1,18 @@
+# The build planner on the Gauntlet's native routes (docs/research/BUILD-ORDER.md): 30 seeds 8100001-030.
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build-gauntlet.txt -dir var/sim/exp/bog -seeds 30 -seed0 8100000 -procs 10 -- -difficulty hard -perks vending+short_sleeper -human player
+appraiser               | -start apprentice -directives sim/lab/scripts/directives/routes/appraiser.json
+g_appraiser_all         | -start apprentice -directives sim/lab/scripts/directives/build/g_appraiser_all.json
+g_appraiser_all_build   | -start apprentice -directives sim/lab/scripts/directives/build/g_appraiser_all_build.json
+g_appraiser_build_h     | -start apprentice -directives sim/lab/scripts/directives/build/g_appraiser_build_h.json
+farmer                  | -start farmer -directives sim/lab/scripts/directives/routes/farmer.json
+g_farmer_all            | -start farmer -directives sim/lab/scripts/directives/build/g_farmer_all.json
+g_farmer_all_build      | -start farmer -directives sim/lab/scripts/directives/build/g_farmer_all_build.json
+g_farmer_build_h        | -start farmer -directives sim/lab/scripts/directives/build/g_farmer_build_h.json
+armourer                | -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+g_armourer_all          | -start gunsmith -directives sim/lab/scripts/directives/build/g_armourer_all.json
+g_armourer_all_build    | -start gunsmith -directives sim/lab/scripts/directives/build/g_armourer_all_build.json
+g_armourer_build_h      | -start gunsmith -directives sim/lab/scripts/directives/build/g_armourer_build_h.json
+water_baron             | -start water_merchant -directives sim/lab/scripts/directives/routes/water_baron.json
+g_water_baron_all       | -start water_merchant -directives sim/lab/scripts/directives/build/g_water_baron_all.json
+g_water_baron_all_build | -start water_merchant -directives sim/lab/scripts/directives/build/g_water_baron_all_build.json
+g_water_baron_build_h   | -start water_merchant -directives sim/lab/scripts/directives/build/g_water_baron_build_h.json

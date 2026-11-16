@@ -55,6 +55,10 @@ func PersonaVoice(id string) string {
 	return personaVoices[DefaultPersona].voice
 }
 
+// PersonaPayback starts a persona file's payback analysis (planner-side tables): it does not
+// ride in the morning prompt, which wants the archetype's path and rules, not its economics.
+const PersonaPayback = "## Payback"
+
 // PersonaNotes starts a persona file's notes: its sources, its voice and the co-host's angle in
 // prose, sample lines. Everything from it on is for people; no prompt carries it.
 const PersonaNotes = "## Notes"
@@ -63,7 +67,7 @@ const PersonaNotes = "## Notes"
 func PersonaPrompt(file string) string {
 	lines := strings.SplitAfter(file, "\n")
 	for i, l := range lines {
-		if strings.HasPrefix(strings.TrimSpace(l), PersonaNotes) {
+		if strings.HasPrefix(strings.TrimSpace(l), PersonaNotes) || strings.HasPrefix(strings.TrimSpace(l), PersonaPayback) {
 			return strings.Join(lines[:i], "")
 		}
 	}
@@ -109,7 +113,7 @@ func (p *Player) SetRoute(ref string) {
 		p.Route = strings.TrimSuffix(filepath.Base(ref), ".json")
 		return
 	}
-	p.Route, p.RouteBrief = r.Name, r.Brief
+	p.Route, p.RouteBrief, p.RouteEngine, p.routeStart = r.Name, r.Brief, r.Engine, r.Start
 }
 
 // SetPersona puts a persona on the name card; id "" sets def instead.

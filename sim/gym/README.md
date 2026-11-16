@@ -392,7 +392,11 @@ the same way, or completely within a second or two (a half-written file is retri
   `upgrades_buy` pay cash only from a 1 500 surplus either way), `engine_reserve_max` (stop buying
   engine inputs while held inputs are worth more), `restock_missed` (default true: types three buyers
   asked for in a week and found nothing of are bought up to their estimate while fewer than two are
-  in stock), `min_free_cells` (default 36: below it the executor sells down as when short of rent),
+  in stock), `min_free_cells` (default 36: below it the executor sells down as when short of rent, and a stock
+  container - a storage bay, the `STORAGE` type with a grid inside - may not be staged for a buyer while the grid
+  would keep fewer than that many free cells after the sale: the bay's own cells are part of the stock area. It is
+  also the room check on the buying side: a lot is bought only if its items' shapes can be placed in the stock
+  grid with at least that many free cells left - shapes leave gaps a free-area count cannot use),
   `sell.release_uids` (sell these even if an engine would hold them), `bargain: "discount"`
   (budget-raising discounts only, and no demands on sellers), `bargain_buy` (`never` | `ev_positive` |
   `aggressive`: the seller side alone), `restock_lot_max` (default 300: a restock or preferred-type
@@ -666,9 +670,9 @@ Each default taken is counted in the run summary and recorded as a `human_action
 | After each customer | Unsold staged items go back to stock (`unstage_leftovers`) |
 | Bridge defers or fails | `dismiss` if offered (`counter_fallback`) |
 | Customers outside coverage (story, security, info dealer, barter, …) | Their dialogue plays; then dismiss, or force-dismiss when not dismissable (`customer:*`) |
-| Dialogue choices | Buyout if offered; else pay rent; else don't pay; loan shark: decline; shady inspector: bribe only when holding serious contraband; otherwise the first enabled choice (`dialogue:*`) |
+| Dialogue choices | Buyout if offered; else pay rent; else don't pay; loan shark: decline; shady inspector: bribe only when holding serious contraband; otherwise the no-deal choice (decline/leave) — the gym does not silently accept unruled offers the way live hands them to the player (`dialogue:declined (no rule)`); an event with no decline-style choice keeps the old first-enabled default (`dialogue:*`) |
 | Business permit | `-permit buy` (default): buy when cash covers the fee and the rent due; otherwise "later" on the first visit, then refuse (which commits OPERATING_WITHOUT_LICENSE, 50–170 evidence a week). `-permit refuse` never buys (`dialogue:permit_*`) |
-| Night | Visit the dumping ground and scavenge until out of time, bring the loot to stock; phone Wild when an upgrade list is set (`night:*`). Before 2026-11-09 23:30 only the first night's searches happened: the outing never arrived headless (below) |
+| Night | Visit the dumping ground and scavenge until out of time, bring the loot to stock; phone Wild when an upgrade list is set (`night:*`). A fresh wound ends the night's searching (the game greys the search button, `ScavHelper.CanScavenge`); the run records it and resumes at the next visit (`night:scav_wound`). Before 2026-11-09 23:30 only the first night's searches happened: the outing never arrived headless (below) |
 | Wild's Network (Joe's visit, reminders, the night phone) | Buy, in order, each upgrade of the list that cash + favor covers while leaving the rent due (favor is spent first, as the game does). `baseline`: LANDLORD_GRACE (offered again after every missed rent; bought even when the rent is not covered), SHOWCASE_I. `growth`: grace, both referrals, both showcases, three renovations. `none` (`wild:*`) |
 | Services (the end-of-day tablet, after the night out) | Insurance and janitorial, each on while cash covers its nightly cost on top of the rent due and the services already kept; then the tablet's rules (mandatory on, cooling-down off, the dearest dropped while unaffordable) (`night:service_*`) |
 

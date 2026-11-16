@@ -51,8 +51,7 @@ namespace Fence.Tests
             new object[] { "appraisal done", Customer(v => { v.AppraisalClient = true; v.CoverageGap = "intent APPRAISAL_SERVICE"; v.CounterReady = false; }), StepKind.Dismiss },
             new object[] { "permit official's last line", Customer(v => { v.DialogueActive = v.ChoicesShown = v.BribeDue = true; }), StepKind.PlanBribe },
             new object[] { "a choices window by day", Store(StorePhase.Open, v => v.ResponseOpen = true), StepKind.Handover },
-            new object[] { "morning report", Store(StorePhase.Morning, v => v.MorningPanelOpen = true), StepKind.ClosePanel },
-            new object[] { "window first", Store(StorePhase.Morning), StepKind.PlanWindow },
+            new object[] { "morning report", Store(StorePhase.Morning, v => v.MorningPanelOpen = true), StepKind.Wait },
             new object[] { "walking in", Customer(v => v.ClientArrived = false), StepKind.Wait },
             new object[] { "bell locked", Customer(v => v.ClientMoving = true), StepKind.Wait },
             new object[] { "line playing", Customer(v => v.DialogueActive = true), StepKind.Wait },
@@ -83,6 +82,13 @@ namespace Fence.Tests
             Assert.True(want == Next(view), name + ": got " + Next(view));
         }
 
+        [Fact]
+        public void TheMorningReportClosesOnceRead()
+        {
+            var v = Store(StorePhase.Morning, x => x.MorningPanelOpen = true);
+            var m = new AutopilotMemory { Day = v.Day, ChoresDone = true, NightPlanned = true, EveningDone = true, Reported = true };
+            Assert.Equal(StepKind.ClosePanel, Planner.Next(v, m, Quiet).Kind);
+        }
         [Fact]
         public void TheDayRunsInOrder()
         {
@@ -346,6 +352,35 @@ namespace Fence.Tests
             m.CounterMoves = Planner.MaxCounterMoves;
             Assert.Equal(StepKind.Fault, Next(Customer(), m));
         }
+
+        // The gym's wanted rule (Fence.Gym.Wanted.Report): a poster face the plan says to report is reported once
+        // settled, instead of the old dismiss path. Directive off or members missing fall through to dismiss.
+        [Fact]
+        public void APosterIsReportedWhenTheDirectiveSaysSo()
+        {
+            LiveView Poster(Action<LiveView> with = null) => Customer(v =>
+            {
+                v.CoverageGap = "special client";
+                v.ClientKind = "trade";
+                v.CounterReady = false;
+                v.PosterClient = true;
+                v.CanReport = true;
+                v.WantedReportOn = true;
+                with?.Invoke(v);
+            });
+            var m = new AutopilotMemory { Day = 12 };
+            Assert.Equal(StepKind.WantedReport, Next(Poster(), m));
+            m.WantedReported = true;
+            // Never reported twice for the same customer; the arrest presentation may still be playing.
+            Assert.Equal(StepKind.Wait, Next(Poster(), m, Planner.UncoveredQuietMs - 1));
+            Assert.Equal(StepKind.Dismiss, Next(Poster(), m));
+            // Directive off: the old dismiss path.
+            Assert.Equal(StepKind.Dismiss, Next(Poster(v => v.WantedReportOn = false), new AutopilotMemory { Day = 12 }));
+            // Game says not reportable: the old dismiss path.
+            Assert.Equal(StepKind.Dismiss, Next(Poster(v => v.CanReport = false), new AutopilotMemory { Day = 12 }));
+            // Not a poster: the old dismiss path.
+            Assert.Equal(StepKind.Dismiss, Next(Poster(v => v.PosterClient = false), new AutopilotMemory { Day = 12 }));
+        }
     }
 
     public class AutopilotControlTests
@@ -544,6 +579,22 @@ namespace Fence.Tests
         }
 
         [Theory]
+        [InlineData("plan_window", null, "2 into the case, 1 out", null, null)]
+        [InlineData("showcase", 7, "today's window: the best of its type, nothing hot, and nothing whose claim the player knows or suspects to be better than the truth", "player:window", null)]
+        [InlineData("unshowcase", 8, "not in today's window", "player:window", null)]
+        public void WindowMovesCarryNoHiddenReads(string action, int? uid, string why, string rule, IList<string> hidden)
+        {
+            // The window reads Known.MayHideFake, the player's own suspicion, not a hidden value: the events it
+            // records (the plan line and each move, the path MoveOne records through) must carry no hidden_used.
+            var o = AutopilotEvents.Build(new AutopilotAction
+            {
+                Day = 12, Phase = "morning", Action = action, TargetUid = uid, TargetName = "Canned beans",
+                Why = why, Rule = rule, HiddenUsed = hidden,
+            });
+            Assert.Empty((JArray)o["hidden_used"]);
+        }
+
+        [Theory]
         [InlineData(StorePhase.Morning, false, "morning")]
         [InlineData(StorePhase.Open, false, "open")]
         [InlineData(StorePhase.Open, true, "customer")]
@@ -611,5 +662,56 @@ namespace Fence.Tests
             Assert.Contains("did not take", AutopilotEvents.Banner(AutopilotState.Faulted, "did not take: the shutter opens"));
             Assert.Equal("", AutopilotEvents.Banner(AutopilotState.Off, null));
         }
+    }
+
+    public class AutopilotBaselineTests
+    {
+        // The driver (Fence.Mod.AutopilotDriver) lives in the mod assembly, which the tests never load
+        // (the scanner and Cecil tests read it by path): check the shipped DLL for the baseline rule, and
+        // hold the precedence contract here so the test class does not go away with the mod.
+        const string InGame = "{\"augs\":\"pause\"}";
+        const string Bridge = "{\"augs\":\"shoot\"}";
+        // The driver's default (docs/PLAN.md: the hard incumbent), as it ships in Fence.Mod.dll.
+        const string DefaultDirectives = "{\"augs\":\"shoot\",\"bargain\":\"discount\",\"bargain_buy\":\"ev_positive\",\"bays\":2,\"buy\":{\"single_max_pct\":75,\"wholesale_max_pct\":88},\"conceal\":{\"policy\":\"always\"},\"engine\":\"wine+furnace\",\"jackson_every\":14,\"permit\":\"buy\",\"sell\":{\"liquidate_min_pct\":78,\"min_pct\":57},\"upgrades_cash_max\":937,\"window_mode\":\"concentrate\",\"mortgage_margin\":0.8,\"appraisal\":\"join\",\"buyout_by_day\":140,\"buyout_save\":[\"insurance\"],\"buyout_save_from\":56}";
+
+        static Mono.Cecil.ModuleDefinition Mod() => Mono.Cecil.ModuleDefinition.ReadModule(Path.Combine(Paths.ModBin, "Fence.Mod.dll"));
+
+        [Fact]
+        public void TheShippedDriverExposesResolveBaseline()
+        {
+            var m = Mod().GetType("Fence.Mod.AutopilotDriver").Methods.Single(x => x.Name == "ResolveBaseline");
+            Assert.True(m.IsStatic, "ResolveBaseline must be static");
+            Assert.Equal(2, m.Parameters.Count);
+            Assert.True(m.Parameters[0].ParameterType.FullName == "System.String", "parameter 1 (the in-game setting) must be a string");
+            Assert.True(m.Parameters[1].ParameterType.FullName == "System.String", "parameter 2 (the bridge's base) must be a string");
+        }
+
+        // The default the driver falls back to must still be the hard incumbent's.
+        [Fact]
+        public void TheDefaultDirectivesAreTheHardIncumbent()
+        {
+            var c = (Mono.Cecil.FieldDefinition)Mod().GetType("Fence.Mod.AutopilotDriver").Fields.Single(f => f.Name == "DefaultDirectives");
+            Assert.Equal(DefaultDirectives, (string)c.Constant);
+        }
+
+        // The precedence the driver's helper implements: the bridge's base beats the in-game setting; a
+        // whitespace or null bridge falls back to it; neither having one plays the default.
+        [Fact]
+        public void TheBaselinePrefersTheBridge()
+        {
+            Assert.Equal(Bridge, BridgeWins(InGame, Bridge));
+            Assert.Equal(Bridge, BridgeWins(null, Bridge));
+            Assert.Equal(InGame, BridgeWins(InGame, null));
+            Assert.Equal(InGame, BridgeWins(InGame, "   "));
+            Assert.Equal(InGame, BridgeWins(InGame, ""));
+            Assert.Equal(DefaultDirectives, BridgeWins(null, null));
+            Assert.Equal(DefaultDirectives, BridgeWins("  ", " "));
+        }
+
+        // The same precedence as the helper's contract: the bridge wins, else the setting, else the default.
+        static string BridgeWins(string inGameSetting, string bridgeBase) =>
+            !string.IsNullOrWhiteSpace(bridgeBase) ? bridgeBase
+            : !string.IsNullOrWhiteSpace(inGameSetting) ? inGameSetting
+            : DefaultDirectives;
     }
 }

@@ -46,3 +46,20 @@ the fact check. Rook's answer to the second, from the co-host prompt with the an
 - Tanks paid for, so we bleed tilapia at dawn. Skipped the plain sprinter; I keep my eye on those cells dying by day ten.
 - We run fillets to caviar, not rats. Dawn knife ready.
 - Rook: Rats? You passed on rats?
+
+## Payback nights (hard; cost ÷ net per night, measured + docs/re/AQUACULTURE.md §5.1)
+
+| Engine | Cost | Per night | Payback |
+|---|---|---|---|
+| aquaculture (600) + tanks | ~600 + tank values | 125 measured (paper 390 — feed-capped) | **~5–8 with the kit; 15 paper** |
+| AQUACULTURE II (1800) | 1800 | bigger fish per visit (eel uplift ~25) | 70+ |
+| converter (before kit cells die ~d10) | ~350 | keeps the tanks powered | prerequisite |
+| feed bags (flow) | ~30/night | the cap on everything: 4.5 juveniles/night | the binding constraint |
+| sturgeon (caviar 1200/10 jars) | ~800 | ~0 measured (rarely bought at 500+) | never, gym data |
+
+**Reading:** the fish line is capital-heavy and *feed-capped*: the paper 390 becomes 125 in the
+gym because 18 000 kcal a week is the ceiling, not the tanks. So buy filters and feed, not tank
+size — AQUACULTURE II at 70+ nights is the worst big-ticket in the game (its eel uplift needs
+fillets you're already selling). The sturgeon's caviar never sold above 500 in gym data: skip it.
+The savings phase is the converter (~d10) and nothing else; after that the tanks self-fund on
+fillets and the win is the buyout on meat flow, exactly as the persona says.

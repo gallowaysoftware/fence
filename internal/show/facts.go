@@ -58,6 +58,8 @@ type RentFact struct {
 	Margin int64
 	// Mortgage is set when what is owed is the mortgage's weekly payment, not rent.
 	Mortgage bool
+	// Gap is the shortfall when not covered: what is owed minus what is in hand.
+	Gap int64
 }
 
 // FactsOf computes the facts of a moment from its typed payloads and its caption.
@@ -87,6 +89,10 @@ func FactsOf(ev Event) Facts {
 		}
 		if !c.Owned && owed > 0 {
 			f.Rent = &RentFact{Owed: owed, Days: c.RentDays, Covered: c.Cash >= owed, Margin: c.Cash - owed, Mortgage: c.MortgageWeekly > 0}
+			if !f.Rent.Covered {
+				f.Rent.Gap = owed - c.Cash
+				add(f.Rent.Gap)
+			}
 			add(owed, c.Arrears, int64(c.RentDays), f.Rent.Margin)
 			if !f.Rent.Mortgage {
 				add(c.RentDue)
@@ -225,18 +231,21 @@ var (
 	digitsRe = regexp.MustCompile(`\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?k?`)
 	wordRe   = regexp.MustCompile(`[a-z]+|\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?k?`)
 	// A shortfall claimed about money; "short of the buyout" is not about the rent.
-	shortRe   = regexp.MustCompile(`\b(?:short (?:on (?:cash|money|rent)|for (?:the )?rent|of (?:the )?rent|by)|(?:i am|i'm|we're|we are|still|come up|coming up|fall|falling|running) short\b|can(?:'t|not) (?:cover|make|pay|afford)(?: the)? rent|not enough (?:cash |money )?(?:for|to cover|to pay) (?:the )?rent|behind on (?:the )?rent)`)
-	notRentRe = regexp.MustCompile(`^\W*(?:\w+\W+){0,3}?(?:of |for )?(?:the )?(?:buyout|mortgage|down payment|permit|upgrade)`)
-	coverRe   = regexp.MustCompile(`\b(?:covers?|covered|covering)\b[^.!?]*\brent\b|\brent\b[^.!?]*\b(?:covered|is safe|'s safe|is handled|'s handled)\b`)
-	sentEndRe = regexp.MustCompile(`[.!?;]`)
-	lossRe    = regexp.MustCompile(`\b(?:at a loss|lost money|took a loss)\b`)
-	weekdayRe = regexp.MustCompile(`\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b`)
-	profitRe  = regexp.MustCompile(`\b(?:a profit|turned a profit|for a profit|made a killing)\b`)
-	betWonRe  = regexp.MustCompile(`\b(?:won|win)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:won|paid off|came (?:good|in|through))\b|\bcalled it\b`)
-	betLostRe = regexp.MustCompile(`\b(?:lost|lose)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:lost|failed|fell through|went bust)\b`)
-	bookRe    = `(?:the )?(?:book|ghost|lab|pace)\b`
-	aheadRe   = regexp.MustCompile(`\b(?:ahead of|beating|outpacing|in front of|ahead on) ` + bookRe)
-	behindRe  = regexp.MustCompile(`\b(?:behind|trailing|chasing|lagging|off) ` + bookRe)
+	// "The ledger stays red" and "bleeding" are the shop's state, not a customer or an item.
+	shortRe    = regexp.MustCompile(`(?:\bshort (?:on (?:cash|money|rent)|for (?:the )?rent|of (?:the )?rent)|\bi am short\b|\b(?:i'm|we're|we are|still|come up|coming up|falling|running) short\b|\bcan(?:'t|not) (?:cover|make|pay|afford) (?:the )?rent\b|\bnot enough (?:cash |money )?(?:for|to cover|to pay) (?:the )?rent\b|\bbehind on (?:the )?rent\b|(?:the )?(?:ledger|books?|till|shop) (?:is|'s|was|stays|turned|turns|sits|sitting) red|\bin the red\b|\bbleeding (?:cash|money|red)?\b)`)
+	notRentRe  = regexp.MustCompile(`^\W*(?:\w+\W+){0,3}?(?:of |for )?(?:the )?(?:buyout|mortgage|down payment|permit|upgrade)`)
+	coverRe    = regexp.MustCompile(`\b(?:covers?|covered|covering)\b[^.!?]*\brent\b|\brent\b[^.!?]*\b(?:covered|is safe|'s safe|is handled|'s handled)\b`)
+	shortByRe  = regexp.MustCompile(`\bshort(?:ly)? by\b`)
+	fineRentRe = regexp.MustCompile(`\brent (?:is|'s|was) (?:fine|safe|handled|taken care of|no problem)\b|\bno (?:worry|concern) (?:about|over) (?:the )?rent\b`)
+	sentEndRe  = regexp.MustCompile(`[.!?;]`)
+	lossRe     = regexp.MustCompile(`\b(?:at a loss|lost money|took a loss)\b`)
+	weekdayRe  = regexp.MustCompile(`\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b`)
+	profitRe   = regexp.MustCompile(`\b(?:a profit|turned a profit|for a profit|made a killing)\b`)
+	betWonRe   = regexp.MustCompile(`\b(?:won|win)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:won|paid off|came (?:good|in|through))\b|\bcalled it\b`)
+	betLostRe  = regexp.MustCompile(`\b(?:lost|lose)\b[^.!?]*\bbet\b|\bbet\b[^.!?]*\b(?:lost|failed|fell through|went bust)\b`)
+	bookRe     = `(?:the )?(?:book|ghost|lab|pace)\b`
+	aheadRe    = regexp.MustCompile(`\b(?:ahead of|beating|outpacing|in front of|ahead on) ` + bookRe)
+	behindRe   = regexp.MustCompile(`\b(?:behind|trailing|chasing|lagging|off) ` + bookRe)
 )
 
 // CheckLine finds what a narrator line says that the facts contradict or do not give:
@@ -257,7 +266,22 @@ func CheckLine(line string, f Facts) []Fault {
 			fault("says %q but cash %s covers the rent %s with %s to spare", l[m[0]:m[1]], num(*f.Cash), num(f.Rent.Owed), num(f.Rent.Margin))
 		}
 	}
-	if coverRe.MatchString(l) && f.Rent != nil && !f.Rent.Covered {
+	// A quoted shortfall is arithmetic: the number after "short by" must match the clock's
+	// gap (what is owed minus what is in hand), not a guess.
+	if f.Rent != nil && !f.Rent.Covered && f.Cash != nil {
+		gap := f.Rent.Owed - *f.Cash
+		for _, i := range shortByRe.FindAllStringIndex(l, -1) {
+			j := digitsRe.FindStringIndex(l[i[1]:])
+			if j == nil {
+				continue
+			}
+			tok := l[i[1]+j[0] : i[1]+j[1]]
+			if n, _ := parseDigits(tok); n != gap {
+				fault("says short by %s but cash %s against %s owed is short by %s", tok, num(*f.Cash), num(f.Rent.Owed), num(gap))
+			}
+		}
+	}
+	if f.Rent != nil && !f.Rent.Covered && (coverRe.MatchString(l) || fineRentRe.MatchString(l)) {
 		fault("says the rent is covered but cash %s is %s short of %s", num(*f.Cash), num(-f.Rent.Margin), num(f.Rent.Owed))
 	}
 	if f.Rent != nil {

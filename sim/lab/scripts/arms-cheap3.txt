@@ -1,0 +1,15 @@
+# The formula-sweep levers (docs/research/FORMULA-EXPLOITS.md) against their route, as arms-cheap.txt.
+# nice python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-cheap3.txt -dir var/sim/exp/cheap -seeds 60 -days 1000 -parallel 2 -- -difficulty hard -seed0 2910000
+appraiser_georgio | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_georgio.json
+appraiser_pulse | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_pulse.json
+appraiser_tiers | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_tiers.json
+appraiser_bribe | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_bribe.json
+appraiser_fridge | -human player -start apprentice -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/appraiser_fridge.json
+rancher_sprinter_georgio | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_georgio.json
+rancher_sprinter_pulse | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_pulse.json
+rancher_sprinter_tiers | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_tiers.json
+rancher_sprinter_bribe | -human player -start rancher -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/rancher_sprinter_bribe.json
+outlaw_georgio | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_georgio.json
+outlaw_pulse | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_pulse.json
+outlaw_tiers | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_tiers.json
+outlaw_bribe | -human player -start fence -perks vending+short_sleeper -directives sim/lab/scripts/directives/cheap/outlaw_bribe.json

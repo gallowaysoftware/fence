@@ -1,0 +1,15 @@
+# The fish/power/rats round (docs/re/AQUACULTURE.md §5.1, FORMULA-EXPLOITS.md §6/§10/§20): one lever at a time on the
+# menu routes, paired with arms-fishpower-base.txt (same seeds and flags).
+# python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-fishpower.txt -dir var/sim/exp/fp1 -seeds 60 -days 1000 -parallel 7 -- -difficulty hard -perks vending+short_sleeper -seed0 8100000 -no-trajectory
+aquafarmer | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer.json
+aquafarmer_hub | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_hub.json
+aquafarmer_pel | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_pel.json
+aquafarmer_h900 | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_h900.json
+aquafarmer_feed20 | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_feed20.json
+aquafarmer_specfood | -human player -start aquafarmer -directives sim/lab/scripts/directives/fishpower/aquafarmer_specfood.json
+rancher_sprinter_young2 | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter_young2.json
+rancher_sprinter_young3 | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter_young3.json
+rancher_sprinter_young4 | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter_young4.json
+rancher_sprinter_peak | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_sprinter_peak.json
+rancher_young3 | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_young3.json
+rancher_peak | -human player -start rancher -directives sim/lab/scripts/directives/fishpower/rancher_peak.json

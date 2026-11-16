@@ -141,5 +141,78 @@ namespace Fence.Lab
             R.Exact("fish hatch: fertilised roe -> fry after nights", 1, nightsToFry);
             R.Info("fish hatch: fertilised roe -> six juveniles after nights (fry ages two fed nights at 0.75-1.0 speed)", nightsToJuveniles);
         }
+            // An item put at grid cell (x, y) of an inventory, trying each orientation (the player's drag and drop).
+        static bool PlaceAt(GameGridInventory grid, GameItem it, int x, int y)
+        {
+            for (int o = 4; o >= 1; o--)
+            {
+                var b = new GridShapeBuilder(it.modifiedShape);
+                b.SetTransform(x, y, false, o);
+                var slot = grid.TryInventorySlot(it, it.unitCount, b);
+                if (slot != null && slot.numTransfer > 0 && slot.TryAcceptOnce(it.unitCount) > 0) return true;
+            }
+            return false;
+        }
+
+        static string Box(GameItem it) => it.modifiedShape is GridShape s ? $"({s.minX},{s.minY})-({s.maxX},{s.maxY})" : "?";
+
+        static int Charge(GameItem cell) => cell == null ? -1 : PowerHelper.GetAvailableEnergyFromItem(cell, false);
+
+        // FORMULA-EXPLOITS §6: an electric eel tank charges its own battery and, in full, every edge-adjacent cell or
+        // battery machine in the grid it stands in (AquacultureHelper.GeneratePower, early pass), ignoring blackouts.
+        public static void EelHub(int seed)
+        {
+            W.New(seed);
+            var stock = W.E.invElement;
+            W.ClearInventory(stock);
+            R.Info("eel hub: the stock grid (w x h)", $"{stock.inventoryShape.width} x {stock.inventoryShape.height}");
+            var ras = W.Make("ras");
+            GeneralHelper.SetItemOwned(ras, true);
+            bool placed = PlaceAt(stock, ras, 0, 0);
+            var tank = W.Make("ras_water_tank");
+            ProductionExps.Put(MachineRAS.GetWaterSlot(ras), tank);
+            while (AquacultureHelper.GetWaterMl(tank) < 12000)
+            {
+                var jug = ProductionExps.Owned("water_jug");
+                WaterHelper.AddWater(jug, 1);
+                WaterHelper.TransferLiquid(jug, tank);
+            }
+            var own = ProductionExps.Battery(0);
+            ProductionExps.Put(MachineHelper.GetBatterySlot(ras), own);
+            var eels = new List<GameItem>();
+            for (int k = 0; k < 2; k++)
+            {
+                var e = Fish(ras, FishSpecies.ElectricEel, k == 0 ? "MALE" : "FEMALE", 18);
+                e.ModifyTag("FISH_HUNGER_TAG", s => s.Enable().SetFloat(1100f));
+                eels.Add(e);
+            }
+            int output = AquacultureHelper.GetTankPowerOutput(MachineRAS.GetTankGrid(ras));
+            R.Info("eel hub: the tank (shape in the stock grid)", Box(ras), 1, $"placed {placed}; two elder electric eels, output {output} a night; tank draw {MachineryHelper.GetMachinePowerUsage(ras)}");
+            var sh = ras.modifiedShape;
+            // Right of the tank, below it, diagonal to it, and one cell clear of it.
+            var right = ProductionExps.Battery(0); GeneralHelper.SetItemOwned(right, true);
+            bool pr = PlaceAt(stock, right, sh.maxX + 1, sh.minY);
+            var bay = W.Make("hydroponic"); GeneralHelper.SetItemOwned(bay, true);
+            bool pb = PlaceAt(stock, bay, sh.minX, sh.maxY + 1);
+            var bayCell = ProductionExps.Battery(0);
+            ProductionExps.Put(MachineHelper.GetBatterySlot(bay), bayCell);
+            var diag = ProductionExps.Battery(0); GeneralHelper.SetItemOwned(diag, true);
+            bool pd = PlaceAt(stock, diag, sh.maxX + 1, sh.maxY + 1);
+            var far = ProductionExps.Battery(0); GeneralHelper.SetItemOwned(far, true);
+            bool pf = PlaceAt(stock, far, sh.maxX + 3, sh.minY);
+            var adj = ras.FindAdjacentType<GameItem>().Where(i => i != ras).Select(i => i.identifier).ToList();
+            R.Info("eel hub: placed (right cell, bay below, diagonal cell, far cell); adjacent per FindAdjacentType", $"{pr} {pb} {pd} {pf}", 1,
+                $"right {Box(right)} bay {Box(bay)} diag {Box(diag)} far {Box(far)}; adjacent: {string.Join(",", adj)}");
+            W.QuietDay();
+            int o2 = AquacultureHelper.GetTankPowerOutput(MachineRAS.GetTankGrid(ras));
+            R.Exact("eel hub: an edge-adjacent loose cell gains the tank's full output a night", output, Charge(right));
+            R.Exact("eel hub: an edge-adjacent machine's cell (hydroponic bay, idle) gains the full output", output, Charge(bayCell));
+            R.Exact("eel hub: a diagonal cell gains nothing", 0, Charge(diag));
+            R.Exact("eel hub: a cell one gap away gains nothing", 0, Charge(far));
+            R.Info("eel hub: the tank's own battery after one night (output - draw)", Charge(own), 1, $"output then {o2}; eel hunger {string.Join("/", eels.Select(e => AquacultureHelper.GetHunger(e).ToString("0")))}");
+            // A blackout does not stop the eels.
+            W.QuietDay();
+            R.Info("eel hub: after two nights (right cell, bay cell)", $"{Charge(right)}, {Charge(bayCell)}");
+        }
     }
 }

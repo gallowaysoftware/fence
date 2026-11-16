@@ -1,0 +1,19 @@
+# The build planner, second screen: the farmer start and Board-free (docs/research/BUILD-ORDER.md).
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build2.txt -dir var/sim/exp/bo2 -seeds 16 -seed0 9400000 -procs 2 -- -difficulty hard -perks vending+short_sleeper -human player
+farmer                    | -start farmer -directives sim/lab/scripts/directives/routes/farmer.json
+farmer_lab                | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab.json
+farmer_lab_must           | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_must.json
+farmer_lab_crops          | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_crops.json
+farmer_lab_crops_must     | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_crops_must.json
+farmer_nb                 | -start farmer -directives sim/lab/scripts/directives/build/farmer_nb.json
+farmer_lab_crops_nb       | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_crops_nb.json
+farmer_lab_crops_build_nb | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_crops_build_nb.json
+sprinter_nb               | -start apprentice -directives sim/lab/scripts/directives/build/sprinter_nb.json
+lab_crops_nb              | -start apprentice -directives sim/lab/scripts/directives/build/lab_crops_nb.json
+lab_crops_build_nb        | -start apprentice -directives sim/lab/scripts/directives/build/lab_crops_build_nb.json
+vintner_nb                | -start apprentice -directives sim/lab/scripts/directives/build/vintner_nb.json
+vintner_cw_nb             | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_nb.json
+vintner_cw_build_nb       | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_build_nb.json
+lab_crops_build_h98       | -start apprentice -directives sim/lab/scripts/directives/build/lab_crops_build_h98.json
+vintner_cw_build_h98      | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_build_h98.json
+farmer_lab_crops_build_h98 | -start farmer -directives sim/lab/scripts/directives/build/farmer_lab_crops_build_h98.json

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Fence.Barter;
 using Fence.Recording;
@@ -147,6 +148,47 @@ namespace Fence.Mod
         }
 
         bool capacityBroken;
+
+        // Lab is the composition spectrometer's panel for the work vessel and each loose reagent
+        // bottle — the analyser a player with the chem_scanner reads (CHEMISTRY.md §4.1). Null
+        // while the lab engine is off or the scanner is not owned: the view must not know more
+        // than a player without the scanner.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public JObject Lab()
+        {
+            var e = EmporiumEntry.Instance;
+            if (e == null) return null;
+            var owned = e.GetAllOwnedItems(false, true);
+            bool scans = owned != null && owned.Any(i => i != null && i.identifier == "chem_scanner");
+            if (!scans) return null;
+            JObject Scan(GameItem c)
+            {
+                int total = WaterHelper.GetTotalVolume(c);
+                var liquids = new JObject();
+                foreach (var l in Liquid.Liquids)
+                {
+                    int ul = c.GetTagReadonly(l.currentPart).GetInt();
+                    if (ul > 0) liquids[l.identifier] = new JObject { ["ul"] = ul, ["pct"] = Math.Round(ul * 100.0 / Math.Max(total, 1), 2) };
+                }
+                var o = new JObject { ["ml"] = total / 1000, ["liquids"] = liquids };
+                if (ChemicalFeedbackHelper.IsLethal(c)) o["toxicity"] = "lethal x" + ChemicalFeedbackHelper.GetLethalDose(c);
+                else if (ChemicalFeedbackHelper.IsToxic(c)) o["toxicity"] = "toxic";
+                if (ChemicalFeedbackHelper.IsNarcotic(c)) o["euphoria"] = new[] { "weak", "mild", "strong", "extreme" }[ChemicalFeedbackHelper.GetEuphoriaLevel(c) - 1];
+                return o;
+            }
+            GameItem vessel = null;
+            foreach (var i in owned)
+                if (i != null && i.IsTag("LIQUID_CONTAINER_TAG") && WaterHelper.GetTotalVolume(i) > 0 && (vessel == null || WaterHelper.GetTotalVolume(i) > WaterHelper.GetTotalVolume(vessel)))
+                    vessel = i;
+            var o2 = new JObject();
+            if (vessel != null) o2["scanned"] = Scan(vessel);
+            var bottles = new JArray();
+            foreach (var i in owned)
+                if (i != null && i.identifier != vessel?.identifier && i.IsTag("LIQUID_CONTAINER_TAG") && WaterHelper.GetTotalVolume(i) > 0)
+                    bottles.Add(new JObject { ["id"] = i.identifier, ["scan"] = Scan(i) });
+            o2["bottles"] = bottles;
+            return o2;
+        }
 
         Capacity TryCapacity(GameItem item)
         {

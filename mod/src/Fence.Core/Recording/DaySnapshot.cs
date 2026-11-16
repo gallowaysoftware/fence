@@ -182,6 +182,13 @@ namespace Fence.Recording
         HiddenDay Hidden();
     }
 
+    // ILabDayGame is the chemistry engine's reads (the composition spectrometer's panel): a game
+    // view implements it when the shop owns a chem_scanner and the lab engine runs.
+    public interface ILabDayGame
+    {
+        JObject Lab();
+    }
+
     public static class SnapshotPhases
     {
         public const string Morning = "morning";
@@ -268,6 +275,8 @@ namespace Fence.Recording
             if (phase == SnapshotPhases.Morning)
                 Section("night_log", () => r.Data["night_log"] = new JArray((g.NightLog() ?? new List<string>()).Select(FeatureText.Plain).Where(s => s.Length > 0).Cast<object>().ToArray()));
             Section("perks", () => r.Data["perks"] = Perks(g.StartingPerks(), reps ?? g.Reputation()));
+            if (g is ILabDayGame lg)
+                Section("lab", () => r.Data["lab"] = lg.Lab());
             Section("hidden", () => HiddenValues(g.Hidden(), r.Hidden));
 
             if (unavailable.Count > 0) r.Data["unavailable"] = unavailable;

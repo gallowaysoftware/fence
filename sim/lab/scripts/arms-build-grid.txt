@@ -1,0 +1,14 @@
+# Diagnostic (docs/research/BUILD-ORDER.md): the counter's buying with the grid's liquidation threshold off.
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build-grid.txt -dir var/sim/exp/bogrid -seeds 16 -seed0 9400000 -procs 6 -- -difficulty hard -perks vending+short_sleeper -human player
+sprinter_mfc0          | -start apprentice -directives sim/lab/scripts/directives/build/sprinter_mfc0.json
+weed_power_mfc0        | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_mfc0.json
+weed_power_build_mfc0  | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build_mfc0.json
+sprinter               | -start apprentice -directives sim/lab/scripts/directives/routes/sprinter.json
+weed_power             | -start apprentice -directives sim/lab/scripts/directives/build/weed_power.json
+weed_power_build       | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build.json
+weed_power_build_t30   | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build_t30.json
+farmer                 | -start farmer -directives sim/lab/scripts/directives/routes/farmer.json
+farmer_weed            | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed.json
+farmer_weed_build      | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build.json
+farmer_weed_build_t30  | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build_t30.json
+farmer_weed_build_h98_t30 | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build_h98_t30.json

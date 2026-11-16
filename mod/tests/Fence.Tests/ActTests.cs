@@ -370,7 +370,7 @@ namespace Fence.Tests
             var s = In(AdviceStatus.None, null, act);
             s.Summary = new SummaryResponse { Model = "qwen38fn-mlx", Day = 69, Today = new DayStats() };
             var v = OverlayText.Build(s);
-            Assert.StartsWith(mode + " · connected · qwen38fn-mlx", v.Header);
+            Assert.StartsWith(mode + " · connected", v.Header); // the model name is debugging; viewers see the mode
             Assert.Equal(pause, v.PauseLabel);
             Assert.Equal(act == ActDisplay.Active || act == ActDisplay.Paused, v.PauseInteractable);
         }
@@ -400,7 +400,7 @@ namespace Fence.Tests
             var fixture = ProtocolJson.Deserialize<SummaryResponse>(File.ReadAllText(Path.Combine(Paths.Fixtures, "summary.response.json")));
             s.Summary = fixture;
             var v = OverlayText.Build(s);
-            Assert.Equal("Day 69: 7 decisions · 3 sales · 2 purchases · cash +415 · 1 walk-out\nrep black_market -1.5, lower_levels +0.8", v.Summary);
+            Assert.Equal("Day 69 so far: cash +415 from 3 sales and 2 purchases; 1 walk-out.\nReputation: black market -1.5, lower levels +0.8.", v.Summary);
             Assert.StartsWith("Lessons (day 68):\nMarkups above 10%", v.Lessons);
             Assert.Contains("\nKeep 600 for rent", v.Lessons);
 
@@ -419,14 +419,14 @@ namespace Fence.Tests
             var day = new DayLog();
             day.SetDay(5);
             day.Arrive("Scav");
-            day.Note(OverlayText.Describe(JObject.Parse("{\"kind\":\"bargain\",\"option\":\"add_markup_25\",\"accepted\":false,\"walked_out\":true,\"rep_delta\":{\"lower_levels\":-3.0},\"actor\":\"mod\"}")));
-            day.Note(OverlayText.Describe(Outcomes.Left("walked_out")));
+            day.Record(JObject.Parse("{\"kind\":\"bargain\",\"option\":\"add_markup_25\",\"accepted\":false,\"walked_out\":true,\"rep_delta\":{\"lower_levels\":-3.0},\"actor\":\"mod\"}"));
+            day.Record(Outcomes.Left("walked_out"));
             day.Arrive("Farmer");
-            day.Note(OverlayText.Describe(JObject.Parse("{\"kind\":\"trade\",\"side\":\"sold\",\"items\":[1,2],\"cash_delta\":680,\"rep_delta\":{},\"actor\":\"human\"}")));
+            day.Record(JObject.Parse("{\"kind\":\"trade\",\"side\":\"sold\",\"items\":[1,2],\"cash_delta\":680,\"rep_delta\":{},\"actor\":\"human\"}"));
             var s = In(AdviceStatus.None, null);
             s.Today = day.Entries;
             var v = OverlayText.Build(s);
-            Assert.Equal("Scav → add_markup_25 refused, walked out (lower_levels -3 rep) (fence); walked out\nFarmer → sold 2 items for 680", v.Today);
+            Assert.Equal("Scav refused a 25% markup (lower levels -3) and walked out.\nFarmer bought 2 items for 680.", v.Today);
             Assert.Equal("Result: sold 2 items for 680", v.Outcome);
             day.SetDay(5);
             Assert.Equal(2, day.Entries.Count);

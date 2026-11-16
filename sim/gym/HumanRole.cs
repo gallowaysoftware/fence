@@ -45,6 +45,8 @@ namespace Fence.Gym
         public string Label;
         public string Text;
         public bool Enabled;
+        // The no-deal choice (the decline/leave line): picking it costs nothing and the client leaves.
+        public bool NoDeal;
     }
 
     internal sealed class DialogueView
@@ -117,6 +119,13 @@ namespace Fence.Gym
     internal class DefaultHumanRole : IHumanRole
     {
         public const int MaxStaged = 6;
+
+        // The no-rule fallbacks of Dialogue, below: the no-deal choice when one is on offer, else the first
+        // enabled one. The live mod hands the second to the human (it must not press it itself), so the
+        // sentinel is shared here instead of restated on that side.
+        public const string DialogueDeclinedNoRule = "dialogue:declined (no rule)";
+        public const string DialogueFirstEnabledNoRule = "dialogue:first_enabled (no rule, no decline)";
+
         protected static readonly string[] WindowTypes = { "FOOD", "MEDICAL", "MATERIAL", "HOUSEHOLD_GOOD", "SUBSTANCE", "WEAPON", "WATER", "ARMOR", "TOOL", "MODULE", "AMMUNITION" };
 
         protected readonly Defaults defaults;
@@ -184,8 +193,15 @@ namespace Fence.Gym
                 if (v.HoldsSeriousContraband) return Took("dialogue:bribe_inspector", v, bribe.Index);
                 if ((i = Find(c => c != bribe)) >= 0) return Took("dialogue:decline_bribe", v, i);
             }
+            // No rule: the no-deal choice (decline / leave), so the gym does not silently accept offers a
+            // player might decline. An event with no no-deal choice at all keeps the old first-enabled default.
+            if ((i = Find(c => c.NoDeal)) >= 0) return Took(DialogueDeclinedNoRule, v, i);
             i = Find(c => true);
-            return Took("dialogue:first_enabled", v, i < 0 ? 0 : i);
+            // No choice is enabled (e.g. eleanor4's gift needs 50 cash): pressing a disabled choice is ignored by
+            // the game and the dialogue never advances — hand it to the human instead (the gym's scheduler takes
+            // over; the live mod's Stop(Handover) does the same).
+            if (i < 0) return Took("dialogue:no_enabled_choice", v, -1);
+            return Took(DialogueFirstEnabledNoRule, v, i);
         }
 
         protected int Took(string key, DialogueView v, int index)

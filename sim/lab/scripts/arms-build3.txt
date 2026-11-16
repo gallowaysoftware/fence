@@ -1,0 +1,7 @@
+# The build planner, the armourer's frame forge (docs/research/BUILD-ORDER.md).
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build3.txt -dir var/sim/exp/bo3 -seeds 16 -seed0 9400000 -procs 2 -- -difficulty hard -perks vending+short_sleeper -human player
+armourer                | -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_forge          | -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge.json
+armourer_forge_build    | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_build.json
+armourer_forge_must     | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_must.json
+armourer_forge_must_ins | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_must_ins.json

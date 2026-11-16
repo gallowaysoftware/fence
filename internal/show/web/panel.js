@@ -80,11 +80,23 @@
     book = p.book && p.book.p50 && p.book.p50.length ? p.book : null;
     prevRun = p.prev_run && p.prev_run.path && p.prev_run.path.length ? p.prev_run : null;
     renderAbout();
-    text($("model"), p.model || p.id || "—");
-    text($("persona"), p.persona_name ? "as " + p.persona_name : "no persona");
-    text($("persona-tag"), [p.route ? words(p.route) + " route" : "", p.persona_tagline].filter(Boolean).join(" · "));
-    text($("run-label"), (p.id || "") + (p.seed ? " · seed " + p.seed : ""));
-    const chips = [p.difficulty, words(p.start), ...(p.perks || []).map(words), p.planner ? ({ plan: "LLM plans", hybrid: "LLM proposes, gym decides", local: "executor only" }[p.planner] || "planner: " + p.planner) : ""].filter(Boolean);
+    // Who plays, as whom, toward what, under which rules: a viewer arriving mid-run reads it cold.
+    const name = p.persona_name ? (/^the /i.test(p.persona_name) ? p.persona_name : "The " + p.persona_name) : "An AI shopkeeper";
+    text($("persona"), name);
+    text($("model"), p.model || p.id || "an AI model");
+    text($("persona-tag"), p.persona_tagline ? p.persona_tagline.toLowerCase() : "");
+    text($("run-label"), "An AI plays Probably Stolen" + (p.seed ? " · seed " + p.seed : ""));
+    const goal = routeGoal(p.route_brief);
+    $("goal").classList.toggle("hidden", !goal);
+    text($("goal-text"), goal);
+    const cap = (w) => w ? w[0].toUpperCase() + w.slice(1) : "";
+    const perks = (p.perks || []).map(words).filter(Boolean);
+    const chips = [
+      p.difficulty ? cap(p.difficulty) + " difficulty" : "",
+      p.start ? cap(words(p.start)) + " start" : "",
+      perks.length ? "Perks: " + perks.join(", ") : "",
+      p.planner ? ({ plan: "AI plans each day", llm: "AI plans each day", hybrid: "AI proposes, rules decide", local: "Rules only" }[p.planner] || "Planner: " + p.planner) : "",
+    ].filter(Boolean);
     $("chips").innerHTML = "";
     for (const c of chips) {
       const s = document.createElement("span");
@@ -92,6 +104,15 @@
     }
     if (window.renderFormat) window.renderFormat(p.format);
     $("live-dot").classList.add("on");
+  }
+
+  // The route's brief, first sentence, without its label ("The reference shop: ..."): what the shop lives on.
+  function routeGoal(brief) {
+    if (!brief) return "";
+    let first = brief.split(/(?<=\.)\s/)[0].trim();
+    const colon = first.indexOf(": ");
+    if (colon > 0 && colon < 30) first = first.slice(colon + 2);
+    return "Buy the shop. " + first[0].toUpperCase() + first.slice(1);
   }
 
   // The strategist's day-0 route choice: its thesis stays on the name card for the run.
@@ -249,6 +270,32 @@
     const thesis = ev.beat === "route_choice" && (p.sections || []).find((x) => /thesis/i.test(x.title));
     text($("plan-why"), [thesis ? "thesis: " + thesis.lines.join(" ") : reason ? "why: " + reason : "", over ? over.replace(/^overruled: /, "bridge overruled: ") : ""].filter(Boolean).join(" · "));
     if (flash) { const el = $("plan"); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
+  }
+
+  function renderMorning(m) {
+    const box = $("morning");
+    if (!m) { box.classList.add("hidden"); return; }
+    box.classList.remove("hidden");
+    text($("morning-title"), "Morning · day " + m.day);
+    const ul = $("morning-lines");
+    ul.innerHTML = "";
+    for (const l of (m.night_log || []).slice(0, 3)) {
+      const li = document.createElement("li"); li.textContent = l; ul.appendChild(li);
+    }
+    if (m.rent) {
+      const li = document.createElement("li"); li.className = "dim";
+      li.textContent = "rent " + fmt(m.rent.due) + " in " + m.rent.days_left + (m.rent.days_left === 1 ? " day" : " days");
+      ul.appendChild(li);
+    }
+    if (m.calendar && m.calendar.length) {
+      for (const d of m.calendar.slice(0, 3)) {
+        for (const e of (d.events || []).slice(0, 2)) {
+          const li = document.createElement("li"); li.className = "cal";
+          li.textContent = "d" + d.day + " · " + e.name;
+          ul.appendChild(li);
+        }
+      }
+    }
   }
 
   function renderCandidates(ev) {
@@ -483,6 +530,7 @@
       case "say": say(ev); return;
       case "audience": if (window.renderAudience) window.renderAudience(ev.audience); return;
       case "day": refreshBoard(); pushMoment(ev); return;
+      case "morning": pushMoment(ev); renderMorning(ev.morning); fit(); return;
       case "run_end": $("live-dot").classList.remove("on"); refreshBoard(); pushMoment(ev); return;
     }
     if (ev.kind === "thought" || ev.level === 0) pushTicker(ev);

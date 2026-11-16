@@ -25,13 +25,15 @@ namespace Fence.Gym
             && !PlayerRole.IsSign(i) && !Appraisal.IsKit(i) && !Labels.IsTool(i) && i.identifier != "magnifier";
 
         // Goods set aside for the permit official's next visit (from day 40 while bribing): the cheapest
-        // items covering what is owed plus the week's maximum (95), so the shelf is never bare on his day.
+        // items covering what is owed plus what his next visit adds, so the shelf is never bare on his day.
         public static HashSet<int> BribeReserve(int day)
         {
             var ps = PlayerStore.Instance;
             var held = new HashSet<int>();
             if (ps.hasBusinessPermit || day < 40 || Directives.Current.Permit == "buy" || Directives.Current.Permit == "refuse") return held;
-            int need = Math.Max(0, ps.storeClientData.businessPermitBribeAmount) + 95;
+            // The next visit (days 3 mod 7) adds 25 + 10 x (day / 7) (StoreClientList.GetBribeAmount), 105 from day 59 and rising.
+            int next = day + (10 - day % 7) % 7;
+            int need = Math.Max(0, ps.storeClientData.businessPermitBribeAmount) + 25 + 10 * (next / 7);
             long sum = 0;
             foreach (var i in StockAndCase().Where(Donatable)
                          .OrderBy(i => i.GetNegociatedValue()).ThenBy(i => i.uniqueId))

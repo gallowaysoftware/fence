@@ -1,0 +1,11 @@
+# The build planner, every engine stacked on each native route (docs/research/BUILD-ORDER.md): 30 seeds 2910001-030.
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build-stack.txt -dir var/sim/exp/bof -seeds 30 -seed0 2910000 -procs 6 -- -difficulty hard -perks vending+short_sleeper -human player
+farmer_all            | -start farmer -directives sim/lab/scripts/directives/build/farmer_all.json
+farmer_all_build      | -start farmer -directives sim/lab/scripts/directives/build/farmer_all_build.json
+apprentice_all        | -start apprentice -directives sim/lab/scripts/directives/build/apprentice_all.json
+apprentice_all_build  | -start apprentice -directives sim/lab/scripts/directives/build/apprentice_all_build.json
+armourer_all          | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_all.json
+armourer_all_build    | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_all_build.json
+water_baron           | -start water_merchant -directives sim/lab/scripts/directives/routes/water_baron.json
+water_baron_all       | -start water_merchant -directives sim/lab/scripts/directives/build/water_baron_all.json
+water_baron_all_build | -start water_merchant -directives sim/lab/scripts/directives/build/water_baron_all_build.json

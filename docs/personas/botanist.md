@@ -56,3 +56,23 @@ the fact check. For the second, the co-host produced no line that passed, so Roo
 
 - The purifier is a blunt instrument; I chose the reeds. They drink the tap water, keep the minerals, and ask only for patience.
 - I choose the reeds over the filter. Their quiet work purifies every drop, so my berries reach Master.
+
+## Payback nights (hard; cost ÷ net per night, derived + docs/re/PRODUCTION.md §1, WATER.md §2.3)
+
+| Engine | Cost | Per night | Payback |
+|---|---|---|---|
+| reed bay on a jug (hydroponic 585 + seed 30) | 615 | cures raw→curable continuously (28 %/night purity lift, minerals kept) | enabler for the wine line |
+| bloomberry bay (430) | 430 | 270 (wine 1-berry) — the botanist's own income | 1.6 |
+| coffee bay (418) | 418 | 64 (caffeine pills, legal) | 6.5 |
+| water trading + gutter tap (450+375) | 825 | free unlimited pours → the reed cure's input | enabler |
+| plant DNA line (PLANT_DNA 1875 + manipulator 1500 + disks) | ~4000 | purifying bloomberry strain | WINE.md §3: loses ~3.5k |
+| AquaScan (300) | 300 | reads water truth; the reed cure is invisible without it | verification |
+| recharger (338) + power hijack (450) | 788 | keeps bays powered; hijack kills the 5/night service | 8+ |
+
+**Reading:** the botanist is the vintner with a *water engine under it*: the reed bay's 2.0-night
+payback is what makes 1.6-night berry bays repeatable without buying tablets (the persona's
+"never a bought filter"). The income ranking is the vintner's, shifted one dependency earlier:
+water first (trading + tap + reed), berries second, coffee third. The plant-DNA line loses
+~3.5k on paper (WINE.md §3) and the botanist's win (a purifying bloomberry) is the one reason
+to ever buy it — treat it as the endgame, not the build. Savings phase: the DNA line only, and
+only for the strain; everything else is under 900.

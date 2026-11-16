@@ -219,6 +219,84 @@
       ],
       "description": "gym executor: join the appraisal board and serve its clients, or not"
     },
+    "appraisal_block": {
+      "type": "array",
+      "items": {"enum": ["hand", "ribwich", "plasma_fuel"]},
+      "description": "gym executor: Appraisal Board item types to block once the rank allows (older types from Senior, any at Master, never the last allowed); default [\"hand\", \"ribwich\"], [] for none"
+    },
+    "wanted": {
+      "enum": ["dismiss", "report", "report_all"],
+      "description": "gym executor: a wanted-poster face at the counter is dismissed, reported for its bounty (every poster but Lou's; the default), or reported including Lou (wanted5: her chain can end the run)"
+    },
+    "wanted_rep_floor": {
+      "type": "integer",
+      "minimum": -100,
+      "maximum": 100,
+      "description": "gym executor: skip a report that costs a faction rep while that faction is below this"
+    },
+    "window_mode": {
+      "enum": ["types", "concentrate", "tiers"],
+      "description": "gym executor: the display case holds the best item of each type, concentrates on the top type, or is packed so its top N types (one buyer each) reach tier 2 and 3, a multi-typed item counting in every type"
+    },
+    "georgio_hold_days": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 14,
+      "description": "gym executor: spend nothing for this many days up to Georgio's loan morning (he lends a share of the cash on hand and repays it 4x); default 7, 0 off"
+    },
+    "insurance_every": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7,
+      "description": "gym executor: insure one night in this many (an insured night resets the uninsured burglary count)"
+    },
+    "fridge": {
+      "type": "boolean",
+      "description": "gym executor: buy Dr. Jackson's fridge and chill the chillable stock overnight (+20 % the next day)"
+    },
+    "requests": {
+      "enum": ["off", "fill"],
+      "description": "gym executor: buy Marketplace Requests and fill a live request from stock when its reward covers the items at estimate"
+    },
+    "alarm": {
+      "enum": ["perfect"],
+      "description": "gym executor: buy a burglar alarm and tune it with modules until no thief gets through (Modules.cs); needs a charged cell in its slot"
+    },
+    "transmitters": {
+      "type": "array",
+      "items": {"enum": ["sec"]},
+      "description": "gym executor: broadcast the alarm to Security (+1 rep each powered night, needs alarm)"
+    },
+    "bay_modules": {
+      "enum": ["nightly"],
+      "description": "gym executor: modules toward an unplanted hydroponic bay harvesting every night instead of every second"
+    },
+    "projector_modules": {
+      "enum": ["tier1"],
+      "description": "gym executor: a mirage projector with fineness and quality modules, kept powered (attractiveness boost)"
+    },
+    "jackson_module_intro": {
+      "enum": ["buy"],
+      "description": "gym executor: buy the module introduction's three modules at the first-time discount"
+    },
+    "alert_insurance": {
+      "type": "boolean",
+      "description": "gym executor: keep buying insurance with the Alert perk (Alert skips the burglary roll, so it buys nothing)"
+    },
+    "rent_skip_weeks": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "gym executor: let Landlord Grace take the rent when the cash buyout projects within this many rent days (the buyout never collects the backlog); default 1, 0 pays every rent"
+    },
+    "liquid_luck": {
+      "enum": ["sell", "keep"],
+      "description": "gym executor: Georgio's liquid luck sold as stock, or kept and drunk (+75 luck, 3 days) when the hot goods left unconcealed reach liquid_luck_exposed"
+    },
+    "liquid_luck_exposed": {
+      "$ref": "#/$defs/credits",
+      "description": "gym executor: the inspection exposure (contraband at value, stolen at heat %) that makes liquid_luck: keep drink a bottle"
+    },
     "mortgage_max_spend": {
       "type": "integer",
       "minimum": 0,
@@ -279,6 +357,33 @@
         "bottles": {"type": "boolean", "description": "tested High Quality or Pure water in the wine bottles before rations (default true)"}
       },
       "description": "gym executor: the best grade the equipment allows (docs/research/QUALITY.md)"
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "gym executor: the cross-engine build planner (docs/research/BUILD-ORDER.md), off when absent. One capital plan: the rent, the permit (or the official's next donation) and the counter's stock money held, nothing new before Georgio's loan, then whole engine kits in order of income a credit over the days left",
+      "properties": {
+        "kits": {"type": "array", "items": {"enum": ["cellar_bays", "crop_bays", "water", "lab", "dna", "forge", "power", "storage"]}, "description": "kits the planner manages (default: every kit whose engine is on; cellar_bays only when listed)"},
+        "skip": {"type": "array", "items": {"type": "string"}, "description": "kits left to their engines' own rules"},
+        "must": {"type": "array", "items": {"type": "string"}, "description": "kits bought whole once affordable, without the payback test"},
+        "income": {"type": "object", "additionalProperties": {"type": "number"}, "description": "paper income a day once a kit is complete (per bay for the bay kits)"},
+        "ramp": {"type": "object", "additionalProperties": {"type": "integer"}, "description": "days from a complete kit to its income"},
+        "prices": {"type": "object", "additionalProperties": {"type": "integer"}, "description": "price estimates for kit items until one is paid"},
+        "horizon": {"type": "integer", "description": "last day a purchase may pay back by (default: the projected cash buyout, else horizon_default)"},
+        "horizon_default": {"type": "integer", "description": "horizon without a buyout target (default 200)"},
+        "payback_margin": {"type": "number", "description": "income over the days left must cover the cost this many times (default 1)"},
+        "georgio_day": {"type": "integer", "description": "the loan morning (default StorylineSchedule georgio + 37, 43)"},
+        "georgio_hold_days": {"type": "integer", "description": "days before the loan morning with no kit spending (default 7)"},
+        "georgio_mult": {"type": "number", "description": "what a credit spent before the loan costs (default 2.5)"},
+        "trade_days": {"type": "number", "description": "the counter's stock money held: this many days of its purchases over the last week (default 4)"},
+        "trade_floor": {"type": "integer", "description": "the least stock money held (default 300)"},
+        "reserve": {"type": "integer", "description": "more cash held (default 0)"},
+        "counter_test": {"type": "boolean", "description": "a kit must also beat the counter's average return on its money (default false)"},
+        "jackson_every": {"type": "integer", "description": "nights between trips to Dr. Jackson while a committed kit waits on his stock (default 5)"},
+        "storage": {"type": "boolean", "description": "storage bays are a kit, bought first whenever the stock grid runs under min_free_cells or cannot take a kit, and used (default true)"},
+        "storage_max": {"type": "integer", "description": "storage bays owned at most (default 3)"},
+        "insure_kit": {"type": "integer", "description": "keep the night's insurance (past buyout_save) while this much planned kit is owned (default off)"}
+      }
     },
     "clean_water": {
       "type": "object",

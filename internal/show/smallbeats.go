@@ -28,17 +28,17 @@ type night struct {
 	scavenges int
 }
 
-type haggle struct{ who, option, verdict string }
+type haggle struct{ who, option, verdict, reason string }
 
 // haggled records an answered bargain; the customer's trade that follows tells it.
-func (b *Builder) haggled(who, option, verdict string) {
-	b.lastHaggle = &haggle{who, option, verdict}
+func (b *Builder) haggled(who, option, verdict, reason string) {
+	b.lastHaggle = &haggle{who, option, verdict, reason}
 }
 
 // counterBeat promotes a trade below a moment to a counter story when it is worth one: a
 // haggle that ended in a deal, or a notable trade, at most counterBeatsPerDay a day and
 // counterGap customers apart.
-func (b *Builder) counterBeat(ev *Event) {
+func (b *Builder) counterBeat(ev *Event, reason string) {
 	t := ev.Trade
 	h := b.lastHaggle
 	b.lastHaggle = nil
@@ -56,6 +56,9 @@ func (b *Builder) counterBeat(ev *Event) {
 	ev.Level, ev.Beat = LevelMoment, BeatCounter
 	if h != nil {
 		ev.Text = strings.TrimSuffix(ev.Text, ".") + fmt.Sprintf(", after a haggle (%s): %s.", h.option, h.verdict)
+	}
+	if r := strings.TrimSpace(reason); r != "" {
+		ev.Text += " " + clip(r, 160) + "."
 	}
 }
 

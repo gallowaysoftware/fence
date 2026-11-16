@@ -48,9 +48,9 @@ type snapshot struct {
 	storeExtra map[string]string
 	// other is every unknown top-level key, as compact text.
 	other map[string]string
-	// productionRaw and waterRaw are read by production(), which caches its result in prod.
-	productionRaw, waterRaw json.RawMessage
-	prod                    *prodState
+	// productionRaw, waterRaw and labRaw are read by production(), which caches its result in prod.
+	productionRaw, waterRaw, labRaw json.RawMessage
+	prod                            *prodState
 	// scavOpen: the afterhours list offers the dumping ground tonight.
 	scavOpen bool
 	// aug is the aug presence the strategist rebuilt from the run's history; nil unknown.
@@ -294,7 +294,7 @@ func parseSnapshot(raw json.RawMessage) (*snapshot, error) {
 	s.storeExtra = scalarExtras(st, knownStore)
 	var top map[string]json.RawMessage
 	if json.Unmarshal(raw, &top) == nil {
-		s.productionRaw, s.waterRaw = top["production"], top["water"]
+		s.productionRaw, s.waterRaw, s.labRaw = top["production"], top["water"], top["lab"]
 		s.scavOpen = dumpingGroundOpen(top["afterhours"])
 		for k, v := range top {
 			if slices.Contains(knownTop, k) {

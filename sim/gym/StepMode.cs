@@ -141,6 +141,9 @@ namespace Fence.Gym
                     },
                 ["wild"] = Wild(ps),
                 ["georgio"] = ps.loanOfferedToGeorgio == 0 ? null : new JObject { ["lent"] = ps.loanOfferedToGeorgio, ["lent_on_day"] = ps.dayWhenLoanOfferedGeorgio, ["payback_from_day"] = ps.dayWhenLoanOfferedGeorgio + 6, ["note"] = "he pays back on a rent day once you are short of the rent (StoreClientManager.CheckRentDay)" },
+                // The engines' current state in the morning view (the LLM reads it before deciding):
+                // the lab carries the chemical analyser's panel (scanned, bottles) when the scanner is owned.
+                ["lab"] = Lab.Status(),
             };
             return new JObject
             {

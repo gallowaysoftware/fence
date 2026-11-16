@@ -50,7 +50,7 @@ type agencyRun struct {
 }
 
 // forkOrder is the order patches apply in: a later fork wins a key two of them set.
-var forkOrder = []string{"style", "engine", "fountain", "sprint", "mortgage", "hold"}
+var forkOrder = []string{"style", "engine", "fountain", "sprint", "mortgage", "hold", "alarm"}
 
 func (s *Strategist) agencyOn() bool { return s.opt.Agency.Forks || s.opt.Agency.PlanEvery > 1 }
 

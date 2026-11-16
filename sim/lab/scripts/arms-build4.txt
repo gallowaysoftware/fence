@@ -1,0 +1,31 @@
+# The build planner on main with Power.cs, the lab's supply loop and the gene lines (docs/research/BUILD-ORDER.md).
+# python3 sim/lab/scripts/buildorder.py run sim/lab/scripts/arms-build4.txt -dir var/sim/exp/bo4 -seeds 16 -seed0 9400000 -procs 6 -- -difficulty hard -perks vending+short_sleeper -human player
+sprinter               | -start apprentice -directives sim/lab/scripts/directives/routes/sprinter.json
+weed                   | -start apprentice -directives sim/lab/scripts/directives/breeding/caffeine_weed.json
+weed_power             | -start apprentice -directives sim/lab/scripts/directives/build/weed_power.json
+weed_power_build       | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build.json
+weed_power_must        | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_must.json
+loop                   | -start apprentice -directives sim/lab/scripts/directives/lab/caffeine_loop.json
+loop_build             | -start apprentice -directives sim/lab/scripts/directives/build/loop_build.json
+loop_must              | -start apprentice -directives sim/lab/scripts/directives/build/loop_must.json
+farmer                 | -start farmer -directives sim/lab/scripts/directives/routes/farmer.json
+farmer_weed            | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed.json
+farmer_weed_build      | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build.json
+farmer_weed_must       | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_must.json
+vintner                | -start apprentice -directives sim/lab/scripts/directives/cellar/vintner.json
+vintner_cw_power       | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_power.json
+vintner_cw_power_build | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_power_build.json
+vintner_cw_power_must  | -start apprentice -directives sim/lab/scripts/directives/build/vintner_cw_power_must.json
+armourer               | -start gunsmith -directives sim/lab/scripts/directives/routes/armourer.json
+armourer_forge         | -start gunsmith -directives sim/lab/scripts/directives/arms/armourer_forge.json
+armourer_forge_build   | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_build.json
+armourer_forge_must    | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_must.json
+armourer_forge_must_ins | -start gunsmith -directives sim/lab/scripts/directives/build/armourer_forge_must_ins.json
+sprinter_nb            | -start apprentice -directives sim/lab/scripts/directives/build/sprinter_nb.json
+weed_power_nb          | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_nb.json
+weed_power_build_nb    | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_build_nb.json
+weed_power_must_nb     | -start apprentice -directives sim/lab/scripts/directives/build/weed_power_must_nb.json
+farmer_nb              | -start farmer -directives sim/lab/scripts/directives/build/farmer_nb.json
+farmer_weed_nb         | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_nb.json
+farmer_weed_build_nb   | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_build_nb.json
+farmer_weed_must_nb    | -start farmer -directives sim/lab/scripts/directives/build/farmer_weed_must_nb.json

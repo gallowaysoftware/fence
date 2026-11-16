@@ -91,15 +91,23 @@ namespace Fence.Gym
 
         static int AlarmP() => AlarmItem() is GameItem a ? MachineryHelper.GetCurrentPerformanceBonus(a) : 0;
 
+        // A module's random effect, shown on its tooltip (ModuleEffectHelper.CreateModuleEffectTooltip).
+        static bool HasEffect(GameItem m, string effect) => (m.IsTag("MODULE_EFFECT1_TAG") && m.GetTagReadonly("MODULE_EFFECT1_TAG").GetString() == effect)
+            || (m.IsTag("MODULE_EFFECT2_TAG") && m.GetTagReadonly("MODULE_EFFECT2_TAG").GetString() == effect);
+        // An overvolted module (stats ×2) has a 10 % ruin roll each night its machine actions, and the alarm actions every
+        // night, powered or not (MachineAlarm's early pass): its doubled P would burn out within weeks there.
+        static bool Overvolted(GameItem m) => HasEffect(m, "MODULE_EFFECT_OVERVOLTED");
+
         // Loose positive-performance squares the alarm can still use, best first.
         static List<GameItem> LooseP() => Owned().Where(i => Loose(i) && Universal(i) && P(i) > 0).OrderByDescending(P).ThenBy(i => i.uniqueId).ToList();
+        static List<GameItem> LooseAlarmP() => LooseP().Where(m => !Overvolted(m)).ToList();
 
         // Squares fitted in the alarm, and the performance the best of them and the loose ones could reach in the room the
         // bay has: three squares beside a transmitter (by auto-placement), four without. Degrading and learning modules
         // carry their current stats in their tags, so a worn module ranks below a fresh one.
         static List<GameItem> AlarmSquares() => AlarmItem() is GameItem a ? In(a).Where(m => m.identifier != Transmitter && m.IsTag("MODULE_TAG")).ToList() : new List<GameItem>();
         static int SquareSlots() => Math.Max(Factions().Count > 0 ? 3 : 4, AlarmSquares().Count);
-        static List<GameItem> AlarmPool() => AlarmSquares().Concat(LooseP()).Where(m => P(m) > 0).OrderByDescending(P).ThenBy(m => m.uniqueId).ToList();
+        static List<GameItem> AlarmPool() => AlarmSquares().Where(m => !Overvolted(m)).Concat(LooseAlarmP()).Where(m => P(m) > 0).OrderByDescending(P).ThenBy(m => m.uniqueId).ToList();
         static int AlarmReach() => AlarmPool().Take(SquareSlots()).Sum(P);
 
         static int NeedAlarmP() => AlarmPerfect ? Math.Max(0, 50 - AlarmReach()) : 0;
@@ -236,7 +244,9 @@ namespace Fence.Gym
             ClearDead(alarm);
             // Below 50 (a module wore down, burnt out or never came) refit from scratch, best first, but only once the
             // fitted and loose squares together reach 50, so a lone module waits for its partner.
-            if (AlarmPerfect && MachineryHelper.GetCurrentPerformanceBonus(alarm) < 50 && AlarmReach() >= 50)
+            // An overvolted square comes out as soon as the rest can do without it.
+            bool hot = AlarmSquares().Any(Overvolted);
+            if (AlarmPerfect && (MachineryHelper.GetCurrentPerformanceBonus(alarm) < 50 || hot) && AlarmReach() >= 50)
             {
                 var pool = AlarmPool();
                 foreach (var m in AlarmSquares()) Chore.Accept(EmporiumEntry.Instance.invElement, m, -1);

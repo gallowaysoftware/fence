@@ -23,10 +23,13 @@ namespace Fence.Mod
             if (gate == null || item == null || !gate.StillOpen || !MayRemove(item)) return false;
             switch (to)
             {
-                case Case: ToCase(item); return true;
-                case Back: ToBack(item); return true;
-                case Stock: ToStock(item); return true;
-                case Ground: ToGround(item); return true;
+                case Case: ToCase(item); return LiveGame.IsIn(item, to);
+                case Back: ToBack(item); return LiveGame.IsIn(item, to);
+                case Stock: ToStock(item); return LiveGame.IsIn(item, to);
+                case Ground: ToGround(item); return LiveGame.IsIn(item, to);
+                // The move helpers call the game's TryAcceptAll, which silently does nothing when the
+                // destination refuses (full grid, stacking rule): reporting success then made the driver
+                // fault-loop ("move did not take") instead of skipping a full destination.
                 default: return false;
             }
         }
@@ -82,6 +85,16 @@ namespace Fence.Mod
             Toggle(on);
             return true;
         }
+
+        // The Security button on a poster face (StoreSecButton.OnClick): the report runs the game's own
+        // arrest presentation, then Security leaves with the bounty.
+        public bool Report(ActGate gate)
+        {
+            if (gate == null || !gate.StillOpen) return false;
+            ReportPressed();
+            return true;
+        }
+
 
         // The tablet's End Day button; the button is disabled while tonight's bill exceeds the cash.
         public bool Sleep(ActGate gate)
@@ -179,6 +192,27 @@ namespace Fence.Mod
             if (gate == null || !gate.StillOpen) return false;
             GoOutsideConfirm();
             return true;
+        }
+
+        // The afterhours response's bag choice: going out without a backpack (as the gym does), or —
+        // while the butcher hunts — the first owned backpack that carries a gun (the game refuses the
+        // press otherwise: ResponseList.cs shows the need-gun notice and keeps the window open).
+        public bool ChooseBag(ActGate gate)
+        {
+            if (gate == null || !gate.StillOpen) return false;
+            if (LiveGame.ButcherHunting())
+            {
+                var choices = EmporiumEntry.Instance.choices;
+                for (int i = 1; choices != null && i < choices.Count; i++)
+                {
+                    if (choices[i].Item2 == null) continue;
+                    // Pressing a bag without a gun is a no-op notice; a bag with a gun leaves for the map.
+                    choices[i].Item2();
+                    return true;
+                }
+                return false;
+            }
+            return FirstResponseChoice();
         }
 
         // The afterhours response's first choice: going out without a backpack, as the gym does.
@@ -283,6 +317,9 @@ namespace Fence.Mod
             if (gate == null || target == null || !gate.StillOpen) return false;
             return Trigger(target);
         }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void ReportPressed() => PlayerStore.Instance.OnCustomerReported();
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static bool GunClick()

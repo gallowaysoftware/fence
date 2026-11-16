@@ -80,7 +80,9 @@ var isBool = oneOf(true, false)
 
 // gymLevers are keyed by path: "buy.no_singles" is no_singles inside buy.
 var gymLevers = map[string]lever{
-	"bays":                   {"wine bays, 0–6 (the routes run 2, the vintner 4)", intIn(0, 6)},
+	"bays":                   {"wine bays, 0–6 (the routes run 2, the vintner 4); grows toward `bays_max` once `bays_grow_cash` is in hand", intIn(0, 6)},
+	"bays_max":               {"more wine bays than `bays` once `bays_grow_cash` is in hand (the growth lever)", intIn(0, 6)},
+	"bays_grow_cash":         {"cash on hand at which wine bays grow toward `bays_max` (default 2 500)", intIn(0, 10000)},
 	"furnaces":               {"blast furnaces, 1–2 (the smelter runs 2)", intIn(1, 2)},
 	"furnace_eco":            {"eco modules beside the furnace's blast module", isBool},
 	"ore_phone":              {"order ore by phone for the furnace", isBool},
@@ -88,6 +90,9 @@ var gymLevers = map[string]lever{
 	"alarm":                  {`"perfect": buy a burglar alarm and tune it until no thief gets through`, oneOf("perfect")},
 	"transmitters":           {`["sec"]: broadcast to Security until the police treat the shop as VIP (needs alarm)`, subset("sec")},
 	"pharma":                 {`"phone": Dale's courier brings pink injectors at a fifth off`, oneOf("phone")},
+	"bay_modules":            {`"nightly": modules toward an unplanted hydroponic bay harvesting every night`, oneOf("nightly")},
+	"projector_modules":      {`"tier1": a mirage projector with fineness and quality modules`, oneOf("tier1")},
+	"jackson_module_intro":   {`"buy": the module introduction's three modules at the first-time discount`, oneOf("buy")},
 	"beer":                   {`"phone": Red Imp beer by phone (neutral to slightly slower in the lab)`, oneOf("phone")},
 	"jackson_every":          {"days between Dr. Jackson's visits, 7–28 (routes: 14)", intIn(7, 28)},
 	"short_rent_buy_pct":     {"while cash is under the rent floor, keep buying lots at this % of the estimate to sell before rent day (rock_bottom: 85)", intIn(0, 100)},
@@ -96,7 +101,12 @@ var gymLevers = map[string]lever{
 	"georgio_peak_days":      {"[first, last]: stop buying and sell down over those days to lend Georgio more", pair(30, 60)},
 	"purify_raw":             {"tap water straight into an idle purifier (water engine)", isBool},
 	"purifiers":              {"water purifiers, 1–8 (water engine)", intIn(1, 8)},
-	"printer":                {`"run": the gunsmith's 3D printer (cost two weeks in the lab)`, oneOf("run")},
+	"clean_water.reeds":      {"clean-water reed bays, 0–6 (each cures ~20 L a night once a tank is bought)", intIn(0, 6)},
+	"clean_water.reeds_max":  {"more reed bays than `reeds` once `grow_cash` is in hand (the growth lever)", intIn(0, 6)},
+	"clean_water.grow_cash":  {"cash on hand at which the bays grow toward `reeds_max` (default 2 500)", intIn(0, 10000)},
+	"clean_water.treat":      {"cure the water to its true label for the bottles and the fountain (default true; false leaves the raw grade)", isBool},
+	"clean_water.tap":        {`"rust" buys the rustwater tap too (filtered rust is HQ by night 6), "gutter" the gutter tap only, "none" no tap at all`, oneOf("rust", "gutter", "none")},
+	"fountain_commons":       {"common electronics go into the fountain's attractiveness before the vending machine", isBool},
 	"restock_missed":         {"restock the types buyers asked for and the shop lacked", isBool},
 	"buy.no_singles":         {"wholesale lots only (engine inputs excepted)", isBool},
 	"sell.liquidate_min_pct": {"lowest % of the estimate a sell-down for rent accepts, 40–100 (routes: 78)", intIn(40, 100)},
@@ -109,7 +119,7 @@ var contractLevers = map[string]lever{
 	"engine":                {`production: "wine", "water", "furnace", "rats", "fish" joined by "+", or "none" (rats need the rancher start, fish the aquafarmer start, water the water_merchant start)`, nil},
 	"bargain":               {`haggling with buyers: "never", "ev_positive", "discount" ("aggressive" loses every run to the Lower Levels mob)`, oneOf("never", "ev_positive", "discount")},
 	"bargain_buy":           {`haggling with sellers: "never", "ev_positive", "discount"`, oneOf("never", "ev_positive", "discount")},
-	"permit":                {`"buy", or null to leave it to the executor (buys once evidence reaches 30)`, nil},
+	"permit":                {`"buy", "bribe" (never buy: donate goods weekly from day 45, and the aug all-clear never comes; 11–20 days faster on hard routes), or null to leave it to the executor (buys once evidence reaches 30)`, nil},
 	"buyout_by_day":         {"buy the shop for cash by this day, 84–200 (routes: 140); the loan shark hears \"later\" while it projects", intIn(84, 200)},
 	"buyout_save":           {`spending cut while saving for the buyout: any of "insurance", "upgrades", "inputs", "vending" (routes: ["insurance"])`, nil},
 	"buyout_save_from":      {"the day buyout_save starts, 1–140 (routes: 56)", intIn(1, 140)},
@@ -124,6 +134,17 @@ var contractLevers = map[string]lever{
 	"buy.avoid_types":       {"item types never bought", typed},
 	"sell.min_pct":          {"lowest % of the estimate an ordinary sale accepts (routes: 57)", intIn(30, 100)},
 	"arms":                  {`{} or {"keep_guns": N, "permits": false, ...}: the arms engine (Gunsmith start): permits on display bring gun-order clients, filled from stock with mods; Weapon Permits II and III bought near their Security gates; {"forge": true} builds the guns from printed frames (New, stats x print quality)`, nil},
+	"wanted":                {`wanted posters at the counter: "report" for the bounty (+Security; every poster but Lou's; the default), "report_all" (Lou too: her chain can end the run) or "dismiss"`, oneOf("dismiss", "report", "report_all")},
+	"appraisal_block":       {`Appraisal Board types to block once the rank allows: any of "hand", "ribwich", "plasma_fuel" (plasma pays the most a job; default ["hand", "ribwich"])`, subset("hand", "ribwich", "plasma_fuel")},
+	"rent_skip_weeks":       {"let Landlord Grace take the rent when the cash buyout projects within this many rent days (the buyout never collects it), 0–4 (default 1)", intIn(0, 4)},
+	"liquid_luck":           {`Georgio's liquid luck: "sell" as stock, or "keep" and drink it (+75 luck, 3 days) when unconcealed hot goods are at risk`, oneOf("sell", "keep")},
+	"window_mode":           {`the display case: "concentrate" on the top type (routes), "types" (best of each), or "tiers" (pack the top N types to tier 2/3, multi-typed items counting in each)`, oneOf("types", "concentrate", "tiers")},
+	"georgio_hold_days":     {"spend nothing for this many days up to Georgio's day-43 loan (he lends a share of the cash on hand and repays 4x), 0–14 (default 7)", intIn(0, 14)},
+	"insurance_every":       {"insure one night in N (an insured night resets the burglary count), 1–7", intIn(1, 7)},
+	"fridge":                {"buy Dr. Jackson's fridge and chill drinks, rations and premium water overnight (+20 % the next day)", isBool},
+	"requests":              {`"fill": buy Marketplace Requests and fill them from stock when the reward covers the items (rep with the asking faction)`, oneOf("off", "fill")},
+	"alert_insurance":       {"keep buying insurance with the Alert perk (it buys nothing: Alert skips the burglary roll)", isBool},
+	"cash_floor":            {"never trade below this cash (held for a purchase: the fountain, the purifiers); engine inputs excepted", intIn(0, 20000)},
 }
 
 // ItemTypes are the item categories speculate, specialty and the buy lists take.
@@ -170,6 +191,7 @@ func LeverText() string {
 		fmt.Fprintf(&b, "- %s: %s\n", k, l.doc)
 	}
 	fmt.Fprintf(&b, "Item types: %s.\n", strings.Join(ItemTypes, ", "))
+	fmt.Fprintf(&b, "paths: a list of production paths (\"paths\": [\"wine\", \"reed_cure\"]) that set their directive keys under your composition; the menu names them.\n")
 	return b.String()
 }
 
@@ -228,8 +250,16 @@ func (c *Composition) Validate(m *Menu) []string {
 	if len(c.Levers) == 0 {
 		bad("levers: none changed; that is the %s route itself", c.Base)
 	}
+	if names, ok := c.Levers["paths"].([]any); ok {
+		for _, name := range names {
+			s, _ := name.(string)
+			if _, known := m.Paths[s]; !known {
+				bad("paths: %q is not a path (see the menu's list)", s)
+			}
+		}
+	}
 	contract := map[string]any{}
-	for _, path := range sortedPaths(c.Levers) {
+	for _, path := range sortedPaths(c.expanded(m)) {
 		v := path.value
 		if l, ok := gymLevers[path.key]; ok {
 			if v != nil {
@@ -269,7 +299,7 @@ func (c *Composition) Validate(m *Menu) []string {
 	} else if err := s.Validate(contract); err != nil {
 		bad("against directives.schema.json: %s", oneLine(err.Error()))
 	}
-	d, err := c.merged(base)
+	d, err := c.merged(m, base)
 	if err != nil {
 		bad("%v", err)
 		return errs
@@ -340,11 +370,12 @@ type leverPath struct {
 	value any
 }
 
-// sortedPaths flattens buy and sell one level ("buy.no_singles"), the only nested levers.
+// sortedPaths flattens nested-object levers one level ("buy.no_singles", "clean_water.reeds"),
+// the only nested levers.
 func sortedPaths(levers map[string]any) []leverPath {
 	var out []leverPath
 	for k, v := range levers {
-		if obj, ok := v.(map[string]any); ok && (k == "buy" || k == "sell") {
+		if obj, ok := v.(map[string]any); ok && (k == "buy" || k == "sell" || k == "clean_water") {
 			for ck, cv := range obj {
 				out = append(out, leverPath{k + "." + ck, cv})
 			}
@@ -357,12 +388,24 @@ func sortedPaths(levers map[string]any) []leverPath {
 }
 
 // merged is the base's directives with the levers applied.
-func (c *Composition) merged(base Entry) (map[string]any, error) {
+func (c *Composition) merged(m *Menu, base Entry) (map[string]any, error) {
 	var d map[string]any
 	if err := json.Unmarshal([]byte(base.Base), &d); err != nil {
 		return nil, fmt.Errorf("base %s: %w", base.Name, err)
 	}
-	for _, p := range sortedPaths(c.Levers) {
+	// Path keys fill gaps in the base: apply them only where the base lacks the key.
+	for _, name := range c.pathNames() {
+		path, ok := m.Paths[name]
+		if !ok {
+			continue
+		}
+		for k, v := range path {
+			if _, present := d[k]; !present {
+				d[k] = v
+			}
+		}
+	}
+	for _, p := range sortedPaths(c.expanded(m)) {
 		parent, child, nested := strings.Cut(p.key, ".")
 		target := d
 		key := p.key
@@ -390,7 +433,7 @@ func (c *Composition) File(m *Menu, persona, brief string) ([]byte, error) {
 		return nil, errors.New(strings.Join(errs, "; "))
 	}
 	base, _ := m.Get(c.Base)
-	d, err := c.merged(base)
+	d, err := c.merged(m, base)
 	if err != nil {
 		return nil, err
 	}
@@ -434,4 +477,31 @@ func LeverNames() string {
 	}
 	slices.Sort(keys)
 	return strings.Join(keys, ", ") + ". Item types: " + strings.Join(ItemTypes, ", ") + "."
+}
+
+// expanded is the composition's levers with "paths" removed: path keys fill gaps in the base
+// (merged), they are not levers to validate or apply.
+func (c *Composition) expanded(m *Menu) map[string]any {
+	out := make(map[string]any, len(c.Levers))
+	for k, v := range c.Levers {
+		if k != "paths" {
+			out[k] = v
+		}
+	}
+	return out
+}
+
+// pathNames lists the composition's named paths.
+func (c *Composition) pathNames() []string {
+	names, ok := c.Levers["paths"].([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]string, 0, len(names))
+	for _, n := range names {
+		if s, ok := n.(string); ok {
+			out = append(out, s)
+		}
+	}
+	return out
 }

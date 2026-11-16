@@ -229,6 +229,24 @@ namespace Fence.Tests
             Assert.Equal(gap, BarterRules.CoverageGap(c));
         }
 
+        // The gym's wanted rule (Fence.Gym.Wanted.Report) read off the live client's fields: a poster face that is
+        // reportable, not Lou, and whose faction's rep is above the floor when the report would cost that faction rep.
+        [Theory]
+        [InlineData(true, true, "wanted1", false, false, 0, null, true)]       // poster, reportable, no rep cost
+        [InlineData(true, true, "wanted1", false, false, -10, 50.0, true)]     // rep above floor, reportable
+        [InlineData(true, true, "wanted1", false, false, -10, -70.0, true)]    // degrades false: no rep cost, floor irrelevant
+        [InlineData(true, true, "wanted1", false, false, 0, -70.0, true)]      // no rep cost, floor irrelevant
+        [InlineData(true, true, "wanted1", true, false, -10, -70.0, false)]    // improves AND degrades: floor applies
+        [InlineData(true, true, "wanted1", false, true, -10, -70.0, true)]     // improves only: floor ignored
+        [InlineData(true, true, "wanted5", false, false, 0, null, false)]      // Lou: never reportable in live mod
+        [InlineData(true, false, "wanted1", false, false, 0, null, false)]     // not reportable
+        [InlineData(false, true, "wanted1", false, false, 0, null, false)]     // not on poster wall
+        public void WantedReportable(bool onPoster, bool canReport, string poster, bool degrades, bool improves,
+            int penalty, double? rep, bool want)
+        {
+            Assert.Equal(want, BarterRules.WantedReportable(onPoster, canReport, poster, degrades, improves, penalty, rep));
+        }
+
         public static IEnumerable<object[]> NotReady()
         {
             yield return new object[] { new UiState { ClientPresent = true, ClientArrived = false } };

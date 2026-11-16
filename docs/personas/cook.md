@@ -14,3 +14,22 @@ Win: cartel 100 starts the exit; 200, 5+ visits later, completes it.
 first; the finisher's output grid is no hiding place. Sources: docs/re/CHEMISTRY.md §0, §7.3, §7.5;
 docs/research/CHEMISTRY-ENGINE.md ("The chains", "The Cook, why it fails"); docs/re/MITIGATIONS.md §3A (fixers,
 evidence removal).
+
+## Payback nights (hard; cost ÷ net per night, measured + docs/re/CHEMISTRY.md)
+
+| Engine | Cost | Per night | Payback |
+|---|---|---|---|
+| dream cap seeds (24 × n, contraband 1) | ~25/seed | 5.5 units × 72 = **~400 per cap cycle (4 nights)** ≈ 100 | **~0.3** |
+| heating plate (375) | 375 | required for every extraction | prerequisite |
+| evaporator (585) | 585 | dries the dust; without it nothing ships | prerequisite |
+| chem finisher (585) | 585 | purity 6→0 % loss — the 42→72 jump | 10–15 |
+| Wild's fixers (525 + 25/night) | 525 | saves the run from burglary, not income | insurance |
+| evidence removal (750) | 750 | same | insurance |
+
+**Reading:** the dream-cap path is the highest income density in the game once the lab exists —
+a seed costing 25 returns ~400 per 4-night cycle. The *machines* are prerequisites, not
+upgrades: without plate/evaporator/finisher the caps are worth nothing, so the chemist start
+(day-1 kit, save 1500) is worth more than any payback arithmetic suggests. The cartel quota
+caps the upside deliberately (10 dust at 40 %, rising to 70 %) — the run is bounded by quota,
+not by capital, so the savings phase is short: finisher, fixers, evidence removal, then bank.
+Coffee → caffeine pills (8 × 24/bean, legal) is the slow safe lane for when the cartel is hot.

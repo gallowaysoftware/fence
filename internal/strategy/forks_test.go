@@ -41,7 +41,7 @@ func TestDetectForks(t *testing.T) {
 		"property":{"owned":false,"buyout_price":31000,"mortgage_offer":{"down_payment":4000,"weekly":1700,"weeks":16}}}`
 	st := map[string]*forkState{}
 	fs := detectForks(forkSnap(t, offer), 70, baseCtx("apprentice", appraiserBase), st)
-	if got := kinds(fs); got != "mortgage,sprint,style" {
+	if got := kinds(fs); got != "mortgage,sprint,style,alarm" {
 		t.Fatalf("day 70 with an offer: %s", got)
 	}
 	m := fs[0]
@@ -66,7 +66,7 @@ func TestDetectForks(t *testing.T) {
 		"inventory":[{"uid":1,"type":"MEDICAL","where":"stock"},{"uid":2,"type":"MEDICAL","where":"stock"},{"uid":3,"type":"MEDICAL","where":"showcase"},{"uid":4,"type":"FOOD","where":"stock"}]}`
 	st = map[string]*forkState{}
 	fs = detectForks(forkSnap(t, shortage), 20, baseCtx("apprentice", appraiserBase), st)
-	if kinds(fs) != "hold" {
+	if got := kinds(fs); got != "hold,alarm" {
 		t.Fatalf("shortage: %s (active %+v)", kinds(fs), forkSnap(t, shortage).Active)
 	}
 	var d protocol.Directives
@@ -74,18 +74,18 @@ func TestDetectForks(t *testing.T) {
 	if d.Sell == nil || len(d.Sell.HoldUIDs) != 3 || fs[0].Until != 23 {
 		t.Errorf("hold: %+v until %d", d.Sell, fs[0].Until)
 	}
-	if f := detectForks(forkSnap(t, shortage), 27, baseCtx("apprentice", appraiserBase), st); f != nil {
+	if f := detectForks(forkSnap(t, shortage), 27, baseCtx("apprentice", appraiserBase), st); strings.Contains(kinds(f), "hold") {
 		t.Errorf("the same event asked twice: %s", kinds(f))
 	}
 
 	// A route that already runs a style or the furnace is not asked about them.
 	fs = detectForks(forkSnap(t, `{"phase":"morning","store":{"day":30,"cash":5000}}`), 30, baseCtx("apprentice", `{"engine":"wine+furnace","specialty":{"types":["MEDICAL"]}}`), map[string]*forkState{})
-	if kinds(fs) != "" {
-		t.Errorf("styled furnace route: %s", kinds(fs))
+	if got := kinds(fs); got != "alarm" {
+		t.Errorf("styled furnace route: %s", got)
 	}
 	fs = detectForks(forkSnap(t, `{"phase":"morning","store":{"day":30,"cash":5000}}`), 30, baseCtx("rancher", `{"engine":"wine"}`), map[string]*forkState{})
-	if kinds(fs) != "engine,style" || len(fs[0].Options) != 3 {
-		t.Errorf("rancher without furnace or rats: %s %+v", kinds(fs), fs)
+	if got := kinds(fs); got != "engine,style,alarm" || len(fs[0].Options) != 3 {
+		t.Errorf("rancher without furnace or rats: %s %+v", got, fs)
 	}
 }
 

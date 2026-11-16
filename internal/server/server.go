@@ -53,7 +53,10 @@ type Config struct {
 	Planner Planner
 	// AppraisalGuides, if set, go to the mod in every hello (policy.ReadAppraisalGuides).
 	AppraisalGuides json.RawMessage
-	Logger          *slog.Logger
+	// BaseDirectives, if set, is returned in every summary as base_directives so the mod
+	// plays the bridge's baseline instead of an in-game copy.
+	BaseDirectives string
+	Logger         *slog.Logger
 	// MaxBodyBytes caps request bodies; larger ones get 413.
 	MaxBodyBytes int64
 	Now          func() time.Time
@@ -295,7 +298,7 @@ func (s *Server) decide(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	var d policy.Decision
-	if sess.mode == protocol.ModeObserve {
+	if sess.mode == protocol.ModeObserve && !policy.Judgeable(req.Kind) {
 		d = policy.Fallback("bridge is in observe mode")
 	} else {
 		d = s.runPolicy(ctx, req.PolicyView())
@@ -398,7 +401,7 @@ func (s *Server) summary(w http.ResponseWriter, r *http.Request) {
 	resp := protocol.SummaryResponse{
 		SessionID: sess.id, Mode: sess.mode, Policy: s.cfg.Policy.Name(), Model: s.cfg.Model,
 		Day: day.Day, Today: day.Today, Lessons: day.Lessons, LessonsDay: day.LessonsDay,
-		Plan: p.text, PlanDay: p.day, Directives: p.directives, Bet: p.bet,
+		Plan: p.text, PlanDay: p.day, Directives: p.directives, BaseDirectives: s.cfg.BaseDirectives, Bet: p.bet,
 	}
 	if resp.Today.RepDelta == nil {
 		resp.Today.RepDelta = map[string]float64{}

@@ -292,7 +292,7 @@ func TestRouteRunSpec(t *testing.T) {
 	if len(ms) != 2 {
 		t.Fatalf("%d matches", len(ms))
 	}
-	if m := ms[0]; m.ID() != "q__r-smelter__s7__smelter" || m.Start != "apprentice" || m.Perks != "short_sleeper+vending" {
+	if m := ms[0]; m.ID() != "q__r-smelter__s7__smelter" || m.Start != "apprentice" || m.Perks != "lucky+proficient_scavenger+short_sleeper" {
 		t.Fatalf("smelter match %s %+v", m.ID(), m)
 	}
 	if m := ms[1]; m.ID() != "q__r-rock_bottom__s7__vintner" || m.Start != "rock_bottom" {

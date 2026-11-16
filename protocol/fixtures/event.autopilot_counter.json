@@ -1,0 +1,3 @@
+{"session_id": "s-0001", "seq": 7, "kind": "autopilot", "game_day": 69,
+ "data": {"day": 69, "phase": "customer", "action": "counter",
+          "why": "sell_all for about 132 (estimate 132)", "client_seq": 41, "client": "Mara"}}

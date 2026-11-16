@@ -66,6 +66,9 @@ type Entry struct {
 // Menu is every hard route, in name order.
 type Menu struct {
 	Entries []Entry
+	// Paths names the production paths (docs/re/PATHS.md) a composition may compose from;
+	// each maps directive keys over the base. Empty when the routes ship without paths.json.
+	Paths map[string]map[string]any
 	// Deadline is the run's deadline day, 0 for none; Seeds the lab seeds of the entries' Odds.
 	Deadline int
 	Seeds    string
@@ -81,19 +84,34 @@ func LoadMenu(dir string) (*Menu, error) {
 	if dir == "" {
 		dir = route.DefaultDir
 	}
-	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	globPaths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err
 	}
-	if len(paths) == 0 {
+	if len(globPaths) == 0 {
 		return nil, fmt.Errorf("no routes in %s", dir)
 	}
 	lab, err := LabStats()
 	if err != nil {
 		return nil, err
 	}
-	m := &Menu{}
-	for _, p := range paths {
+	// paths.json beside the routes names the production paths (docs/re/PATHS.md) a composition
+	// may compose from; absent when the routes ship without it.
+	routePaths := map[string]map[string]any{}
+	if b, err := os.ReadFile(filepath.Join(dir, "paths.json")); err == nil {
+		var f struct {
+			Paths map[string]map[string]any `json:"paths"`
+		}
+		if err := json.Unmarshal(b, &f); err != nil {
+			return nil, fmt.Errorf("%s/paths.json: %w", dir, err)
+		}
+		routePaths = f.Paths
+	}
+	m := &Menu{Paths: routePaths}
+	for _, p := range globPaths {
+		if filepath.Base(p) == "paths.json" {
+			continue
+		}
 		b, err := os.ReadFile(p)
 		if err != nil {
 			return nil, err

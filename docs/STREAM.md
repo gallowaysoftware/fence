@@ -223,7 +223,7 @@ Evidence is the game's own handlers (local decompile, never committed) and `sim/
 |---|---|---|---|---|---|
 | 19 | Go out (dump, Dr. Jackson) | `MapUIManager.Travel(loc)` + scene-root shims | `StoreDoor.OnClick` → `OpenGoOutsideConfirm` → `OnGoOutsideConfirm` → location button (`Travel`). **The door gates the gym skips**: seriously wounded, `crackdown`, agoraphobia rest, afterhours not introduced | c → b | U |
 | 20 | Scavenge | `MapUIManager.ScavengeButtonClick` | same (the button's handler) | a | U |
-| 21 | Bring the loot home | afterhour bag → stock while outside | move after return, or `ModHelper.MoveItemToAfterhours`/`MoveItemToInventory` where the windows allow (quick-transfer routes to the bag outside) | d | S |
+| 21 | Bring the loot home | the bag choice picks the owned backpack; the loot is packed into the two pockets + the backpack's grid (`NightOuting.Pack`, most valuable first), the rest left on the ground (recorded: `night:carry_left`), and the carry goes into stock | same: `PlanLoot` packs and records what is left (`carry_left`), the carried items queue to stock, and the return's `CheckItemLeftOnGround` expels the rest | d | S |
 | 22 | Shop at Dr. Jackson's | his stock placed headless; stage + `OnBuyAllClick` | location's `Arrive` lays out the stock; stage + `OnBuyAllClick` | a | S + U |
 | 23 | Return | `MapUIManager.Return` | same; `CheckItemLeftOnGround` may open a confirm panel | b | U |
 | 24 | Wild's Network: open | `WildNetwork.Open` (non-drawing half of `WildNetworkUI.Open`) | Joe's visit opens it; at night dial 8376 on the phone (`PhoneUIManager`); `ModHelper.OpenWildNetwork` as fallback (skips the call) | c → b | U / S |
@@ -461,7 +461,7 @@ fault, never a retry (`ActSafetyTests` pins who may press what):
 | Door, its confirm, the bag | `StoreDoor.OnClick` (its own gates; `NightOuting.DoorShut` first, a shut door skips the outing), `MapUIManager.OnGoOutsideConfirm`, the afterhours response's first choice (no backpack, checked by its label) | b | the choices, then the map, open |
 | Travel | `MapUIManager.Travel` (the map's travel button's call) | b | outside at that location |
 | Search the dump | `MapUIManager.ScavengeButtonClick` while searches are left and the wound odds are under the plan's limit (at most 10) | a | searches left drop or the bag changes |
-| Loot home | `ModHelper.MoveItemToInventory`, most valuable first; room made with `MoveItemToAfterhours` (`NightOuting.RoomFor`) | a (S), d (outside) | in stock, or left on the ground |
+| Loot home | `ModHelper.MoveItemToInventory` for the packed carry (`NightOuting.Pack`: pockets + backpack grid), most valuable first; what does not fit is recorded (`carry_left`) and left on the ground, room made with `MoveItemToAfterhours` (`NightOuting.RoomFor`) | a (S), d (outside) | in stock, or left on the ground |
 | Dr. Jackson's | his goods to the back counter (`PlayerCounter.JacksonStage`), `BarterExecutor` buy-all, then the ground and his back counter into stock, case or back counter | a | cash changed; each move |
 | Return, the prompt | `ModHelper.ReturnFromAfterhour(true)`; `GenericConfirmationUIManager.ConfirmButtonPressed` | b (S) | home |
 | Vending restock at bedtime | `Vending.Evening` through `Chore` | a | as the chores |
@@ -772,9 +772,9 @@ Each is marked in the feed (`hidden_used`, names only) where the step records it
 | Staging for a buyer (`PlayerRole.KeepWhy`) | whether the buyer could expose an item's feature (`CanClientExposeAnyFeatureDeep`); a water container's true purity against its label | `PlanStageBuyer` | yes (`item_exposable`, `water_purity`) |
 | The exposable pull (`PlayerCounter.Exposable`) | the same exposure | `PullExposable`, `Donate` | yes (`item_exposable`) |
 | The permit donation's pool (`PlayerCounter.BribePicks`) | the official's exposure | `PlanBribe` | yes (`item_exposable`) |
-| The window (`PlayerRole.Window`: `HidesFake`) | an item's true condition | `PlanWindow` | yes (`item_true_condition`) |
-| Vending restock (`Vending.Eligible`: `HidesFake`) | an item's true condition | chores | **no**: chore lines carry no `hidden_used` |
-| The wine and water engines' water picks (`WaterHelper.GetWaterPurity`) | a container's purity before a test strip | chores | **no** |
+| ~~The window (`PlayerRole.Window`: `HidesFake`)~~ ~~an item's true condition~~ | ~~`PlanWindow`~~ | ~~`item_true_condition`~~ — the mark was false: the rule reads `Known.MayHideFake`, the player's own knowledge or suspicion, not a hidden value; `PlanWindow` records no `hidden_used` |
+| ~~Vending restock~~ | ~~an item's true condition~~ | ~~chores~~ | struck: the chores route every condition read through `Known.Truth` (AquaScan-owned) or the player-visible label, like the rest of the gym |
+| ~~The wine and water engines' water picks~~ | ~~a container's purity before a test strip~~ | ~~chores~~ | struck: purity reads go through `Known` (instrument-gated) or `Hydro.Label` (the label the player sees) |
 | Making room for loot (`NightOuting.RoomFor` via `KeepWhy`) | a water container's true purity | `loot_room` | **no** (liquid containers are never left, so it changes nothing) |
 
 No longer read live: aug detection (M3: the verdict reads only visible tells, section 5; the gym's

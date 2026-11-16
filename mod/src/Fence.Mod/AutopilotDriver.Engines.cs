@@ -17,6 +17,7 @@ namespace Fence.Mod
         // buttons (as before the port) and order clients are sent away.
         public bool MachinesUsable = true;
         public bool GunOrdersUsable = true;
+        public bool WantedUsable = true;
 
         readonly Thermostat thermostat = new Thermostat();
         // Inside a quiet chore (the gun order's trial fits, the thermostat) moves and presses are counted, not recorded

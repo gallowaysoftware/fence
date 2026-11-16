@@ -1,0 +1,59 @@
+{
+  "name": "sweep-stow-drift",
+  "baseline": "drift",
+  "seeds": [
+    2610003,
+    2610004
+  ],
+  "routes": [
+    {
+      "route": "water_baron",
+      "persona": "water-baron"
+    },
+    {
+      "route": "vintner",
+      "persona": "vintner"
+    },
+    {
+      "route": "smelter",
+      "persona": "smelter"
+    },
+    {
+      "route": "fence",
+      "persona": "fence"
+    },
+    {
+      "route": "cook",
+      "persona": "cook"
+    },
+    {
+      "route": "rancher",
+      "persona": "rancher"
+    },
+    {
+      "route": "aquafarmer",
+      "persona": "fishmonger"
+    },
+    {
+      "route": "armourer",
+      "persona": "armourer"
+    }
+  ],
+  "days": 140,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "drift",
+      "endpoint": "drift",
+      "mode": "plan",
+      "bridge_flags": [
+        "-directives",
+        "delta",
+        "-forks"
+      ]
+    }
+  ]
+}

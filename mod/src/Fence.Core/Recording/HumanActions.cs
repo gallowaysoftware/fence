@@ -95,6 +95,8 @@ namespace Fence.Recording
         public const string FillRequest = "fill_request";
         public const string Poster = "poster";
         public const string ContinuePlay = "continue_play";
+        // The scratch UI headless: the ticket scratched and redeemed (or left as a dud to sell).
+        public const string Scratch = "scratch";
 
         public static JObject Build(string action, AdviceInForce advice, int? itemUid = null, JObject extra = null)
         {

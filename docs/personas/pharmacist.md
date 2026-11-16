@@ -46,3 +46,22 @@ the fact check. Rook's answer to the second, from the co-host prompt with the an
 - Today we choose the clean lab, not the alley trade. I reject the dust and embrace the right dosage.
 - I chose the clean lab, rejecting the messy sprinter. We brew on tap water, waiting for the permit.
 - Rook: Tap water is free, but permits are not. Who pays for that last percent of purity?
+
+## Payback nights (hard; cost ÷ net per night, measured + docs/re/CHEMISTRY.md §0, §3)
+
+| Engine | Cost | Per night | Payback |
+|---|---|---|---|
+| coffee bay (390 + bean seed ~28) | 418 | 8 units × 24 = 192 per 3-night cycle ≈ 64 | **6.5** |
+| chem finisher module 1 (250) | 250 | impurity 12→6 %: the street→lab-pure price step (24 → 40+) | **~4** |
+| plate module (250) | 250 | dries caffeine without the evaporator's 585 | 10 |
+| evaporator (585) | 585 | the drying step; solvent-recovery module pays beside it | 10–15 |
+| retired chemist (1500) | 1500 | unlocks all of the above | enabler (day-1 if possible) |
+| chem scanner (520) | 520 | verification, not production | insurance |
+
+**Reading:** the pharmacist is the *legal* mirror of the cook: same machines, contraband 0, and
+roughly a third of the income density (64 vs ~100/night) — the price of never touching the
+cartel. The finisher's first module is the archetype's best buy (4 nights: it IS the purity
+score). Coffee bays follow at 6.5 nights, and like the vintner the constraint is inputs
+(alcohol, filters, kotton), not beans. Savings phase: never — nothing costs more than 1500 and
+the retired chemist's weekly visit resets the queue. The buyout is the win, so `buyout_save`
+cuts apply from the route's day.

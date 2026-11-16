@@ -69,7 +69,7 @@ func TestRecordedWithoutGaps(t *testing.T) {
 			events++
 		}
 	}
-	if g := decisionlog.Gaps(sessions[0], time.Minute); !g.Clean() || events != 6 {
+	if g := decisionlog.Gaps(sessions[0], time.Minute); !g.Clean() || events != 8 {
 		t.Fatalf("events %d, gaps %+v", events, g)
 	}
 }
@@ -103,7 +103,7 @@ func TestAutopilotEventsReachTheShow(t *testing.T) {
 			}
 		}
 	}
-	if len(thoughts) != 1 || !strings.Contains(thoughts[0].Text, "what Mara wants") {
+	if len(thoughts) != 1 || !strings.Contains(thoughts[0].Text, "Mara") || len(thoughts[0].HiddenUsed) == 0 {
 		t.Errorf("autopilot thoughts = %+v", thoughts)
 	}
 	if len(stops) != 1 || !stops[0].Autopilot.NeedsHuman || stops[0].Level != show.LevelMoment {
@@ -129,7 +129,7 @@ func TestEndToEnd(t *testing.T) {
 		wantSource protocol.Source
 		policyName string
 	}{
-		{"observe", protocol.ModeObserve, func(*testing.T) policy.Policy { return policy.Heuristic{} }, "defer", protocol.SourceFallback, "heuristic"},
+		{"observe", protocol.ModeObserve, func(*testing.T) policy.Policy { return policy.Heuristic{} }, "sell_all", protocol.SourceHeuristic, "heuristic"},
 		{"heuristic act", protocol.ModeAct, func(*testing.T) policy.Policy { return policy.Heuristic{} }, "sell_all", protocol.SourceHeuristic, "heuristic"},
 		{"llm via openai-compatible", protocol.ModeAdvise, func(t *testing.T) policy.Policy {
 			url := fakeOpenAI(t, `<think>budget covers it</think>{"rationale":"good odds","option":"add_markup_10","params":{}}`)
@@ -154,7 +154,7 @@ func TestEndToEnd(t *testing.T) {
 			if res.Summary.SessionID != res.SessionID || res.Summary.Mode != tt.mode || res.Summary.Policy != tt.policyName {
 				t.Errorf("summary %+v", res.Summary)
 			}
-			if got := strings.Join(res.Events, ","); got != "day_snapshot,shutter_opened,customer_observed,human_action,autopilot,autopilot_fault" {
+			if got := strings.Join(res.Events, ","); got != "day_snapshot,morning_report,shutter_opened,customer_observed,human_action,autopilot,autopilot,autopilot_fault" {
 				t.Errorf("events sent %s", got)
 			}
 			for _, step := range []string{"health:", "hello:", "event:", "decide:", "outcome:", "summary:"} {

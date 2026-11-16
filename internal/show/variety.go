@@ -175,6 +175,9 @@ func (pb *phrasebook) avoid() []string {
 			add("opening with " + o)
 		}
 	}
+	for _, w := range []string{"cellar", "racks", "the foundation"} {
+		add(w)
+	}
 	return out
 }
 

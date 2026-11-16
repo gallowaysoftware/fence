@@ -229,3 +229,43 @@ func TestRecallSeparatesTheCohost(t *testing.T) {
 		t.Errorf("co-host's book %v", got)
 	}
 }
+
+// The co-host's prompt demands concreteness: name the actual thing, no abstractions.
+func TestCohostPromptConcreteness(t *testing.T) {
+	var mu sync.Mutex
+	var sys []string
+	fake := &sysCapturingLLM{narrator: "Sold the lamp for sixty, a loss.", cohost: "Sixty for a lamp? Bold.", systems: &sys, mu: &mu}
+	n := &Narrator{LLM: fake, TTS: fakeTTS{}, MinGap: time.Millisecond, PersonaD: "../../docs/personas", Persona: "shark",
+		Cohost: &Cohost{LLM: fake, Every: 1, Gap: time.Millisecond}}
+	n.defaults()
+	now := time.Now().UnixMilli()
+	loss := Event{Seq: 1, Day: 5, Kind: KindTrade, Level: LevelMoment, At: now, Text: "Sold a lamp for 60 (-40 on cost).", Trade: &Trade{Side: "sell", Cash: 60, HasProfit: true, Profit: -40}}
+	numbered(t, n, loss)
+	mu.Lock()
+	defer mu.Unlock()
+	if len(sys) < 2 {
+		t.Fatalf("expected at least 2 system calls (narrator + co-host), got %d", len(sys))
+	}
+	if s := sys[len(sys)-1]; !strings.Contains(s, "Name the actual thing") || !strings.Contains(s, "too abstract") {
+		t.Errorf("cohost system lacks concreteness: %q", s)
+	}
+}
+
+// sysCapturingLLM routes by system prompt content and captures all system prompts.
+type sysCapturingLLM struct {
+	mu       *sync.Mutex
+	systems  *[]string
+	narrator string
+	cohost   string
+}
+
+func (f *sysCapturingLLM) Complete(_ context.Context, r llm.Request) (llm.Response, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	*f.systems = append(*f.systems, r.System)
+	reply := f.narrator
+	if strings.Contains(r.System, "co-host in the booth") {
+		reply = f.cohost
+	}
+	return llm.Response{Text: reply}, nil
+}

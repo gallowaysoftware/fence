@@ -199,3 +199,46 @@ func TestCheckLineNightCount(t *testing.T) {
 		t.Errorf("five trips failed: %v", fs)
 	}
 }
+
+func TestCheckLineRedClaim(t *testing.T) {
+	coveredEv := Event{Day: 10, Clock: &Clock{Cash: 1200, RentDue: 350, RentDays: 1}, Text: "Day 10."}
+	uncoveredEv := Event{Day: 10, Clock: &Clock{Cash: 100, RentDue: 350, RentDays: 1}, Text: "Day 10."}
+	tests := []struct {
+		ev   Event
+		line string
+		want bool
+	}{
+		{coveredEv, "The ledger stays red, but the rent is paid.", true},
+		{coveredEv, "We're bleeding cash today.", true},
+		{coveredEv, "Behind on rent again.", true},
+		{coveredEv, "Rent is fine, covered with room to spare.", false},
+		{uncoveredEv, "The ledger stays red: I'm 250 short of rent.", false},
+	}
+	for _, tt := range tests {
+		fs := CheckLine(tt.line, FactsOf(tt.ev))
+		if (len(fs) > 0) != tt.want {
+			t.Errorf("CheckLine(%q) faults = %v, want fault = %v", tt.line, fs, tt.want)
+		}
+	}
+}
+
+func TestCheckLineShortfallArithmetic(t *testing.T) {
+	// The live test: "118 in hand, 54 short" passed for a real gap of 82.
+	ev := Event{Day: 10, Clock: &Clock{Cash: 118, RentDue: 200, RentDays: 1}, Text: "Day 10."}
+	f := FactsOf(ev)
+	tests := []struct {
+		line string
+		want bool
+	}{
+		{"I have 118 in hand, 54 short of rent.", true},
+		{"I have 118 in hand, 82 short of rent.", false},
+		{"I'm 80 short on rent.", false}, // rounding within a tenth
+		{"I'm 40 short on rent.", true},
+	}
+	for _, tt := range tests {
+		fs := CheckLine(tt.line, f)
+		if (len(fs) > 0) != tt.want {
+			t.Errorf("CheckLine(%q) faults = %v, want fault = %v", tt.line, fs, tt.want)
+		}
+	}
+}

@@ -464,6 +464,21 @@ namespace Fence.Mod
             summaryPoller.Want();
         }
 
+        // An autopilot action for today's story: the customer's when it is about them, else a shop beat.
+        public void NoteAutopilot(string action, string target, string why, bool clientPresent)
+        {
+            try
+            {
+                string clause = clientPresent ? DayStory.CustomerBeat(action, why) : null;
+                if (clause != null) today.Tell(clause);
+                else today.Beat(DayStory.ShopBeat(action, target, why));
+            }
+            catch (Exception)
+            {
+                // The overlay's story never stops the autopilot that called it.
+            }
+        }
+
         public void OnGameEvent(string kind)
         {
             if (kind == "waking_up" || kind == "new_game_started") beforeOpen = true;
@@ -742,7 +757,7 @@ namespace Fence.Mod
         void Send(JObject result, (string decisionId, string actor) who)
         {
             Outcomes.WithActor(result, who.actor);
-            today.Note(OverlayText.Describe(result));
+            today.Record(result);
             summaryPoller.Want();
             string decisionId = who.decisionId;
             if (decisionId == null) return;

@@ -80,8 +80,17 @@ namespace Fence.Gym
             if (Working(i)) return Furnaces().Count > 0 && Furnaces().Take(Target).Contains(i);
             if (i.identifier == "energy_credit") return Parent(i) == null && Furnaces().Count > 0 && SpareCell()?.uniqueId == i.uniqueId;
             if (i.identifier == Junk) return keepJunk.Contains(i.uniqueId);
-            return Takes(i.identifier);
+            // Inputs and modules while no furnace is owned yet: one night's worth per the game's smelt recipe
+            // (MachineFurnace: 2 metal, or 3 with the blast module; at most one flux), so a surplus stays stock
+            // and sells.
+            if (!Takes(i.identifier)) return false;
+            return Furnaces().Count > 0 || InputCap(i.identifier) > Owned().Count(x => x.identifier == i.identifier);
         }
+
+        // One night's consumption per input id: the blast furnace smelts 3 metal a night (2 without the
+        // module) and each smelt night burns one flux (advanced flux is reusable); a module and the furnace
+        // itself are capital.
+        public static int InputCap(string id) => On ? (id == Scrap || id == Ore ? (BlastOn ? 3 : 2) : 1) : 0;
 
         static GameItem SpareCell() => Owned().Where(i => i.identifier == "energy_credit" && Parent(i) == null && Energy(i) >= 16)
             .OrderByDescending(Energy).ThenBy(i => i.uniqueId).FirstOrDefault();
@@ -114,10 +123,12 @@ namespace Fence.Gym
                 case "furnace": return n < Target && Cash >= RentDue ? 1 : 0;
                 case JunkModule: return n > 0 && owned.Count(i => i.identifier == JunkModule) < Math.Min(n, Target) && Cash >= RentDue ? 1 : 0;
                 case BlastModule: return BlastOn && n > 0 && (BlastFirst || owned.Any(i => i.identifier == JunkModule)) && owned.Count(i => i.identifier == BlastModule) < Math.Min(n, Target) && Cash >= RentDue ? 1 : 0;
-                // Two weeks of smelting per furnace (three inputs a night with the blast module).
+                // Two weeks of smelting per furnace (three inputs a night with the blast module). Inputs only once a
+                // furnace is actually owned: with n = 0 the old Math.Max(1, n) stocked flux and ore for a furnace
+                // the cash rule had not yet bought (the shop bought flux with no furnace in sight).
                 case Scrap:
-                case Ore: return Math.Max(0, Math.Max(1, n) * MetalCap - owned.Count(Metal));
-                case Flux: return Math.Max(0, Math.Max(1, n) * 7 - owned.Count(i => i.identifier == Flux));
+                case Ore: return n == 0 ? 0 : Math.Max(0, n * MetalCap - owned.Count(Metal));
+                case Flux: return n == 0 ? 0 : Math.Max(0, n * 7 - owned.Count(i => i.identifier == Flux));
                 // Reusable: worth it after ~75 smelts against 4-credit flux; only from a real surplus.
                 case AdvFlux: return n > 0 && owned.Any(i => i.identifier == BlastModule) && !owned.Any(i => i.identifier == AdvFlux) && Cash >= RentDue + 1500 ? 1 : 0;
                 case "energy_credit": return n > 0 && SpareCell() == null && Furnaces().Any(f => BatteryCharge(f) < 3 * PerSmelt(f)) ? 1 : 0;

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fence.Bridge;
 using Fence.Decisions;
 using Fence.Protocol;
@@ -359,6 +361,108 @@ namespace Fence.Tests
             var o = s.CompleteDecision(t, Answer("shoot"), DecideFailure.None, 10);
             Assert.True(o.Choice.IsDefer);
             Assert.False(o.Execute);
+        }
+    }
+
+    public class NightContextTests
+    {
+        sealed class EngineWants : IProductionWants
+        {
+            readonly Dictionary<string, int> Table;
+
+            public EngineWants(Dictionary<string, int> table) => Table = table;
+            public int Wants(string id)
+            {
+                if (id == "throws") throw new InvalidOperationException("no directives");
+                return Table.TryGetValue(id, out int n) ? n : 0;
+            }
+        }
+
+        static Fence.Decisions.NightView View() => new Fence.Decisions.NightView
+        {
+            Day = 69,
+            Cash = 2450,
+            RentDue = 600,
+            RentDaysLeft = 3,
+            Wound = 1,
+            BagItems = 4,
+            PlanNotes = "the wine run",
+            Locations = new List<(string Id, string Name)>
+            {
+                ("dr_jackson", "Dr. Jackson's"),
+                ("dumping_ground", "Dumping Ground"),
+            },
+            Services = new List<(string Id, int Cost, bool Using)>
+            {
+                ("INSURANCE_SERVICE", 150, true),
+            },
+        };
+
+        static DecideRequest Request(Fence.Decisions.NightView v, IProductionWants w, string mode = Modes.Advise) =>
+            NightContext.Request(v, "n-1", mode, w);
+
+        static string Ids(DecideRequest r) => string.Join(",", r.Options.Select(o => o.Id));
+
+        [Fact]
+        public void RequestCarriesTheContractFields()
+        {
+            var r = Request(View(), new EngineWants(new Dictionary<string, int> { ["furnace"] = 2, ["water_purifier"] = 1 }));
+            Assert.Equal("night", r.Kind);
+            Assert.Equal(69, r.GameDay);
+            Assert.Equal(DecisionDeadlines.ForMode(Modes.Advise), r.DeadlineMs);
+            var c = r.Context;
+            Assert.Equal(69, (int)c["day"]);
+            Assert.Equal(2450, (int)c["cash"]);
+            Assert.Equal(600, (int)c["rent_due"]);
+            Assert.Equal(3, (int)c["rent_days_left"]);
+            Assert.Equal(1, (int)c["wound"]);
+            Assert.Equal(4, (int)c["bag_items"]);
+            Assert.Equal("the wine run", (string)c["plan_notes"]);
+            Assert.Equal(2, ((JArray)c["locations"]).Count);
+            Assert.Equal("dr_jackson", (string)((JObject)((JArray)c["locations"])[0])["id"]);
+            Assert.Equal("Dr. Jackson's", (string)((JObject)((JArray)c["locations"])[0])["name"]);
+            Assert.True((bool)((JObject)((JArray)c["services"])[0])["using"]);
+            Assert.Equal(2, (int)c["jackson_wants"]!["furnace"]);
+            Assert.Equal(1, (int)c["jackson_wants"]!["water_purifier"]);
+            Assert.Null(c["jackson_wants"]["hydroponic"]);
+            var wire = JObject.Parse(ProtocolJson.Serialize(r));
+            Assert.Equal("night", (string)wire["kind"]);
+            Assert.Equal(69, (int)wire["game_day"]);
+        }
+
+        [Fact]
+        public void OptionsFollowTheAvailableLocations()
+        {
+            var both = View();
+            Assert.Equal("stay_in,go_jackson,scavenge", Ids(Request(both, null)));
+            var jacksonOnly = View();
+            jacksonOnly.Locations.Remove(jacksonOnly.Locations[1]);
+            Assert.Equal("stay_in,go_jackson", Ids(Request(jacksonOnly, null)));
+            var dumpOnly = View();
+            dumpOnly.Locations.Clear();
+            dumpOnly.Locations.Add(("dumping_ground", "Dumping Ground"));
+            Assert.Equal("stay_in,scavenge", Ids(Request(dumpOnly, null)));
+            var none = View();
+            none.Locations.Clear();
+            Assert.Equal("stay_in", Ids(Request(none, null)));
+        }
+
+        [Fact]
+        public void WantsAreCappedAndErrorsLeftOut()
+        {
+            var v = View();
+            v.Wants.Add(("furnace", 2));
+            var r = Request(v, new EngineWants(new Dictionary<string, int> { ["furnace"] = 2, ["throws"] = 99, ["hydroponic"] = 0 }));
+            var j = r.Context["jackson_wants"];
+            Assert.Single(j);
+            Assert.Equal(2, (int)j["furnace"]);
+        }
+
+        [Fact]
+        public void ActModeUsesTheShorterDeadline()
+        {
+            Assert.Equal(10000, Request(View(), null, Modes.Act).DeadlineMs);
+            Assert.Equal(20000, Request(View(), null, Modes.Advise).DeadlineMs);
         }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "_doc": "Production paths (docs/re/PATHS.md): a composition may set levers.paths to a list of these names; each name's directive keys merge under the composition (individual levers override). Payback numbers live in docs/personas.",
+  "paths": {
+    "wine": {"engine": "wine", "bays": 2},
+    "reed_cure": {"clean_water": {"reeds": 2, "reeds_max": 4, "grow_cash": 2500, "treat": true, "tap": "gutter"}},
+    "water": {"purifiers": 2, "purify_raw": true},
+    "fountain": {"fountain": "buy", "fountain_commons": true},
+    "fish": {"engine": "fish"},
+    "furnace": {"furnaces": 1, "ore_phone": true},
+    "arms": {"arms": {"keep_guns": 2}},
+    "chem_caffeine": {"lab": {"products": ["caffeine_pill"]}},
+    "chem_dust": {"lab": {"products": ["dream_dust"]}},
+    "rats": {"engine": "rats"},
+    "printing": {}
+  }
+}

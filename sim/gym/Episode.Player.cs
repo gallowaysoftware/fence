@@ -626,6 +626,7 @@ namespace Fence.Gym
         public void ItemTrade(bool sold, GameItem item, int amount)
         {
             if (today == null || item == null) return;
+            if (!sold) BuildOrder.Bought(item, amount);
             string k = sold
                 ? (item.identifier == "wine_bottle" ? "wine_sales" : item.GetGameItemType().Contains("WATER") ? "water_sales" : "trade_sales")
                 : (Production.IsInput(item.identifier) ? "input_costs" : "trade_purchases");
@@ -676,6 +677,7 @@ namespace Fence.Gym
         public void Wild(string id, int cost, int cashSpent, string via)
         {
             if (today == null) return;
+            BuildOrder.BoughtUpgrade(id, cashSpent);
             var list = today["wild_purchases"] as JArray ?? new JArray();
             list.Add(new JObject { ["upgrade"] = id, ["cost"] = cost, ["cash_spent"] = cashSpent, ["favor_spent"] = cost - cashSpent, ["via"] = via });
             today["wild_purchases"] = list;
@@ -777,6 +779,9 @@ namespace Fence.Gym
             foreach (var kv in rep)
                 if (rep0 != null && rep0.TryGetValue(kv.Key, out var b) && Math.Abs(kv.Value - b) >= 0.05) delta[kv.Key] = Math.Round(kv.Value - b, 1);
             today["rep_delta"] = delta;
+            var repMap = new JObject();
+            foreach (var kv in rep) repMap[kv.Key] = kv.Value;
+            today["reputation"] = repMap; // the live mod's DaySnapshot sends the same faction map; the shape test keys on it
             today["rent"] = new JObject { ["due"] = ps.GetRentValue(), ["days_left"] = ps.dayUntilRent, ["grace_owned"] = NetworkUpgrade.IsLandlordGraceUnlocked() };
             today["permit"] = ps.hasBusinessPermit;
             today["permit_bribe_owed"] = ps.storeClientData.businessPermitBribeAmount;
@@ -793,6 +798,7 @@ namespace Fence.Gym
             if (Fountain.Status() is JObject fount) today["fountain"] = fount;
             if (Appraisal.Status() is JObject appr) today["appraisal"] = appr;
             if (Labels.Status() is JObject labels) today["labels"] = labels;
+            if (BuildOrder.Today() is JObject build) today["build"] = build;
             var crimes = new JObject();
             var sd = ps.secData;
             for (int i = 0; i < (sd?.crimeTypes?.Count ?? 0); i++)
@@ -824,6 +830,10 @@ namespace Fence.Gym
             if (Fountain.Status() is JObject fount) s["fountain"] = fount;
             if (Appraisal.Status() is JObject appr) s["appraisal"] = appr;
             if (Labels.Status() is JObject labels) s["labels"] = labels;
+            if (Wanted.Status() is JObject wanted) s["wanted"] = wanted;
+            if (LiquidLuck.Status() is JObject luck) s["liquid_luck"] = luck;
+            if (Requests.Status() is JObject requests) s["requests"] = requests;
+            if (Fridge.Status() is JObject fridge) s["fridge"] = fridge;
             if (Modules.Status() is JObject mods) s["modules"] = mods;
             if (Suppliers.BeerOn) s["beer_orders"] = Suppliers.Orders;
             if (Suppliers.Status() is JObject sup) s["suppliers"] = sup;
@@ -838,6 +848,7 @@ namespace Fence.Gym
                 ["shop_visits"] = jacksonVisits, ["shop_spent"] = jacksonShop.Values.Sum(v => v[1]), ["store_spent"] = jacksonStore.Values.Sum(v => v[1]),
                 ["shop"] = JacksonById(jacksonShop), ["store"] = JacksonById(jacksonStore),
             };
+            if (BuildOrder.Status() is JObject build) s["build"] = build;
             if (Storage.On) s["storage"] = new JObject { ["stored"] = Storage.Stored, ["in_bays"] = Storage.Contents().Count() };
             return s;
         }

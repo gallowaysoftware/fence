@@ -1,0 +1,141 @@
+{
+  "name": "sweep-stow-8",
+  "baseline": "h",
+  "seeds": [
+    2610003,
+    2610004,
+    2610005,
+    2610006,
+    2610007,
+    2610008,
+    2610009,
+    2610010
+  ],
+  "routes": [
+    {
+      "route": "appraiser"
+    },
+    {
+      "route": "sprinter"
+    },
+    {
+      "route": "watchman"
+    },
+    {
+      "route": "farmer"
+    },
+    {
+      "route": "vintner"
+    },
+    {
+      "route": "labeler"
+    },
+    {
+      "route": "no_vending"
+    },
+    {
+      "route": "gunsmith"
+    },
+    {
+      "route": "armourer"
+    },
+    {
+      "route": "aquafarmer"
+    },
+    {
+      "route": "cook"
+    },
+    {
+      "route": "fence"
+    },
+    {
+      "route": "outlaw"
+    },
+    {
+      "route": "smelter"
+    },
+    {
+      "route": "lean"
+    },
+    {
+      "route": "water_baron"
+    },
+    {
+      "route": "fountain"
+    },
+    {
+      "route": "rock_bottom"
+    },
+    {
+      "route": "rancher"
+    },
+    {
+      "route": "pharma"
+    },
+    {
+      "route": "apothecary"
+    },
+    {
+      "route": "hardware_store"
+    },
+    {
+      "route": "speculator"
+    },
+    {
+      "route": "bulk_buyer"
+    },
+    {
+      "route": "fair_dealer"
+    },
+    {
+      "route": "clean_shop"
+    },
+    {
+      "route": "fence_fortress"
+    },
+    {
+      "route": "luxury_gambler"
+    },
+    {
+      "route": "ore_monopolist"
+    },
+    {
+      "route": "water_night_shift"
+    },
+    {
+      "route": "rancher_sprinter"
+    },
+    {
+      "route": "smelter_sprinter"
+    },
+    {
+      "route": "pharma_vintner"
+    },
+    {
+      "route": "gunsmith_farm"
+    },
+    {
+      "route": "fountain_pharma"
+    },
+    {
+      "route": "household_sprinter"
+    },
+    {
+      "route": "med_speculator"
+    },
+    {
+      "route": "luxury_sprinter"
+    }
+  ],
+  "days": 140,
+  "difficulty": "hard",
+  "executor": {
+    "human": "player"
+  },
+  "players": [
+    {
+      "id": "h",
+      "mode": "local"
+    }
+  ]
+}

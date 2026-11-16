@@ -88,6 +88,17 @@ func ClipNote(s string) string {
 	return strings.TrimRight(s[:cut], " ") + "…"
 }
 
+// Judgeable reports whether the kind is a judgment call (the model's call, not a scripted
+// move): observe mode still runs the policy on these; the mechanics kinds defer to the
+// role's script instead.
+func Judgeable(kind string) bool {
+	switch kind {
+	case "barter", "stage", inspectKind, augCheckKind, nightKind:
+		return true
+	}
+	return false
+}
+
 func Fallback(reason string) Decision {
 	return Decision{Choice: protocol.Defer(), Rationale: reason, Source: protocol.SourceFallback, Trace: Trace{Note: reason}}
 }

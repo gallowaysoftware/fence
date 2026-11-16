@@ -171,6 +171,8 @@ namespace Fence.Gym
             Scheduler.Reset();
             Hooks.Clear();
             Production.Reset();
+            Scratchers.Reset();
+
             Lab.Thermostat = true;
             SupplyProbe.Reset();
             GameOverField.SetValue(null, null);
@@ -616,6 +618,7 @@ namespace Fence.Gym
                         StageSeller(snap);
                         continue;
                     }
+                    if (PlayerReportWanted()) continue;
                     Uncovered(snap);
                     continue;
                 }
@@ -763,8 +766,11 @@ namespace Fence.Gym
             {
                 var (token, reply, _) = d.choices[i];
                 bool enabled = d.IsChoiceEnabledAt(i);
-                view.Choices.Add(new ChoiceView { Index = i, Label = token?.name, Text = reply?.plainText, Enabled = enabled });
-                infos.Add(new ChoiceInfo { Label = token?.name, Text = reply?.plainText, Enabled = enabled });
+                string text = reply?.plainText;
+                bool noDeal = (text ?? "").IndexOf("Decline", StringComparison.OrdinalIgnoreCase) >= 0
+                    || (text ?? "").StartsWith("No problem", StringComparison.OrdinalIgnoreCase);
+                view.Choices.Add(new ChoiceView { Index = i, Label = token?.name, Text = text, Enabled = enabled, NoDeal = noDeal });
+                infos.Add(new ChoiceInfo { Label = token?.name, Text = text, Enabled = enabled });
             }
             int pick = Human.Dialogue(view);
             var history = PlayerStore.Instance.dialogHistory?.Reverse().Take(6).Reverse().ToList();
@@ -1036,13 +1042,20 @@ namespace Fence.Gym
             if (plan.Scavenge && loc.Id == "dumping_ground")
             {
                 int tries = 0;
-                while (tries++ < 10 && ScavHelper.GetScavTimeLeft() > 0 && !Over())
+                while (tries++ < 10 && !Over() && NightOuting.CanScavenge())
                 {
                     if (ScavHelper.GetMinorWoundChance() + ScavHelper.GetMajorWoundChance() > plan.MaxWoundPct) break;
                     var odds = new JObject { ["attempts_left"] = ScavHelper.GetScavTimeLeft(), ["minor_pct"] = ScavHelper.GetMinorWoundChance(), ["major_pct"] = ScavHelper.GetMajorWoundChance() };
                     Mod.Human(HumanActions.Scavenge, null, null, odds, "night:scavenge");
                     if (!Guard("scavenge", () => map.ScavengeButtonClick())) break;
                     Scheduler.Settle();
+                }
+                if (plan.Scavenge && PlayerStore.Instance.healthData.isWoundedFresh)
+                {
+                    // The game greys the search button out while a fresh wound shows (ScavHelper.CanScavenge):
+                    // the night's searching is over, whatever searches are left.
+                    Defaults.Take("night:scav_wound", "wound " + PlayerStore.Instance.healthData.woundState + ", " + ScavHelper.GetScavTimeLeft() + " search(es) left");
+                    Mod.Human(HumanActions.Scavenge, null, null, NightOuting.ScavengeRefused(), "night:scav_wound");
                 }
                 LootHome();
             }
@@ -1067,12 +1080,31 @@ namespace Fence.Gym
             if (map.Current != null) Defaults.Take("night:still_outside", loc.Id);
         }
 
-        // The bag goes into stock, the most valuable loot first; loot that does not fit takes the room of cheap
-        // stock left on the ground (NightOuting.RoomFor), else stays there itself.
+        // The player carries home only what the pockets and backpack hold (NightOuting.Pack); the rest is left on
+        // the ground, and the return expels it. What is carried goes into stock, most valuable first; a piece that
+        // does not fit takes the room of cheap stock left on the ground (NightOuting.RoomFor) and stays there itself.
         void LootHome()
         {
             var e = EmporiumEntry.Instance;
-            foreach (var loot in NightOuting.LootOrder(In(e.afterhourInventory)))
+            var bag = In(e.afterhourInventory).ToList();
+            // The bag choice (ResponseList.CreateAfterhoursResponse) lists the owned backpacks; the executor
+            // takes the best. A satchel or kids' backpack found that night is in the bag, not owned: the player
+            // would put it on (its grid still counts, and it takes a pocket).
+            var owned = NightOuting.OwnedBackpack(NightOuting.OwnedBackpacks());
+            var bp = owned ?? bag.FirstOrDefault(NightOuting.IsBackpack);
+            var pack = NightOuting.Pack(bag, bp);
+            var left = pack.left;
+            if (left.Count > 0)
+            {
+                Defaults.Take("night:carry_left", left.Count + " items, " + string.Join(",", left.Select(i => i.identifier)));
+            }
+            Mod.Human(HumanActions.Unstage, null, null, new JObject
+            {
+                ["carried"] = new JArray(pack.carried.Select(i => Mod.Game.Uid(i))),
+                ["left_on_ground"] = new JArray(left.Select(i => Mod.Game.Uid(i))),
+                ["backpack"] = bp != null ? new JObject { ["uid"] = Mod.Game.Uid(bp), ["identifier"] = bp.identifier, ["owned"] = owned != null } : (JToken)null,
+            }, "night:carry");
+            foreach (var loot in pack.carried)
             {
                 if (Move(e.invElement, loot)) continue;
                 var junk = NightOuting.RoomFor(loot, In(e.invElement).ToList(), PlayerStock.FreeCells());
@@ -1100,6 +1132,8 @@ namespace Fence.Gym
             var ps = PlayerStore.Instance;
             if (IsPlayer) Guard("vending", () => Vending.Evening(this));
             if (IsPlayer) Guard("fountain", () => Fountain.Evening(this));
+            if (IsPlayer) Guard("power", () => Power.Evening(this));
+            if (IsPlayer) Guard("fridge", () => Fridge.Evening(this));
             var want = Human.Services(View());
             if (want != null)
                 foreach (var s in ps.storeService)

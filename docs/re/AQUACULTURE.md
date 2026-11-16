@@ -253,3 +253,33 @@ capital they buy is the cash the sprint policy would have bought the shop with. 
 income (~50–60 a day) is below the hard rent, and the extra spending ends runs earlier (day 125 against 146), 12 of 60
 in an arrest for an unpaid permit even with fish capital held back until the permit is bought.
 
+
+## WIP — state at reboot (2026-11-12, branch `fish-power`)
+
+Built (all off by default, nothing measured yet):
+
+- **Eel hub** (`eel_hub: true | {"eels": n}`, sim/gym/Power.cs): each evening (Episode.Sleep → `Power.Evening`) the
+  machines running on a cell and the loose cells short of full are dropped edge-adjacent to the electric-eel tank in the
+  stock grid; spent cells are reserved for it; Fish.cs keeps `eels` electric eels in the big tank and leaves converters
+  out of tanks the hub carries. **Lab-verified** (`fish.eelhub`, sim/lab/FishExps.cs): stock grid 24 × 10, RAS 4 × 3;
+  two elder electric eels (output 6) charged an edge-adjacent loose cell +6 and an adjacent hydroponic bay's cell +6 a
+  night, a diagonal cell and a cell one gap away 0. One headless run (seed 8100001) showed the catch: the first
+  electric eel arrives only after AQUACULTURE_II (day ~64) and the aquafarmer's random big fish, so the hub ran from day
+  114 — too late for a ~day-100 cash buyout. Its placement never moved anything in that run (moves 0): debug
+  (`FENCE_HUB_DEBUG`) was in flight.
+- **Pellets** (`fish_pellets: true | r`, Fish.cs): omnivore dispensers take pellet bags while the pellet bucket stays
+  ≤ r (0.24) of stored kcal (fill target raised to 4 000 / r); a tank stops when any fish's tooltip shows share ≥ r;
+  `trash` and `pellet_kcal` counters in the fish summary.
+- **Rats** `rats_cut: "young"`, `rats_cut_age` (default 3), three marked females by default (Rats.cs).
+- **Modules fix** (default on, Modules.cs): overvolted modules (tooltip effect) are kept out of the alarm and refitted
+  out once the rest reach 50.
+- Q-200 furnace: not built. Supply from source: a random module has the learning effect 19/216 = 8.8 %
+  (ModuleEffectHelper.InitRandomEffect: 0–2 of 9 effects, incompatibilities), Jackson shows a fineness 16 % a visit
+  (≈ 1.4 % a visit for a learning fineness); only the Monday special stock (network 1250, 5 fineness) gives ≈ 0.44 a
+  week; four trained (50 nights each) are out of reach of an ~84-day smelter race.
+
+In flight: baselines `sim/lab/scripts/arms-fishpower-base.txt` (fp-base build in var/sim/gyms/fp-base, results
+var/sim/exp/fp-base, partial) and treatments `arms-fishpower.txt` (not started); pairing script var/sim/exp/pair.py.
+**Open defect:** `make test-mod` fails until compat/hooks.json lists the new game members (GetPelletKcal,
+GetPelletShare, FindAdjacentType, GridShape/GridShapeBuilder members, TryInventorySlot, SlotMarker.numTransfer /
+TryAcceptOnce, GameItem.unitCount). Sturgeon strips were 0 in the checked run (cause not yet found).

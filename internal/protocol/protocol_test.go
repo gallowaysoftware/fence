@@ -294,6 +294,8 @@ func TestSchemasAccept(t *testing.T) {
 		{"summary with directives", "summary.response.schema.json",
 			`{"session_id":"s","mode":"act","policy":"llm","model":"m","day":3,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"x","plan_day":3,"directives":{"day":3,"cash_floor":0,"buy":{"hot_stock_cap":0},"augs":"shoot"}}`},
 		{"empty directives", "directives.schema.json", `{}`},
+		{"summary with base directives", "summary.response.schema.json",
+			`{"session_id":"s","mode":"act","policy":"llm","model":"m","day":3,"today":{"decisions":0,"sales":0,"purchases":0,"cash_delta":0,"walkouts":0,"rep_delta":{}},"lessons":"","lessons_day":0,"plan":"x","plan_day":3,"directives":{"day":3,"cash_floor":0,"buy":{"hot_stock_cap":0},"augs":"shoot"},"base_directives":"{\"cash_floor\":200}"}`},
 		{"empty hash", "hello.request.schema.json",
 			`{"protocol":1,"mod_version":"0.1.0","game":{"version":"x","unity":"y","assembly_sha256":""},"compat":{"ok":true,"missing":[],"disabled_features":[]}}`},
 	}

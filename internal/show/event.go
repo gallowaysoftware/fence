@@ -37,6 +37,8 @@ const (
 	KindGhost Kind = "ghost"
 	// KindAudience is the Twitch audience's prediction and chat vote (audience.go, internal/twitch).
 	KindAudience Kind = "audience"
+	// KindMorning is the autopilot's morning report (the night's log, rent, cash, calendar).
+	KindMorning Kind = "morning"
 )
 
 // Levels say how loud a moment is: the ticker shows everything, the panel highlights
@@ -61,16 +63,17 @@ type Event struct {
 	Level int    `json:"level"`
 	Text  string `json:"text"`
 
-	Player     *Player     `json:"player,omitempty"`
-	Plan       *Plan       `json:"plan,omitempty"`
-	Candidates *Candidates `json:"candidates,omitempty"`
-	Trade      *Trade      `json:"trade,omitempty"`
-	Clock      *Clock      `json:"clock,omitempty"`
-	Heat       *Heat       `json:"heat,omitempty"`
-	Summary    *DaySummary `json:"summary,omitempty"`
-	End        *End        `json:"end,omitempty"`
-	Say        *Say        `json:"say,omitempty"`
-	Audience   *Audience   `json:"audience,omitempty"`
+	Player     *Player        `json:"player,omitempty"`
+	Plan       *Plan          `json:"plan,omitempty"`
+	Candidates *Candidates    `json:"candidates,omitempty"`
+	Trade      *Trade         `json:"trade,omitempty"`
+	Clock      *Clock         `json:"clock,omitempty"`
+	Heat       *Heat          `json:"heat,omitempty"`
+	Morning    *MorningReport `json:"morning,omitempty"`
+	Summary    *DaySummary    `json:"summary,omitempty"`
+	End        *End           `json:"end,omitempty"`
+	Say        *Say           `json:"say,omitempty"`
+	Audience   *Audience      `json:"audience,omitempty"`
 	// Amount is the signed cash change of a money or purchase event.
 	Amount int64 `json:"amount,omitempty"`
 	// HiddenUsed names the hidden values an autopilot rule read (never the values): the panel marks the
@@ -95,12 +98,16 @@ const (
 	BeatAug             = "aug_confronted"
 	BeatHandover        = "handover"
 	BeatTakeBack        = "autopilot_back"
+	BeatCartelQuota     = "cartel_quota"
 	// The small beats (smallbeats.go): speakable between the big ones.
 	BeatCounter         = "counter"
 	BeatNight           = "night"
+	BeatLab             = "lab"
 	BeatMorning         = "morning_plan"
 	BeatMilestone       = "milestone"
 	BeatAppraisalStreak = "appraisal_streak"
+	// BeatReport is the morning report: the night's log, rent, cash, and the week ahead.
+	BeatReport = "morning_report"
 	// The bet: staked in the morning plan, then won, lost or abandoned.
 	BeatBetMade      = "bet_made"
 	BeatBetWon       = "bet_won"
@@ -147,8 +154,13 @@ type Player struct {
 	// PersonaTagline is the persona's path in a few words, for the name card.
 	PersonaTagline string `json:"persona_tagline,omitempty"`
 	// Route is the run's docs/research/ROUTES.md route; RouteBrief what the shop does on it.
-	Route      string   `json:"route,omitempty"`
-	RouteBrief string   `json:"route_brief,omitempty"`
+	Route string `json:"route,omitempty"`
+	// RouteBrief says what the shop does on the route, for the narrator's background.
+	RouteBrief string `json:"route_brief,omitempty"`
+	// RouteEngine is the route's engine; the narrator cares only whether it runs water.
+	RouteEngine string `json:"route_engine,omitempty"`
+	// routeStart is the route's start, for a loaded save whose log never says which it was.
+	routeStart string
 	Difficulty string   `json:"difficulty,omitempty"`
 	Start      string   `json:"start,omitempty"`
 	Perks      []string `json:"perks,omitempty"`
@@ -256,6 +268,26 @@ type Heat struct {
 	Sentence  string           `json:"sentence,omitempty"`
 	Crimes    map[string]int64 `json:"crimes,omitempty"`
 	HotItems  int              `json:"hot_items,omitempty"`
+}
+
+// MorningReport is the morning report the autopilot reads at the start of the day.
+type MorningReport struct {
+	Day      int      `json:"day"`
+	NightLog []string `json:"night_log,omitempty"`
+	Rent     struct {
+		Due      int64 `json:"due"`
+		DaysLeft int   `json:"days_left"`
+	} `json:"rent"`
+	Cash     int64 `json:"cash"`
+	NetWorth int64 `json:"net_worth"`
+	Calendar []struct {
+		Day    int `json:"day"`
+		Events []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+			Type string `json:"type"`
+		} `json:"events"`
+	} `json:"calendar,omitempty"`
 }
 
 type DaySummary struct {

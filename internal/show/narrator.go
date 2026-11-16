@@ -109,9 +109,9 @@ func (n *Narrator) defaults() {
 // Priority ranks moments when only one can be spoken.
 func Priority(ev Event) int {
 	switch ev.Beat {
-	case BeatMilestone, BeatPace, BeatBetWon, BeatBetLost, BeatBetAbandoned:
+	case BeatMilestone, BeatPace, BeatBetWon, BeatBetLost, BeatBetAbandoned, BeatCartelQuota:
 		return 4
-	case BeatNight, BeatAppraisalStreak:
+	case BeatNight, BeatAppraisalStreak, BeatReport:
 		return 2
 	}
 	switch ev.Beat {
@@ -435,7 +435,7 @@ func (n *Narrator) line(ctx context.Context, ev Event) spoken {
 	if p := ev.Plan; p != nil {
 		news += "\n" + strings.Join(slices.Concat(p.Headline, p.Changes, p.Why, p.Goals), "\n")
 	}
-	msgs := []llm.Message{{Role: llm.RoleUser, Content: n.prompt(ev, facts, pb.avoid(), pb.image(n.personaID(), mood.Name))}}
+	msgs := []llm.Message{{Role: llm.RoleUser, Content: n.prompt(ev, facts, pb.avoid())}}
 	var first []string
 	for try := 0; try < 2; try++ {
 		cctx, cancel := context.WithTimeout(ctx, n.Timeout)
@@ -498,9 +498,9 @@ func (n *Narrator) system(mood Mood) string {
 	if n.player != nil && n.player.Persona != "" {
 		id = n.player.Persona
 	}
-	var routeBrief string
+	var routeBrief, routeEngine string
 	if n.player != nil {
-		routeBrief = n.player.RouteBrief
+		routeBrief, routeEngine = n.player.RouteBrief, n.player.RouteEngine
 	}
 	stakes := formatStakes(n.player)
 	n.mu.Unlock()
@@ -520,19 +520,24 @@ func (n *Narrator) system(mood Mood) string {
 	}
 	if routeBrief != "" {
 		fmt.Fprintf(&b, "This run's route, what your shop does (background for what you care about; never quote its numbers):\n%s\n", routeBrief)
+		if strings.Contains(routeEngine, "water") {
+			b.WriteString("The raw water (jugs, tanks, rations) is what this shop works on, not what it sells: the water goes into the filter, the purifier and the labels; a raw jug is not a display piece. ")
+		}
 	}
+	b.WriteString("Background stays background: never mention the shop's layout, cellar, furnace, vending machine or bays unless the moment is about them. ")
 	b.WriteString(stakes)
 	if p.Text != "" {
 		fmt.Fprintf(&b, "How you play (background for motive and attitude; its prices and days are not today's facts, never quote them):\n%s\n", clip(strings.TrimSpace(p.Text), 900))
 	}
-	b.WriteString("Speak ONE or TWO short sentences, at most 28 words, first person, reacting to the moment you are given. " +
+	b.WriteString("Say what you did and why, in your own voice, one line per concrete action: NAME the actual thing — the item and its count or price, the customer type, the upgrade by name. A sale line names what sold for how much; an upgrade names the upgrade. No abstractions (\"the foundation\", \"the pace\", \"the curve\"): if the line would survive with the object removed, it is too abstract. " +
+		"ONE or TWO short sentences, at most 28 words, at most one aside, first person, reacting to the moment you are given. " +
 		"It is read aloud by text-to-speech: plain words only, no emojis, no stage directions, no quotation marks, no lists. " +
-		"Invent feeling, motive, character and wry asides freely, but the numbers are sacred: use at most one number, only one from the facts you are given, rounded if you like, written in digits (242, 1,500: the voice reads them), " +
+		"Invent feeling, motive, character and asides freely, but the numbers are sacred: use at most one number, only one from the facts you are given, rounded if you like, written in digits (242, 1,500: the voice reads them), " +
 		"and never claim anything about money, rent or trades that the facts do not say. Never name a weekday. Money is credits, never dollars. Do not repeat your previous lines or their images.")
 	return b.String()
 }
 
-func (n *Narrator) prompt(ev Event, f Facts, avoid []string, image string) string {
+func (n *Narrator) prompt(ev Event, f Facts, avoid []string) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "Day %d. Moment: %s\n", ev.Day, ev.Text)
 	if cue := betCues[ev.Beat]; cue != "" {
@@ -577,9 +582,6 @@ func (n *Narrator) prompt(ev Event, f Facts, avoid []string, image string) strin
 	if len(avoid) > 0 {
 		fmt.Fprintf(&b, "Words to rest, you have leaned on them lately (do not use them): %s\n", strings.Join(avoid, "; "))
 	}
-	if image != "" {
-		fmt.Fprintf(&b, "A fresh image you could use, only if it fits: %s.\n", image)
-	}
 	b.WriteString("Your line:")
 	return b.String()
 }
@@ -594,6 +596,7 @@ var beatCues = map[string]string{
 	BeatAug:             "you just pulled the gun on an aug at your counter. Tense, quick, then the relief.",
 	BeatHandover:        "the autopilot just handed the controls to its human operator. Say plainly that it is over to the human, and why, in a few words.",
 	BeatTakeBack:        "the human handed the shop back; the AI is in control again.",
+	BeatCartelQuota:     "the cartel's handler just took the week's quota of dust off the counter. Relief and menace: say what was handed over and that the cartel is paid for another week.",
 	BeatRouteChoice:     "before day one you chose what kind of shop this run is. Say the choice and your thesis in your own words, and what you passed over.",
 	BeatFork:            "a big decision just came up and you made the call. Say what was on the table, what you chose and why.",
 }
@@ -602,10 +605,12 @@ var beatCues = map[string]string{
 var smallBeatCues = map[string]string{
 	BeatCounter:         "a customer at the counter. Tell it like a tiny story: who they were, how the haggle went, what changed hands.",
 	BeatNight:           "the night out after closing. Say what the night brought home, or that it brought nothing.",
+	BeatLab:             "the lab ran a batch on camera. Say in a sentence what the machines did and what it is for.",
 	BeatMorning:         "the morning. Say what you mean to do today, in one sentence, in your own words.",
 	BeatMilestone:       "a milestone on the road to buying the shop. Mark it.",
 	BeatAppraisalStreak: "a run of appraisals: your eye is earning its fees.",
 	BeatPace:            "the race against the book, the lab's test runs of your route: you just pulled ahead of it, fell behind it, or crossed the edge of its band. Say where you stand against that ghost and how it feels.",
+	BeatReport:          "the morning report. Read what the night brought, how the rent stands, and what the week looks like. Keep it brief and factual, with a little colour.",
 }
 
 var (

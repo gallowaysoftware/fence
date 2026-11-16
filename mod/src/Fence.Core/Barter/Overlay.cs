@@ -33,18 +33,33 @@ namespace Fence.Barter
     public sealed class DayEntry
     {
         public string Name;
+        // The result lines (the "Result:" line) and the same outcomes as predicates for DayStory.
         public List<string> Outcomes = new List<string>();
+        public List<string> Clauses = new List<string>();
+        // Other advisors' result lines (inspect, aug), told beside the predicates.
+        public List<string> Asides = new List<string>();
+        // A shop beat (Name is the sentence), Repeat times in a row.
+        public bool Shop;
+        public int Repeat = 1;
     }
 
-    // Today's customers (the meta-turn), one entry per arrival; cleared when the game day changes.
+    // Today's customers (the meta-turn), one entry per arrival, and the shop's beats between them;
+    // cleared when the game day changes.
     public sealed class DayLog
     {
-        public const int MaxEntries = 40;
+        public const int MaxEntries = 60;
         readonly List<DayEntry> entries = new List<DayEntry>();
         int? day;
 
         public IList<DayEntry> Entries => entries;
-        public DayEntry Current => entries.Count > 0 ? entries[entries.Count - 1] : null;
+        public DayEntry Current => LastCustomer(entries);
+
+        public static DayEntry LastCustomer(IList<DayEntry> entries)
+        {
+            for (int i = (entries?.Count ?? 0) - 1; i >= 0; i--)
+                if (!entries[i].Shop) return entries[i];
+            return null;
+        }
 
         public void SetDay(int? gameDay)
         {
@@ -53,17 +68,50 @@ namespace Fence.Barter
             day = gameDay;
         }
 
-        public void Arrive(string name)
-        {
-            entries.Add(new DayEntry { Name = string.IsNullOrEmpty(name) ? "customer" : name });
-            if (entries.Count > MaxEntries) entries.RemoveAt(0);
-        }
+        public void Arrive(string name) => Add(new DayEntry { Name = string.IsNullOrEmpty(name) ? "customer" : name });
 
+        // An outcome from another advisor (inspect, aug): its line is already plain words.
         public void Note(string outcome)
         {
             if (string.IsNullOrEmpty(outcome)) return;
+            var c = CurrentOrNew();
+            c.Outcomes.Add(outcome);
+            c.Asides.Add(outcome);
+        }
+
+        public void Record(JObject result)
+        {
+            string line = OverlayText.Describe(result);
+            if (string.IsNullOrEmpty(line)) return;
+            var c = CurrentOrNew();
+            c.Outcomes.Add(line);
+            c.Clauses.Add(DayStory.Clause(result) ?? line);
+        }
+
+        // Something the autopilot did with the customer at the counter (no result line of its own).
+        public void Tell(string clause)
+        {
+            if (!string.IsNullOrEmpty(clause)) CurrentOrNew().Clauses.Add(clause);
+        }
+
+        public void Beat(string sentence)
+        {
+            if (string.IsNullOrEmpty(sentence)) return;
+            var last = entries.Count > 0 ? entries[entries.Count - 1] : null;
+            if (last != null && last.Shop && last.Name == sentence) last.Repeat++;
+            else Add(new DayEntry { Name = sentence, Shop = true });
+        }
+
+        DayEntry CurrentOrNew()
+        {
             if (Current == null) Arrive(null);
-            Current.Outcomes.Add(outcome);
+            return Current;
+        }
+
+        void Add(DayEntry e)
+        {
+            entries.Add(e);
+            if (entries.Count > MaxEntries) entries.RemoveAt(0);
         }
     }
 
@@ -208,7 +256,7 @@ namespace Fence.Barter
             {
                 Header = Header(s),
                 Customer = Customer(s.Client),
-                Today = Today(s.Today),
+                Today = DayStory.Tell(s.Today, s.Client != null),
                 Summary = Summary(s.Summary, s.SummaryFailed),
                 Lessons = Lessons(s.Summary),
                 PauseLabel = s.Act == ActDisplay.Active ? "Pause acting" : s.Act == ActDisplay.Paused ? "Resume acting" : s.Act == ActDisplay.Faulted ? "Acting off (error)" : null,
@@ -235,7 +283,7 @@ namespace Fence.Barter
                 v.Options = StageShortlist.Text(s.Shortlist, s.ShortlistBudgetLeft, advice);
             }
             v.Inspect = s.Client != null ? Clean(s.Inspect, 260) : "";
-            var current = s.Client != null && s.Today != null && s.Today.Count > 0 ? s.Today[s.Today.Count - 1] : null;
+            var current = s.Client != null ? DayLog.LastCustomer(s.Today) : null;
             v.Outcome = current != null && current.Outcomes.Count > 0 ? "Result: " + string.Join("; ", current.Outcomes) : "";
             v.Bar = (v.NotRecording ? v.Recording + "\n" : "") + (v.Autopilot.Length > 0 ? v.Autopilot + "\n" : "") + "fence · " + ModeText(s) + " · " + v.Status + (v.Move.Length > 0 ? " · " + v.Move : "")
                     + (v.Inspect.Length > 0 ? "\n" + v.Inspect : "");
@@ -290,9 +338,9 @@ namespace Fence.Barter
                 case BridgeStatus.Off: bridge = "off in settings"; break;
                 default: bridge = "connecting"; break;
             }
-            string model = s.Summary != null && !string.IsNullOrEmpty(s.Summary.Model) ? " · " + Clean(s.Summary.Model, 40) : "";
+            // The model name is debugging; a viewer cares that the brain is connected.
             string fault = s.Act == ActDisplay.Faulted && !string.IsNullOrEmpty(s.ActFault) ? "\n" + Clean(s.ActFault, 120) : "";
-            return ModeText(s) + " · " + bridge + model + fault;
+            return ModeText(s) + " · " + bridge + fault;
         }
 
         static string Customer(ClientInfo c)
@@ -321,7 +369,7 @@ namespace Fence.Barter
         static string Status(OverlayInput s)
         {
             if (s.Client == null) return "waiting for a customer";
-            if (s.CoverageGap != null) return "not covered: " + s.CoverageGap;
+            if (s.CoverageGap != null) return CoverageWords(s.CoverageGap);
             var view = s.View;
             var a = view?.Advice;
             if (a != null && a.Act == ActState.Pending) return "acting…";
@@ -338,6 +386,14 @@ namespace Fence.Barter
             if (s.Ready && s.Bridge == BridgeStatus.Connected && s.View != null && s.View.Deferred) return "deferred to you";
             return "waiting for the counter";
         }
+
+        // Internal gap codes read as debug on stream; say what a viewer would say instead.
+        static string CoverageWords(string gap) => gap switch
+        {
+            "intent DIALOGUE" => "here to talk, not to trade",
+            "the shop is closed" => "the shop is closed",
+            _ => "not covered: " + gap,
+        };
 
         static string Move(Advice a, AdviceStatus status)
         {
@@ -378,12 +434,6 @@ namespace Fence.Barter
             return sb.ToString();
         }
 
-        static string Today(IList<DayEntry> today)
-        {
-            if (today == null || today.Count == 0) return "No customers yet today";
-            return string.Join("\n", today.Select(e => Clean(e.Name, 30) + " → " + (e.Outcomes.Count > 0 ? string.Join("; ", e.Outcomes) : "…")));
-        }
-
         static string Summary(SummaryResponse r, bool failed)
         {
             if (failed) return "bridge down";
@@ -392,14 +442,17 @@ namespace Fence.Barter
             if (r.Day <= 0 || r.Today == null) return "Day summary: no data yet";
             var t = r.Today;
             var sb = new StringBuilder();
-            sb.Append("Day ").Append(N(r.Day)).Append(": ").Append(N(t.Decisions)).Append(" decisions · ")
-                .Append(N(t.Sales)).Append(" sales · ").Append(N(t.Purchases)).Append(" purchases · cash ").Append(Signed(t.CashDelta))
-                .Append(" · ").Append(N(t.Walkouts)).Append(t.Walkouts == 1 ? " walk-out" : " walk-outs");
+            sb.Append("Day ").Append(N(r.Day)).Append(" so far: cash ").Append(Signed(t.CashDelta))
+                .Append(" from ").Append(Count(t.Sales, "sale")).Append(" and ").Append(Count(t.Purchases, "purchase"));
+            if (t.Walkouts > 0) sb.Append("; ").Append(Count(t.Walkouts, "walk-out"));
+            sb.Append('.');
             if (t.RepDelta != null && t.RepDelta.Count > 0)
-                sb.Append("\nrep ").Append(string.Join(", ", t.RepDelta.OrderBy(kv => kv.Key, StringComparer.Ordinal)
-                    .Select(kv => kv.Key + " " + kv.Value.ToString("+0.##;-0.##;0", CultureInfo.InvariantCulture))));
+                sb.Append("\nReputation: ").Append(string.Join(", ", t.RepDelta.OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                    .Select(kv => kv.Key.Replace('_', ' ') + " " + kv.Value.ToString("+0.##;-0.##;0", CultureInfo.InvariantCulture)))).Append('.');
             return sb.ToString();
         }
+
+        static string Count(long n, string noun) => N(n) + " " + noun + (n == 1 ? "" : "s");
 
         static string Lessons(SummaryResponse r)
         {

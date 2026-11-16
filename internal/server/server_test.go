@@ -316,7 +316,10 @@ func TestDecide(t *testing.T) {
 	}{
 		{"heuristic act", protocol.ModeAct, policy.Heuristic{}, func(s string) string { return withSession(t, []byte(req), s) }, 200, "sell_all", protocol.SourceHeuristic, 0},
 		{"advise also decides", protocol.ModeAdvise, policy.Heuristic{}, func(s string) string { return withSession(t, []byte(req), s) }, 200, "sell_all", protocol.SourceHeuristic, 0},
-		{"observe defers", protocol.ModeObserve, policy.Heuristic{}, func(s string) string { return withSession(t, []byte(req), s) }, 200, "defer", protocol.SourceFallback, 0},
+		{"observe judges barter", protocol.ModeObserve, policy.Heuristic{}, func(s string) string { return withSession(t, []byte(req), s) }, 200, "sell_all", protocol.SourceHeuristic, 0},
+		{"observe defers mechanics", protocol.ModeObserve, policy.Heuristic{}, func(s string) string {
+			return patch(t, withSession(t, []byte(req), s), "kind", "loan_shark")
+		}, 200, "defer", protocol.SourceFallback, 0},
 		{"unknown kind defers", protocol.ModeAct, policy.Heuristic{}, func(s string) string {
 			return patch(t, withSession(t, []byte(req), s), "kind", "loan_shark")
 		}, 200, "defer", protocol.SourceHeuristic, 0},

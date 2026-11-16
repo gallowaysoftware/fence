@@ -1,0 +1,16 @@
+# Confirmation of arms-perks-persona.txt's leaders on fresh seeds (the screen picked the best of 3–4 per route).
+# FENCE_GYM_DLL=<build> python3 sim/lab/scripts/arms.py run sim/lab/scripts/arms-perks-confirm.txt -dir DIR -seeds 60 -days 1000 -parallel 24 -- -seed0 2800000
+cook_base      | -difficulty hard -start chemist -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_luck      | -difficulty hard -start chemist -perks vending+short_sleeper+gambling_addiction+lucky -human player -directives sim/lab/scripts/directives/routes/cook.json
+cook_intim     | -difficulty hard -start chemist -perks short_sleeper+intimidating -human player -directives sim/lab/scripts/directives/routes/cook.json
+smelter_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/smelter.json
+smelter_novend    | -difficulty hard -start apprentice -perks short_sleeper+proficient_scavenger+lucky -human player -directives sim/lab/scripts/directives/routes/smelter.json
+vintner_base      | -difficulty hard -start apprentice -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/vintner.json
+vintner_wild      | -difficulty hard -start apprentice -perks vending+short_sleeper+unlucky+wild_favorite -human player -directives sim/lab/scripts/directives/routes/vintner.json
+vintner_lease     | -difficulty hard -start apprentice -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/vintner.json
+gunsmith_base      | -difficulty hard -start gunsmith -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_model     | -difficulty hard -start gunsmith -perks vending+short_sleeper+unlucky+model_citizen -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+gunsmith_mcwc      | -difficulty hard -start gunsmith -perks model_citizen+well_connected -human player -directives sim/lab/scripts/directives/routes/gunsmith.json
+aquafarmer_base      | -difficulty hard -start aquafarmer -perks vending+short_sleeper -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json
+aquafarmer_wild      | -difficulty hard -start aquafarmer -perks vending+short_sleeper+unlucky+wild_favorite -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json
+aquafarmer_lease     | -difficulty hard -start aquafarmer -perks vending+short_sleeper+bad_lease+wild_favorite -human player -directives sim/lab/scripts/directives/routes/aquafarmer.json

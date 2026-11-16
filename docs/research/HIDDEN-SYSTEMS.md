@@ -22,15 +22,15 @@ needs only what a player can see or measure (the executor may know rules, never 
 | # | Gap | System | Value | Cost | Visible? | Status |
 |---|---|---|---|---|---|---|
 | 1 | **The fake-exposure guard reads hidden truth.** `PlayerRole.HidesFake`, `KeepWhy` "exposable" and "water_label", `PlayerCounter.Exposable`, `BribePicks` and `Labels.ForBuyer` call `CanClientExposeAnyFeatureDeep` / `IsFeatureMatch` / true water purity. Replace with a "known truth" map built from the player's own reads (magnifier, scanner, strips) plus the per-faction exposure table | labeler, barter | Fidelity: it breaks the stream's "the model plays with a player's information" rule. The guard is load-bearing: 54 → 58/60 normal wins, and it keeps hard Lower Levels rep off the mob ending | M | becomes yes | **closed** (FAIR-PLAY.md: `Known.cs`, the guard test, measured) |
-| 2 | **Report wanted posters.** Every wanted visit is dismissed: 26–59 visits a run (mean 46), never a report | clients | ~2.1k cash a run in bounties (excluding Lou), +3.75 Security each, ~46 slots a run freed for buyers. Costs ~−25 LL rep on hard. Reporting Lou (`wanted5`, 1 500) starts a chain that can end the run: handle it or skip her | S–M (+M for Lou) | yes (poster matching) | **lab + gym verified** |
-| 3 | **Block hands and ribwiches on the Appraisal Board** (Senior/Master): the type is drawn uniformly from the unblocked pool | appraisal | Plasma pays 192 a job vs 160/161 (probe logs): ~+12 %, ~+290 a week from Master (day ~41), ~+2.3k on a day-98 run | S (a directive that sets `appraisalBlacklist`) | yes | measured fees; arm not run |
+| 2 | **Report wanted posters.** Every wanted visit is dismissed: 26–59 visits a run (mean 46), never a report | clients | ~2.1k cash a run in bounties (excluding Lou), +3.75 Security each, ~46 slots a run freed for buyers. Costs ~−25 LL rep on hard. Reporting Lou (`wanted5`, 1 500) starts a chain that can end the run: handle it or skip her | S–M (+M for Lou) | yes (poster matching) | **done, default on** (`wanted: report`): ~8 reports and +2.4k bounties a run, Security 48 → 78; paired win day −4.7 ± 3.8 (`appraiser`), −3.9 ± 2.6 cash day (`rancher_sprinter`), −5.8 ± 4.7 (`outlaw`). Lou only with `report_all` |
+| 3 | **Block hands and ribwiches on the Appraisal Board** (Senior/Master): the type is drawn uniformly from the unblocked pool | appraisal | Plasma pays 192 a job vs 160/161 (probe logs): ~+12 %, ~+290 a week from Master (day ~41), ~+2.3k on a day-98 run | S (a directive that sets `appraisalBlacklist`) | yes | **done, default on** (`appraisal_block`): −7.6 ± 3.1 days (`appraiser`, median 91 → 84), −2.8 ± 2.4 (`rancher_sprinter`), −9.0 ± 4.0 (`outlaw`) |
 | 4 | **Informant tips create the event they foretell**; the executor dismisses the informant, and its `RisingTypes` buys into events already running (zero margin on hard, −⅓ when a +50 event ends) | market events | +40–110 a week (~53 % of tips are +50 events), plus avoided losses | S (future-only `RisingTypes`) + M (accept the informant, stock ahead) | yes | read, not measured |
-| 5 | **Alert perk: the executor still buys insurance.** With Alert, `HandleInsurance` returns before the burglary roll, so insurance buys nothing | perks | ~+2k NW a run for any Alert loadout (insurance days 4–55, and the uninsured nights after) | S (one check in `PlayerRole.Services`) | yes | code read, confirmed. ROUTES.md's Alert screen was measured with insurance on |
-| 6 | **Skip the last rent before the buyout.** `BuyOutStore` charges only the price: this week's rent and a Grace-deferred backlog are never collected | debt | One rent (~700 on hard); ~−2 days median | S (an `ExecutorMorning` rule) | yes | read, not measured |
+| 5 | **Alert perk: the executor still buys insurance.** With Alert, `HandleInsurance` returns before the burglary roll, so insurance buys nothing | perks | ~+2k NW a run for any Alert loadout (insurance days 4–55, and the uninsured nights after) | S (one check in `PlayerRole.Services`) | yes | **done, default on** (`alert_insurance: false`): alert + short sleeper −6.4 ± 5.5 days, fees 1 936 → 282 a run, 0 burglaries either way. ROUTES.md screen re-run |
+| 6 | **Skip the last rent before the buyout.** `BuyOutStore` charges only the price: this week's rent and a Grace-deferred backlog are never collected | debt | One rent (~700 on hard); ~−2 days median | S (an `ExecutorMorning` rule) | yes | **done, default on** (`rent_skip_weeks: 1`): 1.2–1.7 rents a run never paid; −1.5 ± 0.8 (`appraiser`), −0.5 ± 0.5 (`rancher_sprinter`), −2.2 ± 1.1 (`outlaw`); 2 weeks is no better (−0.6 ± 1.2) |
 | 7 | **The aug arc ends around day 62.** Two scripted kills take presence to 0 by day 19. Once the permit has been held 25 days, the all-clear stops augs for good | augs | ~+450–1 100 cash and +20–40 Security a run if kept alive (let one walk per two). **High stream interest:** the best set piece vanishes mid-run | S (an `AugRule` option) | yes (presence is reconstructible from the night log) | **gym verified** |
-| 8 | **Liquid luck: +75 luck while active.** One luck roll voids an inspection's whole find. Georgio gives a bottle and sells three; the executor sells them as stock | inspection, mitigations | Near-immunity for 3–6 inspections; survival on contraband or arrest-prone policies. Small on the clean reference route | S | yes | **lab verified** |
+| 8 | **Liquid luck: +75 luck while active.** One luck roll voids an inspection's whole find. Georgio gives a bottle and sells three; the executor sells them as stock | inspection, mitigations | Near-immunity for 3–6 inspections; survival on contraband or arrest-prone policies. Small on the clean reference route | S | yes | **done, default off** (`liquid_luck: keep`): +3.0 ± 2.9 days on `appraiser`, +4.3 ± 3.3 with contraband sold (1.7 bottles drunk): the held stock costs more than the finds it voids on these routes |
 | 9 | **Scavenging with kit.** The executor leaves through the no-backpack choice, so carried tools, the scanner and the flashlight never count; it stops at the first wound when a bandage would reopen the dump | scavenging | Tools ~+200 a week; flashlight halves injury nights; bandage-and-continue ~+60 a week. Scavenging is noise on hard overall | M (backpack) / S (bandage) | yes | read |
-| 10 | **Marketplace requests and UL ≥ 20.** Requests pay 1.5–2× value plus rep; the reference run ends at UL ≈ 19, one point short of Tips (+15 % on UL sales) | reputation | +110–260 a week | M | yes | read |
+| 10 | **Marketplace requests and UL ≥ 20.** Requests pay 1.5–2× value plus rep; the reference run ends at UL ≈ 19, one point short of Tips (+15 % on UL sales) | reputation | +110–260 a week | M | yes | **lever, default off** (`requests: fill`, passive fill from stock): ~3 fills a run, less than the 375 upgrade; not measured on 60 seeds |
 
 Below the top ten, in rough order:
 
@@ -421,3 +421,52 @@ genetics, water, wine, chemistry.
   - Alert still runs transmitters;
   - only REV_FRIEND reveals operations.
 - **WINDOW.md:** renovations in the attractiveness formula.
+
+## WIP / state at reboot (2026-11-12, branch `cheap-wins`)
+
+**Built** (directive keys in protocol/schema/directives.schema.json and docs/PROTOCOL.md; shared executor files):
+`wanted` (+ `wanted_rep_floor`; the gym plays the Security button headless, `Episode.Wanted.cs`; poster check in
+`Known.OnPosterWall`), `appraisal_block`, `alert_insurance`, `rent_skip_weeks`, `liquid_luck` (+ `liquid_luck_exposed`),
+`requests`, and from FORMULA-EXPLOITS.md `georgio_hold_days`, `insurance_every`, `window_mode: tiers`, `fridge`; the
+`PlayerCounter.BribeReserve` fix (holds the next visit's 25 + 10 × ⌊day/7⌋, was +95). **Defaults on** (c851cdf):
+`wanted: report`, `appraisal_block: ["hand","ribwich"]`, `rent_skip_weeks: 1`, `georgio_hold_days: 7`, no insurance
+under Alert. Off: liquid luck, requests, insurance pulse, tiers window, fridge. Not yet changed: the routes' `permit: buy`.
+
+**Measured** (hard, 60 paired seeds 2910001–060, every arm 60/60 wins; Δ = paired win day, ± 1.96 SE;
+`sim/lab/scripts/cheapreport.py`, results in `var/sim/exp/cheap*`). Per lever, before the fair-play merge:
+
+| Lever | `appraiser` | `rancher_sprinter` (Δ cash day) | `outlaw` |
+|---|---|---|---|
+| wanted report | −4.7 ± 3.8 (+2.4k bounties, Security 48 → 78) | −3.9 ± 2.6 | −7.2 ± 7.4 (cash −5.8 ± 4.7) |
+| appraisal block | −7.6 ± 3.1 (median 91 → 84) | −2.8 ± 2.4 | −11.0 ± 7.7 (cash −9.0 ± 4.0) |
+| rent skip 1 week | −1.5 ± 0.8 (1.4 rents skipped) | −0.5 ± 0.5 | −4.0 ± 3.7 (cash −2.2 ± 1.1) |
+| rent skip 2 weeks | −0.6 ± 1.2 | | |
+| `permit: bribe` | −11.2 ± 2.5 | −6.6 ± 2.0; cash buyouts 53 → 60 (McNemar p = 0.02) | −14.8 ± 6.4 (cash −11.0 ± 3.6) |
+| Georgio hold 7 days | −8.5 ± 2.7 | | |
+| insurance one night in 4 | −4.1 ± 4.4 (fees 1 755 → 684) | | |
+| window tiers | +3.5 ± 3.9 | | |
+| fridge | +0.7 ± 3.3 | | |
+| liquid luck keep | +3.0 ± 2.9 (with contraband sold: +4.3 ± 3.3) | +9.7 ± 11.5 | |
+| Alert loadout (alert + short sleeper), insurance skipped | −6.4 ± 5.5, fees 1 936 → 282, burglaries 0 either way | | |
+
+Wanted + block + rent skip together, after the fair-play merge: `appraiser` −12.1 ± 3.3 (median 98 → 84),
+`rancher_sprinter` cash day −6.4 ± 2.5 (cash buyouts 51 → 57), `outlaw` cash day −15.8 ± 3.6 (median 105 → 91).
+
+**Complete overnight (2026-11-13):** `arms-cheap5.txt` finished into `var/sim/exp/cheap-final` (60 seeds
+2910001–060 per arm; `appraiser` and `appraiser_off` were already complete, the other 10 arms ran). Defaults on vs
+off, and bribe on top, after the Gauntlet merge:
+
+| Route | off | on (defaults) | + `permit: bribe` |
+|---|---|---|---|
+| `appraiser` | median 98 | median 77, Δ −19.6 ± 2.9 | median 70, Δ −21.4 ± 3.0 |
+| `rancher_sprinter` | median 77 (51/60 cash) | median 70, Δ −25.1 ± 10.9, cash Δ −7.4 ± 2.3 (cash 51 → 60, McNemar p = .00) | median 70, Δ −25.4 ± 11.1, cash Δ −7.5 ± 2.3 |
+| `outlaw` | median 105 (59/60 cash) | median 84, Δ −23.0 ± 4.6, cash Δ −21.2 ± 3.1 (cash 59 → 60) | 59/60 (1 execution), median 84, Δ −24.8 ± 5.0, cash Δ −22.9 ± 3.4 |
+| `appraiser` Alert pair | insured: median 77 | insurance skipped: median 70, Δ −2.5 ± 2.3 (services 1 911 → 354) | |
+
+**Recommendation: make `permit: bribe` the routes' default.** Bribe beats buy on every route it was measured on
+(−1.8 ± 2.0 on `appraiser` on top of the defaults, −0.3 ± 1.6 on `rancher_sprinter`), and its one loss (`outlaw`,
+one execution in 60) is inside the paired CI (−1.8 ± 2.6). The cash-buyout counts move with the defaults already
+(rancher_sprinter 51 → 60, McNemar p = 0.00); the permit fee saving is what pushes the Board's median down.
+The `report_all` (Lou) arm was not found in the script or the doc; it is listed as not found. The 60-seed
+confirmation of these numbers is the same file re-run, so no separate confirmation is planned. Left: full gym
+tests with defaults on, ROUTES.md rows, PROGRESS.md, the mod-port (live does not report posters or run the fridge).

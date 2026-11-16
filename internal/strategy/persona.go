@@ -99,6 +99,30 @@ func renderRoute(b *strings.Builder, route string) {
 	fmt.Fprintf(b, "\nTHIS RUN'S ROUTE (already in force):\n%s\n", route)
 }
 
+// waterInputFact is told to the plan when the run's engine touches water: the raw vessels
+// are the production's input, and a -75% raw bottle in the window repels the buyers the
+// route is there to draw.
+const waterInputFact = "WATER INPUT: the raw-water vessels (Jug of Water with Rustwater or Ghostwater, water_ration, water_tank) are production INPUT: fill, treat and filter them. Never stage them for sale or put them in the window: the showcase and the counter want treated or bottled water only, and a -75% Rustwater bottle in the window repels the water buyers it should draw."
+
+func renderWaterInputFact(b *strings.Builder, in PlanInput) {
+	base := baseEngine(in.BaseDirectives)
+	if !strings.Contains(base, "water") {
+		return
+	}
+	fmt.Fprintf(b, "\n%s\n", waterInputFact)
+}
+
+// baseEngine is the policy's "engine" key, "" when the policy gives none or does not parse.
+func baseEngine(base string) string {
+	var d struct {
+		Engine string `json:"engine"`
+	}
+	if json.Unmarshal([]byte(base), &d) != nil {
+		return ""
+	}
+	return d.Engine
+}
+
 // style is the persona the plan follows. On a route the route's base policy buys the
 // upgrades, so the persona's own buy order and pivots are left out: they would make
 // lintUpgrades demand purchases the route was tested without.

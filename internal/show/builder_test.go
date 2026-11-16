@@ -197,12 +197,12 @@ func TestBuilderNextRunInSession(t *testing.T) {
 func TestBuilderAutopilot(t *testing.T) {
 	b := NewBuilder(Player{ID: "p1"})
 	stage := ev("autopilot", 12, map[string]any{"day": 12, "phase": "customer", "action": "stage", "target": map[string]any{"uid": 7, "name": "Canned beans"},
-		"why": "what Mara wants, within the budget", "rule": "player:stage_for_buyer", "client": "Mara", "hidden_used": []string{"item_exposable"}})
+		"why": "what Mara wants, within the budget", "rule": "player:stage_for_buyer", "client": "Mara", "client_seq": 3, "hidden_used": []string{"item_exposable"}})
 	stage["event"].(map[string]any)["hidden"] = map[string]any{"true_value": secret}
 	evs := feedAll(t, b,
 		ev("autopilot", 12, map[string]any{"day": 12, "phase": "morning", "action": "plan_day", "why": "rent 350 in 4 days"}),
 		stage,
-		ev("autopilot", 12, map[string]any{"day": 12, "phase": "customer", "action": "counter", "detail": "add_markup_10", "why": "add_markup_10 for about 132 (estimate 120)", "client": "Mara"}),
+		ev("autopilot", 12, map[string]any{"day": 12, "phase": "customer", "action": "counter", "detail": "add_markup_10", "why": "add_markup_10 for about 132 (estimate 120)", "client": "Mara", "client_seq": 3}),
 		ev("autopilot", 12, map[string]any{"day": 12, "phase": "customer", "action": "pause", "why": "you made a move (stage): the autopilot stopped so it cannot fight you"}),
 		ev("autopilot_fault", 12, map[string]any{"day": 12, "phase": "customer", "state": "handover", "reason": "Ivo: appraisal customer, not dismissable",
 			"message": "AUTOPILOT PAUSED — your turn: Ivo: appraisal customer, not dismissable. Play it by hand, then press Resume."}),
@@ -212,11 +212,9 @@ func TestBuilderAutopilot(t *testing.T) {
 		t.Fatalf("a hidden value reached the feed: %s", all)
 	}
 	th := find(evs, KindThought)
-	if len(th) != 2 || th[0].Text != "Stage Canned beans (Mara): what Mara wants, within the budget." || len(th[0].HiddenUsed) != 1 {
+	// The staging folds into the counter's line, which carries its hidden reads.
+	if len(th) != 1 || th[0].Text != "Add markup 10% Canned beans (Mara): add_markup_10 for about 132 (estimate 120)." || !slices.Equal(th[0].HiddenUsed, []string{"item_exposable"}) {
 		t.Fatalf("thoughts = %+v", th)
-	}
-	if th[1].Text != "Add markup 10% (Mara): add_markup_10 for about 132 (estimate 120)." || th[1].HiddenUsed != nil {
-		t.Errorf("counter thought = %+v", th[1])
 	}
 	ap := find(evs, KindAutopilot)
 	if len(ap) != 2 || ap[0].Autopilot.State != "paused" || ap[0].Autopilot.NeedsHuman || ap[0].Level != LevelNotable {
@@ -294,5 +292,260 @@ func TestMorningAfterWakingUp(t *testing.T) {
 	}
 	if len(mornings) != 2 || mornings[1] != 2 {
 		t.Errorf("mornings = %v, want [1 2]", mornings)
+	}
+}
+
+func TestBuilderCashFromMoneyEvents(t *testing.T) {
+	sold := func(uid, cost int) map[string]any {
+		return ev("money", 4, map[string]any{"kind": "item_sold", "item_uid": uid, "cost": cost})
+	}
+	outcome := map[string]any{"type": "outcome", "decision_id": "d1", "outcome": map[string]any{"game_day": 4,
+		"result": map[string]any{"kind": "trade", "side": "sold", "items": []int{7}, "cash_delta": 25}}}
+	tests := []struct {
+		name  string
+		lines []map[string]any
+		want  int64
+	}{
+		{"autopilot sales", []map[string]any{sold(7, 25), sold(8, 12), ev("money", 4, map[string]any{"kind": "item_bought", "item_uid": 9, "cost": 10})}, 527},
+		{"vending", []map[string]any{ev("money", 4, map[string]any{"kind": "vending_sale", "value": 18})}, 518},
+		{"money then outcome", []map[string]any{sold(7, 25), outcome}, 525},
+		{"outcome then money", []map[string]any{outcome, sold(7, 25)}, 525},
+		{"bought then sold", []map[string]any{ev("money", 4, map[string]any{"kind": "item_bought", "item_uid": 7, "cost": 12}), sold(7, 18)}, 506},
+		{"rent paid", []map[string]any{ev("money", 4, map[string]any{"kind": "rent_paid", "amount": 200, "credits_left": 300})}, 300},
+		{"rent paid no credits left", []map[string]any{ev("money", 4, map[string]any{"kind": "rent_paid", "amount": 200})}, 300},
+		{"service paid", []map[string]any{ev("money", 4, map[string]any{"kind": "service_paid", "service": "JANITORIAL_SERVICE", "cost": 14})}, 486},
+		{"wild upgrade", []map[string]any{ev("money", 4, map[string]any{"kind": "wild_upgrade", "cash_spent": 150})}, 350},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			b := NewBuilder(Player{ID: "p"})
+			feedAll(t, b, append([]map[string]any{snapshot("open", 4, 500, 2000, nil)}, tc.lines...)...)
+			if got := b.Clock().Cash; got != tc.want {
+				t.Fatalf("cash %d, want %d", got, tc.want)
+			}
+		})
+	}
+}
+
+// rent_paid and service_paid used to leave the builder's cash untouched, so the
+// panel drifted from the true value until the day_ended credits corrected it.
+func TestMoneyEventsTrackCashUntilDayEnded(t *testing.T) {
+	b := NewBuilder(Player{ID: "p"})
+	mid := feedAll(t, b,
+		snapshot("morning", 4, 650, 2000, nil),
+		ev("money", 4, map[string]any{"kind": "rent_paid", "amount": 200, "credits_left": 450}),
+		ev("money", 4, map[string]any{"kind": "service_paid", "service": "INSURANCE_SERVICE", "cost": 14}),
+	)
+	if got := b.Clock().Cash; got != 436 {
+		t.Fatalf("cash after rent and service %d, want 436", got)
+	}
+	var rentFound bool
+	for _, e := range find(mid, KindMoney) {
+		if strings.Contains(e.Text, "rent") && e.Amount == -200 {
+			rentFound = true
+		}
+	}
+	if !rentFound {
+		t.Fatalf("no rent money event: %+v", mid)
+	}
+	dayEvs := feedAll(t, b, ev("money", 4, map[string]any{"kind": "day_ended", "day": 4, "net_worth": 2100, "credits": 436}))
+	if got := b.Clock().Cash; got != 436 {
+		t.Fatalf("cash after day_ended %d, want 436", got)
+	}
+	day := find(dayEvs, KindDay)
+	if len(day) != 1 || day[0].Summary.CashDelta != -214 {
+		t.Fatalf("day summary: %+v", day)
+	}
+}
+
+func TestCounterLine(t *testing.T) {
+	budget := int64(62)
+	tests := []struct {
+		name, detail, why string
+		staged            []string
+		dealt             bool
+		want              string
+	}{
+		{"pass", "dismiss", "asking 392 (wholesale 330) against 392: over the plan's limits or the floor 245", []string{"Peat", "Soda"}, false,
+			"Passed on Peat, Soda from Junker: asking 392 (330 for the lot), more than it will spend while keeping 245 for rent."},
+		{"inputs", "buy_all", "engine inputs for 30 (estimate 30)", []string{"Scrap Metal", "Scrap Metal"}, false,
+			"Bought 2× Scrap Metal from Junker for 30 (estimate 30): engine inputs are worth paying up for."},
+		{"lot", "accept_wholesale", "wholesale 110 for an estimate of 129", nil, false,
+			"Bought Junker's whole lot for 110 against an estimate of 129 (85%, room to resell)."},
+		{"sold", "sell_all", "sell_all for about 39 (estimate 39)", []string{"Peat"}, false,
+			"Sold Peat to Junker for about 39, the full estimate (after substance; budget 62)."},
+		{"discount", "demand_discount_10", "demand_discount_10 (EV 26 vs 21)", nil, false,
+			"Pushed Junker for 10% off: expected gain 26, walk-out risk included, beats 21 at their price."},
+		{"after a deal", "dismiss", "nothing sellable staged", nil, true, ""},
+		{"empty-handed", "dismiss", "nothing sellable staged", nil, false, "Junker left empty-handed: nothing in stock fits (after substance; budget 62)."},
+		{"contraband", "dismiss", "contraband", []string{"Pills"}, false, "Turned Junker away: their goods are contraband."},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			b := NewBuilder(Player{})
+			b.clients[9] = client{name: "Junker", intent: "sell_and_buy", budget: &budget, interests: []string{"substance"}}
+			b.staged[9] = tc.staged
+			b.dealt[9] = tc.dealt
+			got, ok := b.counterLine(9, "Junker", tc.detail, tc.why)
+			if got != tc.want || ok != (tc.want != "") {
+				t.Errorf("got %q (%v), want %q", got, ok, tc.want)
+			}
+		})
+	}
+}
+
+func TestBuilderResumedSave(t *testing.T) {
+	b := NewBuilder(Player{ID: "drift", Model: "m", PersonaName: "Magnate"})
+	load := ev("day_snapshot", 5, map[string]any{"phase": "load", "run_id": "r1",
+		"store": map[string]any{"cash": 207, "day": 5, "difficulty": "hard"},
+		"perks": map[string]any{"starting": []string{"vending", "short_sleeper"}}})
+	evs := feedAll(t, b, ev("game_loaded", 5, map[string]any{}), load, load,
+		ev("run_start", 5, map[string]any{"run_id": "r1", "difficulty": "hard"}))
+	starts := find(evs, KindRunStart)
+	if len(starts) != 1 {
+		t.Fatalf("run starts = %d, want 1 (the loaded save's, not repeated)", len(starts))
+	}
+	p := starts[0].Player
+	if p == nil || p.Difficulty != "hard" || !slices.Equal(p.Perks, []string{"vending", "short_sleeper"}) || starts[0].Day != 5 {
+		t.Fatalf("player = %+v, day %d", p, starts[0].Day)
+	}
+}
+
+func TestBuilderWholesaleLot(t *testing.T) {
+	player := Player{ID: "t"}
+	lines := []string{
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":1,"kind":"customer_observed","game_day":1,"data":{"client_seq":1,"covered":true,"context":{"store":{"cash":400,"day":1},"client":{"name":"Scavenger","faction":"none","intent":"sell","wholesale":{"price":135,"discount_pct":25}},"counter":{"theirs":[],"yours_staged":[]}}}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":2,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":1,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":3,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":2,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":4,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":3,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":5,"kind":"day_snapshot","game_day":1,"data":{"phase":"close","store":{"cash":280,"day":1,"net_worth":1000},"inventory":[],"rent":null,"property":null,"reputation":{}}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":6,"kind":"customer_observed","game_day":2,"data":{"client_seq":2,"covered":true,"context":{"store":{"cash":280,"day":2},"client":{"name":"Other","faction":"none","intent":"buy","budget":10},"counter":{"theirs":[],"yours_staged":[]}}}}}`,
+	}
+
+	cases := []struct {
+		name  string
+		lines []string
+		want  int64
+	}{
+		// Offer observed, singles bought at per-item prices, no accept_wholesale decision:
+		// the player paid the singles, so the panel keeps the per-item sums (400 − 150)
+		// and reclaims nothing.
+		{"no reclaim without an acceptance", lines, 280},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			b := NewBuilder(player)
+			var evs []Event
+			for _, l := range tc.lines {
+				out, err := b.Feed([]byte(l))
+				if err != nil {
+					t.Fatalf("feed: %v", err)
+				}
+				evs = append(evs, out...)
+			}
+			if b.clock.Cash != tc.want {
+				t.Errorf("cash = %d, want %d", b.clock.Cash, tc.want)
+			}
+			if m := find(evs, KindMoney); len(m) != 0 {
+				t.Errorf("money events = %+v, want none", m)
+			}
+		})
+	}
+}
+
+func TestMorningReport(t *testing.T) {
+	b := NewBuilder(Player{ID: "t"})
+	l := line(t, ev("morning_report", 69, map[string]any{
+		"day":       69,
+		"night_log": []string{"Your insurance covered 120 of stolen goods."},
+		"rent":      map[string]any{"due": 600, "days_left": 1},
+		"cash":      2450,
+		"net_worth": 6120,
+		"calendar": []map[string]any{
+			{"day": 70, "events": []map[string]any{{"id": "rent_day", "name": "Rent Day", "type": "innate"}}},
+		},
+	}))
+	evs, err := b.Feed(l)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := find(evs, KindMorning)
+	if len(m) != 1 {
+		t.Fatalf("want 1 morning event, got %d", len(m))
+	}
+	e := m[0]
+	if e.Morning == nil {
+		t.Fatal("morning payload missing")
+	}
+	if e.Morning.Day != 69 || e.Morning.Cash != 2450 || e.Morning.NetWorth != 6120 {
+		t.Errorf("morning = %+v", e.Morning)
+	}
+	if e.Morning.Rent.Due != 600 || e.Morning.Rent.DaysLeft != 1 {
+		t.Errorf("rent = %+v", e.Morning.Rent)
+	}
+	if len(e.Morning.NightLog) != 1 {
+		t.Errorf("night_log = %v", e.Morning.NightLog)
+	}
+	if len(e.Morning.Calendar) != 1 || len(e.Morning.Calendar[0].Events) != 1 {
+		t.Errorf("calendar = %+v", e.Morning.Calendar)
+	}
+	if e.Clock == nil || e.Clock.Cash != 2450 || e.Clock.RentDue != 600 {
+		t.Errorf("clock = %+v", e.Clock)
+	}
+	if e.Beat != BeatReport {
+		t.Errorf("beat = %q", e.Beat)
+	}
+	if !strings.Contains(e.Text, "2,450") || !strings.Contains(e.Text, "600") {
+		t.Errorf("text = %q", e.Text)
+	}
+}
+
+// TestBuilderWholesaleLotAccepted: a lot the bridge's decision took gets its gap
+// reclaimed once (exactly the sum minus the lot price); a fresh offer for the same
+// name resets the gate, so the second lot's singles pay at per-item prices with no
+// credit.
+func TestBuilderWholesaleLotAccepted(t *testing.T) {
+	player := Player{ID: "t"}
+	lines := []string{
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":1,"kind":"customer_observed","game_day":1,"data":{"client_seq":1,"covered":true,"context":{"store":{"cash":400,"day":1},"client":{"name":"Scavenger","faction":"none","intent":"sell","wholesale":{"price":135,"discount_pct":25}},"counter":{"theirs":[],"yours_staged":[]}}}}}`,
+		`{"type":"decision","ts":"t","decision_id":"d1","request":{"kind":"barter","game_day":1,"context":{"client":{"name":"Scavenger","faction":"none","intent":"sell","wholesale":{"price":135}},"counter":{"theirs":[],"yours_staged":[]}}},"response":{"rationale":"the lot is a bargain","source":"llm","choice":{"option":"accept_wholesale"}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":2,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":1,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":3,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":2,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":4,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":3,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		// A fresh offer for the same name; its singles are bought at per-item prices with
+		// no bridge acceptance, so nothing is reclaimed for them.
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":5,"kind":"customer_observed","game_day":1,"data":{"client_seq":2,"covered":true,"context":{"store":{"cash":300,"day":1},"client":{"name":"Scavenger","faction":"none","intent":"sell","wholesale":{"price":135}},"counter":{"theirs":[],"yours_staged":[]}}}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":6,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":4,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+		`{"type":"event","ts":"t","event":{"session_id":"x","seq":7,"kind":"money","game_day":1,"data":{"kind":"item_bought","item_uid":5,"item_id":"bottled_water","client":"Scavenger","cost":50}}}`,
+	}
+	b := NewBuilder(player)
+	var evs []Event
+	for _, l := range lines {
+		out, err := b.Feed([]byte(l))
+		if err != nil {
+			t.Fatalf("feed: %v", err)
+		}
+		evs = append(evs, out...)
+	}
+	m := find(evs, KindMoney)
+	if len(m) != 1 {
+		t.Fatalf("money events = %+v, want exactly one reclaim", m)
+	}
+	if m[0].Amount != 15 {
+		t.Errorf("reclaim = %d, want 15 (150 − 135)", m[0].Amount)
+	}
+}
+
+// TestBuilderDecisionRationaleNoClient: a decide line with a rationale but no client in
+// the request must not panic in the thought handler (regression: cedd1aa dereferenced a
+// nil counter client before the clientName fallback).
+func TestBuilderDecisionRationaleNoClient(t *testing.T) {
+	b := NewBuilder(Player{ID: "t"})
+	l := line(t, map[string]any{"type": "decision", "ts": "t", "decision_id": "d1",
+		"request":  map[string]any{"kind": "counter", "game_day": 1, "context": map[string]any{"counter": map[string]any{"theirs": []any{}, "yours_staged": []any{}}}},
+		"response": map[string]any{"rationale": "hold for the morning rush", "source": "llm"}})
+	if _, err := b.Feed(l); err != nil {
+		t.Fatal(err)
 	}
 }

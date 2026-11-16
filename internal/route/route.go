@@ -32,6 +32,9 @@ type Route struct {
 	Brief string
 	// Base is the directives the executor plays, without "_route", as compact JSON.
 	Base string
+	// Engine is the base policy's "engine" key (wine, water, furnace joined by +);
+	// "" when the route runs none.
+	Engine string
 }
 
 type meta struct {
@@ -101,6 +104,12 @@ func Parse(path string, b []byte) (Route, error) {
 		return Route{}, fmt.Errorf("route %s: %w", path, err)
 	}
 	r.Base = base
+	var d struct {
+		Engine string `json:"engine"`
+	}
+	if json.Unmarshal([]byte(base), &d) == nil {
+		r.Engine = d.Engine
+	}
 	return r, nil
 }
 

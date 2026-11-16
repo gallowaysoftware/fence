@@ -27,6 +27,9 @@ func testRouteDir(t *testing.T, dir string, want int) {
 		t.Fatalf("%d routes in %s (%v), want at least %d", len(paths), dir, err, want)
 	}
 	for _, p := range paths {
+		if filepath.Base(p) == "paths.json" {
+			continue
+		}
 		name := strings.TrimSuffix(filepath.Base(p), ".json")
 		r, err := Load(dir, name)
 		if err != nil {
@@ -60,7 +63,7 @@ func TestLoad(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.Start != "fence" || r.Perks != "vending" || r.Persona != "fence" || r.Text() != "ok: A shop." || r.Base != `{"bays":2,"engine":"wine"}` {
+	if r.Start != "fence" || r.Perks != "vending" || r.Persona != "fence" || r.Text() != "ok: A shop." || r.Base != `{"bays":2,"engine":"wine"}` || r.Engine != "wine" {
 		t.Fatalf("%+v", r)
 	}
 	for ref, want := range map[string]string{"bare": "no _route", "nostart": "start and perks", "long": "the limit", "Bad Name": "not a name", "missing": "no such file"} {

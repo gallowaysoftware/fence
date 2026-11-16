@@ -15,3 +15,20 @@ hydroreed-cured (minerals 125–275 bp, no bad berries). Holding wine lost only 
 aging pays +3 × grade a night, so age a buffer, never at a buyer's expense. The rack holds 6 bottles. The farmer
 start's bays come with ghost water, which ruins every berry. Sources: docs/re/WINE.md §0, §1, §4, §6;
 docs/research/PRODUCTION-VERDICTS.md §4; docs/research/QUALITY.md §1; docs/re/WATER.md §2.3; docs/re/PLANTS.md §2.
+
+## Payback nights (hard; cost ÷ net per night, measured + docs/re/PRODUCTION.md, WINE.md)
+
+| Engine | Cost | Per night | Payback |
+|---|---|---|---|
+| bloomberry bay (390 + seed 40) | 430 | 270 (1-berry wine, bottle-limited) | **1.6** |
+| wine rack (Jackson, 350 → 525) | 525 | +63 (6 Masters × 10.5 aging) | 8.3 |
+| winemaker (300) | 300 | 11 measured — but it is the yeast/bottle supplier | supplier |
+| water trading (450) | 450 | cheaper vessels and water | input-cost cut |
+| reed-cured water (bay 490) | 490 | 240 (feeds wine quality) | 2.0 |
+| plant DNA line (PLANT_DNA 1875 + manipulator 1000 + disks) | ~4000 | loses money (WINE.md §3) | never |
+
+**Reading:** the berry bay is the best payback in the game (1.6 nights) — the constraint is
+bottles and yeast, not berries, so the *second* bay is worth more than the first only if the
+winemaker's weekly stock keeps up. The rack pays only on Masters (8.3n). The plant-DNA line
+loses ~3.5k outright: never. Savings phase: the rack, then nothing — the mortgage is the only
+big-ticket item left, and it is the win condition itself.

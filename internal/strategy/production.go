@@ -18,11 +18,13 @@ type prodState struct {
 	furnaces []furnaceState
 	scav     *scavenge
 	water    []waterContainer
+	lab      *labState
+	labRaw   json.RawMessage
+	has      map[string]bool
 	taps     []string
 	// other is production/water content this bridge does not recognise, as compact text.
 	other string
 
-	has          map[string]bool
 	berryByUID   map[int64]string
 	wineByUID    map[int64]wineBottle
 	berries      map[string][]int64
@@ -123,6 +125,45 @@ type scavenge struct {
 	ScannerPct   *int64   `json:"scanner_double_pct"`
 }
 
+// labState is the chemistry engine's morning state (gym Lab.Status): the batch in the work
+// vessel, the kit, what the next batch is expected to yield, and the chemical analyser's panel
+// for the vessel and each reagent bottle (only when the shop owns the composition spectrometer).
+type labState struct {
+	Step       string         `json:"step"`
+	Product    string         `json:"product"`
+	Batches    *int64         `json:"batches"`
+	Pills      *int64         `json:"pills"`
+	PillValue  *int64         `json:"pill_value"`
+	Recovering *bool          `json:"recovering"`
+	AlcoholML  *int64         `json:"alcohol_ml"`
+	Scanner    *bool          `json:"scanner"`
+	Stalls     map[string]any `json:"stalls"`
+	Expect     map[string]struct {
+		Purity        float64 `json:"purity"`
+		Grade         string  `json:"grade"`
+		UnitsPerInput float64 `json:"units_per_input"`
+		ValuePerInput float64 `json:"value_per_input"`
+	} `json:"expect"`
+	Cartel  map[string]any `json:"cartel"`
+	Scanned *labScan       `json:"scanned"`
+	Bottles []labBottle    `json:"bottles"`
+}
+
+type labScan struct {
+	ML      int64 `json:"ml"`
+	Liquids map[string]struct {
+		UL  int64   `json:"ul"`
+		Pct float64 `json:"pct"`
+	} `json:"liquids"`
+	Toxicity string `json:"toxicity"`
+	Euphoria string `json:"euphoria"`
+}
+
+type labBottle struct {
+	ID   string  `json:"id"`
+	Scan labScan `json:"scan"`
+}
+
 type waterContainer struct {
 	UID         *int64          `json:"uid"`
 	ID          string          `json:"id"`
@@ -159,8 +200,14 @@ var hiddenKeys = []string{"hidden", "health", "score", "wine_score", "purity_bp"
 
 // parseProduction reads the production and water blocks; what it does not recognise is
 // returned as leftover for compact rendering.
-func parseProduction(prodRaw, waterRaw json.RawMessage) *prodState {
+func parseProduction(prodRaw, waterRaw json.RawMessage, labRaw json.RawMessage) *prodState {
 	ps := &prodState{}
+	if len(labRaw) > 0 {
+		var l labState
+		if json.Unmarshal(labRaw, &l) == nil {
+			ps.lab = &l
+		}
+	}
 	left := map[string]any{}
 	var top map[string]json.RawMessage
 	if len(prodRaw) > 0 && json.Unmarshal(prodRaw, &top) != nil {
@@ -336,7 +383,7 @@ func (s *snapshot) production() *prodState {
 	if s.prod != nil {
 		return s.prod
 	}
-	ps := parseProduction(s.productionRaw, s.waterRaw)
+	ps := parseProduction(s.productionRaw, s.waterRaw, s.labRaw)
 	ps.has = map[string]bool{}
 	ps.berries = map[string][]int64{}
 	ps.yeast = map[string]int{}
@@ -444,6 +491,55 @@ func (s *snapshot) production() *prodState {
 	ps.waterConditions(s)
 	s.prod = ps
 	return ps
+}
+
+// renderLab writes the chemistry block: the batch in the vessel, what the next batch yields,
+// and — when the shop owns the composition spectrometer — the analyser's panel for the vessel
+// and each reagent bottle (the µL and % a player reads off the scanner).
+func (ps *prodState) renderLab(b *strings.Builder) {
+	l := ps.lab
+	if l == nil {
+		return
+	}
+	var body strings.Builder
+	if l.Product != "" {
+		fmt.Fprintf(&body, "work vessel: %s in progress, step %s", l.Product, l.Step)
+		if l.Recovering != nil && *l.Recovering {
+			body.WriteString(", recovering")
+		}
+		body.WriteString("\n")
+	}
+	if l.Scanner != nil && *l.Scanner && l.Scanned != nil {
+		body.WriteString("analyser (the vessel, from the composition spectrometer):\n")
+		body.WriteString(l.Scanned.text("  "))
+		for _, bt := range l.Bottles {
+			fmt.Fprintf(&body, "  %s:\n", bt.ID)
+			body.WriteString(bt.Scan.text("    "))
+		}
+	}
+	if len(l.Expect) > 0 {
+		for id, e := range l.Expect {
+			fmt.Fprintf(&body, "next %s batch: purity %.1f%% (%s), %.1f units per input, ~%.0f value per input\n", id, e.Purity, e.Grade, e.UnitsPerInput, e.ValuePerInput)
+		}
+	}
+	if body.Len() > 0 {
+		fmt.Fprintf(b, "CHEMISTRY (one batch at a time; steps advance a night):\n%s", body.String())
+	}
+}
+
+func (s2 labScan) text(indent string) string {
+	var b strings.Builder
+	for name, liq := range s2.Liquids {
+		fmt.Fprintf(&b, "%s%s: %d µL (%.2f%%)\n", indent, name, liq.UL, liq.Pct)
+	}
+	fmt.Fprintf(&b, "%stotal %d ml\n", indent, s2.ML)
+	if s2.Toxicity != "" {
+		fmt.Fprintf(&b, "%s%s\n", indent, s2.Toxicity)
+	}
+	if s2.Euphoria != "" {
+		fmt.Fprintf(&b, "%seuphoria: %s\n", indent, s2.Euphoria)
+	}
+	return b.String()
 }
 
 func uidOf(it item) int64 {
@@ -1472,6 +1568,7 @@ func (s *snapshot) renderProduction(b *strings.Builder, day int) {
 	ps.renderMachines(&body, day)
 	ps.renderWater(&body, s)
 	ps.renderScavenge(&body)
+	ps.renderLab(&body)
 	if body.Len() == 0 && ps.other == "" {
 		return
 	}

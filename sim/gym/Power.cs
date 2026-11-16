@@ -46,6 +46,8 @@ namespace Fence.Gym
             need.Clear();
             CellsIn = CellsOut = Swaps = 0;
             firstFreeDay = 0;
+            HubFirstDay = HubMoves = HubNights = HubNeighbourNights = 0;
+            HubUnits = 0;
         }
 
         // An engine's draw a night (evaporator 6, a hydroponic bay 8): what the kit would carry.
@@ -127,7 +129,7 @@ namespace Fence.Gym
 
         public static bool JacksonBuys(string id) => On && (id == Recharger || (id == Cell && Free));
 
-        public static bool Reserved(GameItem i) => On ? i.identifier == Recharger || (Free && Rechargeable(i)) : CellarKit && i.identifier == Recharger;
+        public static bool Reserved(GameItem i) => (On ? i.identifier == Recharger || (Free && Rechargeable(i)) : CellarKit && i.identifier == Recharger) || (HubOn && Rechargeable(i) && Hub() != null);
 
         static bool Rechargeable(GameItem i) => i.IsTag("power_source_item") && !PowerHelper.IsDisposablePowerSource(i) && !CurrentConverterHelper.IsCurrentConverter(i)
             && i.identifier != "energy_credit_hyp" && (i.identifier ?? "").StartsWith(Cell, StringComparison.Ordinal);
@@ -242,9 +244,114 @@ namespace Fence.Gym
                 if (Chore.Accept(grid, cell, -1) != 0) break;
         }
 
+        // ---- the eel hub (`eel_hub`, docs/research/FORMULA-EXPLOITS.md §6; lab `fish.eelhub`) ----
+        // An electric-eel tank charges its own battery and then, at the same full output, every cell and every battery
+        // machine edge-adjacent to it in the stock grid, blackouts included (AquacultureHelper.GeneratePower, the night's
+        // early pass). Each evening the machines running on a cell (highest draw first) and the loose cells short of full
+        // (emptiest first) are moved next to the hub tank, and spent cells are kept for it. The fish engine keeps
+        // `eel_hub: {"eels": n}` electric eels (default 2) in its big tank and leaves converters out of the tanks the hub
+        // carries.
+
+        static JToken HubRaw => Directives.Current.Raw["eel_hub"];
+        public static bool HubOn => HubRaw != null && HubRaw.Type != JTokenType.Null && !(HubRaw.Type == JTokenType.Boolean && !(bool)HubRaw);
+        public static int HubEels => (HubRaw as JObject)?.Value<int?>("eels") ?? 2;
+        public static int HubFirstDay, HubMoves, HubNights, HubNeighbourNights;
+        public static long HubUnits;
+
+        // The power the tank's fish make tonight (the tooltip's power output: 1/2/3 per electric eel by stage, none starving).
+        static int Output(GameItem ras) => MachineRAS.GetTankGrid(ras) is GameGridInventory g ? AquacultureHelper.GetTankPowerOutput(g) : 0;
+
+        public static GameItem Hub()
+        {
+            if (!HubOn || EmporiumEntry.Instance == null) return null;
+            var stock = EmporiumEntry.Instance.invElement;
+            return Owned().Where(i => i.IsTag("RAS_TAG") && ReferenceEquals(i.parentInventory, stock) && Output(i) > 0).OrderByDescending(Output).ThenBy(i => i.uniqueId).FirstOrDefault();
+        }
+
+        public static int HubOutput() => Hub() is GameItem h ? Output(h) : 0;
+
+        // A machine the hub runs by itself once beside it: its draw is within the hub's output.
+        public static bool HubCarries(GameItem machine) => HubOn && Hub() is GameItem h && h != machine && Output(h) >= MachineryHelper.GetMachinePowerUsage(machine);
+
+        static bool OnCell(GameItem m) => MachineHelper.GetBatterySlot(m)?.childItem is GameItem c && Rechargeable(c);
+
+        public static void Evening(IExecutorHost ep)
+        {
+            if (!HubOn) return;
+            try { Arrange(ep); }
+            catch (Exception e) { ep.ProductionError(e); }
+        }
+
+        static void Arrange(IExecutorHost ep)
+        {
+            var hub = Hub();
+            if (hub == null) return;
+            if (HubFirstDay == 0) HubFirstDay = ep.Day;
+            var stock = EmporiumEntry.Instance.invElement;
+            var machines = Owned().Where(m => m != hub && Parent(m) == null && m.contentWindow != null && OnCell(m) && MachineryHelper.GetMachinePowerUsage(m) > 0)
+                .OrderByDescending(MachineryHelper.GetMachinePowerUsage).ThenBy(m => m.uniqueId).ToList();
+            var cells = Owned().Where(c => Rechargeable(c) && Parent(c) == null && !Full(c)).OrderBy(Energy).ThenBy(c => c.uniqueId).ToList();
+            foreach (var it in machines.Concat(cells))
+            {
+                if (hub.FindAdjacentType<GameItem>().Contains(it)) continue;
+                if (PlaceBeside(stock, hub, it)) HubMoves++;
+            }
+            int n = hub.FindAdjacentType<GameItem>().Count(i => i != hub && ((Rechargeable(i) && !Full(i)) || (i.contentWindow != null && OnCell(i))));
+            if (Environment.GetEnvironmentVariable("FENCE_HUB_DEBUG") != null)
+                Console.Error.WriteLine($"hub d{ep.Day} out={Output(hub)} at=({hub.modifiedShape.minX},{hub.modifiedShape.minY})-({hub.modifiedShape.maxX},{hub.modifiedShape.maxY}) grid={stock.inventoryShape.width}x{stock.inventoryShape.height} machines={machines.Count} cells={cells.Count} near={string.Join(",", hub.FindAdjacentType<GameItem>().Where(i => i != hub).Select(i => i.identifier + ":" + (Rechargeable(i) ? Energy(i) : -1)))} counted={n}");
+            HubNights++;
+            HubNeighbourNights += n;
+            HubUnits += (long)n * Output(hub);
+        }
+
+        // The item dropped on a free spot of the grid that touches the hub tank's edge, in any orientation (a drag and drop).
+        static bool PlaceBeside(GameGridInventory grid, GameItem hub, GameItem it)
+        {
+            GridShape h = hub.modifiedShape, own = it.modifiedShape;
+            if (h == null || own == null) return false;
+            int reach = Math.Max(own.globalWidth, own.globalHeight);
+            for (int o = 4; o >= 1; o--)
+                for (int y = h.minY - reach; y <= h.maxY + 1; y++)
+                    for (int x = h.minX - reach; x <= h.maxX + 1; x++)
+                    {
+                        var b = new GridShapeBuilder(own);
+                        b.SetTransform(x, y, false, o);
+                        if (!Touches(b, h)) continue;
+                        var slot = grid.TryInventorySlot(it, it.unitCount, b);
+                        if (slot == null || slot.numTransfer <= 0) continue;
+                        if (Chore.Act("place_beside", it, () => slot.TryAcceptOnce(it.unitCount)) > 0 && ReferenceEquals(it.parentInventory, grid)) return true;
+                    }
+            return false;
+        }
+
+        // GameGridInventory.IsAdjacent's test: the hub's shape moved one cell along an axis overlaps the candidate's.
+        static bool Touches(GridShape cand, GridShape hub)
+        {
+            if (cand.Intersects(hub)) return false;
+            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) })
+            {
+                var moved = new GridShapeBuilder(hub);
+                moved.minX += dx;
+                moved.minY += dy;
+                if (cand.Intersects(moved)) return true;
+            }
+            return false;
+        }
+
+        static JObject HubStatus()
+        {
+            var hub = Hub();
+            return new JObject
+            {
+                ["first_day"] = HubFirstDay, ["output"] = hub == null ? 0 : Output(hub), ["moves"] = HubMoves, ["nights"] = HubNights,
+                ["neighbour_nights"] = HubNeighbourNights, ["units"] = HubUnits,
+                ["neighbours"] = hub == null ? 0 : hub.FindAdjacentType<GameItem>().Count(i => i != hub),
+            };
+        }
+
         public static JObject Status()
         {
-            if (!On) return null;
+            if (!On) return HubOn ? new JObject { ["hub"] = HubStatus() } : null;
             var chargers = Chargers();
             int charging = chargers.Sum(c => GraphUtils.FindChildrenType<GameInventory>(c).FirstOrDefault()?.childItems.Count(x => x != null) ?? 0);
             return new JObject
@@ -252,6 +359,7 @@ namespace Fence.Gym
                 ["hijack"] = HijackUp, ["commercial"] = NetworkUpgrade.IsCommercialPowerUnlocked(), ["rechargers"] = chargers.Count, ["free_from_day"] = firstFreeDay,
                 ["draw"] = Draw(), ["need"] = JObject.FromObject(need), ["cells"] = Owned().Count(Rechargeable),
                 ["capacity"] = Free ? Capacity : 0, ["charging"] = charging, ["cells_in"] = CellsIn, ["cells_out"] = CellsOut, ["swaps"] = Swaps,
+                ["hub"] = HubOn ? HubStatus() : null,
             };
         }
     }

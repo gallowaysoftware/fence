@@ -99,6 +99,8 @@ func CheckChoice(req *protocol.DecideRequest, choice protocol.Choice) error {
 		return checkInspectChoice(req, choice)
 	case augCheckKind:
 		return checkAugChoice(req, choice)
+	case nightKind:
+		return checkNightChoice(req, choice)
 	}
 	return nil
 }

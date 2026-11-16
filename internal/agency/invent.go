@@ -152,7 +152,7 @@ func parseProposals(text string, m *Menu) ([]Proposal, error) {
 // fingerprint is what the gym plays: start, perks and the merged directives.
 func (p *Proposal) fingerprint(m *Menu) string {
 	base, _ := m.Get(p.Base)
-	d, _ := p.merged(base)
+	d, _ := p.merged(m, base)
 	b, _ := json.Marshal(d)
 	return p.start(base) + "|" + sortedSet(p.perks(base)) + "|" + string(b)
 }

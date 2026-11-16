@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -63,10 +64,12 @@ func rig(t *testing.T) config {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /v1/health", func(w http.ResponseWriter, _ *http.Request) { w.Write([]byte(`{"ok":true,"protocol":1}`)) })
-	mux.HandleFunc("GET /v1/models", func(w http.ResponseWriter, _ *http.Request) {
+	models := func(w http.ResponseWriter, _ *http.Request) {
 		w.Write([]byte(`{"data":[{"id":"qwen27/qwen27","status":{"value":"ready"}},{"id":"narrator"},{"id":"big","status":{"value":"unloaded"}}]}`))
-	})
-	mux.HandleFunc("POST /v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+	}
+	mux.HandleFunc("GET /v1/models", models)
+	mux.HandleFunc("GET /narrate/v1/models", models)
+	chat := func(w http.ResponseWriter, r *http.Request) {
 		var req struct {
 			Kwargs map[string]any `json:"chat_template_kwargs"`
 		}
@@ -77,7 +80,9 @@ func rig(t *testing.T) config {
 			return
 		}
 		json.NewEncoder(w).Encode(map[string]any{"choices": []any{map[string]any{"message": map[string]any{"content": "Evening, all."}}}})
-	})
+	}
+	mux.HandleFunc("POST /v1/chat/completions", chat)
+	mux.HandleFunc("POST /narrate/v1/chat/completions", chat)
 	mux.HandleFunc("POST /v1/audio/speech", func(w http.ResponseWriter, _ *http.Request) { w.Write(wav()) })
 	var said atomic.Int64
 	mux.HandleFunc("POST /v1/ingest", func(w http.ResponseWriter, _ *http.Request) {
@@ -96,7 +101,7 @@ func rig(t *testing.T) config {
 	}
 	srv := httptest.NewServer(mux)
 	t.Cleanup(srv.Close)
-	c.bridge, c.show, c.ttsURL = srv.URL, srv.URL, srv.URL
+	c.bridge, c.show, c.gateURL, c.ttsURL = srv.URL, srv.URL, srv.URL, srv.URL
 	c.stratProvider, c.stratURL, c.stratModel = "openai", srv.URL+"/v1", "qwen27"
 	c.narrURL, c.narrModel = srv.URL+"/v1", "narrator"
 	write(t, filepath.Join(root, "obs/basic/scenes/Fence.json"), `{"name":"Fence","sources":[
@@ -121,6 +126,8 @@ func byName(rs []Result) map[string]Result {
 func TestAllGo(t *testing.T) {
 	c := rig(t)
 	c.soundcheck = true
+	// The stream's default narrator: the strategist's model through the gate's /narrate/v1.
+	c.narrURL, c.narrModel = gateNarrateURL(c.gateURL), c.stratModel
 	rs := Checks(context.Background(), c)
 	for _, r := range rs {
 		if r.Status != Go {
@@ -131,6 +138,62 @@ func TestAllGo(t *testing.T) {
 	Print(&out, rs)
 	if !strings.Contains(out.String(), "VERDICT: GO.") || strings.Contains(out.String(), "127.0.0.1") {
 		t.Errorf("table (no addresses on a table that may be shown on stream):\n%s", out.String())
+	}
+}
+
+func TestParseFlagsDefaultsMatchTheShow(t *testing.T) {
+	// The stream's setup (docs/START-HERE.md, docs/STREAM-OPS.md "Pre-flight"): CPU Kokoro on
+	// :8881, the drift gate on :7380, the narrator the strategist's model through the gate.
+	getenv := func(k string) string {
+		if k == "HOME" {
+			return t.TempDir()
+		}
+		return ""
+	}
+	c, err := parseFlags(nil, getenv, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.ttsURL != "http://127.0.0.1:8881" {
+		t.Errorf("default tts-url = %q, want the stream's CPU Kokoro on 8881", c.ttsURL)
+	}
+	if c.gateURL != "http://127.0.0.1:7380" {
+		t.Errorf("default gate = %q, want the drift gate on 7380", c.gateURL)
+	}
+	if c.narrURL != "" || c.narrModel != "" {
+		t.Errorf("narrator defaults = %q/%q, want empty: checkNarrator fills in the gate's /narrate/v1 from the strategist", c.narrURL, c.narrModel)
+	}
+	// The flags still override.
+	c, err = parseFlags([]string{"-tts-url", "http://127.0.0.1:8880", "-gate", "http://127.0.0.1:7480",
+		"-narrator-url", "http://drift:9000/v1", "-narrator-model", "narr9b",
+		"-strategist-url", "http://127.0.0.1:7380/plan/v1", "-strategist-model", "qwen27"},
+		getenv, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.ttsURL != "http://127.0.0.1:8880" || c.gateURL != "http://127.0.0.1:7480" {
+		t.Errorf("overrides tts/gate = %q %q", c.ttsURL, c.gateURL)
+	}
+	if c.narrURL != "http://drift:9000/v1" || c.narrModel != "narr9b" || c.stratModel != "qwen27" {
+		t.Errorf("overrides narrator = %q %q, strategist %q", c.narrURL, c.narrModel, c.stratModel)
+	}
+	// Environment too: the bridge's bridge.env / the process env set the same knobs.
+	c, err = parseFlags(nil, func(k string) string {
+		switch k {
+		case "HOME":
+			return t.TempDir()
+		case "FENCE_SHOW_TTS_URL":
+			return "http://127.0.0.1:8990"
+		case "FENCE_GATE_URL":
+			return "http://127.0.0.1:7481"
+		}
+		return ""
+	}, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.ttsURL != "http://127.0.0.1:8990" || c.gateURL != "http://127.0.0.1:7481" {
+		t.Errorf("env tts/gate = %q %q", c.ttsURL, c.gateURL)
 	}
 }
 
@@ -157,7 +220,13 @@ func TestNoGoAndWarnings(t *testing.T) {
 		{"strategist model missing", func(c *config) { c.stratModel = "glm" }, "strategist", NoGo, "does not serve glm"},
 		{"anthropic without a key", func(c *config) { c.stratProvider = "anthropic" }, "strategist", NoGo, "ANTHROPIC_API_KEY"},
 		{"narrator unloaded locally", func(c *config) { c.narrModel = "big" }, "narrator LLM", Warn, "not loaded"},
-		{"no narrator", func(c *config) { c.narrURL = "" }, "narrator LLM", Warn, "captions"},
+		{"narrator via gate", func(c *config) { c.narrURL, c.narrModel = gateNarrateURL(c.gateURL), c.stratModel }, "narrator LLM", Go, "answered"},
+		{"no narrator, no strategist", func(c *config) {
+			c.narrURL, c.narrModel, c.stratURL, c.stratModel = "", "", "", ""
+		}, "narrator LLM", Warn, "no narrator LLM"},
+		{"no narrator model", func(c *config) {
+			c.narrURL = "http://127.0.0.1:1"
+		}, "narrator LLM", Warn, "does not answer"},
 		{"tts down", func(c *config) { c.ttsURL = "http://127.0.0.1:1" }, "TTS test line", Warn, "captions only"},
 		{"unknown persona", func(c *config) { c.persona = "nobody" }, "TTS test line", NoGo, "no file"},
 		{"panel down", func(c *config) { c.show = "http://127.0.0.1:1" }, "fenceshow panel", NoGo, "start fenceshow"},
@@ -169,7 +238,12 @@ func TestNoGoAndWarnings(t *testing.T) {
 		{"5090 full", func(c *config) {
 			c.gpuFree = func(context.Context) (int64, int64, error) { return 1200, 32607, nil }
 		}, "GPU memory", Warn, "CPU Kokoro"},
-		{"game up with a local narrator", func(c *config) { c.gameUp = func() bool { return true } }, "game process", Warn, "captions only"},
+		{"game up with a local narrator", func(c *config) {
+			// The gate's /narrate/v1 forwards to the remote endpoint, so the game's process
+			// does not hold up its lines; only a local narrator's own model does.
+			c.narrURL, c.narrModel = "http://127.0.0.1:1", "qwen27"
+			c.gameUp = func() bool { return true }
+		}, "game process", Warn, "captions only"},
 		{"disk full", func(c *config) { c.diskFree = func(string) (int64, error) { return 10, nil } }, "disk", NoGo, "need room"},
 	}
 	for _, tc := range cases {
@@ -242,9 +316,11 @@ func TestGateRow(t *testing.T) {
 		}, Warn, "/narrate/v1"},
 		{"the fallback model through the gate", func(t *testing.T, c *config) {
 			g := newGate(t, c.stratURL)
+			c.narrModel = "narrator"
 			c.stratURL, c.narrURL = g+"/plan/v1", g+"/narrate/v1"
 		}, Warn, "call it at drift directly"},
 		{"the fallback model beside the gate", func(t *testing.T, c *config) {
+			c.narrModel = "narrator"
 			c.stratURL = newGate(t, c.stratURL) + "/plan/v1"
 		}, Go, "fallback model (narrator), beside the gate"},
 		{"captions only beside the gate", func(t *testing.T, c *config) {

@@ -196,6 +196,12 @@ func items(uids []int64, name func(int64) string) string {
 }
 
 func countOf(n int, what string) string {
+	if what == "item" {
+		if n == 1 {
+			return "an item"
+		}
+		return fmt.Sprintf("%d items", n)
+	}
 	if n == 1 {
 		return what
 	}

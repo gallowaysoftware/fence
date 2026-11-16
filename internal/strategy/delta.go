@@ -331,8 +331,31 @@ func deltaFacts(s *snapshot) string {
 	if len(svc) > 0 {
 		fmt.Fprintf(&b, "\nService ids: %s.", strings.Join(svc, ", "))
 	}
+	// upgradeEffects: one line of what each upgrade does, for the planner (docs/re, docs/research).
+	// An id not listed has no sourced effect and is left as a bare id.
+	upgradeEffects := map[string]string{
+		"LANDLORD_GRACE": "defers one unpaid rent day to next week's bill, one use, 15-day cooldown (docs/re/MITIGATIONS.md)",
+		"WINEMAKER":      "unlocks wine: yeast, bottles, bloomberry and the weekly winemaker visitor (docs/research/ARCHETYPES.md)",
+		"BREWER":         "the Red Imp brewery: a beer supplier that calls by phone, beer at -20% wholesale (docs/research/ARCHETYPES.md)",
+		"WATER_TRADER":   "water-trader kit and visitor; Dr. Jackson starts stocking the purifier, moisture farm and bottle printer (docs/research/ARCHETYPES.md)",
+		"SHOWCASE_I":     "window display case, one guaranteed display buyer (docs/research/ARCHETYPES.md)",
+		"BUY_REFERAL":    "one more shopper a day and one more window display buyer (docs/research/ARCHETYPES.md)",
+		"SELL_REFERAL":   "one more seller a day (docs/research/ARCHETYPES.md)",
+		"SHOWCASE_II":    "a second window display case, one more guaranteed display buyer (docs/research/ARCHETYPES.md)",
+		"RENOVATION1":    "+150 store attractiveness: 400 gives tier-1 display buyers and +10% customer budgets (docs/research/ARCHETYPES.md)",
+		"RENOVATION2":    "+150 store attractiveness: 550 gives one more normal customer and +25% budgets (docs/research/ARCHETYPES.md)",
+		"RENOVATION3":    "+150 store attractiveness: 700 gives tier-2 display buyers and +50% budgets (docs/research/ARCHETYPES.md)",
+	}
 	if f := s.favorUpgrades(); len(f) > 0 {
-		fmt.Fprintf(&b, "\nUpgrades not yet bought (favor order): %s; a listed upgrade skips the executor's surplus check, so list one only when favor pays it or cash keeps rent + %d after it.", strings.Join(f, ", "), upgradeCashMargin)
+		effects := make([]string, len(f))
+		for i, id := range f {
+			if eff, ok := upgradeEffects[id]; ok {
+				effects[i] = id + ": " + eff
+			} else {
+				effects[i] = id
+			}
+		}
+		fmt.Fprintf(&b, "\nUpgrades not yet bought (favor order): %s; a listed upgrade skips the executor's surplus check, so list one only when favor pays it or cash keeps rent + %d after it.", strings.Join(effects, "; "), upgradeCashMargin)
 	}
 	if s.Permit != nil && !*s.Permit {
 		fmt.Fprintf(&b, "\nBusiness permit: not held (%d).", s.permitFee())

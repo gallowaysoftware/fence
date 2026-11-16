@@ -301,7 +301,9 @@ namespace Fence.Gym.Tests
             var addedSinceRecording = new HashSet<string> { "client.aug" };
             var unknown = simKeys.Except(liveKeys).Where(k => !addedSinceRecording.Contains(k)).ToList();
             Assert.True(unknown.Count == 0 || liveKeys.Count == 0, "keys the live mod never sent: " + string.Join(", ", unknown));
-            var missing = liveKeys.Except(simKeys).Where(k => k.Count(c => c == '.') <= 1).ToList();
+            // Factions are dynamic game state (the cartel rep appears once the handler visits), not
+            // contract shape — a sim window can simply not have bargained since that faction existed.
+            var missing = liveKeys.Except(simKeys).Where(k => k.Count(c => c == '.') <= 1 && !k.StartsWith("reputation.")).ToList();
             Assert.True(missing.Count == 0, "top-level keys live play sends and the gym does not: " + string.Join(", ", missing));
         }
 
@@ -346,6 +348,87 @@ namespace Fence.Gym.Tests
                 .Count(l => JsonNode.Parse(l)["human_actions"]?.AsArray().Any(a => (string)a["action"] == "scavenge") == true);
             Assert.True(nights >= 5, "nights with a search: " + nights);
             Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
+        }
+
+        // A fresh wound greys the search button out in the game (ScavHelper.CanScavenge): the outing stops
+        // searching for the night (the run says so in its defaults) and resumes searching at the next visit.
+        [Fact]
+        public void FreshWoundEndsTheNightsSearching()
+        {
+            string d = Dir("scav-wound");
+            string f = Path.Combine(d, "t.jsonl");
+            var r = Play(1, 10, f, x => x["human"] = "player");
+            Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
+            var nights = File.ReadLines(f).Select(l => (JsonObject)JsonNode.Parse(l)).ToList();
+            Assert.True(nights.Count >= 9, "nights in the trajectory: " + nights.Count);
+            // Each night: its search presses and, if a fresh wound ended the night's searching, the refusal the run recorded.
+            int refusedNights = 0, woundNight = -1;
+            for (int i = 0; i < nights.Count; i++)
+            {
+                var acts = nights[i]["human_actions"]?.AsArray() ?? new JsonArray();
+                var refused = acts.FirstOrDefault(a => (string)a["action"] == "scavenge" && (string)a["data"]?["reason"] == "fresh_wound")?.AsObject();
+                if (refused != null)
+                {
+                    // The wound, not the attempts, ended the night's searching, and no search followed it.
+                    Assert.True((int)refused["data"]["searches_left"] > 0, "searches were still left when the wound stopped it: " + refused);
+                    Assert.True((int)refused["data"]["wound_state"] >= 2, "a wound was received: " + refused);
+                    int idx = acts.ToList().FindIndex(a => (string)a["action"] == "scavenge" && (string)a["data"]?["reason"] == "fresh_wound");
+                    Assert.False(acts.Skip(idx + 1).Any(a => (string)a["action"] == "scavenge"), "searched after a fresh wound: " + acts);
+                    refusedNights++;
+                    if (woundNight < 0) woundNight = i;
+                }
+            }
+            Assert.True(refusedNights >= 1, "no fresh wound ended an outing's searching in 10 nights");
+            // The search resumes at the next visit: the wound is no longer fresh once sleep's nightly handling
+            // runs (and a fresh minor wound does not shut the door, only a serious one does).
+            Assert.True(woundNight + 1 < nights.Count, "the wound landed on the last night; nothing to resume: night " + (woundNight + 1) + " of " + nights.Count);
+            var after = nights[woundNight + 1]["human_actions"]?.AsArray() ?? new JsonArray();
+            Assert.True(after.Any(a => (string)a["action"] == "scavenge" && (string)a["data"]?["reason"] != "fresh_wound"), "did not resume searching the next night: " + after);
+            Assert.True((int)r["defaults"]["night:scav_wound"] >= 1, "the run never said it stopped searching: " + r["defaults"]);
+        }
+
+        // The player carries an outing's loot home only in the two pockets and the backpack (EmporiumEntry's
+        // afterhours box); what does not fit is left on the ground and the return expels it. A night that
+        // scavenges more than the carry holds records the split (night:carry_left, the uids of each side).
+        [Fact]
+        public void TheOutingCarriesPocketsAndBackpackOnly()
+        {
+            string d = Dir("carry");
+            // (a) No backpack owned at the night's bag choice: the pockets hold two (NightOuting.Pack), and a
+            // night that scavenges more records the split, the rest left at the dump. A satchel found that night
+            // rides in a pocket, its 18-cell grid still counting, so a night with more than two finds and one is
+            // carried whole (the run's first find; the flag marks it and the next find is the kids' backpack).
+            string f = Path.Combine(d, "a.jsonl");
+            var r = Play(1, 20, f, x => { x["human"] = "player"; x["difficulty"] = "hard"; x["start"] = "apprentice"; });
+            Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
+            var nights = File.ReadLines(f).Select(l => (JsonObject)JsonNode.Parse(l)).ToList();
+            // Every loot night records the split (carried / left_on_ground / backpack; empty lists allowed),
+            // so each night's carry is the observable pockets-and-backpack limit, not a guess.
+            var splits = nights
+                .Select(n => n["human_actions"]?.AsArray()?.FirstOrDefault(a => a["data"] is JsonObject dd && dd["carried"] != null)?.AsObject())
+                .Where(x => x != null).ToList();
+            Assert.True(splits.Count >= 1, "no night carried loot: " + nights.Count);
+            // The carry is the two pockets plus the recorded backpack's grid (a bag kept by the bag rule is a
+            // tool, so its night's carry legitimately exceeds the five finds the box scenario produces): the
+            // cap follows the recorded bag, and a bagless night carries at most the pockets.
+            Assert.True(splits.All(s =>
+            {
+                int cells = s["data"]["backpack"] is JsonObject bp
+                    ? NightOuting.BackpackCells((string)bp["identifier"])
+                    : 0;
+                return (int)s["data"]["carried"].AsArray().Count <= 2 + cells;
+            }), "a carry exceeded the pockets and the bag's grid: " + splits);
+            // The satchel find: the first night records the found satchel in the carry (it rides in a pocket, its
+            // 18-cell grid still counting) and carries the whole box, more than the pockets allow.
+            var withBag = splits.First(s => s["data"]["backpack"] is JsonObject);
+            Assert.True(withBag != null, "no night carried a found backpack: " + splits);
+            Assert.True((int)withBag["data"]["carried"].AsArray().Count >= 3, "the satchel night carried no more than the pockets: " + withBag);
+            Assert.True((int)withBag["data"]["left_on_ground"].AsArray().Count == 0, "the satchel night left loot at the dump: " + withBag);
+            // A later night without a backpack owns nothing to carry but the pockets: at most two, and a night that
+            // scavenges more records the split, the rest left at the dump.
+            var bare = splits.Where(s => s["data"]["backpack"] is not JsonObject).ToList();
+            Assert.True((int)r["defaults"]["night:carry_left"] >= 1, "the run never said it left loot at the dump: " + r["defaults"]);
+            Assert.True((int)r["defaults"]["night:leave_on_ground"] >= 1, "the return never expelled the left loot: " + r["defaults"]);
         }
 
         // Outings pass the store door's gates (StoreDoor.OnClick): nobody goes out before the mentor introduces
@@ -462,6 +545,25 @@ namespace Fence.Gym.Tests
             Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
         }
 
+        // `build` (docs/research/BUILD-ORDER.md): the planner commits to the clean-water kit only after Georgio's loan
+        // morning, and buys the kit's parts.
+        [Fact]
+        public void BuildPlannerWaitsForGeorgioThenBuysWholeKit()
+        {
+            lock (BootLock) Boot.Init();
+            var kitPath = Path.Combine(Boot.Repo, "sim", "lab", "scripts", "directives", "build", "vintner_cw_must.json");
+            var r = Play(9400001, 80, null, x =>
+            {
+                x["human"] = "player"; x["difficulty"] = "hard"; x["start"] = "apprentice"; x["perks"] = "vending+short_sleeper";
+                x["directives"] = kitPath;
+            });
+            var kit = r["player"]["build"]["kits"]["water"];
+            Assert.True(kit != null, "no water kit: " + r["player"]["build"]);
+            Assert.True((int)kit["approved_day"] > 43, "approved before the loan: " + kit);
+            Assert.True((int)kit["spent"] > 0, "nothing bought: " + kit);
+            Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
+        }
+
         // Dr. Jackson is the counter's client at his shop (DrJacksonLocation.Arrive), so what the player buys there
         // is paid for, at the difficulty's inventor markup (normal: +15 %).
         [Fact]
@@ -472,7 +574,9 @@ namespace Fence.Gym.Tests
             var r = Play(1, 28, null, x => { x["human"] = "player"; x["directives"] = Path.Combine(d, "j7.json"); });
             var j = r["player"]["jackson"];
             Assert.True((int)j["shop_visits"] >= 1, "never visited: " + j);
-            Assert.Equal(115, (int)j["shop"]["sign_water"]["cash"]);
+            // Sundays (the default since `jackson_sunday` defaults on) are Dr. Jackson's discount day
+            // (VanillaAfterhourEvents jackson_discount, −10 %): the sign costs 105, not 115.
+            Assert.Equal(105, (int)j["shop"]["sign_water"]["cash"]);
             Assert.True((int)r["stats"]["game_errors"] == 0, string.Join("; ", r["errors"].AsArray()));
         }
 
@@ -554,8 +658,8 @@ namespace Fence.Gym.Tests
         public void LabelerRelabelsIdentifiedFakes()
         {
             string d = Dir("labels");
-            File.WriteAllText(Path.Combine(d, "honest.json"), "{\"fakes\":\"honest\"}");
-            File.WriteAllText(Path.Combine(d, "per_buyer.json"), "{\"labeler\":\"per_buyer\"}");
+            File.WriteAllText(Path.Combine(d, "honest.json"), "{\"fakes\":\"honest\",\"scav_carry\":true}");
+            File.WriteAllText(Path.Combine(d, "per_buyer.json"), "{\"labeler\":\"per_buyer\",\"scav_carry\":true}");
             foreach (var arm in new[] { "honest", "per_buyer" })
             {
                 var a = Play(6, 40, Path.Combine(d, arm + ".jsonl"), x =>
@@ -568,6 +672,27 @@ namespace Fence.Gym.Tests
                 Assert.True((int)l["mornings_without_labeler"] <= 4, "labeler lost: " + l);
                 Assert.True((int)a["stats"]["game_errors"] == 0, string.Join("; ", a["errors"].AsArray()));
             }
+        }
+
+        // `wanted: "report"`: the day-10 poster face (wanted4, 300) is reported for its bounty. With the Alert perk the
+        // burglary roll never comes (PlayerStore.HandleInsurance), so no night buys insurance.
+        [Fact]
+        public void WantedPostersAreReportedAndAlertSkipsInsurance()
+        {
+            string d = Dir("wanted");
+            File.WriteAllText(Path.Combine(d, "w.json"), "{\"wanted\":\"report\"}");
+            File.WriteAllText(Path.Combine(d, "bad.json"), "{\"wanted\":\"arrest\"}");
+            Assert.Throws<ArgumentException>(() => Directives.Load(Path.Combine(d, "bad.json")));
+            var a = Play(2910001, 12, Path.Combine(d, "w.jsonl"), x =>
+            {
+                x["human"] = "player"; x["difficulty"] = "hard"; x["start"] = "apprentice"; x["perks"] = "alert+short_sleeper"; x["directives"] = Path.Combine(d, "w.json");
+            });
+            var w = a["player"]["wanted"];
+            Assert.True(w != null && (int)w["reported"] >= 1 && (int)w["bounties"] >= 300, "no bounty: " + a["player"]);
+            Assert.True((int)a["stats"]["game_errors"] == 0, string.Join("; ", a["errors"].AsArray()));
+            string traj = File.ReadAllText(Path.Combine(d, "w.jsonl"));
+            Assert.Contains("\"report_customer\"", traj);
+            Assert.DoesNotMatch("\"selected\":\\[[^\\]]*INSURANCE_SERVICE", traj);
         }
 
         // A headless game must never write a save, a log or an analytics file: the engine's data path
@@ -594,5 +719,78 @@ namespace Fence.Gym.Tests
         static IEnumerable<string> Touched(string dir, DateTime since, Func<string, bool> keep) => !Directory.Exists(dir) ? Enumerable.Empty<string>() :
             Directory.EnumerateFiles(dir, "*", new EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true })
                 .Where(f => keep(f) && File.GetLastWriteTimeUtc(f) >= since);
+    }
+
+    // Unruled dialogues must decline (R7): the gym used to take the first enabled choice and silently
+    // accepted offers (Georgio's 50-credit dump assistance) a player might decline; live hands them to the human.
+    public sealed class DialogueDefaultTests
+    {
+        static Defaults Rec(out List<string> log)
+        {
+            var l = new List<string>();
+            log = l;
+            var d = new Defaults();
+            d.Log = (key, detail) => l.Add(key + (detail == null ? "" : " " + detail));
+            return d;
+        }
+
+        static DialogueView View(string id, (int index, string text, bool enabled, bool noDeal)[] choices, int cash)
+            => new DialogueView
+            {
+                ClientId = id,
+                Cash = cash,
+                RentDue = 35,
+                Choices = choices.Select(c => new ChoiceView { Index = c.index, Label = "opt" + c.index, Text = c.text, Enabled = c.enabled, NoDeal = c.noDeal }).ToList(),
+            };
+
+        [Theory]
+        [InlineData(false, false, DefaultHumanRole.DialogueFirstEnabledNoRule, 0)]
+        [InlineData(true, false, DefaultHumanRole.DialogueDeclinedNoRule, 0)]
+        [InlineData(false, true, DefaultHumanRole.DialogueDeclinedNoRule, 1)]
+        public void UnruledDialogueDeclines(bool acceptNoDeal, bool declineNoDeal, string key, int pick)
+        {
+            var d = Rec(out var log);
+            int i = new DefaultHumanRole(d).Dialogue(View(
+                "someClient",
+                new[] {
+                    (0, "[Accept (50 Credits)]", true, acceptNoDeal),
+                    (1, "[Decline]", true, declineNoDeal),
+                },
+                50));
+            Assert.Equal(pick, i);
+            Assert.Contains(log, x => x.StartsWith(key + " ", StringComparison.Ordinal) || x == key);
+        }
+
+        [Theory]
+        [InlineData(40, false, "player:georgio_assistance_decline", 1)]
+        [InlineData(200, false, "player:georgio_assistance_decline", 1)]
+        [InlineData(40, true, "player:georgio_assistance_decline", 1)]
+        [InlineData(200, true, "player:georgio_assistance_accept", 0)]
+        public void GeorgioAssistanceRule(int cash, bool carry, string key, int pick)
+        {
+            var d = Rec(out var log);
+            Boot.Init();
+            var oldP = PlayerDay.Current;
+            PlayerDay.Current = new PlayerDay();
+            var oldD = Directives.Current;
+            Directives.Current = Directives.Parse(Newtonsoft.Json.Linq.JObject.Parse("{\"scav_carry\":" + (carry ? "true" : "false") + "}"));
+            try
+            {
+                int i = new PlayerRole(d, new Knobs("")).Dialogue(View(
+                    "georgio_assistance",
+                    new[] {
+                        (0, "[Accept (50 Credits)]", true, false),
+                        (1, "[Decline]", true, true),
+                    },
+                    cash));
+                Assert.Equal(pick, i);
+                Assert.Contains(log, x => x.StartsWith(key + " ", StringComparison.Ordinal) || x == key);
+            }
+            finally
+            {
+                PlayerDay.Current = oldP;
+                Directives.Current = oldD;
+            }
+        }
     }
 }

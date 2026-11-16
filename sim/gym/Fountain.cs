@@ -15,8 +15,11 @@ namespace Fence.Gym
     {
         public static int AttractUpgrades, Filled;
         public static long Income;
+        // The last cost the night pass saw for VENDING_FOUNTAIN (Wild prices scale by difficulty);
+        // the morning's save floor uses it so the shop stops trading the fountain away before day 20.
+        public static int PendingCost;
 
-        public static void Reset() { AttractUpgrades = Filled = 0; Income = 0; }
+        public static void Reset() { AttractUpgrades = Filled = 0; Income = 0; PendingCost = 0; }
 
         // `fountain`: "landlord" takes the landlord's offer (days 43, 57, 71, 85; +150 rent a week, compounding);
         // "buy" buys Wild's (1 200 × difficulty) from `fountain_day` (default 1) once `fountain_reserve` (default

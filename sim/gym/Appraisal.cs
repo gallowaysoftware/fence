@@ -239,6 +239,23 @@ namespace Fence.Gym
             return EmporiumEntry.Instance.frontInvinvElement.childItems.Where(i => i != null && GeneralHelper.IsItemOwned(i) && i.identifier == "slip" && i.name == name).ToList();
         }
 
+        // `appraisal_block` (gym, a list of "hand", "ribwich", "plasma_fuel"; default hand and ribwich, [] for none): types the board's window blocks once the rank
+        // allows (AppraisalItemRegistry.CanBlock: the older types from Senior, any at Master, never the last allowed one).
+        // The type is drawn uniformly from the unblocked pool, and plasma pays the most a job (~192 against ~160).
+        public static void Block()
+        {
+            var ps = PlayerStore.Instance;
+            if (!On || !ps.isAppraisalIntroduced) return;
+            var ids = (Directives.Current.Raw["appraisal_block"] as JArray)?.Select(x => (string)x).ToList() ?? new List<string> { "hand", "ribwich" };
+            int rank = AppraisalRankHelper.GetRank();
+            var blocked = ps.appraisalBlacklist ??= new List<string>();
+            foreach (var t in AppraisalItemRegistry.GetAll())
+            {
+                if (!ids.Contains(t.id)) blocked.Remove(t.id);
+                else if (!blocked.Contains(t.id) && AppraisalItemRegistry.CanBlock(t, rank) && !AppraisalItemRegistry.IsLastAllowed(t, rank)) blocked.Add(t.id);
+            }
+        }
+
         public static int Estimate(int value, int attempt, int lastEstimate, int feedback)
         {
             if (attempt == 0) return value * AimPct / 100;

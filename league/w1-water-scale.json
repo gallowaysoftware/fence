@@ -1,0 +1,37 @@
+{
+    "name": "w1-water-scale",
+    "players": [
+        {
+            "id": "player",
+            "mode": "local"
+        },
+        {
+            "id": "drift-delta",
+            "endpoint": "drift",
+            "mode": "plan",
+            "bridge_flags": [
+                "-directives",
+                "delta",
+                "-forks"
+            ]
+        }
+    ],
+    "baseline": "player",
+    "seeds": [
+        2610003,
+        2610004
+    ],
+    "routes": [
+        {
+            "route": "water_baron",
+            "persona": "water-baron"
+        }
+    ],
+    "days": 140,
+    "difficulty": "hard",
+    "executor": {
+        "human": "player"
+    },
+    "plan_wait": "100s",
+    "deadline_ms": 110000
+}

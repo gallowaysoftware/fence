@@ -141,6 +141,8 @@ namespace Fence.Protocol
         [JsonProperty("lessons_day")] public int LessonsDay;
         [JsonProperty("plan", NullValueHandling = NullValueHandling.Ignore)] public string Plan;
         [JsonProperty("plan_day", NullValueHandling = NullValueHandling.Ignore)] public int? PlanDay;
+        // The base directives document (JSON text) the bridge plays on; the autopilot's baseline when present.
+        [JsonProperty("base_directives", NullValueHandling = NullValueHandling.Ignore)] public string BaseDirectives;
         // The plan as executor directives (protocol/schema/directives.schema.json); the autopilot plays them.
         [JsonProperty("directives", NullValueHandling = NullValueHandling.Ignore)] public JObject Directives;
     }

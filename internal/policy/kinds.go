@@ -78,6 +78,20 @@ var kinds = map[string]kindSpec{
 		}
 		return inspectNotes(c), true
 	}},
+	nightKind: {System: nightSystem, Render: func(b *strings.Builder, raw json.RawMessage, _ itemUse) (func(string, string) string, bool) {
+		c, err := parseNight(raw)
+		if err != nil {
+			return nil, false
+		}
+		renderNight(b, c)
+		return nightNotes(c), true
+	}, Notes: func(raw json.RawMessage) (func(string, string) string, bool) {
+		c, err := parseNight(raw)
+		if err != nil {
+			return nil, false
+		}
+		return nightNotes(c), true
+	}},
 }
 
 const answerRules = `

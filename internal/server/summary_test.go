@@ -177,7 +177,7 @@ func TestDecideNotes(t *testing.T) {
 			map[string]string{"sell_all": policy.ClipNote(strings.Repeat("ab ", 60))}},
 		{"none", protocol.ModeAct, notes(nil), nil},
 		{"deadline fallback keeps notes", protocol.ModeAct, slow, heuristic},
-		{"observe has none", protocol.ModeObserve, policy.Heuristic{}, nil},
+		{"observe judges barter, notes flow", protocol.ModeObserve, policy.Heuristic{}, heuristic},
 	}
 	sch := compileSchema(t, "decide.response.schema.json")
 	for _, tt := range tests {
@@ -328,6 +328,50 @@ func TestSummaryDirectives(t *testing.T) {
 			}
 			if string(got.Directives) != tt.want {
 				t.Fatalf("directives %s, want %s", got.Directives, tt.want)
+			}
+		})
+	}
+}
+
+func TestSummaryBaseDirectives(t *testing.T) {
+	const base = `{"engine":"wine+furnace","permit":"buy"}`
+	tests := []struct {
+		name    string
+		base    string
+		want    string // "" means the field is absent from the response
+		planner Planner
+	}{
+		{"base set", base, base, nil},
+		{"base set, no plan", base, base, funcPlanner(func(string) (string, int, bool) { return "", 0, false })},
+		{"base set, with plan", base, base, funcPlanner(func(string) (string, int, bool) { return "Keep 600 for rent.", 69, true })},
+		{"base absent", "", "", nil},
+	}
+	sch := compileSchema(t, "summary.response.schema.json")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := newHarnessConfig(t, Config{Mode: protocol.ModeObserve, Planner: tt.planner, BaseDirectives: tt.base})
+			code, body := h.get("/v1/summary?session_id=" + url.QueryEscape(h.hello()))
+			if code != http.StatusOK {
+				t.Fatalf("%d %s", code, body)
+			}
+			validate(t, sch, body)
+			var fields map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(body), &fields); err != nil {
+				t.Fatal(err)
+			}
+			got, present := fields["base_directives"]
+			if tt.want == "" {
+				if present {
+					t.Fatalf("base_directives %s, want the field absent", got)
+				}
+				return
+			}
+			var s string
+			if err := json.Unmarshal(got, &s); err != nil {
+				t.Fatal(err)
+			}
+			if s != tt.want {
+				t.Fatalf("base_directives %s, want %q", s, tt.want)
 			}
 		})
 	}

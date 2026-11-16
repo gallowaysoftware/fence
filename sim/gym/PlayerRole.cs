@@ -77,11 +77,31 @@ namespace Fence.Gym
         {
             if (IsSign(i)) return "sign";
             if (Appraisal.IsKit(i) || Labels.IsTool(i)) return "tool";
-            if (Storage.On && Storage.IsBay(i)) return "tool";
+            // A backpack (NightOuting's table) is the outing's equipment, not stock: the player uses the
+            // best one and keeps a spare (a found satchel is loot, not goods to sell). `bag_spare` (gym,
+            // default 2): the most-valued owned bags stay; any beyond that is sellable stock again.
+            if (NightOuting.IsBag(i) && NightOuting.KeepBag(i)) return "bag";
+            if (NightOuting.IsBackpack(i) && NightOuting.KeepBag(i)) return "bag";
             if (Style.KeepsPerfume(i)) return "tool";
             // `inspect`: the magnifier is the inspection tool, not stock.
             if (i.identifier == "magnifier" && D.Raw.Value<string>("inspect") != null) return "tool";
-            // Placing an item the buyer can expose (a fake seal, an unusable injector, a mislabeled jug) costs
+            // The water engine's durable kit is equipment, not stock (Production.ProtectsWaterTool): a
+            // working set stays even while selling water is off; the quota's surplus (a spare filter
+            // beside the machine purifier, a second pitcher) is stock again. A labelled test container
+            // is still the kit.
+            if (Production.ProtectsWaterTool(i.identifier, DurabilityHelper.GetRealDurability(i))) return "water_kit";
+            // The chemistry engine's durable kit is equipment, not stock (Production.ProtectsLabTool):
+            // without the scanner the player is blind to composition; without the finisher the batch stalls.
+            if (Production.ProtectsLabTool(i.identifier, DurabilityHelper.GetRealDurability(i))) return "lab_kit";
+            // The lab's inputs (beans, filters, bottles of the recipes) are held to Lab.Hold while the
+            // engine runs: a raw bean sells for ~25 but presses to ~100 (Lab.cs), so selling the batch's
+            // inputs is selling the yield for a quarter. Held per identifier up to the hold count; the
+            // surplus is stock.
+            if (EmporiumEntry.Instance != null && Lab.On && Lab.TakesInput(i.identifier))
+            {
+                int owned = EmporiumEntry.Instance.GetAllOwnedItems(false, true).Count(x => x != null && x.identifier == i.identifier);
+                if (owned <= Lab.Hold) return "lab_input";
+            }
             // its faction's rep at once, sale or not; with no buyer in view, any buyer. A bought container's water
             // label is the seller's word until a test.
             if (Known.MayExpose(c, i)) return i.IsTag("LIQUID_CONTAINER_TAG") && Known.WaterUnverified(i) ? "water_label" : "exposable";
@@ -95,9 +115,18 @@ namespace Fence.Gym
             // Water held through a surplus (an event pushing its price down), sold into shortages.
             if (Production.WaterSellOn && i.GetGameItemType().Contains("WATER") && i.GetCurrentValue(false, true, true, false, 0L) < i.GetCurrentValue(false, true, false, false, 0L)) return "water_surplus";
             if (StolenHelper.IsStolenItem(i) && (c.isSecurity || !(D.SellHot ?? false) && !(HotMaxHeat is int mh && Heat(i) <= mh) && !StolenTrade.SellsWarm(i, c))) return "stolen";
+            // R10: never sell a stock container while the grid is short of free cells (the bay's own cells are
+            // part of the stock area): hold until the grid keeps the plan's margin after the sale.
+            if (KeepCapacity(i)) return "capacity";
             if (Style.Speculating(i, c)) return "speculating";
             return null;
         }
+
+        // `sell.min_free_cells` (gym) doubles as the R10 margin: a stock container may leave the stock area only
+        // if the free cells the grid has left after the sale still cover it.
+        public static bool KeepCapacity(GameItem i)
+            => i.IsGameItemType("STORAGE") && i.contentWindow != null
+               && (PlayerStock.FreeCells() - Cells(i)) < (D.Raw.Value<int?>("min_free_cells") ?? 36);
 
         // `sell.hot_max_heat: N` (gym): a stolen item at heat N or less is staged for any buyer but Security.
         static int? HotMaxHeat => D.Raw["sell"]?.Value<int?>("hot_max_heat");
@@ -162,7 +191,7 @@ namespace Fence.Gym
                     Console.Error.WriteLine($"water-offer {w.identifier} purity={(w.IsTag("LIQUID_CONTAINER_TAG") ? WaterHelper.GetWaterPurity(w) : -1)} ml={(w.IsTag("LIQUID_CONTAINER_TAG") ? WaterHelper.GetCurrentCapacityML(w) : -1)} est={Est(w)} wants={Production.WantsWater(w)}");
             var wanted = new Dictionary<string, int>(StringComparer.Ordinal);
             var inputs = new List<GameItem>();
-            foreach (var i in theirs.Where(i => Production.IsInput(i.identifier)).OrderBy(i => i.uniqueId))
+            foreach (var i in theirs.Where(i => Production.IsInput(i.identifier) && (Production.WaterIds(i.identifier) ? Production.WantsWaterId(i.identifier) : true)).OrderBy(i => i.uniqueId))
             {
                 if (Production.WantsWater(i) || Production.WantsEmptyVessel(i, inputs)) { inputs.Add(i); continue; }
                 if (i.identifier == "energy_credit" && !Production.Charged(i)) continue;
@@ -212,6 +241,8 @@ namespace Fence.Gym
             List<GameItem> picked;
             if (D.ShowUids != null)
                 picked = pool.Where(i => D.ShowUids.Contains(i.uniqueId)).Take(capacityHint).ToList();
+            else if (D.Raw.Value<string>("window_mode") == "tiers")
+                picked = WindowTiers.Pick(pool, capacityHint, P?.Day ?? 0);
             else if ((D.Raw.Value<string>("window_mode") ?? "types") == "concentrate")
             {
                 // The day's display buyer follows the case's top type by summed value, and that type at 350
@@ -276,6 +307,11 @@ namespace Fence.Gym
                 var skip = v.Choices.FirstOrDefault(c => c.Enabled && (c.Label ?? "").IndexOf("Don't pay", StringComparison.OrdinalIgnoreCase) >= 0);
                 if (skip != null) return Took("player:rent_skip", v, skip.Index);
             }
+            if (v.ClientId == "landlord" && SkipsRentBeforeBuyout())
+            {
+                var skip = v.Choices.FirstOrDefault(c => c.Enabled && (c.Label ?? "").IndexOf("Don't pay", StringComparison.OrdinalIgnoreCase) >= 0);
+                if (skip != null) return Took("player:rent_skip_before_buyout", v, skip.Index);
+            }
             if (v.ClientId == "landlordVending")
             {
                 // `landlord_vending: "machine"`: take his vending machine (+150 weekly rent) and stock it (Vending.cs).
@@ -292,7 +328,11 @@ namespace Fence.Gym
             // The permit official: buy / bribe (the episode donates goods) / refuse; "later" whenever offered.
             // Georgio's loan (he repays four times as much on a rent day you are short): `georgio: lend_25 |
             // lend_50 | no`.
-            // Default lend_50: 27/30 buyouts against 24/30 lending 25 % (paired, 1000-day horizon, normal).
+            // Georgio's dump assistance (day 15): 50 credits for 3 nights of +5 searches per visit
+            // (GetMaxScavAttempts' scav_attempts modifier) plus injury immunity. Accept when the carry fix
+            // (R2) lets the scavenged loot reach home AND cash keeps the rent margin; the gym carries it
+            // home now (7a58cea), so acceptance is gated on the test-only `scav_carry` directive.
+            if (v.ClientId == "georgio_assistance") return GeorgioAssistance(v);
             string g = D.Raw.Value<string>("georgio") ?? (D.Raw["georgio_loan"]?.ToString() switch { "25" => "lend_25", "50" => "lend_50", "decline" => "no", _ => "lend_50" });
             if (v.ClientId == "georgioLoan" && g != null)
             {
@@ -326,7 +366,12 @@ namespace Fence.Gym
             if (v.ClientId == "cartelSec" && v.Choices.Count(c => c.Enabled) >= 2) return Took("player:cartel_quiet", v, v.Choices.Where(c => c.Enabled).ElementAt(1).Index);
             if (v.ClientId == "cartelHandlerCheckin" && v.Choices.Count(c => c.Enabled) >= 2)
                 return Took(Lab.CartelMaterials() ? "player:cartel_materials" : "player:cartel_all_good", v, v.Choices.Where(c => c.Enabled).ElementAt(Lab.CartelMaterials() ? 0 : 1).Index);
-            if (v.ClientId == "cartelHandlerWeekly" && v.Choices.Any(c => c.Enabled)) Lab.StageQuota();
+            if (v.ClientId == "cartelHandlerWeekly" && v.Choices.Any(c => c.Enabled))
+            {
+                Lab.StageQuota();
+                // The count's yes: one choice, no decline (walking away leaves the dialogue stuck).
+                return Took("player:cartel_yes", v, v.Choices.First(c => c.Enabled).Index);
+            }
             if (v.ClientId == "businessPermitOfficial")
             {
                 string mode = PermitMode(v.Cash, v.RentDue);
@@ -380,6 +425,39 @@ namespace Fence.Gym
             if (take && yes != null) return Took("player:mortgage_take", v, yes.Index);
             if (mode == "decline" && no != null) return Took("player:mortgage_decline", v, no.Index);
             return soon != null ? Took("player:mortgage_later", v, soon.Index) : -1;
+        }
+
+        // `rent_skip_weeks: N` (gym, default 1; 0 pays every rent): BuyOutStore charges only the price, so a rent Landlord Grace defers is never collected
+        // when the buyout lands within N rent days. Only while what the shop holds would also pay that backlog and the next
+        // rent, should the buyout not come.
+        static bool SkipsRentBeforeBuyout()
+        {
+            var ps = PlayerStore.Instance;
+            var r = Difficulty.Rules;
+            int weeks = D.Raw.Value<int?>("rent_skip_weeks") ?? 1;
+            if (weeks <= 0 || r == null || P?.NetGainWeek4 is not int gain || ps.IsPropertyPaid || ps.isPayingMortgage
+                || !NetworkUpgrade.IsLandlordGraceUnlocked() || ps.CanBuyOutStore()) return false;
+            int at = P.Day + 7 * weeks;
+            long price = r.propertyBasePrice + Math.Min((long)r.propertyPriceIncreaseCap, (long)r.propertyPriceIncreasePerDay * Math.Max(0, at - 50));
+            double liquid = ps.playerCash + PlayerStock.Value() * 0.7;
+            return liquid + Math.Max(0, gain) * weeks >= price + 100 && liquid >= 2.0 * ps.GetRentValue() + 500;
+        }
+
+        // R2: the outing carries scavenged loot home (pockets and backpack, 7a58cea); this is what the
+        // assistance rule's carry condition reads, and the gym gates it on the test-only `scav_carry`
+        // directive so a run without it declines like a player who would not.
+        public static bool ScavCarryToHome() => D.Raw.Value<bool?>("scav_carry") ?? false;
+
+        int GeorgioAssistance(DialogueView v)
+        {
+            const int price = 50;
+            var accept = v.Choices.FirstOrDefault(c => c.Enabled && (c.Text ?? "").Contains("Accept", StringComparison.OrdinalIgnoreCase));
+            var decline = v.Choices.LastOrDefault(c => c.Enabled && ((c.Text ?? "").Contains("Decline", StringComparison.OrdinalIgnoreCase) || (c.Text ?? "").StartsWith("No problem", StringComparison.OrdinalIgnoreCase)));
+            bool margin = v.Cash - price >= Math.Max(P?.Floor ?? 0, 0);
+            if (accept != null && ScavCarryToHome() && margin) return Took("player:georgio_assistance_accept", v, accept.Index);
+            if (decline != null) return Took("player:georgio_assistance_decline", v, decline.Index);
+            if (accept != null) return Took("player:georgio_assistance_accept", v, accept.Index);
+            return -1;
         }
 
         // Cash, 70 % of the sellable stock and the last four weeks' net-worth gain carried forward cover the
@@ -436,9 +514,11 @@ namespace Fence.Gym
 
         public static bool JacksonWants(GameItem i, int staged)
         {
-            if (JacksonEquipment && Production.IsInput(i.identifier) && (i.identifier != "energy_credit" || Production.Charged(i))
+            if (BuildOrder.Manages(i.identifier)) return BuildOrder.JacksonWants(i.identifier, staged);
+            if (JacksonEquipment && Production.IsInput(i.identifier) && (Production.WaterIds(i.identifier) ? Production.WantsWaterId(i.identifier) : true) && (i.identifier != "energy_credit" || Production.Charged(i))
                 && staged < Production.Wants(i.identifier)) return true;
             if (Lab.JacksonBuys(i.identifier) && staged < Lab.Wants(i.identifier)) return true;
+            if (Fridge.Wants(i.identifier) && staged == 0) return true;
             if (Power.JacksonBuys(i.identifier) && staged < Power.Wants(i.identifier)) return true;
             var ids = (D.Raw["jackson"] as Newtonsoft.Json.Linq.JArray)?.Select(x => (string)x).ToList()
                 ?? new List<string> { "sign_water" };
@@ -461,17 +541,23 @@ namespace Fence.Gym
         {
             var plan = base.Night(v);
             int every = D.Raw.Value<int?>("jackson_every") ?? 7;
-            // `jackson_sunday: true`: go on Sundays instead, when his prices are 10 % off (VanillaAfterhourEvents
-            // jackson_discount); `jackson_every` then counts Sundays.
-            bool sunday = D.Raw.Value<bool?>("jackson_sunday") ?? false;
+            // `jackson_sunday` (default on): go on Sundays instead of an arbitrary day — Sunday is rent day and
+            // VanillaAfterhourEvents' jackson_discount day (his prices 10 % off), so a planned visit is also a
+            // discount visit; `jackson_every` then counts Sundays.
+            bool sunday = D.Raw.Value<bool?>("jackson_sunday") ?? true;
             bool due = every > 0 && (sunday ? AfterhourEvents.IsActive("jackson_discount") && (v.Day / 7) % Math.Max(1, every / 7) == 0 : v.Day % every == 6);
             // `jackson_need: N` (gym, with `jackson_equipment`): also go when an engine wants equipment he always or often
             // stocks, at most once in N nights.
             int need = D.Raw.Value<int?>("jackson_need") ?? 0;
             bool needed = need > 0 && v.Day - lastJackson >= need && JacksonEquipment && JacksonStock.Any(id => Production.Wants(id) > 0)
                 || Lab.JacksonNeed is int ln && v.Day - lastJackson >= ln && (Lab.Wants("chem_module") > 0 || Lab.Wants("energy_credit") > 0)
-                || Power.On && v.Day - lastJackson >= 3 && Power.Wants("recharger") > 0;
-            if ((due || needed) && v.Locations.Contains("dr_jackson") && v.Cash > v.RentDue + 800)
+                || Power.On && v.Day - lastJackson >= 3 && Power.Wants("recharger") > 0
+                || BuildOrder.WantsJackson(v.Day)
+                || v.Day - lastJackson >= 3 && Production.CleanKitNeedsJackson();
+            // A kit part Jackson stocks needs buying, but the +800 cushion would skip the visit and slip a
+            // cycle (the reed cure waits a week per slip): still keep the rent itself covered.
+            long cushion = needed && Production.CleanKitNeedsJackson() ? 0 : 800;
+            if ((due || needed) && v.Locations.Contains("dr_jackson") && v.Cash > v.RentDue + cushion)
             {
                 plan.Outing = "dr_jackson";
                 plan.Scavenge = false;
@@ -525,7 +611,13 @@ namespace Fence.Gym
                 bool want = !ev || (id == "INSURANCE_SERVICE" ? v.Day > 3 && PlayerStock.Value() * 0.35 > x.Cost : v.Day % 2 == 0);
                 // `alarm: perfect` (Modules.cs): no insurance on a night the alarm stops every burglary.
                 if (want && id == "INSURANCE_SERVICE" && Modules.SkipInsurance(v.Day, x.Cost)) want = false;
+                // Alert returns before the burglary roll (PlayerStore.HandleInsurance): insurance buys nothing.
+                if (want && id == "INSURANCE_SERVICE" && StartingPerk.IsAlert() && !(D.Raw.Value<bool?>("alert_insurance") ?? false)) want = false;
                 if (want && id == "INSURANCE_SERVICE" && (P?.Cuts("insurance") ?? false)) want = false;
+                // `insurance_every: N` (gym): an insured night resets the burglary count the uninsured nights escalate
+                // (33 + 5n %, PlayerStore.HandleInsurance); insured one night in N, the fee is paid a quarter as often for
+                // a third of the thefts.
+                if (want && id == "INSURANCE_SERVICE" && D.Raw.Value<int?>("insurance_every") is int every && every > 1 && PlayerStore.Instance.dayWithoutInsurance < every - 1) want = false;
                 if (want && v.Cash >= bill + x.Cost) { on.Add(id); bill += x.Cost; }
                 else on.Remove(id);
             }
@@ -556,6 +648,7 @@ namespace Fence.Gym
             order.AddRange(Crops.Upgrades());
             order.AddRange(Production.ReedUpgrades());
             order.AddRange(Arms.Upgrades());
+            order.AddRange(Requests.Upgrades());
             if (Fish.WantsUpgrade("AQUACULTURE_II")) order.Add("AQUACULTURE_II");
             if (D.UpgradesBuy != null) order.AddRange(D.UpgradesBuy);
             else order.AddRange(Engine.Upgrades(v));
@@ -570,6 +663,7 @@ namespace Fence.Gym
                 .Concat(Production.WineOn ? new[] { "WATER_TRADER", "GUTTERFLOW_TAP", "RUSTWATER_TAP" } : new string[0]).ToArray();
             if (D.Raw.Value<bool?>("spend_favor") ?? true) order.AddRange(extras);
             if ((PlayerStore.Instance.secData?.evidenceLevel ?? 0) >= 50) order.Add("EVIDENCE_REMOVAL");
+            if (BuildOrder.On) order.InsertRange(0, BuildOrder.WildIds());
             var picks = new List<string>();
             if (Environment.GetEnvironmentVariable("FENCE_WILD_DEBUG") != null)
                 Console.Error.WriteLine($"wild d{P?.Day} cash={v.Cash} favor={v.Favor} order={string.Join(",", order)} | " + string.Join(" ", v.Upgrades.Where(u => order.Contains(u.Id)).Select(u => $"{u.Id}:{u.Cost}:s{u.State}:b{u.Buyable}:u{u.Unlocked}")));
@@ -579,8 +673,23 @@ namespace Fence.Gym
             foreach (var id in order.Distinct())
             {
                 var u = v.Upgrades.FirstOrDefault(x => x.Id == id);
+                if (id == "VENDING_FOUNTAIN" && fount) Fountain.PendingCost = u.Cost;
                 if (u == null || !u.Buyable || u.Cost > funds) continue;
-                if (id != "LANDLORD_GRACE" && funds - u.Cost < keep && favor < u.Cost) continue;
+                // `build`: the planner's ids are bought as its committed kits' parts, past the engines' own reserves.
+                if (BuildOrder.Manages(id) && BuildOrder.AllowsUpgrade(id, u.Cost, funds, favor) is bool planned)
+                {
+                    if (!planned) continue;
+                    picks.Add(id);
+                    funds -= u.Cost;
+                    favor = Math.Max(0, favor - u.Cost);
+                    continue;
+                }
+                // Skippable when the cash left after paying the cash part (cost minus favor, which the game spends
+                // first and which is good for nothing else) cannot keep the floor. Counting the whole cost against
+                // cash (funds - cost) blocked every favor-only upgrade (the WATER_TRADER and the WINEMAKER sat
+                // unbought at favor 104). An essential is never skipped here: its cash part is judged at 684.
+                bool essential = Essential.Contains(id) || (id == "MINER" && Furnace.WantsMiner) || (id == "PLANT_DNA" && Production.DnaOn);
+                if (id != "LANDLORD_GRACE" && !essential && Math.Max(0, u.Cost - favor) > 0 && funds - Math.Max(0, u.Cost - favor) < keep) continue;
                 if ((id == "VENDING_MACHINE" && vend) || (id == "VENDING_FOUNTAIN" && fount) || Suppliers.Wants(id) || Lab.WantsUpgrade(id) || Crops.WantsUpgrade(id) || Production.WantsReedUpgrade(id) || Arms.WantsUpgrade(id) || Fish.WantsUpgrade(id) || Power.WantsUpgrade(id))
                 {
                     if (Lab.PermitFirst && (Crops.WantsUpgrade(id) || (Power.WantsUpgrade(id) && !Lab.Running))) continue;
@@ -591,11 +700,10 @@ namespace Fence.Gym
                     continue;
                 }
                 if (growth.Contains(id) && D.UpgradesBuy == null && favor < u.Cost && funds - u.Cost < keep + 1500) continue;
-                if (!growth.Contains(id) && extras.Contains(id) && favor < u.Cost && !(D.UpgradesBuy?.Contains(id) ?? false)) continue;
+                if (!growth.Contains(id) && extras.Contains(id) && favor < u.Cost && !(D.UpgradesBuy?.Contains(id) ?? false) && !Requests.Upgrades().Contains(id)) continue;
                 // Cash beyond favor: the engine's essentials pay it; anything else only from a real surplus,
                 // and never more than `upgrades_cash_max` (favor pays first, as the game does).
                 int cash = Math.Max(0, u.Cost - favor);
-                bool essential = Essential.Contains(id) || (id == "MINER" && Furnace.WantsMiner) || (id == "PLANT_DNA" && Production.DnaOn);
                 // `upgrades_cash_max` applies within `upgrades_cash_max_days: [from, to]` when given.
                 bool inWindow = !(D.Raw["upgrades_cash_max_days"] is Newtonsoft.Json.Linq.JArray cw && cw.Count == 2) || ((P?.Day ?? 0) >= (int)cw[0] && (P?.Day ?? 0) <= (int)cw[1]);
                 int cashMax = inWindow ? D.Raw.Value<int?>("upgrades_cash_max") ?? int.MaxValue : int.MaxValue;
@@ -792,7 +900,9 @@ namespace Fence.Gym
             double singleMax = (d.SingleMaxPct ?? (liq ? 70 : restock ? 100 : 85)) / 100.0;
             if (StolenTrade.AllStolen(staged) && StolenTrade.SingleMax is double ssm) singleMax = ssm;
             if (StolenTrade.AllStolen(theirs) && StolenTrade.WholesaleMax is double swm) wsMax = swm;
-            bool inputsOnly = staged.Count > 0 && staged.All(i => Production.IsInput(i.Value<string>("id")));
+            // Water counts as an engine input only while the cellar wants it (WantsWaterId); a water route
+            // holding stock without a winemaker prices it by the normal caps, not the input floor.
+            bool inputsOnly = staged.Count > 0 && staged.All(i => { string sid = i.Value<string>("id"); return Production.IsInput(sid) && (Production.WaterIds(sid) ? Production.WantsWaterId(sid) : true); });
             // The plan's preferred types (an announced shortage, a persona's line) are bought up to their estimate.
             // Types buyers asked for this week and found nothing of (H16, stock breadth): restock them at
             // their estimate (they sell at the retail markup) while the shelf holds fewer than two.
@@ -813,9 +923,19 @@ namespace Fence.Gym
                 why = "stock over the plan's cap";
                 return Has(req, "dismiss") ? "dismiss" : null;
             }
-            int free = PlayerStock.FreeCells();
-            int cells = staged.Sum(i => PlayerStock.CellsOf(i.Value<int?>("uid") ?? -1));
-            int cellsAll = theirs.Sum(i => PlayerStock.CellsOf(i.Value<int?>("uid") ?? -1));
+            // The room check places the lot's shapes in the stock grid (CounterFit, the game's slot-search
+            // fit) instead of comparing free-area counts: a 2 x 2 does not fit two separate free cells, and a
+            // lot of wide items needs contiguous runs. The floor the placement leaves behind is a plan's explicit
+            // `min_free_cells` (no default: the old area check had none — the 36 in Liquidating is a different
+            // decision), and D11's `stock_reserve_cells` (live) trims it for the gaps shapes leave.
+            int margin = (Directives.Current.Raw.Value<int?>("min_free_cells") ?? 0) - (d.Raw.Value<int?>("stock_reserve_cells") ?? 0);
+            var grid = EmporiumEntry.Instance.invElement;
+            // The lot sits on the counters, not in stock yet: shapes come from OnCounter (the transaction
+            // inventories), the placement runs against the stock grid.
+            List<CounterFit.Shape> stagedShapes = staged.Select(i => CounterFit.Shape.Of(PlayerStock.OnCounter(i.Value<int?>("uid") ?? -1)?.modifiedShape)).ToList();
+            List<CounterFit.Shape> lotShapes = theirs.Select(i => CounterFit.Shape.Of(PlayerStock.OnCounter(i.Value<int?>("uid") ?? -1)?.modifiedShape)).ToList();
+            bool stagedFits = CounterFit.Fits(grid, stagedShapes, margin);
+            bool lotFits = CounterFit.Fits(grid, lotShapes, margin);
             bool Afford(double cost) => cash - cost >= floor && cost <= spendLeft;
             if (p?.SpendDownTo is int sdt && cash > sdt)
             {
@@ -836,9 +956,11 @@ namespace Fence.Gym
                 return cash - cost + PlayerStock.Value() * 0.7 >= pst.mortgageWeeklyPayment;
             }
             // Engine inputs are bought near their estimate: a bottle turns 12 into 85-175 of wine.
-            if (inputsOnly && (cells <= free || Lab.CanMakeRoom(staged.Select(i => i.Value<string>("id")), cells)) && stagedOk)
+            if (inputsOnly && (stagedFits || Lab.CanMakeRoom(staged.Select(i => i.Value<string>("id")), staged.Sum(i => PlayerStock.CellsOf(i.Value<int?>("uid") ?? -1)))) && stagedOk)
             {
-                if (wholesale.HasValue && lotOk && Has(req, "accept_wholesale") && AffordInput(wholesale.Value) && staged.Count == theirs.Count)
+                // The lot is worth taking whole only at a wholesale price (the ~85 % of the generic path): a lot
+                // at or above the estimate is cheaper as the staged singles (1.3 x est) than as the lot.
+                if (wholesale.HasValue && lotOk && Has(req, "accept_wholesale") && wholesale.Value <= estAll * wsMax && AffordInput(wholesale.Value) && staged.Count == theirs.Count)
                 {
                     why = $"engine inputs, wholesale {wholesale}";
                     return "accept_wholesale";
@@ -849,8 +971,8 @@ namespace Fence.Gym
                     return "buy_all";
                 }
             }
-            bool wsOk = lotOk && wholesale.HasValue && Has(req, "accept_wholesale") && wholesale.Value <= estAll * wsMax && Afford(wholesale.Value) && cellsAll <= free;
-            bool buyOk = stagedOk && Has(req, "buy_all") && price <= est * singleMax && Afford(price) && cells <= free;
+            bool wsOk = lotOk && wholesale.HasValue && Has(req, "accept_wholesale") && wholesale.Value <= estAll * wsMax && Afford(wholesale.Value) && lotFits;
+            bool buyOk = stagedOk && Has(req, "buy_all") && price <= est * singleMax && Afford(price) && stagedFits;
             // Trading styles (Style): a specialist buys a lot only when its types carry it, a wholesale flipper never
             // buys single items.
             if (!inputsOnly && Style.SpecialtyTypes != null)
@@ -867,8 +989,8 @@ namespace Fence.Gym
             {
                 long reserve = d.Raw.Value<long?>("short_rent_reserve") ?? 0;
                 bool Short(long cost, long value) => cost <= value * srPct / 100 && cash - cost >= reserve && cost <= spendLeft;
-                wsOk = lotOk && wholesale.HasValue && Has(req, "accept_wholesale") && Short(wholesale.Value, estAll) && cellsAll <= free;
-                buyOk = stagedOk && Has(req, "buy_all") && Short(price, est) && cells <= free;
+                wsOk = lotOk && wholesale.HasValue && Has(req, "accept_wholesale") && Short(wholesale.Value, estAll) && lotFits;
+                buyOk = stagedOk && Has(req, "buy_all") && Short(price, est) && stagedFits;
             }
 
             // Demanding a discount from a seller risks a walk-out (-3 rep): only under ev_positive/aggressive, or the
@@ -876,7 +998,7 @@ namespace Fence.Gym
             string mode = StolenTrade.BargainBuy(c["client"]?.Value<string>("faction"), d.Raw.Value<string>("bargain_buy") ?? d.Bargain ?? "ev_positive");
             // A demanded discount is a bad bargain for the rep; near -20 Lower Levels (Poor Reviews: a daily
             // customer lost) stop demanding from their sellers.
-            double llRep = c["reputation"]?["lower_levels"]?.Value<double?>("value") ?? 0;
+            double llRep = c["client"]?.Value<string>("faction") == "lower_levels" ? (c["reputation"]?["lower_levels"]?.Value<double?>("value") ?? 0) : 0;
             bool hardRules = PlayerStore.Instance.difficultyId == "hard" || PlayerStore.Instance.difficultyId == "challenge";
             if (c["client"]?.Value<string>("faction") == "lower_levels" && llRep <= (d.Raw.Value<double?>("ll_rep_guard") ?? (hardRules ? 0 : -12))) mode = "never";
             if (Has(req, "blackmail") && StolenTrade.Blackmails(c, staged, Odds(req, "blackmail").accept))
@@ -895,8 +1017,8 @@ namespace Fence.Gym
                     if (!Has(req, id)) continue;
                     var (s, w) = Odds(req, id);
                     double f = 1 - n / 100.0;
-                    double gs = Math.Max(0, Math.Max(stagedOk && Has(req, "buy_all") && cells <= free && price * f <= est * singleMax && Afford(price * f) ? est - price * f : 0,
-                        lotOk && wholesale.HasValue && cellsAll <= free && wholesale.Value * f <= estAll * wsMax && Afford(wholesale.Value * f) ? estAll - wholesale.Value * f : 0));
+                    double gs = Math.Max(0, Math.Max(stagedOk && Has(req, "buy_all") && stagedFits && price * f <= est * singleMax && Afford(price * f) ? est - price * f : 0,
+                        lotOk && wholesale.HasValue && lotFits && wholesale.Value * f <= estAll * wsMax && Afford(wholesale.Value * f) ? estAll - wholesale.Value * f : 0));
                     // A walk-out costs 3 rep; count it as a few credits of future trade.
                     double v = s * gs + (1 - s - w) * g0 - w * 15;
                     if (mode == "aggressive" && n == 25) v = double.MaxValue / 4;

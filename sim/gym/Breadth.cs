@@ -103,7 +103,7 @@ namespace Fence.Gym
 
         public static void Reset() => Stored = 0;
 
-        public static bool On => Directives.Current.Raw.Value<bool?>("storage_bays") ?? false;
+        public static bool On => Directives.Current.Raw.Value<bool?>("storage_bays") ?? BuildOrder.StorageOn;
 
         public static bool IsBay(GameItem i) => (i.identifier ?? "").StartsWith("storage_bay", StringComparison.Ordinal) && i.contentWindow != null;
 

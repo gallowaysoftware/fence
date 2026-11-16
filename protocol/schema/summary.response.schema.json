@@ -30,6 +30,10 @@
     "plan": {"type": "string", "maxLength": 2048, "description": "The strategist's plan for the day; absent when there is none."},
     "plan_day": {"type": "integer", "minimum": 0, "description": "The day the plan was written for; absent when there is no plan."},
     "directives": {"$ref": "directives.schema.json", "description": "The plan as machine-readable directives for an executor; absent when there is no plan."},
+    "base_directives": {
+      "type": "string",
+      "description": "The bridge's base directives document (the route's directives or -base-directives) as JSON text: the executor's baseline under the day plan; absent when the bridge has none."
+    },
     "bet": {
       "type": "object",
       "description": "What the plan did to the run's bet (docs/PROTOCOL.md, Bets); absent when it did nothing.",
